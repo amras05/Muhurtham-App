@@ -427,13 +427,13 @@
       <label for="dateInput" data-en="Date" data-te="తేదీ">Date</label>
       <input type="date" id="dateInput">
     </div>
-    <button id="goButton" data-en="Get Panchang" data-te="పంచาంగం చూడండి" style="flex: 0 0 100%; margin-top: 10px;">Get Panchang</button>
+    <button id="goButton" data-en="Get Panchang" data-te="పంచాంగం చూడండి" style="flex: 0 0 100%; margin-top: 10px;">Get Panchang</button>
 
     <div id="customPlaceField" style="display:none; flex: 0 0 100%; margin-top: 14px; border-top: 1px dashed var(--line); padding-top: 14px; width: 100%;">
       <label for="customPlaceInput" style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a7f68; margin-bottom: 6px;" data-en="Search Place (e.g. London, Kakinada)" data-te="ప్రాంతం పేరు (ఉదా: లండన్, కాకినాడ)">Search Place</label>
       <div style="display:flex; gap: 8px; position: relative;">
         <input type="text" id="customPlaceInput" placeholder="Enter place name..." autocomplete="off" style="flex: 1; padding: 9px 10px; font-size: 15px; border: 1px solid var(--line); border-radius: 6px; background: var(--card-bg); color: var(--ink);">
-        <button id="searchPlaceButton" style="width:auto; padding: 0 20px; background:var(--marigold); color:#white; font-weight:600; border:none; border-radius:6px; cursor:pointer;" data-en="Search & Go" data-te="వెతకండి">Search & Go</button>
+        <button id="searchPlaceButton" style="width:auto; padding: 0 20px; background:var(--marigold); color:white; font-weight:600; border:none; border-radius:6px; cursor:pointer;" data-en="Search & Go" data-te="వెతకండి">Search & Go</button>
         <div id="suggestionsList" class="suggestions-container" style="display:none; position:absolute; top: 100%; left:0; right: 120px; width: calc(100% - 130px);"></div>
       </div>
     </div>
@@ -533,10 +533,10 @@
         <div class="value small" id="nbirthDetails" style="font-weight: 500; font-size: 14px; color: #6b6152;">—</div>
       </div>
 
-      <!-- D9 Navamsha Chart Card -->
+      <!-- D1 Birth Chart Card -->
       <div class="card" style="border-color: var(--maroon); margin-bottom: 18px;">
-        <div class="label" data-en="Navamsha (D9) Chart" data-te="నవాంశ (D9) చక్రం" style="margin-bottom: 10px;">Navamsha (D9) Chart</div>
-        <div id="d9ChartContainer"></div>
+        <div class="label" data-en="Birth (D1) Chart" data-te="జన్మ (D1) చక్రం" style="margin-bottom: 10px;">Birth (D1) Chart</div>
+        <div id="d1ChartContainer"></div>
       </div>
 
       <!-- Candidates list -->
@@ -1035,37 +1035,37 @@ function renderNamakarana(data) {
     `Born at: ${data.birth_details.tob} · Place: ${data.birth_details.place}`;
   el("nbirthDetails").textContent = bdtText;
 
-  // Render D9 Chart
+  // Render D1 Chart
   const rasiPlanets = {};
   for (let i = 0; i < 12; i++) {
     rasiPlanets[i] = [];
   }
   
-  if (data.birth_details.d9_chart && data.birth_details.d9_chart.length > 0) {
-    data.birth_details.d9_chart.forEach(item => {
+  if (data.birth_details.d1_chart && data.birth_details.d1_chart.length > 0) {
+    data.birth_details.d1_chart.forEach(item => {
       const pAbbr = PLANET_ABBRS[currentLang][item.planet] || item.planet;
       rasiPlanets[item.rasi_index].push(pAbbr);
     });
   }
 
-  let d9Html = `<div class="south-chart">`;
-  const centerTitle = currentLang === "te" ? "నవాంశ (D9)<br>చక్రం" : "NAVAMSHA (D9)<br>CHART";
-  d9Html += `<div class="chart-center">${centerTitle}</div>`;
+  let d1Html = `<div class="south-chart">`;
+  const centerTitle = currentLang === "te" ? "జన్మ (D1)<br>చక్రం" : "BIRTH (D1)<br>CHART";
+  d1Html += `<div class="chart-center">${centerTitle}</div>`;
   
   for (let rasiIdx = 0; rasiIdx < 12; rasiIdx++) {
     const pos = CHART_GRID_POSITIONS[rasiIdx];
     const rasiName = D9_RASI_LABELS[currentLang][rasiIdx];
     const pList = rasiPlanets[rasiIdx].join(", ");
     
-    d9Html += `
+    d1Html += `
       <div class="chart-cell" style="grid-row: ${pos.row}; grid-column: ${pos.col};">
         <div class="rasi-label">${rasiName}</div>
         <div class="planets-list">${pList || "—"}</div>
       </div>
     `;
   }
-  d9Html += `</div>`;
-  el("d9ChartContainer").innerHTML = d9Html;
+  d1Html += `</div>`;
+  el("d1ChartContainer").innerHTML = d1Html;
 
   // Candidates
   const listDiv = el("namakaranaList");

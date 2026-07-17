@@ -1,6 +1,15 @@
+# pyrefly: ignore [missing-import]
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI, HTTPException, Query
+# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import date, datetime, timedelta
+# pyrefly: ignore [missing-import]
+import swisseph as swe
+# pyrefly: ignore [missing-import]
+from jhora.panchanga.drik import Place as JHoraPlace
+# pyrefly: ignore [missing-import]
+from jhora.horoscope.chart import charts
 
 from .panchang import compute_day_panchang
 from .rules_engine import evaluate, list_activities, find_next_favorable, get_activity
@@ -186,28 +195,24 @@ def namakarana_finder(
     birth_nak_name = birth_panchang["nakshatra"]["name"]
     birth_nak_pada = birth_panchang["nakshatra"]["pada"]
 
-    # Calculate D9 divisional chart for birth
-    from jhora.horoscope.chart import charts
-    from jhora.panchanga.drik import Place as JHoraPlace
-    import swisseph as swe
-    
-    d9_positions = []
+    # Calculate D1 (Rasi) chart for birth
+    d1_positions = []
     try:
         birth_place_obj = JHoraPlace(place_name, lat, lon, tz_offset)
-        jd_ut_mid = swe.julday(birth_date.year, birth_date.month, birth_date.day, 0.0)
-        ut_hour = (h + m/60.0) - tz_offset
-        birth_jd = jd_ut_mid + ut_hour / 24.0
+        # PyJHora expects JD in LOCAL time — it subtracts tz internally
+        local_hour = h + m / 60.0
+        birth_jd = swe.julday(birth_date.year, birth_date.month, birth_date.day, local_hour)
         
-        raw_d9 = charts.divisional_chart(birth_jd, birth_place_obj, divisional_chart_factor=9)
-        for item in raw_d9:
+        raw_d1 = charts.divisional_chart(birth_jd, birth_place_obj, divisional_chart_factor=1)
+        for item in raw_d1:
             p_id = item[0]
             rasi_idx = item[1][0]
-            d9_positions.append({
+            d1_positions.append({
                 "planet": str(p_id),
                 "rasi_index": int(rasi_idx)
             })
     except Exception as ex:
-        print("D9 chart calculation error:", ex)
+        print("D1 chart calculation error:", ex)
 
     # Candidate day offsets from birth day (Day 1 is birth date, so Day 11 is +10 days)
     offsets = {
@@ -304,7 +309,7 @@ def namakarana_finder(
             "place": place_name,
             "janma_nakshatra": birth_nak_name,
             "janma_nakshatra_pada": birth_nak_pada,
-            "d9_chart": d9_positions
+            "d1_chart": d1_positions
         },
         "candidates": candidates_list
     }
