@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panchangam · Drik Lookup</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Telugu:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ivory: #f6f0e2;
+    --ink: #2b241a;
+    --maroon: #7a1f2b;
+    --marigold: #c8842a;
+    --line: #d8cbaa;
+    --good: #3f6b3f;
+    --bad: #7a1f2b;
+    --card-bg: #fffdf7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ivory);
+    color: var(--ink);
+    font-family: Inter, "Noto Sans Telugu", "Palatino Linotype", Georgia, serif;
+    padding: 32px 16px 80px;
+  }
+  .wrap { max-width: 660px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 28px; }
+  header .eyebrow {
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: var(--marigold);
+    margin-bottom: 6px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--maroon);
+    font-family: "Noto Sans Telugu", Georgia, serif;
+  }
+  header p {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: #6b6152;
+  }
+
+  /* Language toggle */
+  .lang-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    margin: 12px auto 20px;
+    width: fit-content;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .lang-btn {
+    padding: 6px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: var(--card-bg);
+    color: #6b6152;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .lang-btn.active {
+    background: var(--maroon);
+    color: #fff;
+  }
+  .lang-btn:hover:not(.active) { background: #efe6d0; }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    flex-wrap: wrap;
+  }
+  .field { flex: 1; min-width: 150px; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8a7f68;
+    margin-bottom: 4px;
+  }
+  select, input[type="date"] {
+    width: 100%;
+    padding: 9px 10px;
+    font-size: 15px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+  }
+  button#goButton {
+    align-self: flex-end;
+    background: var(--maroon);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+  }
+  button#goButton:hover { background: #5e1620; }
+  button#goButton:disabled { opacity: 0.5; cursor: default; }
+
+  .status { text-align: center; margin-top: 18px; font-size: 13px; color: #8a7f68; }
+  .status.error { color: var(--bad); }
+
+  .samvatsara {
+    text-align: center;
+    margin-top: 24px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--card-bg);
+  }
+  .samvatsara .name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--maroon);
+  }
+  .samvatsara .sub {
+    font-size: 13px;
+    color: #6b6152;
+    margin-top: 4px;
+  }
+  .samvatsara .adhika {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 11px;
+    background: #fbe9c9;
+    color: #8a5a12;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .grid {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow: hidden;
+  }
+  .card .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #a08d63;
+    margin-bottom: 4px;
+  }
+  .card .value {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .card .value.small { font-size: 14px; font-weight: 500; }
+  .card .value.sub-time {
+    font-size: 11px;
+    color: #8a7f68;
+    font-weight: 400;
+    margin-top: 4px;
+    word-break: break-word;
+    line-height: 1.5;
+  }
+
+  .kaala-section { margin-top: 20px; }
+  .kaala-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--marigold);
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 6px;
+  }
+  .kaala-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--line);
+    font-size: 14px;
+    gap: 8px;
+  }
+  .kaala-row:last-child { border-bottom: none; }
+  .kaala-row .kname { color: #6b6152; white-space: nowrap; }
+  .kaala-row .ktime { font-weight: 600; color: var(--maroon); text-align: right; word-break: break-word; }
+
+  footer {
+    text-align: center;
+    margin-top: 32px;
+    font-size: 11px;
+    color: #a8987a;
+  }
+  footer code {
+    background: #efe6d0;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  /* Activity Listings styling */
+  .activity-item {
+    padding: 12px;
+    background: #fbf9f4;
+    border-radius: 8px;
+    border-left: 4px solid var(--marigold);
+    margin-bottom: 8px;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border: 1px solid var(--line);
+  }
+  .activity-item.favorable {
+    border-left-color: #2e7d32;
+    background: #f1f8e9;
+    border-color: #c5e1a5;
+  }
+  .activity-item.avoid {
+    border-left-color: #c62828;
+    background: #ffebee;
+    border-color: #ffcdd2;
+  }
+  .activity-item.mixed {
+    border-left-color: #ef6c00;
+    background: #fff3e0;
+    border-color: #ffe0b2;
+  }
+  .activity-name {
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .activity-verdict-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .activity-verdict-badge.favorable { background: #2e7d32; }
+  .activity-verdict-badge.avoid { background: #c62828; }
+  .activity-verdict-badge.mixed { background: #ef6c00; }
+  .activity-reasons {
+    font-size: 12px;
+    color: #555;
+    padding-left: 16px;
+    margin: 4px 0 0 0;
+  }
+  .activity-reasons li {
+    margin-bottom: 2px;
+  }
+
+  /* Suggestions autocomplete box */
+  .suggestions-container {
+    position: absolute;
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .suggestion-item {
+    padding: 10px 12px;
+    font-size: 13.5px;
+    cursor: pointer;
+    border-bottom: 1px solid #f6f0e2;
+    color: var(--ink);
+    text-align: left;
+    transition: background 0.15s;
+  }
+  .suggestion-item:hover {
+    background: #efe6d0;
+  }
+  .suggestion-item:last-child {
+    border-bottom: none;
+  }
+
+  /* Tabs CSS */
+  .tab-container {
+    display: flex;
+    border-bottom: 2.5px solid var(--line);
+    margin: 12px 0 24px;
+    gap: 8px;
+  }
+  .tab-item {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #6b6152;
+    cursor: pointer;
+    background: none;
+    border: none;
+    border-bottom: 3.5px solid transparent;
+    margin-bottom: -3px;
+    transition: all 0.2s;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .tab-item.active {
+    color: var(--maroon);
+    border-bottom-color: var(--maroon);
+  }
+  .tab-item:hover:not(.active) {
+    color: var(--marigold);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow" data-en="Drik Panchangam" data-te="దృక్ పంచాంగం">Drik Panchangam</div>
+    <h1>పంచాంగం</h1>
+    <p data-en="Drik panchang (Lahiri ayanamsa) — by date and region, via PyJHora"
+       data-te="దృక్ పంచాంగం (లాహిరి అయనాంశ) — తేదీ మరియు ప్రాంతం ఆధారంగా">Drik panchang (Lahiri ayanamsa) — by date and region, via PyJHora</p>
+  </header>
+
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
+    <button class="lang-btn" id="langTe" onclick="setLang('te')">తెలుగు</button>
+  </div>
+
+  <div class="tab-container">
+    <button class="tab-item active" id="tabPanchangBtn" onclick="switchTab('panchang')" data-en="Panchangam Lookup" data-te="పంచాంగము">Panchangam Lookup</button>
+    <button class="tab-item" id="tabNamakaranaBtn" onclick="switchTab('namakarana')" data-en="Namakarana Finder" data-te="నామకరణ ముహూర్తం">Namakarana Finder</button>
+  </div>
+
+  <div id="tabPanchangContent">
+    <div class="controls">
+    <div class="field" style="flex: 1; min-width: 200px;">
+      <label for="regionSelect" data-en="Region" data-te="ప్రాంతం">Region</label>
+      <select id="regionSelect"></select>
+    </div>
+    <div class="field" style="flex: 1; min-width: 150px;">
+      <label for="dateInput" data-en="Date" data-te="తేదీ">Date</label>
+      <input type="date" id="dateInput">
+    </div>
+    <button id="goButton" data-en="Get Panchang" data-te="పంచาంగం చూడండి" style="flex: 0 0 100%; margin-top: 10px;">Get Panchang</button>
+
+    <div id="customPlaceField" style="display:none; flex: 0 0 100%; margin-top: 14px; border-top: 1px dashed var(--line); padding-top: 14px; width: 100%;">
+      <label for="customPlaceInput" style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a7f68; margin-bottom: 6px;" data-en="Search Place (e.g. London, Kakinada)" data-te="ప్రాంతం పేరు (ఉదా: లండన్, కాకినాడ)">Search Place</label>
+      <div style="display:flex; gap: 8px; position: relative;">
+        <input type="text" id="customPlaceInput" placeholder="Enter place name..." autocomplete="off" style="flex: 1; padding: 9px 10px; font-size: 15px; border: 1px solid var(--line); border-radius: 6px; background: var(--card-bg); color: var(--ink);">
+        <button id="searchPlaceButton" style="width:auto; padding: 0 20px; background:var(--marigold); color:#white; font-weight:600; border:none; border-radius:6px; cursor:pointer;" data-en="Search & Go" data-te="వెతకండి">Search & Go</button>
+        <div id="suggestionsList" class="suggestions-container" style="display:none; position:absolute; top: 100%; left:0; right: 120px; width: calc(100% - 130px);"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div id="results" style="display:none;">
+    <div class="samvatsara">
+      <div class="name" id="samvatsaraName">—</div>
+      <div class="sub" id="chandraMonth">—</div>
+      <span class="adhika" id="adhikaBadge" style="display:none;">Adhika Masa</span>
+    </div>
+
+    <div class="grid">
+      <div class="card"><div class="label" data-en="Vaara" data-te="వారం">Vaara</div><div class="value" id="vVaara">—</div></div>
+      <div class="card"><div class="label" data-en="Tithi" data-te="తిథి">Tithi</div><div class="value small" id="vTithi">—</div>
+        <div class="value small sub-time" id="vTithiEnd">—</div></div>
+      <div class="card" style="grid-column: 1 / -1; border-color: var(--marigold);">
+        <div class="label" data-en="Nakshatra" data-te="నక్షత్రం">Nakshatra</div>
+        <div class="value small" id="vNakshatra">—</div>
+        <div class="value small sub-time" id="vNakshatraEnd">—</div>
+        <div id="vNakshatraPadas" style="margin-top:10px; font-size:12px; border-top: 1px dashed var(--line); padding-top:8px;"></div>
+      </div>
+      <div class="card"><div class="label" data-en="Yoga" data-te="యోగం">Yoga</div><div class="value small" id="vYoga">—</div>
+        <div class="value small sub-time" id="vYogaEnd">—</div></div>
+      <div class="card"><div class="label" data-en="Karana" data-te="కరణం">Karana</div><div class="value small" id="vKarana">—</div>
+        <div class="value small sub-time" id="vKaranaEnd">—</div></div>
+      <div class="card"><div class="label" data-en="Lagna Rasi" data-te="లగ్న రాశి">Lagna Rasi</div><div class="value" id="vLagna">—</div></div>
+      <div class="card"><div class="label" data-en="Sunrise" data-te="సూర్యోదయం">Sunrise</div><div class="value" id="vSunrise">—</div></div>
+      <div class="card"><div class="label" data-en="Sunset" data-te="సూర్యాస్తమయం">Sunset</div><div class="value" id="vSunset">—</div></div>
+    </div>
+
+    <div class="kaala-section">
+      <div class="kaala-title" data-en="Inauspicious Windows" data-te="అశుభ సమయాలు">Inauspicious Windows</div>
+      <div class="kaala-row"><span class="kname" data-en="Rahu Kalam" data-te="రాహు కాలం">Rahu Kalam</span><span class="ktime" id="vRahu">—</span></div>
+      <div class="kaala-row"><span class="kname" data-en="Yamagandam" data-te="యమగండం">Yamagandam</span><span class="ktime" id="vYamagandam">—</span></div>
+      <div class="kaala-row"><span class="kname" data-en="Gulika Kalam" data-te="గుళిక కాలం">Gulika Kalam</span><span class="ktime" id="vGulika">—</span></div>
+      <div class="kaala-row"><span class="kname" data-en="Durmuhurtam" data-te="దుర్ముహూర్తం">Durmuhurtam</span><span class="ktime" id="vDurmuhurtam">—</span></div>
+      <div class="kaala-row"><span class="kname" data-en="Varjyam" data-te="వర్జ్యం">Varjyam</span><span class="ktime" id="vVarjyam">—</span></div>
+    </div>
+
+    <div class="kaala-section">
+      <div class="kaala-title" data-en="Auspicious Windows" data-te="శుభ సమయాలు">Auspicious Windows</div>
+      <div class="kaala-row"><span class="kname" data-en="Abhijit Muhurta" data-te="అభిజిత్ ముహూర్తం">Abhijit Muhurta</span><span class="ktime" id="vAbhijit">—</span></div>
+      <div class="kaala-row"><span class="kname" data-en="Brahma Muhurta" data-te="బ్రహ్మ ముహూర్తం">Brahma Muhurta</span><span class="ktime" id="vBrahma">—</span></div>
+      <div class="kaala-row"><span class="kname" data-en="Godhuli Muhurta" data-te="గోధూళి ముహూర్తం">Godhuli Muhurta</span><span class="ktime" id="vGodhuli">—</span></div>
+      <div class="kaala-row"><span class="kname" data-en="Amrit Kalam" data-te="అమృత కాలం">Amrit Kalam</span><span class="ktime" id="vAmrit">—</span></div>
+    </div>
+
+    <div class="kaala-section">
+      <div class="kaala-title" data-en="Favorable Muhurtas" data-te="అనుకూలమైన ముహూర్తములు">Favorable Muhurtas</div>
+      <div id="vFavorableActivities" style="margin-top: 10px;"></div>
+    </div>
+
+    <div class="kaala-section">
+      <div class="kaala-title" data-en="Activities to Avoid" data-te="నిషిద్ధ సమయాలు / పనులు">Activities to Avoid</div>
+      <div id="vAvoidActivities" style="margin-top: 10px;"></div>
+    </div>
+  </div> <!-- results ends -->
+</div> <!-- tabPanchangContent ends -->
+
+  <!-- tabNamakaranaContent starts -->
+  <div id="tabNamakaranaContent" style="display:none;">
+    <div class="controls">
+      <div class="field" style="flex: 1; min-width: 140px;">
+        <label for="birthDateInput" data-en="Date of Birth" data-te="పుట్టిన తేదీ">Date of Birth</label>
+        <input type="date" id="birthDateInput" style="width:100%; padding:9px 10px; font-size:15px; border:1px solid var(--line); border-radius:6px; background:var(--card-bg); color:var(--ink);">
+      </div>
+      <div class="field" style="flex: 1; min-width: 100px;">
+        <label for="birthTimeInput" data-en="Time of Birth" data-te="పుట్టిన సమయం">Time of Birth</label>
+        <input type="time" id="birthTimeInput" value="12:00" style="width:100%; padding:9px 10px; font-size:15px; border:1px solid var(--line); border-radius:6px; background:var(--card-bg); color:var(--ink);">
+      </div>
+      <div class="field" style="flex: 1; min-width: 180px;">
+        <label for="birthRegionSelect" data-en="Place of Birth" data-te="పుట్టిన ప్రాంతం">Place of Birth</label>
+        <select id="birthRegionSelect" style="width:100%; padding:9px 10px; font-size:15px; border:1px solid var(--line); border-radius:6px; background:var(--card-bg); color:var(--ink);"></select>
+      </div>
+      <button id="findMuhurtaButton" data-en="Find Best Muhurtas" data-te="ముహూర్తాలు లెక్కించండి" style="flex: 0 0 100%; margin-top: 10px;">Find Best Muhurtas</button>
+
+      <div id="birthCustomPlaceField" style="display:none; flex: 0 0 100%; margin-top: 14px; border-top: 1px dashed var(--line); padding-top: 14px; width: 100%;">
+        <label for="birthCustomPlaceInput" style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a7f68; margin-bottom: 6px;" data-en="Search Birth Place (e.g. London, Kakinada)" data-te="పుట్టిన ప్రాంతం పేరు (ఉదా: లండన్, కాకినాడ)">Search Birth Place</label>
+        <div style="display:flex; gap: 8px; position: relative;">
+          <input type="text" id="birthCustomPlaceInput" placeholder="Enter place name..." autocomplete="off" style="flex: 1; padding: 9px 10px; font-size: 15px; border: 1px solid var(--line); border-radius: 6px; background: var(--card-bg); color: var(--ink);">
+          <button id="birthSearchPlaceButton" style="width:auto; padding: 0 20px; background:var(--marigold); color:white; font-weight:600; border:none; border-radius:6px; cursor:pointer;" data-en="Search & Go" data-te="వెతకండి">Search & Go</button>
+          <div id="birthSuggestionsList" class="suggestions-container" style="display:none; position:absolute; top: 100%; left:0; right: 120px; width: calc(100% - 130px);"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status" id="namakaranaStatus"></div>
+
+    <div id="namakaranaResults" style="display: none; margin-top: 20px;">
+      <!-- Birth Details Card -->
+      <div class="card" style="border-color: var(--marigold); margin-bottom: 18px;">
+        <div class="label" data-en="Birth Details & Janma Nakshatra" data-te="జన్మ నక్షత్ర వివరాలు">Birth Details & Janma Nakshatra</div>
+        <div class="value" id="nbirthStar" style="color: var(--maroon); font-size: 20px; margin-bottom: 4px;">—</div>
+        <div class="value small" id="nbirthDetails" style="font-weight: 500; font-size: 14px; color: #6b6152;">—</div>
+      </div>
+
+      <!-- Candidates list -->
+      <div class="kaala-section">
+        <div class="kaala-title" data-en="Auspicious Naming Muhurtas (Days 11, 12, 16, 20, 22)" data-te="శుభ నామకరణ ముహూర్తములు (11, 12, 16, 20, 22 రోజులు)">Auspicious Naming Muhurtas (Days 11, 12, 16, 20, 22)</div>
+        <div id="namakaranaList" style="margin-top: 12px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Backend: <code id="apiBaseLabel"></code> — edit <code>API_BASE</code> in this file if it's hosted elsewhere.
+  </footer>
+</div>
+
+<script>
+const API_BASE = "http://localhost:8000";
+
+const el = (id) => document.getElementById(id);
+el("apiBaseLabel").textContent = API_BASE;
+
+// ---- Language system ----
+let currentLang = "en";
+
+const RASI_NAMES = {
+  en: ["Mesha","Vrishabha","Mithuna","Karkataka","Simha","Kanya",
+       "Tula","Vrishchika","Dhanus","Makara","Kumbha","Meena"],
+  te: ["మేషం","వృషభం","మిథునం","కర్కాటకం","సింహం","కన్య",
+       "తుల","వృశ్చికం","ధనుస్సు","మకరం","కుంభం","మీనం"]
+};
+
+const VAARA_NAMES = {
+  en: { Sunday:"Sunday", Monday:"Monday", Tuesday:"Tuesday", Wednesday:"Wednesday",
+        Thursday:"Thursday", Friday:"Friday", Saturday:"Saturday" },
+  te: { Sunday:"ఆదివారం", Monday:"సోమవారం", Tuesday:"మంగళవారం", Wednesday:"బుధవారం",
+        Thursday:"గురువారం", Friday:"శుక్రవారం", Saturday:"శనివారం" }
+};
+
+const PAKSHA_NAMES = {
+  en: { Shukla:"Shukla", Krishna:"Krishna", shukla:"Shukla", krishna:"Krishna" },
+  te: { Shukla:"శుక్ల", Krishna:"కృష్ణ", shukla:"శుక్ల", krishna:"కృష్ణ" }
+};
+
+const NAKSHATRA_NAMES_TE = {
+  "Ashwini":"అశ్విని", "Bharani":"భరణి", "Krittika":"కృత్తిక",
+  "Rohini":"రోహిణి", "Mrigashira":"మృగశిర", "Ardra":"ఆర్ద్ర",
+  "Punarvasu":"పునర్వసు", "Pushya":"పుష్యమి", "Ashlesha":"ఆశ్లేష",
+  "Magha":"మఖ", "Purva Phalguni":"పూర్వ ఫల్గుణి", "Uttara Phalguni":"ఉత్తర ఫల్గుణి",
+  "Hasta":"హస్త", "Chitra":"చిత్త", "Swati":"స్వాతి",
+  "Vishakha":"విశాఖ", "Anuradha":"అనురాధ", "Jyeshtha":"జ్యేష్ఠ",
+  "Mula":"మూల", "Purva Ashadha":"పూర్వాషాఢ", "Uttara Ashadha":"ఉత్తరాషాఢ",
+  "Shravana":"శ్రవణం", "Dhanishtha":"ధనిష్ఠ", "Shatabhisha":"శతభిషం",
+  "Purva Bhadrapada":"పూర్వాభాద్ర", "Uttara Bhadrapada":"ఉత్తరాభాద్ర", "Revati":"రేవతి"
+};
+
+const TITHI_NAMES_TE = {
+  "Prathama":"పాడ్యమి", "Dwitiya":"విదియ", "Tritiya":"తదియ",
+  "Chaturthi":"చవితి", "Panchami":"పంచమి", "Shashti":"షష్ఠి",
+  "Saptami":"సప్తమి", "Ashtami":"అష్టమి", "Navami":"నవమి",
+  "Dashami":"దశమి", "Ekadashi":"ఏకాదశి", "Dwadashi":"ద్వాదశి",
+  "Trayodashi":"త్రయోదశి", "Chaturdashi":"చతుర్దశి",
+  "Purnima":"పూర్ణిమ", "Amavasya":"అమావాస్య"
+};
+
+const YOGA_NAMES_TE = {
+  "Vishkambha":"విష్కంభ", "Priti":"ప్రీతి", "Ayushman":"ఆయుష్మాన్",
+  "Saubhagya":"సౌభాగ్య", "Shobhana":"శోభన", "Atiganda":"అతిగండ",
+  "Sukarma":"సుకర్మ", "Dhriti":"ధృతి", "Shula":"శూల",
+  "Ganda":"గండ", "Vriddhi":"వృద్ధి", "Dhruva":"ధ్రువ",
+  "Vyaghata":"వ్యాఘాత", "Harshana":"హర్షణ", "Vajra":"వజ్ర",
+  "Siddhi":"సిద్ధి", "Vyatipata":"వ్యతీపాత", "Variyana":"వరీయాన్",
+  "Parigha":"పరిఘ", "Shiva":"శివ", "Siddha":"సిద్ధ",
+  "Sadhya":"సాధ్య", "Shubha":"శుభ", "Shukla":"శుక్ల",
+  "Brahma":"బ్రహ్మ", "Indra":"ఇంద్ర", "Vaidhriti":"వైధృతి"
+};
+
+const KARANA_NAMES_TE = {
+  "Bava":"బవ", "Balava":"బాలవ", "Kaulava":"కౌలవ", "Taitila":"తైతిల",
+  "Gara":"గర", "Vanija":"వణిజ", "Vishti (Bhadra)":"విష్టి (భద్ర)",
+  "Shakuni":"శకుని", "Chatushpada":"చతుష్పద", "Naga":"నాగ", "Kimstughna":"కింస్తుఘ్న"
+};
+
+const MONTH_NAMES_TE = {
+  "Chaitra":"చైత్రం", "Vaishakha":"వైశాఖం", "Jyeshtha":"జ్యేష్ఠం",
+  "Ashadha":"ఆషాఢం", "Shravana":"శ్రావణం", "Bhadrapada":"భాద్రపదం",
+  "Ashwina":"ఆశ్వయుజం", "Kartika":"కార్తీకం", "Margashira":"మార్గశిరం",
+  "Pushya":"పుష్యం", "Magha":"మాఘం", "Phalguna":"ఫాల్గుణం"
+};
+
+function te(name, map) {
+  return currentLang === "te" ? (map[name] || name) : name;
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  el("langEn").className = "lang-btn" + (lang === "en" ? " active" : "");
+  el("langTe").className = "lang-btn" + (lang === "te" ? " active" : "");
+
+  // Update all data-en / data-te labels
+  document.querySelectorAll("[data-en]").forEach(elem => {
+    elem.textContent = elem.getAttribute("data-" + lang) || elem.getAttribute("data-en");
+  });
+
+  // Re-render if we have data
+  if (lastPanchang) render(lastPanchang);
+}
+
+let lastPanchang = null;
+
+function setStatus(msg, isError) {
+  const s = el("status");
+  s.textContent = msg || "";
+  s.className = "status" + (isError ? " error" : "");
+}
+
+let allRegions = [];
+
+async function loadRegions() {
+  try {
+    const res = await fetch(`${API_BASE}/regions`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const regions = await res.json();
+    allRegions = regions;
+    
+    // Populate Panchang dropdown
+    const sel = el("regionSelect");
+    sel.innerHTML = "";
+    regions.forEach((r) => {
+      const opt = document.createElement("option");
+      opt.value = r.id;
+      opt.textContent = r.label;
+      sel.appendChild(opt);
+    });
+
+    const optCustom = document.createElement("option");
+    optCustom.value = "custom";
+    optCustom.setAttribute("data-en", "Search Custom Location...");
+    optCustom.setAttribute("data-te", "ఇతర ప్రాంతం వెతకండి...");
+    optCustom.textContent = currentLang === "te" ? "ఇతర ప్రాంతం వెతకండి..." : "Search Custom Location...";
+    sel.appendChild(optCustom);
+
+    // Populate Birth Region dropdown
+    const bsel = el("birthRegionSelect");
+    bsel.innerHTML = "";
+    regions.forEach((r) => {
+      const opt = document.createElement("option");
+      opt.value = r.id;
+      opt.textContent = r.label;
+      bsel.appendChild(opt);
+    });
+
+    const optCustomB = document.createElement("option");
+    optCustomB.value = "custom";
+    optCustomB.setAttribute("data-en", "Search Custom Location...");
+    optCustomB.setAttribute("data-te", "ఇతర ప్రాంతం వెతకండి...");
+    optCustomB.textContent = currentLang === "te" ? "ఇతర ప్రాంతం వెతకండి..." : "Search Custom Location...";
+    bsel.appendChild(optCustomB);
+  } catch (e) {
+    setStatus(`Couldn't reach the backend at ${API_BASE} — is it running? (${e.message})`, true);
+  }
+}
+
+async function getPanchang() {
+  const regionId = el("regionSelect").value;
+  const date = el("dateInput").value;
+  if (!regionId || !date) {
+    setStatus("Pick a region and a date first.", true);
+    return;
+  }
+
+  let lat, lon, tz_offset, place_name;
+
+  if (regionId === "custom") {
+    const query = el("customPlaceInput").value.trim();
+    if (!query) {
+      setStatus("Please enter a place name to search.", true);
+      return;
+    }
+    el("goButton").disabled = true;
+    setStatus("Geocoding custom location...");
+    try {
+      const geoRes = await fetch(`${API_BASE}/geocode?place=${encodeURIComponent(query)}`);
+      if (!geoRes.ok) {
+        const text = await geoRes.text();
+        throw new Error(text || `Geocoding failed with HTTP ${geoRes.status}`);
+      }
+      const geo = await geoRes.json();
+      lat = geo.lat;
+      lon = geo.lon;
+      tz_offset = geo.tz_offset;
+      place_name = geo.label;
+    } catch (e) {
+      setStatus(`Geocoding error: ${e.message}`, true);
+      el("goButton").disabled = false;
+      return;
+    }
+  } else {
+    const r = allRegions.find(x => x.id === regionId);
+    if (!r) {
+      setStatus("Selected region not found.", true);
+      return;
+    }
+    lat = r.lat;
+    lon = r.lon;
+    tz_offset = r.tz_offset;
+    place_name = r.label;
+  }
+
+  el("goButton").disabled = true;
+  setStatus("Fetching panchang & activities…");
+  el("results").style.display = "none";
+
+  try {
+    const res = await fetch(`${API_BASE}/panchang/day-summary?date=${date}&lat=${lat}&lon=${lon}&tz_offset=${tz_offset}&place_name=${encodeURIComponent(place_name)}`);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    lastPanchang = data;
+    render(data);
+    setStatus("");
+  } catch (e) {
+    setStatus(`Error: ${e.message}`, true);
+  } finally {
+    el("goButton").disabled = false;
+  }
+}
+
+function fmtPair(obj) {
+  if (!obj) return "—";
+  return `${obj.start} – ${obj.end}`;
+}
+
+function render(data) {
+  const p = data.panchang || data;
+  el("results").style.display = "block";
+
+  // Chandramana header
+  const monthTe = te(p.chandramana.month_name, MONTH_NAMES_TE);
+  const dayLabel = currentLang === "te" ? "రోజు" : "Day";
+  el("samvatsaraName").textContent = `${p.chandramana.samvatsara_name} ${currentLang === "te" ? "నామ సంవత్సరం" : "Nama Samvatsara"}`;
+  el("chandraMonth").textContent = `${monthTe} · ${dayLabel} ${p.chandramana.day} (${currentLang === "te" ? "చాంద్రమానం / అమాంత" : "Chandramana / Amanta"})`;
+  el("adhikaBadge").style.display = p.chandramana.is_adhika_masa ? "inline-block" : "none";
+  el("adhikaBadge").textContent = currentLang === "te" ? "అధిక మాసం" : "Adhika Masa";
+
+  // Five elements
+  const vaara = p.vaara;
+  el("vVaara").textContent = currentLang === "te" ? (VAARA_NAMES.te[vaara] || vaara) : vaara;
+
+  const tithiName = te(p.tithi.name, TITHI_NAMES_TE);
+  const pakshaName = PAKSHA_NAMES[currentLang][p.tithi.paksha] || p.tithi.paksha;
+  el("vTithi").textContent = `${tithiName} (${pakshaName}, #${p.tithi.number})`;
+  el("vTithiEnd").textContent = `${p.tithi.start_time} → ${p.tithi.end_time}`;
+
+  const nakName = te(p.nakshatra.name, NAKSHATRA_NAMES_TE);
+  const padaLabel = currentLang === "te" ? "పాదం" : "pada";
+  el("vNakshatra").textContent = `${nakName} · ${padaLabel} ${p.nakshatra.pada}`;
+  el("vNakshatraEnd").textContent = `${p.nakshatra.start_time} → ${p.nakshatra.end_time}`;
+
+  const padasDiv = el("vNakshatraPadas");
+  padasDiv.innerHTML = "";
+  if (p.nakshatra.padas && p.nakshatra.padas.length > 0) {
+    const titleText = currentLang === "te" ? "పాదాల సమయాలు:" : "Pada Timings:";
+    let html = `<div style="font-weight:600; margin-bottom: 6px; color: var(--marigold);">${titleText}</div>`;
+    p.nakshatra.padas.forEach(pd => {
+      const label = currentLang === "te" ? `పాదం ${pd.pada}` : `Pada ${pd.pada}`;
+      html += `<div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+        <span style="color:#6b6152;">${label}</span>
+        <span style="font-weight:600; color:var(--maroon);">${pd.start_time} → ${pd.end_time}</span>
+      </div>`;
+    });
+    padasDiv.innerHTML = html;
+  }
+
+  const yogaName = te(p.yoga.name, YOGA_NAMES_TE);
+  el("vYoga").textContent = yogaName;
+  el("vYogaEnd").textContent = `${p.yoga.start_time} → ${p.yoga.end_time}`;
+
+  const karanaName = te(p.karana.name, KARANA_NAMES_TE);
+  el("vKarana").textContent = karanaName;
+  el("vKaranaEnd").textContent = `${p.karana.start_time} → ${p.karana.end_time}`;
+
+  const rasiIdx = (p.lagna_rasi || p.lagna_rasi_index || 1) - 1;
+  el("vLagna").textContent = RASI_NAMES[currentLang][rasiIdx] || "—";
+  el("vSunrise").textContent = p.sunrise;
+  el("vSunset").textContent = p.sunset;
+
+  // Inauspicious
+  el("vRahu").textContent = fmtPair(p.rahu_kalam);
+  el("vYamagandam").textContent = fmtPair(p.yamagandam);
+  el("vGulika").textContent = fmtPair(p.gulika_kalam);
+
+  if (p.durmuhurtam && p.durmuhurtam.length > 0) {
+    el("vDurmuhurtam").textContent = p.durmuhurtam.map(d => `${d.start} – ${d.end}`).join("  &  ");
+  } else {
+    el("vDurmuhurtam").textContent = "—";
+  }
+
+  el("vVarjyam").textContent = fmtPair(p.varjyam);
+
+  // Auspicious
+  el("vAbhijit").textContent = fmtPair(p.abhijit_muhurta);
+  el("vBrahma").textContent = fmtPair(p.brahma_muhurta);
+  el("vGodhuli").textContent = fmtPair(p.godhuli_muhurta);
+
+  if (p.amrit_kalam && p.amrit_kalam.length > 0) {
+    el("vAmrit").textContent = p.amrit_kalam.map(a => `${a.start} – ${a.end}`).join("  &  ");
+  } else {
+    el("vAmrit").textContent = "—";
+  }
+
+  // Render Favorable Activities
+  const favDiv = el("vFavorableActivities");
+  favDiv.innerHTML = "";
+  if (data.favorable_activities && data.favorable_activities.length > 0) {
+    data.favorable_activities.forEach(act => {
+      const name = currentLang === "te" ? (act.activity_name_te || act.name_te) : (act.activity_name_en || act.name_en);
+      const reasonsList = (act.reasons_favorable || []).map(r => `<li>${r}</li>`).join("");
+      favDiv.innerHTML += `
+        <div class="activity-item favorable">
+          <div class="activity-name">
+            <span>${name}</span>
+            <span class="activity-verdict-badge favorable">${currentLang === "te" ? "అనుకూలం" : "Favorable"}</span>
+          </div>
+          <ul class="activity-reasons">${reasonsList || `<li>${currentLang === "te" ? "ఈ పని చేయడానికి ఈ రోజు అనుకూలంగా ఉంది" : "Favorable conditions met."}</li>`}</ul>
+        </div>
+      `;
+    });
+  } else {
+    favDiv.innerHTML = `<div style="font-size:13px; color:#6b6152; padding: 4px 0;">${currentLang === "te" ? "అనుకూలమైన ముహూర్తాలు ఏవీ లేవు" : "No favorable activities found for this date."}</div>`;
+  }
+
+  // Render Avoid/Mixed Activities
+  const avoidDiv = el("vAvoidActivities");
+  avoidDiv.innerHTML = "";
+  const avoidList = (data.avoid_activities || []).concat(data.mixed_activities || []);
+  if (avoidList.length > 0) {
+    avoidList.forEach(act => {
+      const name = currentLang === "te" ? (act.activity_name_te || act.name_te) : (act.activity_name_en || act.name_en);
+      const isMixed = act.verdict === "mixed";
+      const badgeClass = isMixed ? "mixed" : "avoid";
+      const badgeText = currentLang === "te" ? (isMixed ? "మిశ్రమం" : "వర్జ్యం / నిషిద్ధం") : (isMixed ? "Mixed" : "Avoid");
+      const reasonsList = (act.reasons_avoid || []).map(r => `<li>${r}</li>`).join("");
+      avoidDiv.innerHTML += `
+        <div class="activity-item ${badgeClass}">
+          <div class="activity-name">
+            <span>${name}</span>
+            <span class="activity-verdict-badge ${badgeClass}">${badgeText}</span>
+          </div>
+          <ul class="activity-reasons">${reasonsList || `<li>${currentLang === "te" ? "వ్యతిరేక పరిస్థితులు ఉన్నందున ఈ రోజు అనుకూలం కాదు" : "Unfavorable conditions met."}</li>`}</ul>
+        </div>
+      `;
+    });
+  } else {
+    avoidDiv.innerHTML = `<div style="font-size:13px; color:#6b6152; padding: 4px 0;">${currentLang === "te" ? "నిషిద్ధ పనులు ఏవీ లేవు" : "No activities to avoid."}</div>`;
+  }
+}
+
+// ---- Tab switching system ----
+function switchTab(tab) {
+  if (tab === 'panchang') {
+    el("tabPanchangBtn").classList.add("active");
+    el("tabNamakaranaBtn").classList.remove("active");
+    el("tabPanchangContent").style.display = "block";
+    el("tabNamakaranaContent").style.display = "none";
+  } else {
+    el("tabPanchangBtn").classList.remove("active");
+    el("tabNamakaranaBtn").classList.add("active");
+    el("tabPanchangContent").style.display = "none";
+    el("tabNamakaranaContent").style.display = "block";
+  }
+}
+
+// ---- Namakarana Finder logic ----
+function setNStatus(msg, isError) {
+  const s = el("namakaranaStatus");
+  s.textContent = msg || "";
+  s.className = "status" + (isError ? " error" : "");
+}
+
+async function findNamakaranaMuhurtas() {
+  const regionId = el("birthRegionSelect").value;
+  const dob = el("birthDateInput").value;
+  const tob = el("birthTimeInput").value;
+  if (!regionId || !dob || !tob) {
+    setNStatus("Please enter Date, Time, and Place of Birth.", true);
+    return;
+  }
+
+  let lat, lon, tz_offset, place_name;
+
+  if (regionId === "custom") {
+    const query = el("birthCustomPlaceInput").value.trim();
+    if (!query) {
+      setNStatus("Please enter a custom place name.", true);
+      return;
+    }
+    el("findMuhurtaButton").disabled = true;
+    setNStatus("Geocoding birth place...");
+    try {
+      const geoRes = await fetch(`${API_BASE}/geocode?place=${encodeURIComponent(query)}`);
+      if (!geoRes.ok) {
+        const text = await geoRes.text();
+        throw new Error(text || `Geocoding failed`);
+      }
+      const geo = await geoRes.json();
+      lat = geo.lat;
+      lon = geo.lon;
+      tz_offset = geo.tz_offset;
+      place_name = geo.label;
+    } catch (e) {
+      setNStatus(`Geocoding error: ${e.message}`, true);
+      el("findMuhurtaButton").disabled = false;
+      return;
+    }
+  } else {
+    const r = allRegions.find(x => x.id === regionId);
+    if (!r) {
+      setNStatus("Selected place not found.", true);
+      return;
+    }
+    lat = r.lat;
+    lon = r.lon;
+    tz_offset = r.tz_offset;
+    place_name = r.label;
+  }
+
+  el("findMuhurtaButton").disabled = true;
+  setNStatus("Calculating suitable Namakarana Muhurtas...");
+  el("namakaranaResults").style.display = "none";
+
+  try {
+    const res = await fetch(`${API_BASE}/muhurta/namakarana-finder?dob=${dob}&tob=${tob}&lat=${lat}&lon=${lon}&tz_offset=${tz_offset}&place_name=${encodeURIComponent(place_name)}`);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    renderNamakarana(data);
+    setNStatus("");
+  } catch (e) {
+    setNStatus(`Error: ${e.message}`, true);
+  } finally {
+    el("findMuhurtaButton").disabled = false;
+  }
+}
+
+const TARA_NAMES_TE = {
+  "Janma": "జన్మ తార (అశుభం)",
+  "Sampat": "సంపత్ తార (శుభం)",
+  "Vipat": "విపత్ తార (అశుభం)",
+  "Kshema": "క్షేమ తార (శుభం)",
+  "Pratyak": "ప్రత్యక్ తార (అశుభం)",
+  "Sadhana": "సాధన తార (శుభం)",
+  "Naidhana": "నైధన తార (అశుభం)",
+  "Mitra": "మిత్ర తార (శుభం)",
+  "Paramamitra": "పరమమిత్ర తార (శుభం)"
+};
+
+function renderNamakarana(data) {
+  el("namakaranaResults").style.display = "block";
+  
+  // Birth details card
+  const bStarTe = te(data.birth_details.janma_nakshatra, NAKSHATRA_NAMES_TE);
+  const padaLabel = currentLang === "te" ? "పాదం" : "pada";
+  el("nbirthStar").textContent = `${bStarTe} · ${padaLabel} ${data.birth_details.janma_nakshatra_pada}`;
+  
+  const bdtText = currentLang === "te" ? 
+    `పుట్టిన సమయం: ${data.birth_details.tob} · స్థలం: ${data.birth_details.place}` : 
+    `Born at: ${data.birth_details.tob} · Place: ${data.birth_details.place}`;
+  el("nbirthDetails").textContent = bdtText;
+
+  // Candidates
+  const listDiv = el("namakaranaList");
+  listDiv.innerHTML = "";
+
+  data.candidates.forEach(c => {
+    const pct = c.percentage;
+    const isAvoid = pct <= 10;
+    const isGood = pct >= 75;
+    const badgeClass = isAvoid ? "avoid" : (isGood ? "favorable" : "mixed");
+    const badgeText = currentLang === "te" ? 
+      (isAvoid ? "నిషిద్ధం" : (isGood ? "ఉత్తమ ముహూర్తం" : "మధ్యమ ముహూర్తం")) : 
+      (isAvoid ? "Avoid" : (isGood ? "Excellent" : "Medium"));
+
+    const dateStr = c.date;
+    const dayLabelText = currentLang === "te" ? `జన్మదినం నుండి ${c.day_number}వ రోజు` : `Day ${c.day_number} from Birth`;
+    
+    // Anga translations
+    const vaaraTe = VAARA_NAMES[currentLang][c.panchang.vaara] || c.panchang.vaara;
+    const nakTe = te(c.panchang.nakshatra, NAKSHATRA_NAMES_TE);
+    
+    let tithiFull = c.panchang.tithi;
+    const tName = tithiFull.split(" ")[0];
+    const pName = tithiFull.includes("Shukla") ? "Shukla" : "Krishna";
+    const tNameTe = te(tName, TITHI_NAMES_TE);
+    const pNameTe = PAKSHA_NAMES[currentLang][pName] || pName;
+    const tithiTe = `${tNameTe} (${pNameTe})`;
+
+    const taraTe = te(c.tara, TARA_NAMES_TE);
+
+    const infoSubtitle = currentLang === "te" ?
+      `వారం: ${vaaraTe} · తిథి: ${tithiTe} · నక్షత్రం: ${nakTe} · తారాబలం: ${taraTe}` :
+      `Weekday: ${vaaraTe} · Tithi: ${tithiTe} · Nakshatra: ${nakTe} · Tarabalam: ${c.tara}`;
+
+    // Reasons bullet list
+    let bulletsHtml = "";
+    c.reasons.forEach(r => {
+      // Simple translation for reasons
+      let text = r;
+      if (currentLang === "te") {
+        text = text
+          .replace("is favorable", "అనుకూలముగా ఉన్నది")
+          .replace("is unfavorable", "అనుకూలముగా లేదు")
+          .replace("is not recommended", "నిర్ణీత నక్షత్రముల యందు లేదు")
+          .replace("must be avoided!", "నిషేధించబడినది!")
+          .replace("Tarabalam is", "తారాబలం:")
+          .replace("unfavorable", "అనుకూలముగా లేదు")
+          .replace("favorable", "అనుకూలముగా ఉన్నది")
+          .replace("Nakshatra", "నక్షత్రం")
+          .replace("Tithi", "తిథి");
+      }
+      bulletsHtml += `<li>${text}</li>`;
+    });
+
+    listDiv.innerHTML += `
+      <div class="activity-item ${badgeClass}" style="border-left-width: 6px; margin-bottom: 12px;">
+        <div class="activity-name">
+          <span><strong>${dayLabelText}</strong> (${dateStr})</span>
+          <span class="activity-verdict-badge ${badgeClass}" style="font-size:12px; padding: 4px 10px;">${pct}% - ${badgeText}</span>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; color: var(--maroon); margin-top: 6px;">
+          ${infoSubtitle}
+        </div>
+        <ul class="activity-reasons" style="margin-top: 6px;">
+          ${bulletsHtml}
+        </ul>
+      </div>
+    `;
+  });
+}
+
+// ---- Initialization & Listeners ----
+el("dateInput").valueAsDate = new Date();
+el("birthDateInput").valueAsDate = new Date();
+el("goButton").addEventListener("click", getPanchang);
+
+// Toggle custom place search container based on dropdown value (Panchang)
+el("regionSelect").addEventListener("change", (e) => {
+  if (e.target.value === "custom") {
+    el("customPlaceField").style.display = "block";
+    el("customPlaceInput").focus();
+  } else {
+    el("customPlaceField").style.display = "none";
+  }
+});
+
+// Toggle custom place search container based on dropdown value (Birth Place)
+el("birthRegionSelect").addEventListener("change", (e) => {
+  if (e.target.value === "custom") {
+    el("birthCustomPlaceField").style.display = "block";
+    el("birthCustomPlaceInput").focus();
+  } else {
+    el("birthCustomPlaceField").style.display = "none";
+  }
+});
+
+// Bind search and go buttons
+el("searchPlaceButton").addEventListener("click", getPanchang);
+el("customPlaceInput").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    el("suggestionsList").style.display = "none";
+    getPanchang();
+  }
+});
+
+el("findMuhurtaButton").addEventListener("click", findNamakaranaMuhurtas);
+el("birthSearchPlaceButton").addEventListener("click", findNamakaranaMuhurtas);
+el("birthCustomPlaceInput").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    el("birthSuggestionsList").style.display = "none";
+    findNamakaranaMuhurtas();
+  }
+});
+
+// Suggestions Autocomplete Logic (Panchang)
+let debounceTimer;
+el("customPlaceInput").addEventListener("input", (e) => {
+  clearTimeout(debounceTimer);
+  const query = e.target.value.trim();
+  if (query.length < 3) {
+    el("suggestionsList").style.display = "none";
+    el("suggestionsList").innerHTML = "";
+    return;
+  }
+  debounceTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/geocode/suggestions?q=${encodeURIComponent(query)}`);
+      if (!res.ok) return;
+      const suggestions = await res.json();
+      const listDiv = el("suggestionsList");
+      listDiv.innerHTML = "";
+      if (suggestions && suggestions.length > 0) {
+        suggestions.forEach(item => {
+          const div = document.createElement("div");
+          div.className = "suggestion-item";
+          div.textContent = item.label;
+          div.addEventListener("click", () => {
+            el("customPlaceInput").value = item.label;
+            listDiv.style.display = "none";
+            getPanchang();
+          });
+          listDiv.appendChild(div);
+        });
+        listDiv.style.display = "block";
+      } else {
+        listDiv.style.display = "none";
+      }
+    } catch (err) {
+      console.error("Suggestions error:", err);
+    }
+  }, 350);
+});
+
+// Suggestions Autocomplete Logic (Birth Place)
+let birthDebounceTimer;
+el("birthCustomPlaceInput").addEventListener("input", (e) => {
+  clearTimeout(birthDebounceTimer);
+  const query = e.target.value.trim();
+  if (query.length < 3) {
+    el("birthSuggestionsList").style.display = "none";
+    el("birthSuggestionsList").innerHTML = "";
+    return;
+  }
+  birthDebounceTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/geocode/suggestions?q=${encodeURIComponent(query)}`);
+      if (!res.ok) return;
+      const suggestions = await res.json();
+      const listDiv = el("birthSuggestionsList");
+      listDiv.innerHTML = "";
+      if (suggestions && suggestions.length > 0) {
+        suggestions.forEach(item => {
+          const div = document.createElement("div");
+          div.className = "suggestion-item";
+          div.textContent = item.label;
+          div.addEventListener("click", () => {
+            el("birthCustomPlaceInput").value = item.label;
+            listDiv.style.display = "none";
+            findNamakaranaMuhurtas();
+          });
+          listDiv.appendChild(div);
+        });
+        listDiv.style.display = "block";
+      } else {
+        listDiv.style.display = "none";
+      }
+    } catch (err) {
+      console.error("Suggestions error:", err);
+    }
+  }, 350);
+});
+
+// Click outside suggestions container to close them
+document.addEventListener("click", (e) => {
+  const container = el("suggestionsList");
+  const input = el("customPlaceInput");
+  if (e.target !== container && e.target !== input) {
+    container.style.display = "none";
+  }
+
+  const bcontainer = el("birthSuggestionsList");
+  const binput = el("birthCustomPlaceInput");
+  if (e.target !== bcontainer && e.target !== binput) {
+    bcontainer.style.display = "none";
+  }
+});
+
+loadRegions().then(() => {
+  getPanchang();
+  findNamakaranaMuhurtas();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+pyjhora
+pyswisseph
+numpy
+geocoder
+requests
+pytz
+timezonefinder
+geopy
+python-dateutil
+certifi

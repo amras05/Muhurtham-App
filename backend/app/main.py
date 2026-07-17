@@ -1,0 +1,293 @@
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from datetime import date, datetime, timedelta
+
+from .panchang import compute_day_panchang
+from .rules_engine import evaluate, list_activities, find_next_favorable, get_activity
+from .regions import get_region, list_regions, geocode_place_name, get_geocode_suggestions
+
+app = FastAPI(title="Muhurta Finder API", version="0.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # tighten before production
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/activities")
+def get_activities():
+    """List all activities the app currently has digitized rules for."""
+    return list_activities()
+
+
+@app.get("/panchang")
+def get_panchang(
+    date_str: str = Query(..., alias="date", description="YYYY-MM-DD"),
+    lat: float = Query(...),
+    lon: float = Query(...),
+    tz_offset: float = Query(..., description="e.g. 5.5 for IST"),
+    place_name: str = Query("Location"),
+    hour: int = Query(6, description="Hour of day to evaluate panchang at (0-23)"),
+):
+    """Full panchang for a given date/place — powers the 'Date Lookup' screen."""
+    try:
+        y, m, d = (int(x) for x in date_str.split("-"))
+    except ValueError:
+        raise HTTPException(400, "date must be in YYYY-MM-DD format")
+    return compute_day_panchang(y, m, d, lat, lon, tz_offset, place_name, hour=hour)
+
+
+@app.get("/panchang/day-summary")
+def day_summary(
+    date_str: str = Query(..., alias="date"),
+    lat: float = Query(...),
+    lon: float = Query(...),
+    tz_offset: float = Query(...),
+    place_name: str = Query("Location"),
+):
+    """
+    Panchang + a verdict for EVERY known activity on this date, in one call —
+    this is what the 'Date Lookup' screen shows: 'here's today, here's what's
+    good to do and what to avoid'.
+    """
+    try:
+        y, m, d = (int(x) for x in date_str.split("-"))
+    except ValueError:
+        raise HTTPException(400, "date must be in YYYY-MM-DD format")
+
+    panchang = compute_day_panchang(y, m, d, lat, lon, tz_offset, place_name)
+    activities = list_activities()
+    results = [evaluate(a["id"], panchang) for a in activities]
+    favorable = [r for r in results if r["verdict"] == "favorable"]
+    avoid = [r for r in results if r["verdict"] == "avoid"]
+    mixed = [r for r in results if r["verdict"] == "mixed"]
+    return {
+        "panchang": panchang,
+        "favorable_activities": favorable,
+        "avoid_activities": avoid,
+        "mixed_activities": mixed,
+    }
+
+
+@app.get("/muhurta/check")
+def check_muhurta(
+    activity_id: str = Query(...),
+    date_str: str = Query(..., alias="date"),
+    lat: float = Query(...),
+    lon: float = Query(...),
+    tz_offset: float = Query(...),
+    place_name: str = Query("Location"),
+    hour: int = Query(6),
+):
+    """Is `date` good for `activity_id`? Powers the 'Activity Search' screen (single-date check)."""
+    if not get_activity(activity_id):
+        raise HTTPException(404, f"Unknown activity_id '{activity_id}'")
+    try:
+        y, m, d = (int(x) for x in date_str.split("-"))
+    except ValueError:
+        raise HTTPException(400, "date must be in YYYY-MM-DD format")
+    panchang = compute_day_panchang(y, m, d, lat, lon, tz_offset, place_name, hour=hour)
+    return evaluate(activity_id, panchang)
+
+
+@app.get("/muhurta/next")
+def next_muhurta(
+    activity_id: str = Query(...),
+    from_date: str = Query(None, description="YYYY-MM-DD, defaults to today"),
+    lat: float = Query(...),
+    lon: float = Query(...),
+    tz_offset: float = Query(...),
+    place_name: str = Query("Location"),
+    max_days: int = Query(60, le=180),
+):
+    """Find the next favorable date for `activity_id` — the core 'Activity Search' feature."""
+    if not get_activity(activity_id):
+        raise HTTPException(404, f"Unknown activity_id '{activity_id}'")
+    if from_date:
+        y, m, d = (int(x) for x in from_date.split("-"))
+        start = date(y, m, d)
+    else:
+        start = date.today()
+    return find_next_favorable(activity_id, start.year, start.month, start.day,
+                                lat, lon, tz_offset, place_name, max_days=max_days)
+
+
+@app.get("/regions")
+def get_regions():
+    """List available region presets for the region dropdown."""
+    return list_regions()
+
+
+@app.get("/panchang/simple")
+def simple_panchang(
+    date_str: str = Query(..., alias="date", description="YYYY-MM-DD"),
+    region: str = Query(..., description="region id from /regions, e.g. 'vijayawada'"),
+):
+    """
+    Basic panchang for a region + date, Chandramana-based —
+    powers the small standalone lookup UI (date + region in, panchang out).
+    """
+    try:
+        y, m, d = (int(x) for x in date_str.split("-"))
+    except ValueError:
+        raise HTTPException(400, "date must be in YYYY-MM-DD format")
+    try:
+        r = get_region(region)
+    except KeyError as e:
+        raise HTTPException(404, str(e))
+
+    p = compute_day_panchang(y, m, d, r["lat"], r["lon"], r["tz_offset"], r["label"])
+    return p
+
+
+@app.get("/geocode")
+def geocode(place: str = Query(..., description="Any place name, e.g. 'Kakinada, Andhra Pradesh'")):
+    """
+    Free-text place lookup via OpenStreetMap (for places not in /regions).
+    NOTE: not live-tested in the development sandbox (no network access to
+    nominatim.openstreetmap.org there) — verify this works in your deployment.
+    """
+    try:
+        return geocode_place_name(place)
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+    except Exception as e:
+        raise HTTPException(502, f"Geocoding service error: {e}")
+
+
+@app.get("/geocode/suggestions")
+def geocode_suggestions(q: str = Query(..., description="Query string, min 3 chars")):
+    """Get geocoding suggestions."""
+    return get_geocode_suggestions(q)
+
+
+@app.get("/muhurta/namakarana-finder")
+def namakarana_finder(
+    dob: str = Query(..., description="YYYY-MM-DD"),
+    tob: str = Query("12:00", description="HH:MM"),
+    lat: float = Query(...),
+    lon: float = Query(...),
+    tz_offset: float = Query(...),
+    place_name: str = Query("Location"),
+):
+    """Find the best Namakarana Muhurtas on the 11th, 12th, 16th, 20th, and 22nd days from birth."""
+    try:
+        birth_date = datetime.strptime(dob, "%Y-%m-%d").date()
+        h, m = (int(x) for x in tob.split(":"))
+    except ValueError:
+        raise HTTPException(400, "dob must be YYYY-MM-DD, tob must be HH:MM")
+
+    # 1. Determine Janma Nakshatra at birth hour
+    birth_panchang = compute_day_panchang(birth_date.year, birth_date.month, birth_date.day,
+                                         lat, lon, tz_offset, place_name, hour=h)
+    birth_nak_idx = birth_panchang["nakshatra"]["index"]
+    birth_nak_name = birth_panchang["nakshatra"]["name"]
+    birth_nak_pada = birth_panchang["nakshatra"]["pada"]
+
+    # Candidate day offsets from birth day (Day 1 is birth date, so Day 11 is +10 days)
+    offsets = {
+        11: 10,
+        12: 11,
+        16: 15,
+        20: 19,
+        22: 21
+    }
+
+    candidates_list = []
+    tara_names = {
+        1: "Janma", 2: "Sampat", 3: "Vipat", 4: "Kshema", 5: "Pratyak",
+        6: "Sadhana", 7: "Naidhana", 8: "Mitra", 9: "Paramamitra"
+    }
+    
+    # We evaluate the Muhurtas at 10 AM (standard auspicious morning hour)
+    eval_hour = 10
+
+    for day_num, offset_days in offsets.items():
+        cand_date = birth_date + timedelta(days=offset_days)
+        p = compute_day_panchang(cand_date.year, cand_date.month, cand_date.day,
+                                 lat, lon, tz_offset, place_name, hour=eval_hour)
+        
+        # Calculate Tarabala
+        diff = (p["nakshatra"]["index"] - birth_nak_idx) % 27
+        tara_idx = (diff % 9) + 1
+        tara_name = tara_names[tara_idx]
+        is_tara_good = tara_idx in [2, 4, 6, 8, 9]
+
+        # General checks
+        is_vaara_good = p["vaara"] in ["Monday", "Wednesday", "Thursday", "Friday"]
+        is_nak_good = p["nakshatra"]["name"] in [
+            "Ashwini", "Rohini", "Punarvasu", "Pushya", "Uttara Phalguni", 
+            "Hasta", "Swati", "Anuradha", "Uttara Ashadha", "Shravana", 
+            "Dhanishtha", "Shatabhisha", "Uttara Bhadrapada"
+        ]
+        is_tithi_avoid = p["tithi"]["name"] in ["Chaturthi", "Navami", "Purnima", "Amavasya"]
+
+        # Scoring
+        vaara_score = 25 if is_vaara_good else 0
+        nak_score = 25 if is_nak_good else 0
+        tithi_score = 25 if not is_tithi_avoid else 0
+        tara_score = 25 if is_tara_good else 0
+        
+        total_pct = vaara_score + nak_score + tithi_score + tara_score
+        
+        # Avoid Tithi is a blocker, penalize/cap heavily
+        if is_tithi_avoid:
+            total_pct = min(total_pct, 10)
+
+        # Build list of user-facing reasons
+        reasons = []
+        if is_vaara_good:
+            reasons.append(f"{p['vaara']} is favorable.")
+        else:
+            reasons.append(f"{p['vaara']} is unfavorable.")
+
+        if is_nak_good:
+            reasons.append(f"Nakshatra {p['nakshatra']['name']} is favorable.")
+        else:
+            reasons.append(f"Nakshatra {p['nakshatra']['name']} is not recommended.")
+
+        if is_tithi_avoid:
+            reasons.append(f"Tithi {p['tithi']['name']} must be avoided!")
+        else:
+            reasons.append(f"Tithi {p['tithi']['name']} is favorable.")
+
+        reasons.append(f"Tarabalam is {tara_name} ({'favorable' if is_tara_good else 'unfavorable'}).")
+
+        verdict = "highly_favorable" if total_pct >= 75 else ("favorable" if total_pct >= 50 else "unfavorable")
+
+        candidates_list.append({
+            "day_number": day_num,
+            "date": cand_date.strftime("%Y-%m-%d"),
+            "percentage": total_pct,
+            "tara": tara_name,
+            "is_tara_good": is_tara_good,
+            "verdict": verdict,
+            "reasons": reasons,
+            "panchang": {
+                "vaara": p["vaara"],
+                "tithi": f"{p['tithi']['name']} ({p['tithi']['paksha']})",
+                "nakshatra": p["nakshatra"]["name"],
+                "yoga": p["yoga"]["name"],
+                "karana": p["karana"]["name"]
+            }
+        })
+
+    return {
+        "birth_details": {
+            "dob": dob,
+            "tob": tob,
+            "place": place_name,
+            "janma_nakshatra": birth_nak_name,
+            "janma_nakshatra_pada": birth_nak_pada
+        },
+        "candidates": candidates_list
+    }
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
