@@ -336,6 +336,65 @@
   .tab-item:hover:not(.active) {
     color: var(--marigold);
   }
+
+  /* South Indian Astrology D9 Chart CSS */
+  .south-chart {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    border: 2px solid var(--maroon);
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 400px;
+    aspect-ratio: 1 / 1;
+    margin: 14px auto;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .chart-cell {
+    border: 1px solid var(--line);
+    padding: 8px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 0;
+    min-width: 0;
+    position: relative;
+  }
+  .chart-cell .rasi-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--marigold);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .chart-cell .planets-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--maroon);
+    line-height: 1.2;
+  }
+  .chart-center {
+    grid-column: 2 / 4;
+    grid-row: 2 / 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #fdfaf2;
+    border: 1px solid var(--line);
+    font-weight: 700;
+    color: var(--maroon);
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.4;
+    padding: 10px;
+  }
 </style>
 </head>
 <body>
@@ -472,6 +531,12 @@
         <div class="label" data-en="Birth Details & Janma Nakshatra" data-te="జన్మ నక్షత్ర వివరాలు">Birth Details & Janma Nakshatra</div>
         <div class="value" id="nbirthStar" style="color: var(--maroon); font-size: 20px; margin-bottom: 4px;">—</div>
         <div class="value small" id="nbirthDetails" style="font-weight: 500; font-size: 14px; color: #6b6152;">—</div>
+      </div>
+
+      <!-- D9 Navamsha Chart Card -->
+      <div class="card" style="border-color: var(--maroon); margin-bottom: 18px;">
+        <div class="label" data-en="Navamsha (D9) Chart" data-te="నవాంశ (D9) చక్రం" style="margin-bottom: 10px;">Navamsha (D9) Chart</div>
+        <div id="d9ChartContainer"></div>
       </div>
 
       <!-- Candidates list -->
@@ -932,6 +997,31 @@ const TARA_NAMES_TE = {
   "Paramamitra": "పరమమిత్ర తార (శుభం)"
 };
 
+const PLANET_ABBRS = {
+  en: { L: "Asc", "0": "Su", "1": "Mo", "2": "Ma", "3": "Me", "4": "Ju", "5": "Ve", "6": "Sa", "7": "Ra", "8": "Ke" },
+  te: { L: "ల", "0": "ర", "1": "చ", "2": "కు", "3": "బు", "4": "గు", "5": "శు", "6": "శ", "7": "రా", "8": "కే" }
+};
+
+const CHART_GRID_POSITIONS = {
+  11: { row: 1, col: 1 },
+  0:  { row: 1, col: 2 },
+  1:  { row: 1, col: 3 },
+  2:  { row: 1, col: 4 },
+  3:  { row: 2, col: 4 },
+  4:  { row: 3, col: 4 },
+  5:  { row: 4, col: 4 },
+  6:  { row: 4, col: 3 },
+  7:  { row: 4, col: 2 },
+  8:  { row: 4, col: 1 },
+  9:  { row: 3, col: 1 },
+  10: { row: 2, col: 1 }
+};
+
+const D9_RASI_LABELS = {
+  en: ["Mesha", "Vrishabha", "Mithuna", "Karkataka", "Simha", "Kanya", "Tula", "Vrishchika", "Dhanus", "Makara", "Kumbha", "Meena"],
+  te: ["మేషం", "వృషభం", "మిథునం", "కర్కాటకం", "సింహం", "కన్య", "తుల", "వృశ్చికం", "ధనుస్సు", "మకరం", "కుంభం", "మీనం"]
+};
+
 function renderNamakarana(data) {
   el("namakaranaResults").style.display = "block";
   
@@ -944,6 +1034,38 @@ function renderNamakarana(data) {
     `పుట్టిన సమయం: ${data.birth_details.tob} · స్థలం: ${data.birth_details.place}` : 
     `Born at: ${data.birth_details.tob} · Place: ${data.birth_details.place}`;
   el("nbirthDetails").textContent = bdtText;
+
+  // Render D9 Chart
+  const rasiPlanets = {};
+  for (let i = 0; i < 12; i++) {
+    rasiPlanets[i] = [];
+  }
+  
+  if (data.birth_details.d9_chart && data.birth_details.d9_chart.length > 0) {
+    data.birth_details.d9_chart.forEach(item => {
+      const pAbbr = PLANET_ABBRS[currentLang][item.planet] || item.planet;
+      rasiPlanets[item.rasi_index].push(pAbbr);
+    });
+  }
+
+  let d9Html = `<div class="south-chart">`;
+  const centerTitle = currentLang === "te" ? "నవాంశ (D9)<br>చక్రం" : "NAVAMSHA (D9)<br>CHART";
+  d9Html += `<div class="chart-center">${centerTitle}</div>`;
+  
+  for (let rasiIdx = 0; rasiIdx < 12; rasiIdx++) {
+    const pos = CHART_GRID_POSITIONS[rasiIdx];
+    const rasiName = D9_RASI_LABELS[currentLang][rasiIdx];
+    const pList = rasiPlanets[rasiIdx].join(", ");
+    
+    d9Html += `
+      <div class="chart-cell" style="grid-row: ${pos.row}; grid-column: ${pos.col};">
+        <div class="rasi-label">${rasiName}</div>
+        <div class="planets-list">${pList || "—"}</div>
+      </div>
+    `;
+  }
+  d9Html += `</div>`;
+  el("d9ChartContainer").innerHTML = d9Html;
 
   // Candidates
   const listDiv = el("namakaranaList");

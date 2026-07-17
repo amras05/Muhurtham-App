@@ -186,6 +186,29 @@ def namakarana_finder(
     birth_nak_name = birth_panchang["nakshatra"]["name"]
     birth_nak_pada = birth_panchang["nakshatra"]["pada"]
 
+    # Calculate D9 divisional chart for birth
+    from jhora.horoscope.chart import charts
+    from jhora.panchanga.drik import Place as JHoraPlace
+    import swisseph as swe
+    
+    d9_positions = []
+    try:
+        birth_place_obj = JHoraPlace(place_name, lat, lon, tz_offset)
+        jd_ut_mid = swe.julday(birth_date.year, birth_date.month, birth_date.day, 0.0)
+        ut_hour = (h + m/60.0) - tz_offset
+        birth_jd = jd_ut_mid + ut_hour / 24.0
+        
+        raw_d9 = charts.divisional_chart(birth_jd, birth_place_obj, divisional_chart_factor=9)
+        for item in raw_d9:
+            p_id = item[0]
+            rasi_idx = item[1][0]
+            d9_positions.append({
+                "planet": str(p_id),
+                "rasi_index": int(rasi_idx)
+            })
+    except Exception as ex:
+        print("D9 chart calculation error:", ex)
+
     # Candidate day offsets from birth day (Day 1 is birth date, so Day 11 is +10 days)
     offsets = {
         11: 10,
@@ -280,7 +303,8 @@ def namakarana_finder(
             "tob": tob,
             "place": place_name,
             "janma_nakshatra": birth_nak_name,
-            "janma_nakshatra_pada": birth_nak_pada
+            "janma_nakshatra_pada": birth_nak_pada,
+            "d9_chart": d9_positions
         },
         "candidates": candidates_list
     }
