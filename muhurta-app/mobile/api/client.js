@@ -20,20 +20,20 @@ async function get(path, params = {}) {
 export const api = {
   listActivities: () => get("/activities"),
 
-  daySummary: ({ date, lat, lon, tzOffset, placeName }) =>
-    get("/panchang/day-summary", { date, lat, lon, tz_offset: tzOffset, place_name: placeName }),
+  daySummary: ({ date, lat, lon, tzOffset, placeName, method }) =>
+    get("/panchang/day-summary", { date, lat, lon, tz_offset: tzOffset, place_name: placeName, method }),
 
-  panchang: ({ date, lat, lon, tzOffset, placeName, hour }) =>
-    get("/panchang", { date, lat, lon, tz_offset: tzOffset, place_name: placeName, hour }),
+  panchang: ({ date, lat, lon, tzOffset, placeName, hour, method }) =>
+    get("/panchang", { date, lat, lon, tz_offset: tzOffset, place_name: placeName, hour, method }),
 
-  checkMuhurta: ({ activityId, date, lat, lon, tzOffset, placeName }) =>
+  checkMuhurta: ({ activityId, date, lat, lon, tzOffset, placeName, method }) =>
     get("/muhurta/check", {
-      activity_id: activityId, date, lat, lon, tz_offset: tzOffset, place_name: placeName,
+      activity_id: activityId, date, lat, lon, tz_offset: tzOffset, place_name: placeName, method,
     }),
 
-  nextMuhurta: ({ activityId, fromDate, lat, lon, tzOffset, placeName, maxDays }) =>
+  nextMuhurta: ({ activityId, fromDate, lat, lon, tzOffset, placeName, maxDays, method }) =>
     get("/muhurta/next", {
       activity_id: activityId, from_date: fromDate, lat, lon,
-      tz_offset: tzOffset, place_name: placeName, max_days: maxDays,
+      tz_offset: tzOffset, place_name: placeName, max_days: maxDays, method,
     }),
 };

@@ -143,17 +143,21 @@ def evaluate(activity_id: str, panchang: dict) -> dict:
 
 
 def find_next_favorable(activity_id: str, start_year, start_month, start_day,
-                         lat, lon, tz_offset, place_name, max_days=60, hour=6):
+                         lat, lon, tz_offset, place_name, max_days=60, hour=6, method="drik"):
     """Walk forward day by day (evaluated at `hour` local time) until a
     favorable (or mixed, as fallback) day is found for the activity."""
     from datetime import date, timedelta
-    from .panchang import compute_day_panchang
+    from .panchang import compute_day_panchang as compute_drik_panchang
+    # from .panchang_chandramana import compute_day_panchang as compute_chandramana_panchang
+
+    # calculator = compute_chandramana_panchang if method == "chandramana" else compute_drik_panchang
+    calculator = compute_drik_panchang
 
     d = date(start_year, start_month, start_day)
     best_mixed = None
     for i in range(max_days):
         cur = d + timedelta(days=i)
-        panchang = compute_day_panchang(cur.year, cur.month, cur.day, lat, lon, tz_offset, place_name, hour=hour)
+        panchang = calculator(cur.year, cur.month, cur.day, lat, lon, tz_offset, place_name, hour=hour)
         result = evaluate(activity_id, panchang)
         if result["verdict"] == "favorable":
             result["days_from_today"] = i
@@ -165,3 +169,4 @@ def find_next_favorable(activity_id: str, start_year, start_month, start_day,
         best_mixed["note"] = f"No purely favorable day found in {max_days} days; showing the best mixed-verdict day instead."
         return best_mixed
     return {"verdict": "none_found", "note": f"No favorable or mixed day found within {max_days} days."}
+

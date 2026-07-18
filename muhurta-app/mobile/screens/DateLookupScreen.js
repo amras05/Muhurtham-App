@@ -15,11 +15,13 @@ export default function DateLookupScreen() {
   const { location } = useLocation();
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
+  // const [method, setMethod] = useState("drik");
+  const method = "drik";
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const load = async (d) => {
+  const load = async (d, m = "drik") => {
     setLoading(true);
     setError(null);
     try {
@@ -29,6 +31,7 @@ export default function DateLookupScreen() {
         lon: location.lon,
         tzOffset: location.tzOffset,
         placeName: location.placeName,
+        method: m,
       });
       setData(r);
     } catch (e) {
@@ -38,7 +41,7 @@ export default function DateLookupScreen() {
     }
   };
 
-  useEffect(() => { load(date); }, [location]);
+  useEffect(() => { load(date, method); }, [location, method]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -48,6 +51,21 @@ export default function DateLookupScreen() {
         <Text style={styles.dateButtonText}>{toDateStr(date)} — change date</Text>
       </TouchableOpacity>
 
+      {/* <View style={styles.toggleContainer}>
+        <TouchableOpacity
+          style={[styles.toggleButton, method === "drik" && styles.toggleActive]}
+          onPress={() => setMethod("drik")}
+        >
+          <Text style={[styles.toggleText, method === "drik" && styles.toggleActiveText]}>Drik Siddhanta (Modern)</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.toggleButton, method === "chandramana" && styles.toggleActive]}
+          onPress={() => setMethod("chandramana")}
+        >
+          <Text style={[styles.toggleText, method === "chandramana" && styles.toggleActiveText]}>Surya Siddhanta (Traditional)</Text>
+        </TouchableOpacity>
+      </View> */}
+
       {showPicker && (
         <DateTimePicker
           value={date}
@@ -55,7 +73,7 @@ export default function DateLookupScreen() {
           display={Platform.OS === "ios" ? "inline" : "default"}
           onChange={(event, selected) => {
             setShowPicker(false);
-            if (selected) { setDate(selected); load(selected); }
+            if (selected) { setDate(selected); load(selected, method); }
           }}
         />
       )}
@@ -77,10 +95,10 @@ export default function DateLookupScreen() {
             <Text style={styles.row}>Karana: <Text style={styles.bold}>{data.panchang.karana_name}</Text></Text>
             <Text style={styles.row}>Sunrise: {data.panchang.sunrise} · Sunset: {data.panchang.sunset}</Text>
             <Text style={styles.row}>
-              Rahu Kaalam: {data.panchang.rahu_kaalam?.[0]}–{data.panchang.rahu_kaalam?.[1]}
+              Rahu Kaalam: {data.panchang.rahu_kaalam?.[0] || data.panchang.rahu_kaalam?.start}–{data.panchang.rahu_kaalam?.[1] || data.panchang.rahu_kaalam?.end}
             </Text>
             <Text style={styles.row}>
-              Durmuhurtam: {data.panchang.durmuhurtam?.[0]}–{data.panchang.durmuhurtam?.[1]}
+              Durmuhurtam: {data.panchang.durmuhurtam?.[0]?.start || data.panchang.durmuhurtam?.[0] || "—"}–{data.panchang.durmuhurtam?.[0]?.end || data.panchang.durmuhurtam?.[1] || "—"}
             </Text>
           </View>
 
@@ -114,6 +132,36 @@ const styles = StyleSheet.create({
     padding: 12, backgroundColor: "#fff3e0", borderRadius: 8, alignItems: "center",
   },
   dateButtonText: { fontWeight: "600" },
+  toggleContainer: {
+    flexDirection: "row",
+    marginTop: 10,
+    backgroundColor: "#eee",
+    borderRadius: 8,
+    padding: 2,
+    marginBottom: 6,
+  },
+  toggleButton: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: "center",
+    borderRadius: 6,
+  },
+  toggleActive: {
+    backgroundColor: "#fff",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+  },
+  toggleText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#666",
+  },
+  toggleActiveText: {
+    color: "#000",
+  },
   error: { color: "#c62828", marginTop: 12 },
   panchangCard: {
     padding: 14, borderRadius: 12, backgroundColor: "#fafafa", borderWidth: 1, borderColor: "#eee",

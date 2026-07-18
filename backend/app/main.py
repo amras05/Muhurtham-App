@@ -9,9 +9,18 @@ import swisseph as swe
 # pyrefly: ignore [missing-import]
 from jhora.panchanga.drik import Place as JHoraPlace
 # pyrefly: ignore [missing-import]
+from jhora.panchanga import drik
+# pyrefly: ignore [missing-import]
 from jhora.horoscope.chart import charts
 
-from .panchang import compute_day_panchang
+from .panchang import compute_day_panchang as compute_drik_panchang
+# from .panchang_chandramana import compute_day_panchang as compute_chandramana_panchang
+
+def get_panchang_calculator(method: str):
+    # if method == "chandramana":
+    #     return compute_chandramana_panchang
+    return compute_drik_panchang
+
 from .rules_engine import evaluate, list_activities, find_next_favorable, get_activity
 from .regions import get_region, list_regions, geocode_place_name, get_geocode_suggestions
 
@@ -39,13 +48,15 @@ def get_panchang(
     tz_offset: float = Query(..., description="e.g. 5.5 for IST"),
     place_name: str = Query("Location"),
     hour: int = Query(6, description="Hour of day to evaluate panchang at (0-23)"),
+    method: str = Query("drik", description="Calculation method: 'drik' or 'chandramana'"),
 ):
     """Full panchang for a given date/place — powers the 'Date Lookup' screen."""
     try:
         y, m, d = (int(x) for x in date_str.split("-"))
     except ValueError:
         raise HTTPException(400, "date must be in YYYY-MM-DD format")
-    return compute_day_panchang(y, m, d, lat, lon, tz_offset, place_name, hour=hour)
+    calculator = get_panchang_calculator(method)
+    return calculator(y, m, d, lat, lon, tz_offset, place_name, hour=hour)
 
 
 @app.get("/panchang/day-summary")
@@ -55,6 +66,7 @@ def day_summary(
     lon: float = Query(...),
     tz_offset: float = Query(...),
     place_name: str = Query("Location"),
+    method: str = Query("drik", description="Calculation method: 'drik' or 'chandramana'"),
 ):
     """
     Panchang + a verdict for EVERY known activity on this date, in one call —
@@ -66,7 +78,8 @@ def day_summary(
     except ValueError:
         raise HTTPException(400, "date must be in YYYY-MM-DD format")
 
-    panchang = compute_day_panchang(y, m, d, lat, lon, tz_offset, place_name)
+    calculator = get_panchang_calculator(method)
+    panchang = calculator(y, m, d, lat, lon, tz_offset, place_name)
     activities = list_activities()
     results = [evaluate(a["id"], panchang) for a in activities]
     favorable = [r for r in results if r["verdict"] == "favorable"]
@@ -89,6 +102,7 @@ def check_muhurta(
     tz_offset: float = Query(...),
     place_name: str = Query("Location"),
     hour: int = Query(6),
+    method: str = Query("drik", description="Calculation method: 'drik' or 'chandramana'"),
 ):
     """Is `date` good for `activity_id`? Powers the 'Activity Search' screen (single-date check)."""
     if not get_activity(activity_id):
@@ -97,7 +111,8 @@ def check_muhurta(
         y, m, d = (int(x) for x in date_str.split("-"))
     except ValueError:
         raise HTTPException(400, "date must be in YYYY-MM-DD format")
-    panchang = compute_day_panchang(y, m, d, lat, lon, tz_offset, place_name, hour=hour)
+    calculator = get_panchang_calculator(method)
+    panchang = calculator(y, m, d, lat, lon, tz_offset, place_name, hour=hour)
     return evaluate(activity_id, panchang)
 
 
@@ -110,6 +125,7 @@ def next_muhurta(
     tz_offset: float = Query(...),
     place_name: str = Query("Location"),
     max_days: int = Query(60, le=180),
+    method: str = Query("drik", description="Calculation method: 'drik' or 'chandramana'"),
 ):
     """Find the next favorable date for `activity_id` — the core 'Activity Search' feature."""
     if not get_activity(activity_id):
@@ -120,7 +136,7 @@ def next_muhurta(
     else:
         start = date.today()
     return find_next_favorable(activity_id, start.year, start.month, start.day,
-                                lat, lon, tz_offset, place_name, max_days=max_days)
+                                lat, lon, tz_offset, place_name, max_days=max_days, method=method)
 
 
 @app.get("/regions")
@@ -133,6 +149,7 @@ def get_regions():
 def simple_panchang(
     date_str: str = Query(..., alias="date", description="YYYY-MM-DD"),
     region: str = Query(..., description="region id from /regions, e.g. 'vijayawada'"),
+    method: str = Query("drik", description="Calculation method: 'drik' or 'chandramana'"),
 ):
     """
     Basic panchang for a region + date, Chandramana-based —
@@ -147,7 +164,8 @@ def simple_panchang(
     except KeyError as e:
         raise HTTPException(404, str(e))
 
-    p = compute_day_panchang(y, m, d, r["lat"], r["lon"], r["tz_offset"], r["label"])
+    calculator = get_panchang_calculator(method)
+    p = calculator(y, m, d, r["lat"], r["lon"], r["tz_offset"], r["label"])
     return p
 
 
@@ -180,6 +198,7 @@ def namakarana_finder(
     lon: float = Query(...),
     tz_offset: float = Query(...),
     place_name: str = Query("Location"),
+    method: str = Query("drik", description="Calculation method: 'drik' or 'chandramana'"),
 ):
     """Find the best Namakarana Muhurtas on the 11th, 12th, 16th, 20th, and 22nd days from birth."""
     try:
@@ -188,8 +207,10 @@ def namakarana_finder(
     except ValueError:
         raise HTTPException(400, "dob must be YYYY-MM-DD, tob must be HH:MM")
 
+    calculator = get_panchang_calculator(method)
+
     # 1. Determine Janma Nakshatra at birth hour
-    birth_panchang = compute_day_panchang(birth_date.year, birth_date.month, birth_date.day,
+    birth_panchang = calculator(birth_date.year, birth_date.month, birth_date.day,
                                          lat, lon, tz_offset, place_name, hour=h)
     birth_nak_idx = birth_panchang["nakshatra"]["index"]
     birth_nak_name = birth_panchang["nakshatra"]["name"]
@@ -204,13 +225,86 @@ def namakarana_finder(
         birth_jd = swe.julday(birth_date.year, birth_date.month, birth_date.day, local_hour)
         
         raw_d1 = charts.divisional_chart(birth_jd, birth_place_obj, divisional_chart_factor=1)
+        
+        # Get retro/combust flags
+        retro_ids = charts.planets_in_retrograde(raw_d1)
+        combust_ids = charts.planets_in_combustion(raw_d1)
+        
         for item in raw_d1:
             p_id = item[0]
             rasi_idx = item[1][0]
+            
+            is_retro = False
+            is_combust = False
+            try:
+                p_int = int(p_id)
+                is_retro = p_int in retro_ids
+                is_combust = p_int in combust_ids
+            except (ValueError, TypeError):
+                pass
+                
             d1_positions.append({
                 "planet": str(p_id),
-                "rasi_index": int(rasi_idx)
+                "rasi_index": int(rasi_idx),
+                "is_retro": is_retro,
+                "is_combust": is_combust
             })
+            
+        # --- Mandi and Gulika calculation ---
+        # 1. Determine the "base_date" of the day (since weekday starts at Sunrise)
+        jd_birth_midnight = swe.julday(birth_date.year, birth_date.month, birth_date.day, 0.0)
+        sr_birth_date = drik.sunrise(jd_birth_midnight + 6.0/24.0, birth_place_obj)[0]
+        
+        if local_hour < sr_birth_date:
+            base_date = birth_date - timedelta(days=1)
+            is_day = False
+        else:
+            base_date = birth_date
+            jd_base_midnight = swe.julday(base_date.year, base_date.month, base_date.day, 0.0)
+            ss_base_date = drik.sunset(jd_base_midnight + 6.0/24.0, birth_place_obj)[0]
+            is_day = local_hour < ss_base_date
+            
+        # 2. Weekday and day/night duration
+        jd_base_midnight = swe.julday(base_date.year, base_date.month, base_date.day, 0.0)
+        weekday = drik.vaara(jd_base_midnight + 12.0/24.0, birth_place_obj)
+        
+        if is_day:
+            sr = drik.sunrise(jd_base_midnight + 6.0/24.0, birth_place_obj)[0]
+            ss = drik.sunset(jd_base_midnight + 6.0/24.0, birth_place_obj)[0]
+            duration = ss - sr
+            part_dur = duration / 8.0
+            day_parts = [6, 5, 4, 3, 2, 1, 0]
+            part_idx = day_parts[weekday]
+            gk_time_rel = sr + part_idx * part_dur
+            mnd_time_rel = sr + (part_idx + 0.5) * part_dur
+        else:
+            ss = drik.sunset(jd_base_midnight + 6.0/24.0, birth_place_obj)[0]
+            sr_next = drik.sunrise(jd_base_midnight + 1.0 + 6.0/24.0, birth_place_obj)[0]
+            duration = (24.0 + sr_next) - ss
+            part_dur = duration / 8.0
+            night_parts = [2, 1, 0, 6, 5, 4, 3]
+            part_idx = night_parts[weekday]
+            gk_time_rel = ss + part_idx * part_dur
+            mnd_time_rel = ss + (part_idx + 0.5) * part_dur
+            
+        jd_gk = jd_base_midnight + gk_time_rel / 24.0
+        jd_mnd = jd_base_midnight + mnd_time_rel / 24.0
+        
+        gk_lagna = drik.ascendant(jd_gk, birth_place_obj)
+        mnd_lagna = drik.ascendant(jd_mnd, birth_place_obj)
+        
+        d1_positions.append({
+            "planet": "Mnd",
+            "rasi_index": int(mnd_lagna[0]),
+            "is_retro": False,
+            "is_combust": False
+        })
+        d1_positions.append({
+            "planet": "Gk",
+            "rasi_index": int(gk_lagna[0]),
+            "is_retro": False,
+            "is_combust": False
+        })
     except Exception as ex:
         print("D1 chart calculation error:", ex)
 
@@ -234,7 +328,7 @@ def namakarana_finder(
 
     for day_num, offset_days in offsets.items():
         cand_date = birth_date + timedelta(days=offset_days)
-        p = compute_day_panchang(cand_date.year, cand_date.month, cand_date.day,
+        p = calculator(cand_date.year, cand_date.month, cand_date.day,
                                  lat, lon, tz_offset, place_name, hour=eval_hour)
         
         # Calculate Tarabala

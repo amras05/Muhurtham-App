@@ -427,6 +427,13 @@
       <label for="dateInput" data-en="Date" data-te="తేదీ">Date</label>
       <input type="date" id="dateInput">
     </div>
+    <!-- <div class="field" style="flex: 1; min-width: 150px;">
+      <label for="methodSelect" data-en="Calculation Method" data-te="గణన పద్ధతి">Calculation Method</label>
+      <select id="methodSelect">
+        <option value="drik" data-en="Drik Siddhanta (Modern)" data-te="దృక్ సిద్ధాంతం (ఆధునిక)">Drik Siddhanta (Modern)</option>
+        <option value="chandramana" data-en="Surya Siddhanta (Traditional)" data-te="సూర్య సిద్ధాంతం (సాంప్రదాయ)">Surya Siddhanta (Traditional)</option>
+      </select>
+    </div> -->
     <button id="goButton" data-en="Get Panchang" data-te="పంచాంగం చూడండి" style="flex: 0 0 100%; margin-top: 10px;">Get Panchang</button>
 
     <div id="customPlaceField" style="display:none; flex: 0 0 100%; margin-top: 14px; border-top: 1px dashed var(--line); padding-top: 14px; width: 100%;">
@@ -750,7 +757,8 @@ async function getPanchang() {
   el("results").style.display = "none";
 
   try {
-    const res = await fetch(`${API_BASE}/panchang/day-summary?date=${date}&lat=${lat}&lon=${lon}&tz_offset=${tz_offset}&place_name=${encodeURIComponent(place_name)}`);
+    // const method = el("methodSelect").value;
+    const res = await fetch(`${API_BASE}/panchang/day-summary?date=${date}&lat=${lat}&lon=${lon}&tz_offset=${tz_offset}&place_name=${encodeURIComponent(place_name)}`); // &method=${method}
     if (!res.ok) {
       const text = await res.text();
       throw new Error(text || `HTTP ${res.status}`);
@@ -998,8 +1006,8 @@ const TARA_NAMES_TE = {
 };
 
 const PLANET_ABBRS = {
-  en: { L: "Asc", "0": "Su", "1": "Mo", "2": "Ma", "3": "Me", "4": "Ju", "5": "Ve", "6": "Sa", "7": "Ra", "8": "Ke" },
-  te: { L: "ల", "0": "ర", "1": "చ", "2": "కు", "3": "బు", "4": "గు", "5": "శు", "6": "శ", "7": "రా", "8": "కే" }
+  en: { L: "Asc", "0": "Su", "1": "Mo", "2": "Ma", "3": "Me", "4": "Ju", "5": "Ve", "6": "Sa", "7": "Ra", "8": "Ke", Mnd: "Mnd", Gk: "Gk" },
+  te: { L: "ల", "0": "ర", "1": "చ", "2": "కు", "3": "బు", "4": "గు", "5": "శు", "6": "శ", "7": "రా", "8": "కే", Mnd: "మం", Gk: "గుళి" }
 };
 
 const CHART_GRID_POSITIONS = {
@@ -1043,7 +1051,13 @@ function renderNamakarana(data) {
   
   if (data.birth_details.d1_chart && data.birth_details.d1_chart.length > 0) {
     data.birth_details.d1_chart.forEach(item => {
-      const pAbbr = PLANET_ABBRS[currentLang][item.planet] || item.planet;
+      let pAbbr = PLANET_ABBRS[currentLang][item.planet] || item.planet;
+      if (item.is_retro) {
+        pAbbr += "(R)";
+      }
+      if (item.is_combust) {
+        pAbbr += "(C)";
+      }
       rasiPlanets[item.rasi_index].push(pAbbr);
     });
   }
