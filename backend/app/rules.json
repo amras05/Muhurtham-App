@@ -537,17 +537,20 @@
         "nakshatra": [
           "Ashwini",
           "Rohini",
+          "Mrigashira",
           "Punarvasu",
           "Pushya",
           "Uttara Phalguni",
           "Hasta",
+          "Chitra",
           "Swati",
           "Anuradha",
           "Uttara Ashadha",
           "Shravana",
           "Dhanishtha",
           "Shatabhisha",
-          "Uttara Bhadrapada"
+          "Uttara Bhadrapada",
+          "Revati"
         ]
       },
       "avoid": {

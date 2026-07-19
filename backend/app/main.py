@@ -12,8 +12,11 @@ from jhora.panchanga.drik import Place as JHoraPlace
 from jhora.panchanga import drik
 # pyrefly: ignore [missing-import]
 from jhora.horoscope.chart import charts
+# pyrefly: ignore [missing-import]
+from jhora import utils
 
 from .panchang import compute_day_panchang as compute_drik_panchang
+from .names import CANONICAL_NAKSHATRA, RASI_NAMES
 # from .panchang_chandramana import compute_day_panchang as compute_chandramana_panchang
 
 def get_panchang_calculator(method: str):
@@ -190,81 +193,68 @@ def geocode_suggestions(q: str = Query(..., description="Query string, min 3 cha
     return get_geocode_suggestions(q)
 
 
-@app.get("/muhurta/namakarana-finder")
-def namakarana_finder(
-    dob: str = Query(..., description="YYYY-MM-DD"),
-    tob: str = Query("12:00", description="HH:MM"),
-    lat: float = Query(...),
-    lon: float = Query(...),
-    tz_offset: float = Query(...),
-    place_name: str = Query("Location"),
-    method: str = Query("drik", description="Calculation method: 'drik' or 'chandramana'"),
-):
-    """Find the best Namakarana Muhurtas on the 11th, 12th, 16th, 20th, and 22nd days from birth."""
+def compute_d1_positions(target_date, eval_hour, birth_place_obj):
     try:
-        birth_date = datetime.strptime(dob, "%Y-%m-%d").date()
-        h, m = (int(x) for x in tob.split(":"))
-    except ValueError:
-        raise HTTPException(400, "dob must be YYYY-MM-DD, tob must be HH:MM")
-
-    calculator = get_panchang_calculator(method)
-
-    # 1. Determine Janma Nakshatra at birth hour
-    birth_panchang = calculator(birth_date.year, birth_date.month, birth_date.day,
-                                         lat, lon, tz_offset, place_name, hour=h)
-    birth_nak_idx = birth_panchang["nakshatra"]["index"]
-    birth_nak_name = birth_panchang["nakshatra"]["name"]
-    birth_nak_pada = birth_panchang["nakshatra"]["pada"]
-
-    # Calculate D1 (Rasi) chart for birth
-    d1_positions = []
-    try:
-        birth_place_obj = JHoraPlace(place_name, lat, lon, tz_offset)
-        # PyJHora expects JD in LOCAL time — it subtracts tz internally
-        local_hour = h + m / 60.0
-        birth_jd = swe.julday(birth_date.year, birth_date.month, birth_date.day, local_hour)
-        
-        raw_d1 = charts.divisional_chart(birth_jd, birth_place_obj, divisional_chart_factor=1)
-        
-        # Get retro/combust flags
+        jd = swe.julday(target_date.year, target_date.month, target_date.day, eval_hour)
+        raw_d1 = charts.divisional_chart(jd, birth_place_obj, divisional_chart_factor=1)
         retro_ids = charts.planets_in_retrograde(raw_d1)
         combust_ids = charts.planets_in_combustion(raw_d1)
         
+        positions = []
+        swe.set_sid_mode(swe.SIDM_LAHIRI)
+        flags_speed = swe.FLG_SWIEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED
+
         for item in raw_d1:
             p_id = item[0]
             rasi_idx = item[1][0]
+            deg = item[1][1]
+            tot_long = rasi_idx * 30.0 + deg
+            
+            nak_no, pada, _ = drik.nakshatra_pada(tot_long)
+            raw_nak = utils.NAKSHATRA_LIST[nak_no - 1]
+            canon_nak = CANONICAL_NAKSHATRA.get(raw_nak, raw_nak)
             
             is_retro = False
             is_combust = False
-            try:
-                p_int = int(p_id)
-                is_retro = p_int in retro_ids
-                is_combust = p_int in combust_ids
-            except (ValueError, TypeError):
-                pass
+            
+            p_str = str(p_id)
+            if p_str in ["7", "8"]:
+                is_retro = True
+            elif p_str not in ["0", "1", "L", "Mnd", "Gk"]:
+                try:
+                    p_int = int(p_str)
+                    swe_map = {2: swe.MARS, 3: swe.MERCURY, 4: swe.JUPITER, 5: swe.VENUS, 6: swe.SATURN}
+                    if p_int in swe_map:
+                        res = swe.calc_ut(jd, swe_map[p_int], flags_speed)[0]
+                        speed = res[3]
+                        is_retro = speed < 0
+                        
+                    is_combust = p_int in combust_ids
+                except (ValueError, TypeError):
+                    pass
                 
-            d1_positions.append({
+            positions.append({
                 "planet": str(p_id),
                 "rasi_index": int(rasi_idx),
                 "is_retro": is_retro,
-                "is_combust": is_combust
+                "is_combust": is_combust,
+                "nakshatra": canon_nak,
+                "pada": int(pada)
             })
-            
-        # --- Mandi and Gulika calculation ---
-        # 1. Determine the "base_date" of the day (since weekday starts at Sunrise)
-        jd_birth_midnight = swe.julday(birth_date.year, birth_date.month, birth_date.day, 0.0)
-        sr_birth_date = drik.sunrise(jd_birth_midnight + 6.0/24.0, birth_place_obj)[0]
+
+        # Mandi & Gulika calculation
+        jd_midnight = swe.julday(target_date.year, target_date.month, target_date.day, 0.0)
+        sr_date = drik.sunrise(jd_midnight + 6.0/24.0, birth_place_obj)[0]
         
-        if local_hour < sr_birth_date:
-            base_date = birth_date - timedelta(days=1)
+        if eval_hour < sr_date:
+            base_date = target_date - timedelta(days=1)
             is_day = False
         else:
-            base_date = birth_date
+            base_date = target_date
             jd_base_midnight = swe.julday(base_date.year, base_date.month, base_date.day, 0.0)
             ss_base_date = drik.sunset(jd_base_midnight + 6.0/24.0, birth_place_obj)[0]
-            is_day = local_hour < ss_base_date
+            is_day = eval_hour < ss_base_date
             
-        # 2. Weekday and day/night duration
         jd_base_midnight = swe.julday(base_date.year, base_date.month, base_date.day, 0.0)
         weekday = drik.vaara(jd_base_midnight + 12.0/24.0, birth_place_obj)
         
@@ -292,21 +282,306 @@ def namakarana_finder(
         
         gk_lagna = drik.ascendant(jd_gk, birth_place_obj)
         mnd_lagna = drik.ascendant(jd_mnd, birth_place_obj)
-        
-        d1_positions.append({
+
+        mnd_long = mnd_lagna[0] * 30.0 + mnd_lagna[1]
+        mnd_nak_no, mnd_pada, _ = drik.nakshatra_pada(mnd_long)
+        raw_mnd_nak = utils.NAKSHATRA_LIST[mnd_nak_no - 1]
+
+        gk_long = gk_lagna[0] * 30.0 + gk_lagna[1]
+        gk_nak_no, gk_pada, _ = drik.nakshatra_pada(gk_long)
+        raw_gk_nak = utils.NAKSHATRA_LIST[gk_nak_no - 1]
+
+        positions.append({
             "planet": "Mnd",
             "rasi_index": int(mnd_lagna[0]),
             "is_retro": False,
-            "is_combust": False
+            "is_combust": False,
+            "nakshatra": CANONICAL_NAKSHATRA.get(raw_mnd_nak, raw_mnd_nak),
+            "pada": int(mnd_pada)
         })
-        d1_positions.append({
+        positions.append({
             "planet": "Gk",
             "rasi_index": int(gk_lagna[0]),
             "is_retro": False,
-            "is_combust": False
+            "is_combust": False,
+            "nakshatra": CANONICAL_NAKSHATRA.get(raw_gk_nak, raw_gk_nak),
+            "pada": int(gk_pada)
         })
+        return positions, raw_d1
     except Exception as ex:
-        print("D1 chart calculation error:", ex)
+        print("compute_d1_positions error:", ex)
+        return [], []
+
+
+# Pushkara Navamsha ranges per Rasi (0-indexed: 0=Mesha, 1=Vrishabha, ... 11=Meena)
+PUSHKARA_RANGES = {
+    # Fiery (Mesha 0, Simha 4, Dhanus 8): 20°00'-23°20' (7th Navamsha) & 26°40'-30°00' (9th Navamsha)
+    0: [(20.0, 23.3333), (26.6667, 30.0)],
+    4: [(20.0, 23.3333), (26.6667, 30.0)],
+    8: [(20.0, 23.3333), (26.6667, 30.0)],
+    
+    # Earthy (Vrishabha 1, Kanya 5, Makara 9): 6°40'-10°00' (3rd Navamsha) & 13°20'-16°40' (5th Navamsha)
+    1: [(6.6667, 10.0), (13.3333, 16.6667)],
+    5: [(6.6667, 10.0), (13.3333, 16.6667)],
+    9: [(6.6667, 10.0), (13.3333, 16.6667)],
+    
+    # Airy (Mithuna 2, Tula 6, Kumbha 10): 16°40'-20°00' (6th Navamsha) & 23°20'-26°40' (8th Navamsha)
+    2: [(16.6667, 20.0), (23.3333, 26.6667)],
+    6: [(16.6667, 20.0), (23.3333, 26.6667)],
+    10: [(16.6667, 20.0), (23.3333, 26.6667)],
+    
+    # Watery (Karkataka 3, Vrishchika 7, Meena 11): 0°00'-3°20' (1st Navamsha) & 6°40'-10°00' (3rd Navamsha)
+    3: [(0.0, 3.3333), (6.6667, 10.0)],
+    7: [(0.0, 3.3333), (6.6667, 10.0)],
+    11: [(0.0, 3.3333), (6.6667, 10.0)],
+}
+
+PUSHKARA_BHAGA_DEGS = {
+    0: 21.0, 4: 21.0, 8: 21.0,   # Fiery (Mesha, Simha, Dhanus)
+    1: 14.0, 5: 14.0, 9: 14.0,   # Earthy (Vrishabha, Kanya, Makara)
+    2: 24.0, 6: 24.0, 10: 24.0,  # Airy (Mithuna, Tula, Kumbha)
+    3: 7.0,  7: 7.0,  11: 7.0,   # Watery (Karkataka, Vrishchika, Meena)
+}
+
+def parse_time_to_hours(t_str):
+    if not t_str: return None
+    offset = 0
+    if "(-1)" in t_str:
+        offset = -24
+    elif "(+1)" in t_str:
+        offset = 24
+    clean = t_str.split()[0]
+    parts = clean.split(":")
+    return offset + float(parts[0]) + float(parts[1])/60.0 + float(parts[2])/3600.0
+
+def is_colliding_time(h, time_dict_or_list, buffer_mins=10.0):
+    if not time_dict_or_list: return False
+    buffer_h = buffer_mins / 60.0
+    if isinstance(time_dict_or_list, dict):
+        s = parse_time_to_hours(time_dict_or_list.get("start"))
+        e = parse_time_to_hours(time_dict_or_list.get("end"))
+        if s is None or e is None: return False
+        
+        # If period is entirely on previous day (<= 0) or next day (>= 24), no collision with today h (0..24)
+        if s <= 0 and e <= 0: return False
+        if s >= 24 and e >= 24: return False
+        
+        # Apply safety buffer around inauspicious time window
+        s_buf = s - buffer_h
+        e_buf = e + buffer_h
+        
+        if s_buf <= e_buf:
+            return s_buf <= h <= e_buf
+        else:
+            return h >= s_buf or h <= e_buf
+    elif isinstance(time_dict_or_list, list):
+        for item in time_dict_or_list:
+            if is_colliding_time(h, item, buffer_mins): return True
+    return False
+
+def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
+    sr_h = parse_time_to_hours(p["sunrise"]) or 6.0
+    noon_h = 12.0
+    
+    rahu = p.get("rahu_kalam")
+    yama = p.get("yamagandam")
+    gulika = p.get("gulika_kalam")
+    dur_list = p.get("durmuhurtam")
+    varjyam = p.get("varjyam")
+    
+    swe.set_sid_mode(swe.SIDM_LAHIRI)
+    jd_ut_mid = swe.julday(cand_date.year, cand_date.month, cand_date.day, 0.0)
+    
+    RASI_NAMES_TE = ["మేషం", "వృషభం", "మిథునం", "కర్కాటకం", "సింహం", "కన్య", "తులా", "వృశ్చికం", "ధనుస్సు", "మకరం", "కుంభం", "మీనం"]
+
+    # 1. Map all Lagnas from Sunrise to 12 PM (with buffer past 12 PM to find end of last morning Lagna)
+    lagnas = []
+    curr_h = sr_h
+    last_rasi = None
+    lagna_start = sr_h
+    
+    while curr_h <= noon_h + 2.0:
+        ut_hour = curr_h - tz_offset
+        jd_t = jd_ut_mid + ut_hour / 24.0
+        cusps, ascmc = swe.houses_ex(jd_t, lat, lon, b'P', swe.FLG_SIDEREAL)
+        l_lon = ascmc[0] % 360.0
+        r_idx = int(l_lon // 30)
+        
+        if last_rasi is not None and r_idx != last_rasi:
+            lagnas.append({
+                "rasi_index": last_rasi,
+                "rasi_en": RASI_NAMES[last_rasi + 1],
+                "rasi_te": RASI_NAMES_TE[last_rasi],
+                "start_h": lagna_start,
+                "end_h": curr_h
+            })
+            lagna_start = curr_h
+        last_rasi = r_idx
+        curr_h += (1.0 / 60.0)
+
+    # Evaluate each Lagna that starts before 12 PM
+    candidate_lagnas = []
+    
+    for lg in lagnas:
+        if lg["start_h"] >= noon_h: continue
+        
+        clean_minutes = []
+        pushkara_bhaga_mins = []
+        pushkara_nav_mins = []
+        
+        step_h = max(sr_h, lg["start_h"])
+        step_end = min(noon_h, lg["end_h"])
+        
+        while step_h <= step_end:
+            coll = (
+                is_colliding_time(step_h, rahu, buffer_mins=10.0) or
+                is_colliding_time(step_h, yama, buffer_mins=10.0) or
+                is_colliding_time(step_h, gulika, buffer_mins=10.0) or
+                is_colliding_time(step_h, dur_list, buffer_mins=10.0) or
+                is_colliding_time(step_h, varjyam, buffer_mins=10.0)
+            )
+            if not coll:
+                clean_minutes.append(step_h)
+                ut_hour = step_h - tz_offset
+                jd_t = jd_ut_mid + ut_hour / 24.0
+                cusps, ascmc = swe.houses_ex(jd_t, lat, lon, b'P', swe.FLG_SIDEREAL)
+                l_lon = ascmc[0] % 360.0
+                deg_in_rasi = l_lon % 30.0
+                
+                target_deg = PUSHKARA_BHAGA_DEGS.get(lg["rasi_index"], 15.0)
+                if abs(deg_in_rasi - target_deg) <= 1.5:
+                    pushkara_bhaga_mins.append(step_h)
+                
+                ranges = PUSHKARA_RANGES.get(lg["rasi_index"], [])
+                for r_s, r_e in ranges:
+                    if r_s <= deg_in_rasi <= r_e:
+                        pushkara_nav_mins.append(step_h)
+                        break
+            step_h += (1.0 / 60.0)
+            
+        # PROXIMITY FILTER: Require at least 15 minutes of clean uncollided duration
+        if len(clean_minutes) >= 15:
+            candidate_lagnas.append({
+                "lagna": lg,
+                "clean_mins": clean_minutes,
+                "bhaga_mins": pushkara_bhaga_mins,
+                "nav_mins": pushkara_nav_mins
+            })
+
+    def format_hms(h):
+        hh = int(h)
+        mm = int(round((h - hh) * 60))
+        if mm >= 60:
+            hh += 1
+            mm = 0
+        ampm = "AM" if hh < 12 else "PM"
+        display_h = hh if hh <= 12 else hh - 12
+        if display_h == 0: display_h = 12
+        return f"{display_h:02d}:{mm:02d} {ampm}"
+            
+    if not candidate_lagnas:
+        return {
+            "precise_time": "09:35 AM",
+            "time_window": "09:30 AM – 10:30 AM",
+            "lagna_duration": "08:00 AM – 10:00 AM",
+            "lagna_name": "Morning Window",
+            "statement_en": "09:35 AM is a good time",
+            "statement_te": "ఉదయం 09:35 AM అనుకూల సమయం",
+            "type_en": "Standard Morning Window",
+            "type_te": "శుభ సమయం"
+        }
+
+    # Process all clean candidate Lagnas for this date
+    processed_windows = []
+    
+    for cand_item in candidate_lagnas:
+        lg = cand_item["lagna"]
+        clean_mins = cand_item["clean_mins"]
+        bhaga_mins = cand_item["bhaga_mins"]
+        nav_mins = cand_item["nav_mins"]
+        
+        match_kind = "clean"
+        best_h = clean_mins[len(clean_mins)//2]
+        if bhaga_mins:
+            match_kind = "bhaga"
+            best_h = bhaga_mins[len(bhaga_mins)//2]
+        elif nav_mins:
+            match_kind = "navamsha"
+            best_h = nav_mins[len(nav_mins)//2]
+            
+        precise_t = format_hms(best_h)
+        lg_duration = f"{format_hms(lg['start_h'])} – {format_hms(lg['end_h'])}"
+        clean_win = f"{format_hms(clean_mins[0])} – {format_hms(clean_mins[-1])}"
+        
+        type_en = "Pushkara Bhaga Lagna" if match_kind == "bhaga" else ("Pushkara Navamsha Lagna" if match_kind == "navamsha" else "Auspicious Lagna Window")
+        type_te = "పుష్కర భాగ లగ్నం" if match_kind == "bhaga" else ("పుష్కర నవాంశ లగ్నం" if match_kind == "navamsha" else "శుభ లగ్న సమయం")
+        
+        avoid_note_en = ""
+        avoid_note_te = ""
+        if clean_mins[-1] < min(noon_h, lg['end_h']) - (2.0/60.0):
+            avoid_note_te = f" ({format_hms(clean_mins[-1])} తర్వాత అశుభ సమయం/దుర్ముహూర్తం వర్జ్యం)"
+            avoid_note_en = f" (inauspicious time / Durmuhurtam after {format_hms(clean_mins[-1])})"
+            
+        processed_windows.append({
+            "precise_time": precise_t,
+            "time_window": clean_win,
+            "lagna_duration": lg_duration,
+            "lagna_name_en": lg["rasi_en"],
+            "lagna_name_te": lg["rasi_te"],
+            "lagna_name": lg["rasi_en"],
+            "match_kind": match_kind,
+            "statement_en": f"{precise_t} is an auspicious time ({lg['rasi_en']} Lagna: {lg_duration}){avoid_note_en}",
+            "statement_te": f"ఉదయం {precise_t} శ్రేష్ఠమైన శుభ ముహూర్త సమయం ({lg['rasi_te']} లగ్నాంతాలు: {lg_duration}){avoid_note_te}",
+            "type_en": type_en,
+            "type_te": type_te
+        })
+
+    # Sort so Pushkara Bhaga comes first, then Pushkara Navamsha, then clean windows
+    processed_windows.sort(key=lambda x: 0 if x["match_kind"] == "bhaga" else (1 if x["match_kind"] == "navamsha" else 2))
+
+    primary = processed_windows[0]
+    additional = processed_windows[1:] if len(processed_windows) > 1 else []
+    primary["additional_windows"] = additional
+    
+    return primary
+
+
+@app.get("/muhurta/namakarana-finder")
+def namakarana_finder(
+    dob: str = Query(..., description="YYYY-MM-DD"),
+    tob: str = Query("12:00", description="HH:MM"),
+    lat: float = Query(...),
+    lon: float = Query(...),
+    tz_offset: float = Query(...),
+    place_name: str = Query("Location"),
+    method: str = Query("drik", description="Calculation method: 'drik' or 'chandramana'"),
+):
+    """Find the best Namakarana Muhurtas on the 11th, 12th, 16th, 20th, and 22nd days from birth."""
+    try:
+        birth_date = datetime.strptime(dob, "%Y-%m-%d").date()
+        h, m = (int(x) for x in tob.split(":"))
+    except ValueError:
+        raise HTTPException(400, "dob must be YYYY-MM-DD, tob must be HH:MM")
+
+    calculator = get_panchang_calculator(method)
+
+    # 1. Determine Janma Nakshatra at birth hour
+    local_hour = h + m / 60.0
+    birth_panchang = calculator(birth_date.year, birth_date.month, birth_date.day,
+                                         lat, lon, tz_offset, place_name, hour=local_hour)
+    birth_nak_idx = birth_panchang["nakshatra"]["index"]
+    birth_nak_name = birth_panchang["nakshatra"]["name"]
+    birth_nak_pada = birth_panchang["nakshatra"]["pada"]
+
+    # Calculate D1 (Rasi) chart for birth
+    d1_positions = []
+    try:
+        birth_place_obj = JHoraPlace(place_name, lat, lon, tz_offset)
+        d1_positions, raw_d1 = compute_d1_positions(birth_date, local_hour, birth_place_obj)
+    except Exception as ex:
+        print("Birth D1 chart error:", ex)
+        birth_place_obj = JHoraPlace(place_name, lat, lon, tz_offset)
+        raw_d1 = []
 
     # Candidate day offsets from birth day (Day 1 is birth date, so Day 11 is +10 days)
     offsets = {
@@ -325,45 +600,90 @@ def namakarana_finder(
     
     # We evaluate the Muhurtas at 10 AM (standard auspicious morning hour)
     eval_hour = 10
+    
+    # 0-indexed birth lagna
+    birth_lagna_idx_0 = raw_d1[0][1][0] if raw_d1 else 0
+    birth_lagna_idx = birth_lagna_idx_0 + 1
+    birth_lagna_name = RASI_NAMES[birth_lagna_idx]
+
+    planet_names_map = {
+        "0": "Sun", "1": "Moon", "2": "Mars", "3": "Mercury", "4": "Jupiter", 
+        "5": "Venus", "6": "Saturn", "7": "Rahu", "8": "Ketu"
+    }
 
     for day_num, offset_days in offsets.items():
         cand_date = birth_date + timedelta(days=offset_days)
         p = calculator(cand_date.year, cand_date.month, cand_date.day,
                                  lat, lon, tz_offset, place_name, hour=eval_hour)
         
-        # Calculate Tarabala
-        diff = (p["nakshatra"]["index"] - birth_nak_idx) % 27
-        tara_idx = (diff % 9) + 1
+        cand_d1_positions, cand_raw_d1 = compute_d1_positions(cand_date, eval_hour, birth_place_obj)
+
+        # Calculate Tarabalam using PyJHora's utils.count_stars
+        count_inc = utils.count_stars(birth_nak_idx, p["nakshatra"]["index"])
+        tb_rem = count_inc % 9
+        tara_idx = 9 if tb_rem == 0 else tb_rem
         tara_name = tara_names[tara_idx]
-        is_tara_good = tara_idx in [2, 4, 6, 8, 9]
+        is_tara_avoid = tara_idx in [1, 3, 5, 7]
+        is_tara_good = not is_tara_avoid
 
         # General checks
         is_vaara_good = p["vaara"] in ["Monday", "Wednesday", "Thursday", "Friday"]
         is_nak_good = p["nakshatra"]["name"] in [
-            "Ashwini", "Rohini", "Punarvasu", "Pushya", "Uttara Phalguni", 
-            "Hasta", "Swati", "Anuradha", "Uttara Ashadha", "Shravana", 
-            "Dhanishtha", "Shatabhisha", "Uttara Bhadrapada"
+            "Ashwini", "Rohini", "Mrigashira", "Punarvasu", "Pushya", "Uttara Phalguni", 
+            "Hasta", "Chitra", "Swati", "Anuradha", "Uttara Ashadha", "Shravana", 
+            "Dhanishtha", "Shatabhisha", "Uttara Bhadrapada", "Revati"
         ]
         is_tithi_avoid = p["tithi"]["name"] in ["Chaturthi", "Navami", "Purnima", "Amavasya"]
+        
+        # Yoga & Karana avoid lists
+        is_yoga_avoid = p["yoga"]["name"] in ["Vaidhriti", "Ganda", "Vyatipata", "Parigha"]
+        is_karana_avoid = p["karana"]["name"] in ["Vishti (Bhadra)", "Shakuni", "Chatushpada", "Naga", "Kimstughna"]
 
-        # Scoring
-        vaara_score = 25 if is_vaara_good else 0
-        nak_score = 25 if is_nak_good else 0
-        tithi_score = 25 if not is_tithi_avoid else 0
-        tara_score = 25 if is_tara_good else 0
+        # Ashtama Lagna check (8th house from birth lagna)
+        cand_lagna_idx = p["lagna_rasi_index"]
+        cand_lagna_name = RASI_NAMES[cand_lagna_idx - 1]
+        is_ashtama_lagna = (cand_lagna_idx - birth_lagna_idx) % 12 == 7
+
+        # Ashtama Shuddhi check (8th house from candidate lagna must have no planets)
+        ashtama_rasi_idx = (cand_lagna_idx - 1 + 7) % 12 + 1
         
-        total_pct = vaara_score + nak_score + tithi_score + tara_score
+        planets_in_8th = []
+        for item in cand_raw_d1:
+            p_id = item[0]
+            if p_id == 'L':
+                continue
+            p_rasi = item[1][0] + 1
+            if p_rasi == ashtama_rasi_idx:
+                planets_in_8th.append(planet_names_map.get(str(p_id), str(p_id)))
         
-        # Avoid Tithi is a blocker, penalize/cap heavily
-        if is_tithi_avoid:
+        has_ashtama_shuddhi = len(planets_in_8th) == 0
+
+        # Scoring Logic
+        # Max base score is 100
+        base_score = 0
+        if is_vaara_good: base_score += 25
+        if is_nak_good: base_score += 25
+        if not is_tithi_avoid: base_score += 25
+        if not is_tara_avoid: base_score += 25
+
+        # Deductions
+        deductions = 0
+        if is_yoga_avoid: deductions += 30
+        if is_karana_avoid: deductions += 30
+        if not has_ashtama_shuddhi: deductions += 30
+
+        total_pct = max(0, base_score - deductions)
+
+        # Severe blockers cap the score to force unfavorable
+        if is_tithi_avoid or is_tara_avoid or is_ashtama_lagna:
             total_pct = min(total_pct, 10)
 
-        # Build list of user-facing reasons
+        # Build list of reasons
         reasons = []
         if is_vaara_good:
             reasons.append(f"{p['vaara']} is favorable.")
         else:
-            reasons.append(f"{p['vaara']} is unfavorable.")
+            reasons.append(f"{p['vaara']} is not recommended.")
 
         if is_nak_good:
             reasons.append(f"Nakshatra {p['nakshatra']['name']} is favorable.")
@@ -375,9 +695,24 @@ def namakarana_finder(
         else:
             reasons.append(f"Tithi {p['tithi']['name']} is favorable.")
 
-        reasons.append(f"Tarabalam is {tara_name} ({'favorable' if is_tara_good else 'unfavorable'}).")
+        reasons.append(f"Tarabalam is {tara_name} ({'not recommended' if is_tara_avoid else 'favorable'}).")
+
+        if is_ashtama_lagna:
+            reasons.append("Ashtama Lagna Dosha (Muhurta Lagna is the 8th house from birth Lagna)!")
+        
+        if not has_ashtama_shuddhi:
+            reasons.append(f"No Ashtama Shuddhi ({', '.join(planets_in_8th)} in 8th house from Lagna)!")
+        else:
+            reasons.append("Ashtama Shuddhi is clean (8th house is vacant).")
+
+        if is_yoga_avoid:
+            reasons.append(f"Avoid: Unfavorable {p['yoga']['name']} yoga!")
+        
+        if is_karana_avoid:
+            reasons.append(f"Avoid: Unfavorable {p['karana']['name']} karana!")
 
         verdict = "highly_favorable" if total_pct >= 75 else ("favorable" if total_pct >= 50 else "unfavorable")
+        pushkara_info = compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p)
 
         candidates_list.append({
             "day_number": day_num,
@@ -387,12 +722,25 @@ def namakarana_finder(
             "is_tara_good": is_tara_good,
             "verdict": verdict,
             "reasons": reasons,
+            "pushkara_info": pushkara_info,
+            "special_yogas": p.get("special_yogas", []),
             "panchang": {
                 "vaara": p["vaara"],
                 "tithi": f"{p['tithi']['name']} ({p['tithi']['paksha']})",
                 "nakshatra": p["nakshatra"]["name"],
                 "yoga": p["yoga"]["name"],
                 "karana": p["karana"]["name"]
+            },
+            "d1_chart": cand_d1_positions,
+            "detailed_eval": {
+                "vaara": {"name": p["vaara"], "is_pass": is_vaara_good},
+                "tithi": {"name": p["tithi"]["name"], "paksha": p["tithi"]["paksha"], "is_pass": not is_tithi_avoid},
+                "nakshatra": {"name": p["nakshatra"]["name"], "pada": p["nakshatra"]["pada"], "is_pass": is_nak_good},
+                "tara": {"name": tara_name, "is_pass": not is_tara_avoid},
+                "ashtama_lagna": {"is_dosha": is_ashtama_lagna, "birth_lagna": birth_lagna_name, "muhurta_lagna": cand_lagna_name},
+                "ashtama_shuddhi": {"has_shuddhi": has_ashtama_shuddhi, "planets_in_8th": planets_in_8th},
+                "yoga": {"name": p["yoga"]["name"], "is_pass": not is_yoga_avoid},
+                "karana": {"name": p["karana"]["name"], "is_pass": not is_karana_avoid}
             }
         })
 
