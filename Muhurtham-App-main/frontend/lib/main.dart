@@ -11,6 +11,6 @@ void main() async {
   // Call a dummy storage read to trigger internal SharedPreferences.getInstance()
   await storage.isLoggedIn();
 
-  // Run the app
+  // Run the application
   runApp(const MuhurthamApp());
 }
