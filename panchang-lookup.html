@@ -1535,6 +1535,8 @@
         const pushType = currentLang === "te" ? pushkara.type_te : pushkara.type_en;
         const pushLagna = currentLang === "te" ? te(pushkara.lagna_name, RASI_NAMES_TE) : pushkara.lagna_name;
         const statement = currentLang === "te" ? pushkara.statement_te : pushkara.statement_en;
+        const avoidNote = currentLang === "te" ? pushkara.avoid_note_te : pushkara.avoid_note_en;
+
         bodyHtml += `
           <div style="background: #fff8e1; border: 1.5px solid #ffa000; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;">
             <h4 style="margin: 0 0 6px 0; color: #b71c1c; font-size: 14px;">☀️ ${currentLang === "te" ? "శుభ ముహూర్త సమయ నిర్ణయం (ఉదయం 12 PM లోపు)" : "Recommended Time Prediction (Before 12 PM)"}</h4>
@@ -1542,8 +1544,13 @@
               ⏰ ${statement}
             </div>
             <div style="font-size: 13px; font-weight: 600; color: #4e342e; margin-top: 4px;">
-              📌 ${currentLang === "te" ? "సమయ వ్యవధి:" : "Window:"} ${pushkara.time_window} (${pushLagna} ${pushType} - ${currentLang === "te" ? "రాహు/కేతు కాలం, వర్జ్యం రహితం" : "No Rahu/Ketu Kalam or Varjyam"})
+              📌 ${currentLang === "te" ? "సమయ వ్యవధి:" : "Window:"} ${pushkara.time_window} (${pushLagna} ${pushType})
             </div>
+            ${avoidNote ? `
+              <div style="font-size: 12px; font-weight: 600; color: #b71c1c; margin-top: 4px; background: #fff0f0; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffcdd2;">
+                ⚠️ ${currentLang === "te" ? "గమనిక:" : "Note:"} ${avoidNote}
+              </div>
+            ` : ''}
           </div>
         `;
       }
@@ -1563,6 +1570,37 @@
             <div><strong>${currentLang === "te" ? "తారాబలం:" : "Tarabalam:"}</strong> ${taraTe}</div>
             <div><strong>${currentLang === "te" ? "యోగం:" : "Yoga:"}</strong> ${c.panchang.yoga}</div>
             <div><strong>${currentLang === "te" ? "కరణం:" : "Karana:"}</strong> ${c.panchang.karana}</div>
+          </div>
+        </div>
+      `;
+
+      // 1b. Inauspicious Timings Section
+      const ip = (c.panchang && c.panchang.inauspicious_periods) ? c.panchang.inauspicious_periods : (c.panchang || {});
+      function fmtP(p) {
+        if (!p) return "—";
+        if (typeof p === 'string') return p.trim() || "—";
+        if (Array.isArray(p)) {
+          if (p.length === 0) return "—";
+          return p.map(item => {
+            if (!item) return "";
+            if (typeof item === 'string') return item;
+            if (typeof item === 'object' && item.start && item.end) return `${item.start} – ${item.end}`;
+            return String(item);
+          }).filter(Boolean).join(" & ") || "—";
+        }
+        if (typeof p === 'object' && p.start && p.end) return `${p.start} – ${p.end}`;
+        return String(p) || "—";
+      }
+
+      bodyHtml += `
+        <div style="background:#fff5f5; padding:12px; border-radius:8px; border:1px solid #ffcdd2; margin-bottom:16px;">
+          <h4 style="margin:0 0 8px 0; color:#b71c1c;">⏳ ${currentLang === "te" ? "అశుభ సమయములు (Inauspicious Timings)" : "Inauspicious Timings"}</h4>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:8px; font-size:13px; color:#5c0011;">
+            <div><strong>${currentLang === "te" ? "రాహు కాలం:" : "Rahu Kalam:"}</strong> ${fmtP(ip.rahu_kalam)}</div>
+            <div><strong>${currentLang === "te" ? "యమగండం:" : "Yamagandam:"}</strong> ${fmtP(ip.yamagandam)}</div>
+            <div><strong>${currentLang === "te" ? "గుళిక కాలం:" : "Gulika Kalam:"}</strong> ${fmtP(ip.gulika_kalam)}</div>
+            <div><strong>${currentLang === "te" ? "దుర్ముహూర్తం:" : "Durmuhurtam:"}</strong> ${fmtP(ip.durmuhurtam)}</div>
+            <div><strong>${currentLang === "te" ? "వర్జ్యం:" : "Varjyam:"}</strong> ${fmtP(ip.varjyam)}</div>
           </div>
         </div>
       `;
@@ -1850,11 +1888,19 @@
             addWinHtml += `</div>`;
           }
 
+          const noteText = currentLang === "te" ? pushkara.avoid_note_te : pushkara.avoid_note_en;
+          const noteBadge = noteText ? `
+            <div style="font-size: 11px; color: #b71c1c; font-weight: 600; margin-top: 3px; background: #fff0f0; padding: 2px 6px; border-radius: 4px; display: inline-block;">
+              ⚠️ ${currentLang === "te" ? "గమనిక:" : "Note:"} ${noteText}
+            </div>
+          ` : '';
+
           pushkaraHtml = `
             <div style="background: #fffdf5; border: 1.5px solid #c59b27; padding: 12px 14px; border-radius: 8px; margin-top: 10px; font-size: 13px; color: #4a0e17; box-shadow: 0 2px 6px rgba(197, 155, 39, 0.12);">
               <strong style="font-size: 15px; color: #1b5e20;">⏰ ${statement}</strong>
               <div style="font-size: 12px; color: #5d4037; margin-top: 5px; font-weight: 500;">
                 📌 <strong>${currentLang === "te" ? "శుభ ముహూర్త సమయ వ్యవధి:" : "Auspicious Window:"}</strong> ${pushkara.time_window}
+                ${noteBadge ? `<br>${noteBadge}` : ''}
                 <br>🏛️ <strong>${currentLang === "te" ? "లగ్న కాలము (లగ్నాంతాలు):" : "Lagna Duration:"}</strong> ${pushkara.lagna_duration || "—"} (${pushLagna} ${pushType})
               </div>
               ${addWinHtml}

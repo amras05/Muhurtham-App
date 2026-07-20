@@ -491,6 +491,26 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
             "type_te": "శుభ సమయం"
         }
 
+    def get_colliding_names(check_h, buffer_m=5.0):
+        names_te = []
+        names_en = []
+        if is_colliding_time(check_h, rahu, buffer_mins=buffer_m):
+            names_te.append("రాహు కాలం")
+            names_en.append("Rahu Kalam")
+        if is_colliding_time(check_h, yama, buffer_mins=buffer_m):
+            names_te.append("యమగండం")
+            names_en.append("Yamagandam")
+        if is_colliding_time(check_h, gulika, buffer_mins=buffer_m):
+            names_te.append("గుళిక కాలం")
+            names_en.append("Gulika Kalam")
+        if is_colliding_time(check_h, dur_list, buffer_mins=buffer_m):
+            names_te.append("దుర్ముహూర్తం")
+            names_en.append("Durmuhurtam")
+        if is_colliding_time(check_h, varjyam, buffer_mins=buffer_m):
+            names_te.append("వర్జ్యం")
+            names_en.append("Varjyam")
+        return names_te, names_en
+
     # Process all clean candidate Lagnas for this date
     processed_windows = []
     
@@ -509,6 +529,24 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
             match_kind = "navamsha"
             best_h = nav_mins[len(nav_mins)//2]
             
+        end_truncated = clean_mins[-1] < min(noon_h, lg['end_h']) - (2.0/60.0)
+        start_truncated = clean_mins[0] > max(sr_h, lg['start_h']) + (2.0/60.0)
+
+        # Enforce safety buffer (minimum 10 minutes) before inauspicious cutoff
+        if end_truncated and (clean_mins[-1] - best_h) < (10.0 / 60.0):
+            safe_target = clean_mins[-1] - (10.0 / 60.0)
+            if safe_target >= clean_mins[0]:
+                best_h = safe_target
+            else:
+                best_h = clean_mins[len(clean_mins)//2]
+
+        if start_truncated and (best_h - clean_mins[0]) < (10.0 / 60.0):
+            safe_target = clean_mins[0] + (10.0 / 60.0)
+            if safe_target <= clean_mins[-1]:
+                best_h = safe_target
+            else:
+                best_h = clean_mins[len(clean_mins)//2]
+
         precise_t = format_hms(best_h)
         lg_duration = f"{format_hms(lg['start_h'])} – {format_hms(lg['end_h'])}"
         clean_win = f"{format_hms(clean_mins[0])} – {format_hms(clean_mins[-1])}"
@@ -516,12 +554,36 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
         type_en = "Pushkara Bhaga Lagna" if match_kind == "bhaga" else ("Pushkara Navamsha Lagna" if match_kind == "navamsha" else "Auspicious Lagna Window")
         type_te = "పుష్కర భాగ లగ్నం" if match_kind == "bhaga" else ("పుష్కర నవాంశ లగ్నం" if match_kind == "navamsha" else "శుభ లగ్న సమయం")
         
-        avoid_note_en = ""
-        avoid_note_te = ""
-        if clean_mins[-1] < min(noon_h, lg['end_h']) - (2.0/60.0):
-            avoid_note_te = f" ({format_hms(clean_mins[-1])} తర్వాత అశుభ సమయం/దుర్ముహూర్తం వర్జ్యం)"
-            avoid_note_en = f" (inauspicious time / Durmuhurtam after {format_hms(clean_mins[-1])})"
-            
+        avoid_notes_te = []
+        avoid_notes_en = []
+
+        if end_truncated:
+            end_names_te, end_names_en = get_colliding_names(clean_mins[-1] + (5.0/60.0), buffer_m=5.0)
+            if not end_names_te:
+                name_str_te = "దుర్ముహూర్తం / వర్జ్యం"
+                name_str_en = "Durmuhurtam / Varjyam"
+            else:
+                name_str_te = " / ".join(end_names_te)
+                name_str_en = " / ".join(end_names_en)
+            avoid_notes_te.append(f"{format_hms(clean_mins[-1])} తర్వాత అశుభ సమయం ({name_str_te})")
+            avoid_notes_en.append(f"inauspicious time ({name_str_en}) after {format_hms(clean_mins[-1])}")
+
+        if start_truncated:
+            start_names_te, start_names_en = get_colliding_names(clean_mins[0] - (5.0/60.0), buffer_m=5.0)
+            if not start_names_te:
+                name_str_te = "దుర్ముహూర్తం / వర్జ్యం"
+                name_str_en = "Durmuhurtam / Varjyam"
+            else:
+                name_str_te = " / ".join(start_names_te)
+                name_str_en = " / ".join(start_names_en)
+            avoid_notes_te.append(f"{format_hms(clean_mins[0])} వరకు అశుభ సమయం ({name_str_te})")
+            avoid_notes_en.append(f"inauspicious time ({name_str_en}) until {format_hms(clean_mins[0])}")
+
+        avoid_note_te = f"{', '.join(avoid_notes_te)}" if avoid_notes_te else ""
+        avoid_note_en = f"{', '.join(avoid_notes_en)}" if avoid_notes_en else ""
+        
+        is_squeezed = (start_truncated and end_truncated) or ((clean_mins[-1] - clean_mins[0]) < (35.0 / 60.0))
+
         processed_windows.append({
             "precise_time": precise_t,
             "time_window": clean_win,
@@ -530,14 +592,17 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
             "lagna_name_te": lg["rasi_te"],
             "lagna_name": lg["rasi_en"],
             "match_kind": match_kind,
-            "statement_en": f"{precise_t} is an auspicious time ({lg['rasi_en']} Lagna: {lg_duration}){avoid_note_en}",
-            "statement_te": f"ఉదయం {precise_t} శ్రేష్ఠమైన శుభ ముహూర్త సమయం ({lg['rasi_te']} లగ్నాంతాలు: {lg_duration}){avoid_note_te}",
+            "is_squeezed": is_squeezed,
+            "avoid_note_te": avoid_note_te,
+            "avoid_note_en": avoid_note_en,
+            "statement_en": f"{precise_t} is an auspicious time ({lg['rasi_en']} Lagna: {lg_duration})",
+            "statement_te": f"ఉదయం {precise_t} శ్రేష్ఠమైన శుభ ముహూర్త సమయం ({lg['rasi_te']} లగ్నాంతాలు: {lg_duration})",
             "type_en": type_en,
             "type_te": type_te
         })
 
-    # Sort so Pushkara Bhaga comes first, then Pushkara Navamsha, then clean windows
-    processed_windows.sort(key=lambda x: 0 if x["match_kind"] == "bhaga" else (1 if x["match_kind"] == "navamsha" else 2))
+    # Sort so unsqueezed Lagnas come first, then Pushkara Bhaga, then Pushkara Navamsha
+    processed_windows.sort(key=lambda x: (0 if not x["is_squeezed"] else 1, 0 if x["match_kind"] == "bhaga" else (1 if x["match_kind"] == "navamsha" else 2)))
 
     primary = processed_windows[0]
     additional = processed_windows[1:] if len(processed_windows) > 1 else []
@@ -729,7 +794,19 @@ def namakarana_finder(
                 "tithi": f"{p['tithi']['name']} ({p['tithi']['paksha']})",
                 "nakshatra": p["nakshatra"]["name"],
                 "yoga": p["yoga"]["name"],
-                "karana": p["karana"]["name"]
+                "karana": p["karana"]["name"],
+                "rahu_kalam": p.get("rahu_kalam"),
+                "yamagandam": p.get("yamagandam"),
+                "gulika_kalam": p.get("gulika_kalam"),
+                "durmuhurtam": p.get("durmuhurtam"),
+                "varjyam": p.get("varjyam"),
+                "inauspicious_periods": {
+                    "rahu_kalam": p.get("rahu_kalam"),
+                    "yamagandam": p.get("yamagandam"),
+                    "gulika_kalam": p.get("gulika_kalam"),
+                    "durmuhurtam": p.get("durmuhurtam"),
+                    "varjyam": p.get("varjyam")
+                }
             },
             "d1_chart": cand_d1_positions,
             "detailed_eval": {
