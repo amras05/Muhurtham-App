@@ -26,6 +26,7 @@ def get_panchang_calculator(method: str):
 
 from .rules_engine import evaluate, list_activities, find_next_favorable, get_activity
 from .regions import get_region, list_regions, geocode_place_name, get_geocode_suggestions
+from .auth import auth_router
 
 app = FastAPI(title="Muhurta Finder API", version="0.1.0")
 
@@ -35,6 +36,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_router)
+
 
 
 @app.get("/activities")
