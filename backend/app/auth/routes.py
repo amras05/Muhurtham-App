@@ -1,3 +1,4 @@
+from backend.app.auth.database import get_user_by_id
 import secrets
 from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Request, Query, status
