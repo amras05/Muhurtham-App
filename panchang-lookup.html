@@ -1529,7 +1529,7 @@
       // Build Modal Body
       let bodyHtml = "";
 
-      // Pushkara Bhaga Morning Window (Before 12 PM)
+      // Pushkara Bhaga & Pushkara Navamsha Morning Window (Before 12 PM)
       const pushkara = c.pushkara_info;
       if (pushkara) {
         const pushType = currentLang === "te" ? pushkara.type_te : pushkara.type_en;
@@ -1537,17 +1537,39 @@
         const statement = currentLang === "te" ? pushkara.statement_te : pushkara.statement_en;
         const avoidNote = currentLang === "te" ? pushkara.avoid_note_te : pushkara.avoid_note_en;
 
+        let pushSubDetails = [];
+        if (pushkara.pushkara_bhaga && pushkara.pushkara_bhaga.is_available) {
+          const pb = pushkara.pushkara_bhaga;
+          pushSubDetails.push(currentLang === "te" ?
+            `📌 <strong>పుష్కర భాగ ముహూర్తం:</strong> ${pb.precise_time} (సమయ వ్యవధి: ${pb.time_window})` :
+            `📌 <strong>Pushkara Bhaga Muhurta:</strong> ${pb.precise_time} (Window: ${pb.time_window})`
+          );
+        }
+        if (pushkara.pushkara_navamsha && pushkara.pushkara_navamsha.is_available) {
+          const pn = pushkara.pushkara_navamsha;
+          pushSubDetails.push(currentLang === "te" ?
+            `📌 <strong>పుష్కర నవాంశ ముహూర్తం:</strong> ${pn.precise_time} (సమయ వ్యవధి: ${pn.time_window})` :
+            `📌 <strong>Pushkara Navamsha Muhurta:</strong> ${pn.precise_time} (Window: ${pn.time_window})`
+          );
+        }
+        if (pushSubDetails.length === 0) {
+          pushSubDetails.push(currentLang === "te" ?
+            `📌 <strong>సమయ వ్యవధి:</strong> ${pushkara.time_window} (${pushLagna} ${pushType})` :
+            `📌 <strong>Window:</strong> ${pushkara.time_window} (${pushLagna} ${pushType})`
+          );
+        }
+
         bodyHtml += `
           <div style="background: #fff8e1; border: 1.5px solid #ffa000; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;">
-            <h4 style="margin: 0 0 6px 0; color: #b71c1c; font-size: 14px;">☀️ ${currentLang === "te" ? "శుభ ముహూర్త సమయ నిర్ణయం (ఉదయం 12 PM లోపు)" : "Recommended Time Prediction (Before 12 PM)"}</h4>
+            <h4 style="margin: 0 0 6px 0; color: #b71c1c; font-size: 14px;">☀️ ${currentLang === "te" ? "శుభ ముహూర్త సమయ నిర్ణయం" : "Recommended Time Prediction"}</h4>
             <div style="font-size: 16px; font-weight: 700; color: #1b5e20;">
               ⏰ ${statement}
             </div>
-            <div style="font-size: 13px; font-weight: 600; color: #4e342e; margin-top: 4px;">
-              📌 ${currentLang === "te" ? "సమయ వ్యవధి:" : "Window:"} ${pushkara.time_window} (${pushLagna} ${pushType})
+            <div style="font-size: 13px; font-weight: 600; color: #4e342e; margin-top: 6px; line-height: 1.6;">
+              ${pushSubDetails.join("<br>")}
             </div>
             ${avoidNote ? `
-              <div style="font-size: 12px; font-weight: 600; color: #b71c1c; margin-top: 4px; background: #fff0f0; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffcdd2;">
+              <div style="font-size: 12px; font-weight: 600; color: #b71c1c; margin-top: 6px; background: #fff0f0; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffcdd2;">
                 ⚠️ ${currentLang === "te" ? "గమనిక:" : "Note:"} ${avoidNote}
               </div>
             ` : ''}
@@ -1606,8 +1628,9 @@
       `;
 
       // 2. Candidate D1 Chart
-      const chartTitle = currentLang === "te" ? `📊 ముహూర్త దిన D1 (రాశి) చక్రం (${c.date})` : `📊 Muhurta Day D1 (Rasi) Chart (${c.date})`;
-      const chartHtml = buildD1ChartHTML(c.d1_chart, currentLang === "te" ? `ముహూర్త D1<br>(${c.date})` : `MUHURTA D1<br>(${c.date})`, false);
+      const mTimeStr = c.pushkara_info ? c.pushkara_info.precise_time : "";
+      const chartTitle = currentLang === "te" ? `📊 ముహూర్త దిన D1 (రాశి) చక్రం (${c.date}${mTimeStr ? ' ' + mTimeStr : ''})` : `📊 Muhurta Day D1 (Rasi) Chart (${c.date}${mTimeStr ? ' ' + mTimeStr : ''})`;
+      const chartHtml = buildD1ChartHTML(c.d1_chart, currentLang === "te" ? `ముహూర్త D1<br>(${mTimeStr || c.date})` : `MUHURTA D1<br>(${mTimeStr || c.date})`, false);
 
       bodyHtml += `
         <div style="background:#ffffff; padding:12px; border-radius:8px; border:1px solid var(--maroon); margin-bottom:16px;">
@@ -1703,6 +1726,10 @@
       // Ashtama Shuddhi rule
       const asShuddhi = d ? d.ashtama_shuddhi.has_shuddhi : !c.reasons.some(r => r.includes("No Ashtama Shuddhi"));
       const pIn8 = d && d.ashtama_shuddhi.planets_in_8th ? d.ashtama_shuddhi.planets_in_8th.join(", ") : "";
+      const mLagnaTe = (d && d.ashtama_shuddhi.muhurta_lagna) ? te(d.ashtama_shuddhi.muhurta_lagna, RASI_NAMES_TE) : mLagnaName;
+      const aRasiTe = (d && d.ashtama_shuddhi.ashtama_rasi) ? te(d.ashtama_shuddhi.ashtama_rasi, RASI_NAMES_TE) : "";
+      const aRasiEn = (d && d.ashtama_shuddhi.ashtama_rasi) ? d.ashtama_shuddhi.ashtama_rasi : "8th house";
+
       bodyHtml += `
         <div class="rule-card ${asShuddhi ? 'pass' : 'fail'}">
           <div class="rule-title">
@@ -1711,8 +1738,8 @@
           </div>
           <div class="rule-desc">
             ${asShuddhi ? 
-              (currentLang === "te" ? "అష్టమ శుద్ధి పరిపూర్ణంగా ఉన్నది (ముహూర్త లగ్నం నుండి 8వ ఇల్లు ఖాళీగా ఉంది)." : "Ashtama Shuddhi clean! 8th house from Muhurta Lagna is completely vacant.") :
-              (currentLang === "te" ? `అష్టమ శుద్ధి లేదు! 8వ ఇంట్లో గ్రహాలు ఉన్నాయి (${pIn8}).` : `Ashtama Shuddhi violated! Planets occupying the 8th house (${pIn8}).`)}
+              (currentLang === "te" ? `అష్టమ శుద్ధి పరిపూర్ణంగా ఉన్నది (ముహూర్త లగ్నం ${mLagnaTe} నుండి 8వ ఇల్లు ఖాళీగా ఉంది).` : `Ashtama Shuddhi clean! 8th house (${aRasiEn}) from Muhurta Lagna (${mLagnaName}) is completely vacant.`) :
+              (currentLang === "te" ? `అష్టమ శుద్ధి లేదు! ముహూర్త లగ్నం ${mLagnaTe} నుండి 8వ ఇంట్లో (${aRasiTe}) గ్రహాలు ఉన్నాయి (${pIn8}).` : `Ashtama Shuddhi violated! Planets (${pIn8}) occupying the 8th house (${aRasiEn}) from Muhurta Lagna (${mLagnaName}).`)}
           </div>
         </div>
       `;
@@ -1869,7 +1896,29 @@
           const pushType = currentLang === "te" ? pushkara.type_te : pushkara.type_en;
           const pushLagna = currentLang === "te" ? te(pushkara.lagna_name, RASI_NAMES_TE) : pushkara.lagna_name;
           const statement = currentLang === "te" ? pushkara.statement_te : pushkara.statement_en;
-          
+
+          let cardSubDetails = [];
+          if (pushkara.pushkara_bhaga && pushkara.pushkara_bhaga.is_available) {
+            const pb = pushkara.pushkara_bhaga;
+            cardSubDetails.push(currentLang === "te" ?
+              `📌 <strong>పుష్కర భాగ సమయం:</strong> ${pb.precise_time} (వ్యవధి: ${pb.time_window})` :
+              `📌 <strong>Pushkara Bhaga Time:</strong> ${pb.precise_time} (Range: ${pb.time_window})`
+            );
+          }
+          if (pushkara.pushkara_navamsha && pushkara.pushkara_navamsha.is_available) {
+            const pn = pushkara.pushkara_navamsha;
+            cardSubDetails.push(currentLang === "te" ?
+              `📌 <strong>పుష్కర నవాంశ సమయం:</strong> ${pn.precise_time} (వ్యవధి: ${pn.time_window})` :
+              `📌 <strong>Pushkara Navamsha Time:</strong> ${pn.precise_time} (Range: ${pn.time_window})`
+            );
+          }
+          if (cardSubDetails.length === 0) {
+            cardSubDetails.push(currentLang === "te" ?
+              `📌 <strong>శుభ ముహూర్త సమయ వ్యవధి:</strong> ${pushkara.time_window}` :
+              `📌 <strong>Auspicious Window:</strong> ${pushkara.time_window}`
+            );
+          }
+
           let addWinHtml = "";
           if (pushkara.additional_windows && pushkara.additional_windows.length > 0) {
             addWinHtml = `<div style="margin-top: 8px; pt-6; border-top: 1px dashed #e0c068; padding-top: 6px;">`;
@@ -1898,8 +1947,8 @@
           pushkaraHtml = `
             <div style="background: #fffdf5; border: 1.5px solid #c59b27; padding: 12px 14px; border-radius: 8px; margin-top: 10px; font-size: 13px; color: #4a0e17; box-shadow: 0 2px 6px rgba(197, 155, 39, 0.12);">
               <strong style="font-size: 15px; color: #1b5e20;">⏰ ${statement}</strong>
-              <div style="font-size: 12px; color: #5d4037; margin-top: 5px; font-weight: 500;">
-                📌 <strong>${currentLang === "te" ? "శుభ ముహూర్త సమయ వ్యవధి:" : "Auspicious Window:"}</strong> ${pushkara.time_window}
+              <div style="font-size: 12px; color: #5d4037; margin-top: 5px; font-weight: 500; line-height: 1.5;">
+                ${cardSubDetails.join("<br>")}
                 ${noteBadge ? `<br>${noteBadge}` : ''}
                 <br>🏛️ <strong>${currentLang === "te" ? "లగ్న కాలము (లగ్నాంతాలు):" : "Lagna Duration:"}</strong> ${pushkara.lagna_duration || "—"} (${pushLagna} ${pushType})
               </div>

@@ -383,7 +383,7 @@ def is_colliding_time(h, time_dict_or_list, buffer_mins=10.0):
             if is_colliding_time(h, item, buffer_mins): return True
     return False
 
-def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
+def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth_lagna_idx=None, birth_place_obj=None):
     sr_h = parse_time_to_hours(p["sunrise"]) or 6.0
     noon_h = 12.0
     
@@ -398,7 +398,7 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
     
     RASI_NAMES_TE = ["మేషం", "వృషభం", "మిథునం", "కర్కాటకం", "సింహం", "కన్య", "తులా", "వృశ్చికం", "ధనుస్సు", "మకరం", "కుంభం", "మీనం"]
 
-    # 1. Map all Lagnas from Sunrise to 12 PM (with buffer past 12 PM to find end of last morning Lagna)
+    # 1. Map morning Lagnas from Sunrise to 12 PM Noon
     lagnas = []
     curr_h = sr_h
     last_rasi = None
@@ -423,27 +423,39 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
         last_rasi = r_idx
         curr_h += (1.0 / 60.0)
 
-    # Evaluate each Lagna that starts before 12 PM
+    # 2. Evaluate ONLY morning Lagnas (starting before 12 PM and evaluated before 12 PM)
     candidate_lagnas = []
     
     for lg in lagnas:
-        if lg["start_h"] >= noon_h: continue
+        if lg["start_h"] >= noon_h:
+            continue
+
+        step_h = max(sr_h, lg["start_h"])
+        step_end = min(noon_h, lg["end_h"])
+
+        # Strictly reject any Lagna that overlaps with Durmuhurtam, Rahu Kalam, Yamagandam, or Gulika Kalam
+        has_major_inauspicious_overlap = False
+        check_step = lg["start_h"]
+        while check_step <= lg["end_h"]:
+            if (
+                is_colliding_time(check_step, dur_list, buffer_mins=0.0) or
+                is_colliding_time(check_step, rahu, buffer_mins=0.0) or
+                is_colliding_time(check_step, yama, buffer_mins=0.0) or
+                is_colliding_time(check_step, gulika, buffer_mins=0.0)
+            ):
+                has_major_inauspicious_overlap = True
+                break
+            check_step += (2.0 / 60.0)
+
+        if has_major_inauspicious_overlap:
+            continue  # Disqualify corrupted Lagna!
         
         clean_minutes = []
         pushkara_bhaga_mins = []
         pushkara_nav_mins = []
         
-        step_h = max(sr_h, lg["start_h"])
-        step_end = min(noon_h, lg["end_h"])
-        
         while step_h <= step_end:
-            coll = (
-                is_colliding_time(step_h, rahu, buffer_mins=10.0) or
-                is_colliding_time(step_h, yama, buffer_mins=10.0) or
-                is_colliding_time(step_h, gulika, buffer_mins=10.0) or
-                is_colliding_time(step_h, dur_list, buffer_mins=10.0) or
-                is_colliding_time(step_h, varjyam, buffer_mins=10.0)
-            )
+            coll = is_colliding_time(step_h, varjyam, buffer_mins=5.0)
             if not coll:
                 clean_minutes.append(step_h)
                 ut_hour = step_h - tz_offset
@@ -463,8 +475,8 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
                         break
             step_h += (1.0 / 60.0)
             
-        # PROXIMITY FILTER: Require at least 15 minutes of clean uncollided duration
-        if len(clean_minutes) >= 15:
+        # Require at least 20 minutes of clean uncollided duration
+        if len(clean_minutes) >= 20:
             candidate_lagnas.append({
                 "lagna": lg,
                 "clean_mins": clean_minutes,
@@ -473,27 +485,32 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
             })
 
     def format_hms(h):
-        hh = int(h)
-        mm = int(round((h - hh) * 60))
+        norm_h = h % 24.0
+        hh = int(norm_h)
+        mm = int(round((norm_h - hh) * 60))
         if mm >= 60:
             hh += 1
             mm = 0
+            if hh >= 24: hh = 0
         ampm = "AM" if hh < 12 else "PM"
         display_h = hh if hh <= 12 else hh - 12
         if display_h == 0: display_h = 12
         return f"{display_h:02d}:{mm:02d} {ampm}"
+
+    def get_time_period_str(h):
+        norm_h = h % 24.0
+        hh = int(norm_h)
+        if 4 <= hh < 12:
+            return "ఉదయం", "Morning"
+        elif 12 <= hh < 16:
+            return "మధ్యాహ్నం", "Afternoon"
+        elif 16 <= hh < 20:
+            return "సాయంత్రం", "Evening"
+        else:
+            return "రాత్రి", "Night"
             
     if not candidate_lagnas:
-        return {
-            "precise_time": "09:35 AM",
-            "time_window": "09:30 AM – 10:30 AM",
-            "lagna_duration": "08:00 AM – 10:00 AM",
-            "lagna_name": "Morning Window",
-            "statement_en": "09:35 AM is a good time",
-            "statement_te": "ఉదయం 09:35 AM అనుకూల సమయం",
-            "type_en": "Standard Morning Window",
-            "type_te": "శుభ సమయం"
-        }
+        return None
 
     def get_colliding_names(check_h, buffer_m=5.0):
         names_te = []
@@ -520,6 +537,12 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
     
     for cand_item in candidate_lagnas:
         lg = cand_item["lagna"]
+        cand_lagna_idx = lg["rasi_index"] + 1
+
+        # 1. Reject Ashtama Lagna (Muhurta Lagna is the 8th house from Birth Lagna)
+        if birth_lagna_idx and ((cand_lagna_idx - birth_lagna_idx) % 12 == 7):
+            continue
+
         clean_mins = cand_item["clean_mins"]
         bhaga_mins = cand_item["bhaga_mins"]
         nav_mins = cand_item["nav_mins"]
@@ -533,8 +556,8 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
             match_kind = "navamsha"
             best_h = nav_mins[len(nav_mins)//2]
             
-        end_truncated = clean_mins[-1] < min(noon_h, lg['end_h']) - (2.0/60.0)
-        start_truncated = clean_mins[0] > max(sr_h, lg['start_h']) + (2.0/60.0)
+        end_truncated = clean_mins[-1] < lg['end_h'] - (2.0/60.0)
+        start_truncated = clean_mins[0] > lg['start_h'] + (2.0/60.0)
 
         # Enforce safety buffer (minimum 10 minutes) before inauspicious cutoff
         if end_truncated and (clean_mins[-1] - best_h) < (10.0 / 60.0):
@@ -551,7 +574,26 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
             else:
                 best_h = clean_mins[len(clean_mins)//2]
 
+        # 2. Reject Ashtama Shuddhi violation (8th house must be vacant) & Lagna Gulika violation (Gulika in Lagna)
+        if birth_place_obj:
+            ashtama_rasi_idx = (cand_lagna_idx - 1 + 7) % 12 + 1
+            _, cand_raw_d1_h = compute_d1_positions(cand_date, best_h, birth_place_obj)
+            has_shuddhi_at_h = True
+            for item in cand_raw_d1_h:
+                p_id = item[0]
+                if p_id == 'L': continue
+                p_rasi = item[1][0] + 1
+                if p_rasi == ashtama_rasi_idx:
+                    has_shuddhi_at_h = False
+                    break
+                if p_id in ['g', 'Ma', 'Gu'] and p_rasi == cand_lagna_idx:
+                    has_shuddhi_at_h = False
+                    break
+            if not has_shuddhi_at_h:
+                continue  # Disqualify this Lagna window completely!
+
         precise_t = format_hms(best_h)
+        p_te, p_en = get_time_period_str(best_h)
         lg_duration = f"{format_hms(lg['start_h'])} – {format_hms(lg['end_h'])}"
         clean_win = f"{format_hms(clean_mins[0])} – {format_hms(clean_mins[-1])}"
         
@@ -564,8 +606,8 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
         if end_truncated:
             end_names_te, end_names_en = get_colliding_names(clean_mins[-1] + (5.0/60.0), buffer_m=5.0)
             if not end_names_te:
-                name_str_te = "దుర్ముహూర్తం / వర్జ్యం"
-                name_str_en = "Durmuhurtam / Varjyam"
+                name_str_te = "అశుభ సమయం"
+                name_str_en = "Inauspicious Time"
             else:
                 name_str_te = " / ".join(end_names_te)
                 name_str_en = " / ".join(end_names_en)
@@ -575,8 +617,8 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
         if start_truncated:
             start_names_te, start_names_en = get_colliding_names(clean_mins[0] - (5.0/60.0), buffer_m=5.0)
             if not start_names_te:
-                name_str_te = "దుర్ముహూర్తం / వర్జ్యం"
-                name_str_en = "Durmuhurtam / Varjyam"
+                name_str_te = "అశుభ సమయం"
+                name_str_en = "Inauspicious Time"
             else:
                 name_str_te = " / ".join(start_names_te)
                 name_str_en = " / ".join(start_names_en)
@@ -588,25 +630,47 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p):
         
         is_squeezed = (start_truncated and end_truncated) or ((clean_mins[-1] - clean_mins[0]) < (35.0 / 60.0))
 
+        pushkara_bhaga_info = {
+            "is_available": len(bhaga_mins) > 0,
+            "precise_time": format_hms(bhaga_mins[len(bhaga_mins)//2]) if bhaga_mins else None,
+            "time_window": f"{format_hms(bhaga_mins[0])} – {format_hms(bhaga_mins[-1])}" if bhaga_mins else None
+        }
+
+        pushkara_navamsha_info = {
+            "is_available": len(nav_mins) > 0,
+            "precise_time": format_hms(nav_mins[len(nav_mins)//2]) if nav_mins else None,
+            "time_window": f"{format_hms(nav_mins[0])} – {format_hms(nav_mins[-1])}" if nav_mins else None
+        }
+
         processed_windows.append({
             "precise_time": precise_t,
+            "start_h": lg["start_h"],
             "time_window": clean_win,
             "lagna_duration": lg_duration,
             "lagna_name_en": lg["rasi_en"],
             "lagna_name_te": lg["rasi_te"],
             "lagna_name": lg["rasi_en"],
             "match_kind": match_kind,
+            "pushkara_bhaga": pushkara_bhaga_info,
+            "pushkara_navamsha": pushkara_navamsha_info,
             "is_squeezed": is_squeezed,
             "avoid_note_te": avoid_note_te,
             "avoid_note_en": avoid_note_en,
-            "statement_en": f"{precise_t} is an auspicious time ({lg['rasi_en']} Lagna: {lg_duration})",
-            "statement_te": f"ఉదయం {precise_t} శ్రేష్ఠమైన శుభ ముహూర్త సమయం ({lg['rasi_te']} లగ్నాంతాలు: {lg_duration})",
+            "statement_en": f"{p_en} {precise_t} is an auspicious time ({lg['rasi_en']} Lagna: {lg_duration})",
+            "statement_te": f"{p_te} {precise_t} శ్రేష్ఠమైన శుభ ముహూర్త సమయం ({lg['rasi_te']} లగ్నాంతాలు: {lg_duration})",
             "type_en": type_en,
             "type_te": type_te
         })
 
-    # Sort so unsqueezed Lagnas come first, then Pushkara Bhaga, then Pushkara Navamsha
-    processed_windows.sort(key=lambda x: (0 if not x["is_squeezed"] else 1, 0 if x["match_kind"] == "bhaga" else (1 if x["match_kind"] == "navamsha" else 2)))
+    if not processed_windows:
+        return None
+
+    # Sort so morning Lagnas (< 12 PM) are MOST PREFERRED for Namakarana, then afternoon (< 5 PM), then evening/night!
+    processed_windows.sort(key=lambda x: (
+        0 if x["start_h"] < 12.0 else (1 if x["start_h"] < 17.0 else 2),
+        0 if not x["is_squeezed"] else 1,
+        0 if x["match_kind"] == "bhaga" else (1 if x["match_kind"] == "navamsha" else 2)
+    ))
 
     primary = processed_windows[0]
     additional = processed_windows[1:] if len(processed_windows) > 1 else []
@@ -685,7 +749,51 @@ def namakarana_finder(
         p = calculator(cand_date.year, cand_date.month, cand_date.day,
                                  lat, lon, tz_offset, place_name, hour=eval_hour)
         
-        cand_d1_positions, cand_raw_d1 = compute_d1_positions(cand_date, eval_hour, birth_place_obj)
+        # 1. Compute Pushkara / Auspicious Muhurta Window first (passing birth lagna & place for Ashtama Shuddhi checks)
+        pushkara_info = compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth_lagna_idx=birth_lagna_idx, birth_place_obj=birth_place_obj)
+        
+        # 2. Extract precise Muhurta hour for D1 Chart & Ashtama Shuddhi
+        def parse_time_str_to_h(t_str):
+            if not t_str: return 10.0
+            try:
+                parts = t_str.strip().split()
+                time_part = parts[0]
+                ampm = parts[1].upper() if len(parts) > 1 else "AM"
+                h_m = time_part.split(":")
+                hh = int(h_m[0])
+                mm = int(h_m[1])
+                if ampm == "PM" and hh < 12:
+                    hh += 12
+                elif ampm == "AM" and hh == 12:
+                    hh = 0
+                return hh + mm / 60.0
+            except Exception:
+                return 10.0
+
+        if pushkara_info:
+            muhurta_hour = parse_time_str_to_h(pushkara_info.get("precise_time", "10:00 AM"))
+        else:
+            muhurta_hour = eval_hour
+
+        # Compute D1 (Rasi) chart at the EXACT recommended Muhurta time
+        cand_d1_positions, cand_raw_d1 = compute_d1_positions(cand_date, muhurta_hour, birth_place_obj)
+
+        # 3. Get exact Muhurta Lagna from cand_raw_d1 at recommended Muhurta time
+        cand_lagna_idx = None
+        for item in cand_raw_d1:
+            if item[0] == 'L':
+                cand_lagna_idx = item[1][0] + 1  # 1-based (1=Mesha, 2=Vrishabha, ... 12=Meena)
+                break
+        if not cand_lagna_idx:
+            if pushkara_info and "lagna_name_en" in pushkara_info:
+                try:
+                    cand_lagna_idx = RASI_NAMES.index(pushkara_info["lagna_name_en"]) + 1
+                except ValueError:
+                    cand_lagna_idx = p["lagna_rasi_index"]
+            else:
+                cand_lagna_idx = p["lagna_rasi_index"]
+            
+        cand_lagna_name = RASI_NAMES[cand_lagna_idx - 1]
 
         # Calculate Tarabalam using PyJHora's utils.count_stars
         count_inc = utils.count_stars(birth_nak_idx, p["nakshatra"]["index"])
@@ -709,12 +817,11 @@ def namakarana_finder(
         is_karana_avoid = p["karana"]["name"] in ["Vishti (Bhadra)", "Shakuni", "Chatushpada", "Naga", "Kimstughna"]
 
         # Ashtama Lagna check (8th house from birth lagna)
-        cand_lagna_idx = p["lagna_rasi_index"]
-        cand_lagna_name = RASI_NAMES[cand_lagna_idx - 1]
         is_ashtama_lagna = (cand_lagna_idx - birth_lagna_idx) % 12 == 7
 
-        # Ashtama Shuddhi check (8th house from candidate lagna must have no planets)
+        # Ashtama Shuddhi check (8th house from Muhurta Lagna at Muhurta time must have no planets)
         ashtama_rasi_idx = (cand_lagna_idx - 1 + 7) % 12 + 1
+        ashtama_rasi_name = RASI_NAMES[ashtama_rasi_idx - 1]
         
         planets_in_8th = []
         for item in cand_raw_d1:
@@ -744,7 +851,7 @@ def namakarana_finder(
         total_pct = max(0, base_score - deductions)
 
         # Severe blockers cap the score to force unfavorable
-        if is_tithi_avoid or is_tara_avoid or is_ashtama_lagna:
+        if is_tithi_avoid or is_tara_avoid or is_ashtama_lagna or not has_ashtama_shuddhi:
             total_pct = min(total_pct, 10)
 
         # Build list of reasons
@@ -777,11 +884,10 @@ def namakarana_finder(
         if is_yoga_avoid:
             reasons.append(f"Avoid: Unfavorable {p['yoga']['name']} yoga!")
         
-        if is_karana_avoid:
-            reasons.append(f"Avoid: Unfavorable {p['karana']['name']} karana!")
+        if not has_ashtama_shuddhi or is_ashtama_lagna:
+            pushkara_info = None
 
         verdict = "highly_favorable" if total_pct >= 75 else ("favorable" if total_pct >= 50 else "unfavorable")
-        pushkara_info = compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p)
 
         candidates_list.append({
             "day_number": day_num,
@@ -819,7 +925,7 @@ def namakarana_finder(
                 "nakshatra": {"name": p["nakshatra"]["name"], "pada": p["nakshatra"]["pada"], "is_pass": is_nak_good},
                 "tara": {"name": tara_name, "is_pass": not is_tara_avoid},
                 "ashtama_lagna": {"is_dosha": is_ashtama_lagna, "birth_lagna": birth_lagna_name, "muhurta_lagna": cand_lagna_name},
-                "ashtama_shuddhi": {"has_shuddhi": has_ashtama_shuddhi, "planets_in_8th": planets_in_8th},
+                "ashtama_shuddhi": {"has_shuddhi": has_ashtama_shuddhi, "planets_in_8th": planets_in_8th, "muhurta_lagna": cand_lagna_name, "ashtama_rasi": ashtama_rasi_name},
                 "yoga": {"name": p["yoga"]["name"], "is_pass": not is_yoga_avoid},
                 "karana": {"name": p["karana"]["name"], "is_pass": not is_karana_avoid}
             }
