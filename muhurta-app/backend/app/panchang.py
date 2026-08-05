@@ -29,6 +29,43 @@ drik.set_ayanamsa_mode("LAHIRI")
 # Time formatting helpers
 # ---------------------------------------------------------------------------
 
+import re
+
+def format_time_str_12hr(val):
+    if val is None:
+        return None
+    if isinstance(val, (tuple, list)):
+        if len(val) >= 2:
+            s = format_time_str_12hr(val[0])
+            e = format_time_str_12hr(val[1])
+            return f"{s} – {e}" if s and e else (s or e)
+        elif len(val) == 1:
+            return format_time_str_12hr(val[0])
+        return str(val)
+    if isinstance(val, dict):
+        s = format_time_str_12hr(val.get("start"))
+        e = format_time_str_12hr(val.get("end"))
+        return f"{s} – {e}" if s and e else (s or e)
+    if isinstance(val, (float, int)):
+        return _decimal_hours_to_hms(float(val))
+    
+    val_str = str(val)
+    if "AM" in val_str or "PM" in val_str:
+        return val_str
+    
+    def _repl(match):
+        h_str, m_str, s_str = match.group(1), match.group(2), match.group(3)
+        h = int(h_str)
+        ampm = "PM" if h >= 12 else "AM"
+        h = h % 12
+        if h == 0: h = 12
+        res = f"{h:02d}:{m_str}"
+        if s_str is not None:
+            res += f":{s_str}"
+        return f"{res} {ampm}"
+
+    return re.sub(r'\b(\d{1,2}):(\d{2})(?::(\d{2}))?\b', _repl, val_str)
+
 def _decimal_hours_to_hms(h: float) -> str:
     if h is None:
         return None
@@ -60,16 +97,33 @@ def _decimal_hours_to_hms(h: float) -> str:
         hh -= 24
         day_offset += 1
 
+    ampm = "AM"
+    hh12 = hh
+    if hh12 >= 12:
+        ampm = "PM"
+        if hh12 > 12:
+            hh12 -= 12
+    if hh12 == 0:
+        hh12 = 12
+
     suffix = f" ({day_offset:+d})" if day_offset != 0 else ""
-    return f"{hh:02d}:{mm:02d}:{ss:02d}{suffix}"
+    return f"{hh12:02d}:{mm:02d}:{ss:02d} {ampm}{suffix}"
 
 def _format_pair(pair) -> dict:
-    if not pair or len(pair) < 2:
+    if not pair:
         return None
-    a, b = pair[0], pair[1]
-    start = a if isinstance(a, str) else _decimal_hours_to_hms(a)
-    end = b if isinstance(b, str) else _decimal_hours_to_hms(b)
-    return {"start": start, "end": end}
+    if isinstance(pair, dict):
+        s = format_time_str_12hr(pair.get("start"))
+        e = format_time_str_12hr(pair.get("end"))
+        return {"start": s, "end": e}
+    if isinstance(pair, (list, tuple)) and len(pair) >= 2:
+        a, b = pair[0], pair[1]
+        start = a if isinstance(a, str) else _decimal_hours_to_hms(a)
+        end = b if isinstance(b, str) else _decimal_hours_to_hms(b)
+        start = format_time_str_12hr(start)
+        end = format_time_str_12hr(end)
+        return {"start": start, "end": end}
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -321,6 +375,8 @@ def compute_day_panchang(year: int, month: int, day: int,
     sunset_raw = drik.sunset(jd, place)
     sunrise_str = sunrise_raw[1] if len(sunrise_raw) > 1 else _decimal_hours_to_hms(sunrise_raw[0])
     sunset_str = sunset_raw[1] if len(sunset_raw) > 1 else _decimal_hours_to_hms(sunset_raw[0])
+    sunrise_str = format_time_str_12hr(sunrise_str)
+    sunset_str = format_time_str_12hr(sunset_str)
 
     # Tithi
     tithi_raw = drik.tithi(jd, place)
@@ -409,16 +465,18 @@ def compute_day_panchang(year: int, month: int, day: int,
     karana_end_hrs = karana_raw[2] if len(karana_raw) > 2 else None
 
     # Inauspicious times
-    rahu_kalam = drik.raahu_kaalam(jd, place)
-    yamagandam = drik.yamaganda_kaalam(jd, place)
-    gulika_kalam = drik.gulikai_kaalam(jd, place)
+    rahu_kalam = _format_pair(drik.raahu_kaalam(jd, place))
+    yamagandam = _format_pair(drik.yamaganda_kaalam(jd, place))
+    gulika_kalam = _format_pair(drik.gulikai_kaalam(jd, place))
     
     dur_raw = drik.durmuhurtam(jd, place)
     durmuhurtam_list = []
     if dur_raw:
         for i in range(0, len(dur_raw), 2):
             if i + 1 < len(dur_raw):
-                durmuhurtam_list.append({"start": dur_raw[i], "end": dur_raw[i + 1]})
+                s_t = format_time_str_12hr(dur_raw[i])
+                e_t = format_time_str_12hr(dur_raw[i + 1])
+                durmuhurtam_list.append({"start": s_t, "end": e_t})
 
     abhijit = None
     try:
@@ -452,9 +510,9 @@ def compute_day_panchang(year: int, month: int, day: int,
                 amrit_kalam = []
                 for period in ak:
                     if isinstance(period, (list, tuple)) and len(period) >= 2:
-                        amrit_kalam.append({"start": period[0], "end": period[1]})
+                        amrit_kalam.append({"start": format_time_str_12hr(period[0]), "end": format_time_str_12hr(period[1])})
             elif isinstance(ak, tuple) and len(ak) >= 2:
-                amrit_kalam = [{"start": ak[0], "end": ak[1]}]
+                amrit_kalam = [{"start": format_time_str_12hr(ak[0]), "end": format_time_str_12hr(ak[1])}]
     except Exception: pass
 
     chandramana = {}
@@ -532,9 +590,9 @@ def compute_day_panchang(year: int, month: int, day: int,
             "end_time": _decimal_hours_to_hms(karana_end_hrs),
         },
 
-        "rahu_kalam": _format_pair(rahu_kalam),
-        "yamagandam": _format_pair(yamagandam),
-        "gulika_kalam": _format_pair(gulika_kalam),
+        "rahu_kalam": rahu_kalam,
+        "yamagandam": yamagandam,
+        "gulika_kalam": gulika_kalam,
         "durmuhurtam": durmuhurtam_list,
         "abhijit_muhurta": abhijit,
         "brahma_muhurta": brahma,

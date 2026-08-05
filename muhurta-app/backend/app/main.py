@@ -17,6 +17,7 @@ from jhora import utils
 
 from .panchang import compute_day_panchang as compute_drik_panchang
 from .names import CANONICAL_NAKSHATRA, RASI_NAMES
+from .doshas_engine import evaluate_21_maha_doshas, evaluate_10_dashavidha_doshas
 # from .panchang_chandramana import compute_day_panchang as compute_chandramana_panchang
 
 def get_panchang_calculator(method: str):
@@ -26,6 +27,7 @@ def get_panchang_calculator(method: str):
 
 from .rules_engine import evaluate, list_activities, find_next_favorable, get_activity
 from .regions import get_region, list_regions, geocode_place_name, get_geocode_suggestions
+from .auth import auth_router
 
 app = FastAPI(title="Muhurta Finder API", version="0.1.0")
 
@@ -35,6 +37,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_router)
+
+from .muhurta_finder import router as muhurta_finder_router
+app.include_router(muhurta_finder_router)
+
 
 
 @app.get("/activities")
@@ -379,7 +387,7 @@ def is_colliding_time(h, time_dict_or_list, buffer_mins=10.0):
             if is_colliding_time(h, item, buffer_mins): return True
     return False
 
-def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth_lagna_idx=None, birth_place_obj=None):
+def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth_lagna_idx=None, birth_place_obj=None, return_all=False):
     sr_h = parse_time_to_hours(p["sunrise"]) or 6.0
     noon_h = 12.0
     
@@ -394,13 +402,13 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth
     
     RASI_NAMES_TE = ["మేషం", "వృషభం", "మిథునం", "కర్కాటకం", "సింహం", "కన్య", "తులా", "వృశ్చికం", "ధనుస్సు", "మకరం", "కుంభం", "మీనం"]
 
-    # 1. Map morning Lagnas from Sunrise to 12 PM Noon
+    # 1. Map all 12 Lagnas across the 24-hour period (from Sunrise to next Sunrise)
     lagnas = []
     curr_h = sr_h
     last_rasi = None
     lagna_start = sr_h
     
-    while curr_h <= noon_h + 2.0:
+    while curr_h <= sr_h + 24.0 + (1.0 / 60.0):
         ut_hour = curr_h - tz_offset
         jd_t = jd_ut_mid + ut_hour / 24.0
         cusps, ascmc = swe.houses_ex(jd_t, lat, lon, b'P', swe.FLG_SIDEREAL)
@@ -419,15 +427,12 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth
         last_rasi = r_idx
         curr_h += (1.0 / 60.0)
 
-    # 2. Evaluate ONLY morning Lagnas (starting before 12 PM and evaluated before 12 PM)
+    # 2. Evaluate each Lagna in the 24-hour day
     candidate_lagnas = []
     
     for lg in lagnas:
-        if lg["start_h"] >= noon_h:
-            continue
-
-        step_h = max(sr_h, lg["start_h"])
-        step_end = min(noon_h, lg["end_h"])
+        step_h = lg["start_h"]
+        step_end = lg["end_h"]
 
         # Strictly reject any Lagna that overlaps with Durmuhurtam, Rahu Kalam, Yamagandam, or Gulika Kalam
         has_major_inauspicious_overlap = False
@@ -570,7 +575,7 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth
             else:
                 best_h = clean_mins[len(clean_mins)//2]
 
-        # 2. Reject Ashtama Shuddhi violation (8th house must be vacant) & Lagna Gulika violation (Gulika in Lagna)
+        # 2. Reject Ashtama Shuddhi violation (8th house must be vacant) & Lagna Shuddhi violation (Lagna block must be vacant)
         if birth_place_obj:
             ashtama_rasi_idx = (cand_lagna_idx - 1 + 7) % 12 + 1
             _, cand_raw_d1_h = compute_d1_positions(cand_date, best_h, birth_place_obj)
@@ -582,7 +587,7 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth
                 if p_rasi == ashtama_rasi_idx:
                     has_shuddhi_at_h = False
                     break
-                if p_id in ['g', 'Ma', 'Gu'] and p_rasi == cand_lagna_idx:
+                if p_rasi == cand_lagna_idx:
                     has_shuddhi_at_h = False
                     break
             if not has_shuddhi_at_h:
@@ -659,7 +664,7 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth
         })
 
     if not processed_windows:
-        return None
+        return [] if return_all else None
 
     # Sort so morning Lagnas (< 12 PM) are MOST PREFERRED for Namakarana, then afternoon (< 5 PM), then evening/night!
     processed_windows.sort(key=lambda x: (
@@ -667,6 +672,9 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth
         0 if not x["is_squeezed"] else 1,
         0 if x["match_kind"] == "bhaga" else (1 if x["match_kind"] == "navamsha" else 2)
     ))
+
+    if return_all:
+        return processed_windows
 
     primary = processed_windows[0]
     additional = processed_windows[1:] if len(processed_windows) > 1 else []
@@ -742,190 +750,324 @@ def namakarana_finder(
 
     for day_num, offset_days in offsets.items():
         cand_date = birth_date + timedelta(days=offset_days)
-        p = calculator(cand_date.year, cand_date.month, cand_date.day,
-                                 lat, lon, tz_offset, place_name, hour=eval_hour)
+        p_base = calculator(cand_date.year, cand_date.month, cand_date.day,
+                                     lat, lon, tz_offset, place_name, hour=10)
         
-        # 1. Compute Pushkara / Auspicious Muhurta Window first (passing birth lagna & place for Ashtama Shuddhi checks)
-        pushkara_info = compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth_lagna_idx=birth_lagna_idx, birth_place_obj=birth_place_obj)
+        # 1. Compute Pushkara / Auspicious Muhurta Windows
+        all_pushkara_windows = compute_pushkara_window(
+            cand_date, lat, lon, tz_offset, place_name, p_base,
+            birth_lagna_idx=birth_lagna_idx,
+            birth_place_obj=birth_place_obj,
+            return_all=True
+        )
         
-        # 2. Extract precise Muhurta hour for D1 Chart & Ashtama Shuddhi
-        def parse_time_str_to_h(t_str):
-            if not t_str: return 10.0
-            try:
-                parts = t_str.strip().split()
-                time_part = parts[0]
-                ampm = parts[1].upper() if len(parts) > 1 else "AM"
-                h_m = time_part.split(":")
-                hh = int(h_m[0])
-                mm = int(h_m[1])
-                if ampm == "PM" and hh < 12:
-                    hh += 12
-                elif ampm == "AM" and hh == 12:
-                    hh = 0
-                return hh + mm / 60.0
-            except Exception:
-                return 10.0
+        day_results = []
 
-        if pushkara_info:
-            muhurta_hour = parse_time_str_to_h(pushkara_info.get("precise_time", "10:00 AM"))
-        else:
-            muhurta_hour = eval_hour
+        if all_pushkara_windows:
+            for pushkara_info in all_pushkara_windows:
+                muhurta_hour = parse_time_str_to_h(pushkara_info.get("precise_time", "10:00 AM"))
 
-        # Compute D1 (Rasi) chart at the EXACT recommended Muhurta time
-        cand_d1_positions, cand_raw_d1 = compute_d1_positions(cand_date, muhurta_hour, birth_place_obj)
-
-        # 3. Get exact Muhurta Lagna from cand_raw_d1 at recommended Muhurta time
-        cand_lagna_idx = None
-        for item in cand_raw_d1:
-            if item[0] == 'L':
-                cand_lagna_idx = item[1][0] + 1  # 1-based (1=Mesha, 2=Vrishabha, ... 12=Meena)
-                break
-        if not cand_lagna_idx:
-            if pushkara_info and "lagna_name_en" in pushkara_info:
+                # Recompute panchang at precise window time
                 try:
-                    cand_lagna_idx = RASI_NAMES.index(pushkara_info["lagna_name_en"]) + 1
-                except ValueError:
-                    cand_lagna_idx = p["lagna_rasi_index"]
-            else:
-                cand_lagna_idx = p["lagna_rasi_index"]
+                    hh = int(muhurta_hour)
+                    mm = int(round((muhurta_hour - hh) * 60))
+                    if mm >= 60:
+                        hh += 1
+                        mm = 0
+                    p_win = calculator(
+                        cand_date.year, cand_date.month, cand_date.day,
+                        lat, lon, tz_offset, place_name, hour=hh, minute=mm, second=0
+                    )
+                except Exception as ex:
+                    print(f"Panchang recomputation error for {cand_date} at {muhurta_hour}: {ex}")
+                    p_win = p_base
+
+                # Compute D1 (Rasi) chart at the EXACT recommended Muhurta time
+                cand_d1_positions, cand_raw_d1 = compute_d1_positions(cand_date, muhurta_hour, birth_place_obj)
+
+                # Get exact Muhurta Lagna from cand_raw_d1 at recommended Muhurta time
+                cand_lagna_idx = None
+                for item in cand_raw_d1:
+                    if item[0] == 'L':
+                        cand_lagna_idx = item[1][0] + 1  # 1-based (1=Mesha, 2=Vrishabha, ... 12=Meena)
+                        break
+                if not cand_lagna_idx:
+                    if pushkara_info and "lagna_name_en" in pushkara_info:
+                        try:
+                            cand_lagna_idx = RASI_NAMES.index(pushkara_info["lagna_name_en"]) + 1
+                        except ValueError:
+                            cand_lagna_idx = p_win["lagna_rasi_index"]
+                    else:
+                        cand_lagna_idx = p_win["lagna_rasi_index"]
+                    
+                cand_lagna_name = RASI_NAMES[cand_lagna_idx - 1]
+
+                # Calculate Tarabalam
+                count_inc = utils.count_stars(birth_nak_idx, p_win["nakshatra"]["index"])
+                tb_rem = count_inc % 9
+                tara_idx = 9 if tb_rem == 0 else tb_rem
+                tara_name = tara_names[tara_idx]
+                is_tara_avoid = tara_idx in [1, 3, 5, 7]
+                is_tara_good = not is_tara_avoid
+
+                # General checks
+                is_vaara_good = p_win["vaara"] in ["Monday", "Wednesday", "Thursday", "Friday"]
+                is_nak_good = p_win["nakshatra"]["name"] in [
+                    "Ashwini", "Rohini", "Mrigashira", "Punarvasu", "Pushya", "Uttara Phalguni", 
+                    "Hasta", "Chitra", "Swati", "Anuradha", "Uttara Ashadha", "Shravana", 
+                    "Dhanishtha", "Shatabhisha", "Uttara Bhadrapada", "Revati"
+                ]
+                is_tithi_avoid = p_win["tithi"]["name"] in ["Chaturthi", "Navami", "Purnima", "Amavasya"]
+                
+                # Yoga & Karana avoid lists
+                is_yoga_avoid = p_win["yoga"]["name"] in ["Vaidhriti", "Ganda", "Vyatipata", "Parigha"]
+                is_karana_avoid = p_win["karana"]["name"] in ["Vishti (Bhadra)", "Shakuni", "Chatushpada", "Naga", "Kimstughna"]
+
+                # Ashtama Lagna check (8th house from birth lagna)
+                is_ashtama_lagna = (cand_lagna_idx - birth_lagna_idx) % 12 == 7
+
+                # Ashtama Shuddhi check
+                ashtama_rasi_idx = (cand_lagna_idx - 1 + 7) % 12 + 1
+                ashtama_rasi_name = RASI_NAMES[ashtama_rasi_idx - 1]
+                
+                planets_in_8th = []
+                for item in cand_raw_d1:
+                    p_id = item[0]
+                    if p_id == 'L':
+                        continue
+                    p_rasi = item[1][0] + 1
+                    if p_rasi == ashtama_rasi_idx:
+                        planets_in_8th.append(planet_names_map.get(str(p_id), str(p_id)))
+                
+                has_ashtama_shuddhi = len(planets_in_8th) == 0
+
+                # Lagna Shuddhi check
+                planets_in_lagna = []
+                for item in cand_raw_d1:
+                    p_id = item[0]
+                    if p_id == 'L': continue
+                    p_rasi = item[1][0] + 1
+                    if p_rasi == cand_lagna_idx:
+                        planets_in_lagna.append(planet_names_map.get(str(p_id), str(p_id)))
+
+                has_lagna_shuddhi = len(planets_in_lagna) == 0
+
+                # STRICT FILTERING
+                if is_tithi_avoid or is_tara_avoid or is_ashtama_lagna or not has_ashtama_shuddhi or not has_lagna_shuddhi:
+                    continue  # Skip this window!
+
+                # Scoring Logic
+                base_score = 0
+                if is_vaara_good: base_score += 25
+                if is_nak_good: base_score += 25
+                if not is_tithi_avoid: base_score += 25
+                if not is_tara_avoid: base_score += 25
+
+                # Deductions
+                deductions = 0
+                if is_yoga_avoid: deductions += 30
+                if is_karana_avoid: deductions += 30
+
+                total_pct = max(0, base_score - deductions)
+                verdict = "highly_favorable" if total_pct >= 75 else ("favorable" if total_pct >= 50 else "unfavorable")
+
+                # Build list of reasons
+                reasons = []
+                if is_vaara_good:
+                    reasons.append(f"{p_win['vaara']} is favorable.")
+                else:
+                    reasons.append(f"{p_win['vaara']} is not recommended.")
+
+                if is_nak_good:
+                    reasons.append(f"Nakshatra {p_win['nakshatra']['name']} is favorable.")
+                else:
+                    reasons.append(f"Nakshatra {p_win['nakshatra']['name']} is not recommended.")
+
+                reasons.append(f"Tithi {p_win['tithi']['name']} is favorable.")
+                reasons.append(f"Tarabalam is {tara_name} (favorable).")
+                reasons.append("Ashtama Lagna: Clean.")
+                reasons.append("Ashtama Shuddhi: Clean (8th house is vacant).")
+                reasons.append("Lagna Shuddhi: Clean (Lagna block vacant).")
+
+                if is_yoga_avoid:
+                    reasons.append(f"Avoid: Unfavorable {p_win['yoga']['name']} yoga!")
+                if is_karana_avoid:
+                    reasons.append(f"Avoid: Unfavorable {p_win['karana']['name']} karana!")
+                
+                curr_pushkara = pushkara_info
+                birth_details_dict = {"birth_lagna_idx": birth_lagna_idx} if birth_lagna_idx else None
+                maha_doshas_list = evaluate_21_maha_doshas(p_win, cand_d1_positions, cand_raw_d1, cand_lagna_idx, birth_details_dict)
+                dashavidha_doshas_list = evaluate_10_dashavidha_doshas(p_win, cand_d1_positions, cand_raw_d1, cand_lagna_idx, birth_details_dict)
+
+                day_results.append({
+                    "day_number": day_num,
+                    "date": cand_date.strftime("%Y-%m-%d"),
+                    "percentage": total_pct,
+                    "tara": tara_name,
+                    "is_tara_good": is_tara_good,
+                    "verdict": verdict,
+                    "reasons": reasons,
+                    "pushkara_info": curr_pushkara,
+                    "special_yogas": p_win.get("special_yogas", []),
+                    "panchang": {
+                        "vaara": p_win["vaara"],
+                        "tithi": f"{p_win['tithi']['name']} ({p_win['tithi']['paksha']})",
+                        "nakshatra": p_win["nakshatra"]["name"],
+                        "yoga": p_win["yoga"]["name"],
+                        "karana": p_win["karana"]["name"],
+                        "rahu_kalam": p_win.get("rahu_kalam"),
+                        "yamagandam": p_win.get("yamagandam"),
+                        "gulika_kalam": p_win.get("gulika_kalam"),
+                        "durmuhurtam": p_win.get("durmuhurtam"),
+                        "varjyam": p_win.get("varjyam"),
+                        "inauspicious_periods": {
+                            "rahu_kalam": p_win.get("rahu_kalam"),
+                            "yamagandam": p_win.get("yamagandam"),
+                            "gulika_kalam": p_win.get("gulika_kalam"),
+                            "durmuhurtam": p_win.get("durmuhurtam"),
+                            "varjyam": p_win.get("varjyam")
+                        }
+                    },
+                    "d1_chart": cand_d1_positions,
+                    "detailed_eval": {
+                        "vaara": {"name": p_win["vaara"], "is_pass": is_vaara_good},
+                        "tithi": {"name": p_win["tithi"]["name"], "paksha": p_win["tithi"]["paksha"], "is_pass": not is_tithi_avoid},
+                        "nakshatra": {"name": p_win["nakshatra"]["name"], "pada": p_win["nakshatra"]["pada"], "is_pass": is_nak_good},
+                        "tara": {"name": tara_name, "is_pass": is_tara_good},
+                        "ashtama_lagna": {"is_dosha": is_ashtama_lagna, "birth_lagna": birth_lagna_name, "muhurta_lagna": cand_lagna_name},
+                        "ashtama_shuddhi": {"has_shuddhi": has_ashtama_shuddhi, "planets_in_8th": planets_in_8th, "muhurta_lagna": cand_lagna_name, "ashtama_rasi": ashtama_rasi_name},
+                        "lagna_shuddhi": {"has_shuddhi": has_lagna_shuddhi, "planets_in_lagna": planets_in_lagna, "muhurta_lagna": cand_lagna_name},
+                        "yoga": {"name": p_win["yoga"]["name"], "is_pass": not is_yoga_avoid},
+                        "karana": {"name": p_win["karana"]["name"], "is_pass": not is_karana_avoid},
+                        "maha_doshas": maha_doshas_list,
+                        "dashavidha_doshas": dashavidha_doshas_list
+                    }
+                })
+
+        if not day_results:
+            # Fallback for day with no qualifying windows
+            cand_d1_positions, cand_raw_d1 = compute_d1_positions(cand_date, 10.0, birth_place_obj)
+
+            cand_lagna_idx = p_base["lagna_rasi_index"]
+            cand_lagna_name = RASI_NAMES[cand_lagna_idx - 1]
+
+            count_inc = utils.count_stars(birth_nak_idx, p_base["nakshatra"]["index"])
+            tb_rem = count_inc % 9
+            tara_idx = 9 if tb_rem == 0 else tb_rem
+            tara_name = tara_names[tara_idx]
+            is_tara_avoid = tara_idx in [1, 3, 5, 7]
+            is_tara_good = not is_tara_avoid
+
+            is_vaara_good = p_base["vaara"] in ["Monday", "Wednesday", "Thursday", "Friday"]
+            is_nak_good = p_base["nakshatra"]["name"] in [
+                "Ashwini", "Rohini", "Mrigashira", "Punarvasu", "Pushya", "Uttara Phalguni", 
+                "Hasta", "Chitra", "Swati", "Anuradha", "Uttara Ashadha", "Shravana", 
+                "Dhanishtha", "Shatabhisha", "Uttara Bhadrapada", "Revati"
+            ]
+            is_tithi_avoid = p_base["tithi"]["name"] in ["Chaturthi", "Navami", "Purnima", "Amavasya"]
+            is_yoga_avoid = p_base["yoga"]["name"] in ["Vaidhriti", "Ganda", "Vyatipata", "Parigha"]
+            is_karana_avoid = p_base["karana"]["name"] in ["Vishti (Bhadra)", "Shakuni", "Chatushpada", "Naga", "Kimstughna"]
+
+            is_ashtama_lagna = (cand_lagna_idx - birth_lagna_idx) % 12 == 7
+
+            ashtama_rasi_idx = (cand_lagna_idx - 1 + 7) % 12 + 1
+            ashtama_rasi_name = RASI_NAMES[ashtama_rasi_idx - 1]
             
-        cand_lagna_name = RASI_NAMES[cand_lagna_idx - 1]
+            planets_in_8th = []
+            for item in cand_raw_d1:
+                p_id = item[0]
+                if p_id == 'L': continue
+                p_rasi = item[1][0] + 1
+                if p_rasi == ashtama_rasi_idx:
+                    planets_in_8th.append(planet_names_map.get(str(p_id), str(p_id)))
+            has_ashtama_shuddhi = len(planets_in_8th) == 0
 
-        # Calculate Tarabalam using PyJHora's utils.count_stars
-        count_inc = utils.count_stars(birth_nak_idx, p["nakshatra"]["index"])
-        tb_rem = count_inc % 9
-        tara_idx = 9 if tb_rem == 0 else tb_rem
-        tara_name = tara_names[tara_idx]
-        is_tara_avoid = tara_idx in [1, 3, 5, 7]
-        is_tara_good = not is_tara_avoid
+            planets_in_lagna = []
+            for item in cand_raw_d1:
+                p_id = item[0]
+                if p_id == 'L': continue
+                p_rasi = item[1][0] + 1
+                if p_rasi == cand_lagna_idx:
+                    planets_in_lagna.append(planet_names_map.get(str(p_id), str(p_id)))
+            has_lagna_shuddhi = len(planets_in_lagna) == 0
 
-        # General checks
-        is_vaara_good = p["vaara"] in ["Monday", "Wednesday", "Thursday", "Friday"]
-        is_nak_good = p["nakshatra"]["name"] in [
-            "Ashwini", "Rohini", "Mrigashira", "Punarvasu", "Pushya", "Uttara Phalguni", 
-            "Hasta", "Chitra", "Swati", "Anuradha", "Uttara Ashadha", "Shravana", 
-            "Dhanishtha", "Shatabhisha", "Uttara Bhadrapada", "Revati"
-        ]
-        is_tithi_avoid = p["tithi"]["name"] in ["Chaturthi", "Navami", "Purnima", "Amavasya"]
-        
-        # Yoga & Karana avoid lists
-        is_yoga_avoid = p["yoga"]["name"] in ["Vaidhriti", "Ganda", "Vyatipata", "Parigha"]
-        is_karana_avoid = p["karana"]["name"] in ["Vishti (Bhadra)", "Shakuni", "Chatushpada", "Naga", "Kimstughna"]
+            reasons = []
+            if is_vaara_good:
+                reasons.append(f"{p_base['vaara']} is favorable.")
+            else:
+                reasons.append(f"{p_base['vaara']} is not recommended.")
 
-        # Ashtama Lagna check (8th house from birth lagna)
-        is_ashtama_lagna = (cand_lagna_idx - birth_lagna_idx) % 12 == 7
+            if is_nak_good:
+                reasons.append(f"Nakshatra {p_base['nakshatra']['name']} is favorable.")
+            else:
+                reasons.append(f"Nakshatra {p_base['nakshatra']['name']} is not recommended.")
 
-        # Ashtama Shuddhi check (8th house from Muhurta Lagna at Muhurta time must have no planets)
-        ashtama_rasi_idx = (cand_lagna_idx - 1 + 7) % 12 + 1
-        ashtama_rasi_name = RASI_NAMES[ashtama_rasi_idx - 1]
-        
-        planets_in_8th = []
-        for item in cand_raw_d1:
-            p_id = item[0]
-            if p_id == 'L':
-                continue
-            p_rasi = item[1][0] + 1
-            if p_rasi == ashtama_rasi_idx:
-                planets_in_8th.append(planet_names_map.get(str(p_id), str(p_id)))
-        
-        has_ashtama_shuddhi = len(planets_in_8th) == 0
+            if is_tithi_avoid:
+                reasons.append(f"Tithi {p_base['tithi']['name']} must be avoided!")
+            else:
+                reasons.append(f"Tithi {p_base['tithi']['name']} is favorable.")
 
-        # Scoring Logic
-        # Max base score is 100
-        base_score = 0
-        if is_vaara_good: base_score += 25
-        if is_nak_good: base_score += 25
-        if not is_tithi_avoid: base_score += 25
-        if not is_tara_avoid: base_score += 25
+            reasons.append(f"Tarabalam is {tara_name} ({'not recommended' if is_tara_avoid else 'favorable'}).")
 
-        # Deductions
-        deductions = 0
-        if is_yoga_avoid: deductions += 30
-        if is_karana_avoid: deductions += 30
-        if not has_ashtama_shuddhi: deductions += 30
+            if is_ashtama_lagna:
+                reasons.append("Ashtama Lagna Dosha (Muhurta Lagna is 8th from birth Lagna)!")
+            if not has_ashtama_shuddhi:
+                reasons.append(f"No Ashtama Shuddhi ({', '.join(planets_in_8th)} in 8th house from Lagna)!")
+            if not has_lagna_shuddhi:
+                reasons.append(f"No Lagna Shuddhi ({', '.join(planets_in_lagna)} in Lagna)!")
 
-        total_pct = max(0, base_score - deductions)
+            reasons.append("No auspicious pushkara/lagna window found or all windows were filtered out due to doshas.")
 
-        # Severe blockers cap the score to force unfavorable
-        if is_tithi_avoid or is_tara_avoid or is_ashtama_lagna or not has_ashtama_shuddhi:
-            total_pct = min(total_pct, 10)
+            birth_details_dict = {"birth_lagna_idx": birth_lagna_idx} if birth_lagna_idx else None
+            maha_doshas_list = evaluate_21_maha_doshas(p_base, cand_d1_positions, cand_raw_d1, cand_lagna_idx, birth_details_dict)
+            dashavidha_doshas_list = evaluate_10_dashavidha_doshas(p_base, cand_d1_positions, cand_raw_d1, cand_lagna_idx, birth_details_dict)
 
-        # Build list of reasons
-        reasons = []
-        if is_vaara_good:
-            reasons.append(f"{p['vaara']} is favorable.")
-        else:
-            reasons.append(f"{p['vaara']} is not recommended.")
-
-        if is_nak_good:
-            reasons.append(f"Nakshatra {p['nakshatra']['name']} is favorable.")
-        else:
-            reasons.append(f"Nakshatra {p['nakshatra']['name']} is not recommended.")
-
-        if is_tithi_avoid:
-            reasons.append(f"Tithi {p['tithi']['name']} must be avoided!")
-        else:
-            reasons.append(f"Tithi {p['tithi']['name']} is favorable.")
-
-        reasons.append(f"Tarabalam is {tara_name} ({'not recommended' if is_tara_avoid else 'favorable'}).")
-
-        if is_ashtama_lagna:
-            reasons.append("Ashtama Lagna Dosha (Muhurta Lagna is the 8th house from birth Lagna)!")
-        
-        if not has_ashtama_shuddhi:
-            reasons.append(f"No Ashtama Shuddhi ({', '.join(planets_in_8th)} in 8th house from Lagna)!")
-        else:
-            reasons.append("Ashtama Shuddhi is clean (8th house is vacant).")
-
-        if is_yoga_avoid:
-            reasons.append(f"Avoid: Unfavorable {p['yoga']['name']} yoga!")
-        
-        if not has_ashtama_shuddhi or is_ashtama_lagna:
-            pushkara_info = None
-
-        verdict = "highly_favorable" if total_pct >= 75 else ("favorable" if total_pct >= 50 else "unfavorable")
-
-        candidates_list.append({
-            "day_number": day_num,
-            "date": cand_date.strftime("%Y-%m-%d"),
-            "percentage": total_pct,
-            "tara": tara_name,
-            "is_tara_good": is_tara_good,
-            "verdict": verdict,
-            "reasons": reasons,
-            "pushkara_info": pushkara_info,
-            "special_yogas": p.get("special_yogas", []),
-            "panchang": {
-                "vaara": p["vaara"],
-                "tithi": f"{p['tithi']['name']} ({p['tithi']['paksha']})",
-                "nakshatra": p["nakshatra"]["name"],
-                "yoga": p["yoga"]["name"],
-                "karana": p["karana"]["name"],
-                "rahu_kalam": p.get("rahu_kalam"),
-                "yamagandam": p.get("yamagandam"),
-                "gulika_kalam": p.get("gulika_kalam"),
-                "durmuhurtam": p.get("durmuhurtam"),
-                "varjyam": p.get("varjyam"),
-                "inauspicious_periods": {
-                    "rahu_kalam": p.get("rahu_kalam"),
-                    "yamagandam": p.get("yamagandam"),
-                    "gulika_kalam": p.get("gulika_kalam"),
-                    "durmuhurtam": p.get("durmuhurtam"),
-                    "varjyam": p.get("varjyam")
+            candidates_list.append({
+                "day_number": day_num,
+                "date": cand_date.strftime("%Y-%m-%d"),
+                "percentage": 0,
+                "tara": tara_name,
+                "is_tara_good": is_tara_good,
+                "verdict": "unfavorable",
+                "reasons": reasons,
+                "pushkara_info": None,
+                "special_yogas": p_base.get("special_yogas", []),
+                "panchang": {
+                    "vaara": p_base["vaara"],
+                    "tithi": f"{p_base['tithi']['name']} ({p_base['tithi']['paksha']})",
+                    "nakshatra": p_base["nakshatra"]["name"],
+                    "yoga": p_base["yoga"]["name"],
+                    "karana": p_base["karana"]["name"],
+                    "rahu_kalam": p_base.get("rahu_kalam"),
+                    "yamagandam": p_base.get("yamagandam"),
+                    "gulika_kalam": p_base.get("gulika_kalam"),
+                    "durmuhurtam": p_base.get("durmuhurtam"),
+                    "varjyam": p_base.get("varjyam"),
+                    "inauspicious_periods": {
+                        "rahu_kalam": p_base.get("rahu_kalam"),
+                        "yamagandam": p_base.get("yamagandam"),
+                        "gulika_kalam": p_base.get("gulika_kalam"),
+                        "durmuhurtam": p_base.get("durmuhurtam"),
+                        "varjyam": p_base.get("varjyam")
+                    }
+                },
+                "d1_chart": cand_d1_positions,
+                "detailed_eval": {
+                    "vaara": {"name": p_base["vaara"], "is_pass": is_vaara_good},
+                    "tithi": {"name": p_base["tithi"]["name"], "paksha": p_base["tithi"]["paksha"], "is_pass": not is_tithi_avoid},
+                    "nakshatra": {"name": p_base["nakshatra"]["name"], "pada": p_base["nakshatra"]["pada"], "is_pass": is_nak_good},
+                    "tara": {"name": tara_name, "is_pass": is_tara_good},
+                    "ashtama_lagna": {"is_dosha": is_ashtama_lagna, "birth_lagna": birth_lagna_name, "muhurta_lagna": cand_lagna_name},
+                    "ashtama_shuddhi": {"has_shuddhi": has_ashtama_shuddhi, "planets_in_8th": planets_in_8th, "muhurta_lagna": cand_lagna_name, "ashtama_rasi": ashtama_rasi_name},
+                    "lagna_shuddhi": {"has_shuddhi": has_lagna_shuddhi, "planets_in_lagna": planets_in_lagna, "muhurta_lagna": cand_lagna_name},
+                    "yoga": {"name": p_base["yoga"]["name"], "is_pass": not is_yoga_avoid},
+                    "karana": {"name": p_base["karana"]["name"], "is_pass": not is_karana_avoid},
+                    "maha_doshas": maha_doshas_list,
+                    "dashavidha_doshas": dashavidha_doshas_list
                 }
-            },
-            "d1_chart": cand_d1_positions,
-            "detailed_eval": {
-                "vaara": {"name": p["vaara"], "is_pass": is_vaara_good},
-                "tithi": {"name": p["tithi"]["name"], "paksha": p["tithi"]["paksha"], "is_pass": not is_tithi_avoid},
-                "nakshatra": {"name": p["nakshatra"]["name"], "pada": p["nakshatra"]["pada"], "is_pass": is_nak_good},
-                "tara": {"name": tara_name, "is_pass": not is_tara_avoid},
-                "ashtama_lagna": {"is_dosha": is_ashtama_lagna, "birth_lagna": birth_lagna_name, "muhurta_lagna": cand_lagna_name},
-                "ashtama_shuddhi": {"has_shuddhi": has_ashtama_shuddhi, "planets_in_8th": planets_in_8th, "muhurta_lagna": cand_lagna_name, "ashtama_rasi": ashtama_rasi_name},
-                "yoga": {"name": p["yoga"]["name"], "is_pass": not is_yoga_avoid},
-                "karana": {"name": p["karana"]["name"], "is_pass": not is_karana_avoid}
-            }
-        })
+            })
+        else:
+            candidates_list.extend(day_results)
 
     return {
         "birth_details": {
