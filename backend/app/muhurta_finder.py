@@ -205,7 +205,7 @@ def muhurta_finder(
 
                 # STRICT FILTERING:
                 # If a window violates severe blockers, filter it out completely.
-                if is_tithi_avoid or (not is_tara_good and birth_nak_idx) or is_ashtama_lagna or not has_ashtama_shuddhi or not has_lagna_shuddhi:
+                if is_tithi_avoid or (not is_tara_good and birth_nak_idx) or is_ashtama_lagna or not has_ashtama_shuddhi:
                     continue  # Disqualify and do not list this window!
 
                 # Scoring
@@ -219,6 +219,7 @@ def muhurta_finder(
                 deductions = 0
                 if is_yoga_avoid: deductions += 25
                 if is_karana_avoid: deductions += 25
+                if not has_lagna_shuddhi: deductions += 15
 
                 total_pct = max(0, base_score - deductions)
                 verdict = "highly_favorable" if total_pct >= 75 else ("favorable" if total_pct >= 50 else "unfavorable")
@@ -242,7 +243,11 @@ def muhurta_finder(
 
                 reasons.append("Ashtama Lagna: Clean.")
                 reasons.append("Ashtama Shuddhi: Clean (8th house vacant).")
-                reasons.append("Lagna Shuddhi: Clean (Lagna block vacant).")
+                
+                if not has_lagna_shuddhi:
+                    reasons.append(f"No Lagna Shuddhi ({', '.join(planets_in_lagna)} in Lagna)!")
+                else:
+                    reasons.append("Lagna Shuddhi is clean (Lagna block vacant).")
 
                 if is_yoga_avoid:
                     reasons.append(f"Avoid: Unfavorable {p_win['yoga']['name']} yoga!")

@@ -575,7 +575,7 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth
             else:
                 best_h = clean_mins[len(clean_mins)//2]
 
-        # 2. Reject Ashtama Shuddhi violation (8th house must be vacant) & Lagna Shuddhi violation (Lagna block must be vacant)
+        # 2. Reject Ashtama Shuddhi violation (8th house must be vacant)
         if birth_place_obj:
             ashtama_rasi_idx = (cand_lagna_idx - 1 + 7) % 12 + 1
             _, cand_raw_d1_h = compute_d1_positions(cand_date, best_h, birth_place_obj)
@@ -585,9 +585,6 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth
                 if p_id == 'L': continue
                 p_rasi = item[1][0] + 1
                 if p_rasi == ashtama_rasi_idx:
-                    has_shuddhi_at_h = False
-                    break
-                if p_rasi == cand_lagna_idx:
                     has_shuddhi_at_h = False
                     break
             if not has_shuddhi_at_h:
@@ -853,7 +850,7 @@ def namakarana_finder(
                 has_lagna_shuddhi = len(planets_in_lagna) == 0
 
                 # STRICT FILTERING
-                if is_tithi_avoid or is_tara_avoid or is_ashtama_lagna or not has_ashtama_shuddhi or not has_lagna_shuddhi:
+                if is_tithi_avoid or is_tara_avoid or is_ashtama_lagna or not has_ashtama_shuddhi:
                     continue  # Skip this window!
 
                 # Scoring Logic
@@ -867,6 +864,7 @@ def namakarana_finder(
                 deductions = 0
                 if is_yoga_avoid: deductions += 30
                 if is_karana_avoid: deductions += 30
+                if not has_lagna_shuddhi: deductions += 20
 
                 total_pct = max(0, base_score - deductions)
                 verdict = "highly_favorable" if total_pct >= 75 else ("favorable" if total_pct >= 50 else "unfavorable")
@@ -887,7 +885,11 @@ def namakarana_finder(
                 reasons.append(f"Tarabalam is {tara_name} (favorable).")
                 reasons.append("Ashtama Lagna: Clean.")
                 reasons.append("Ashtama Shuddhi: Clean (8th house is vacant).")
-                reasons.append("Lagna Shuddhi: Clean (Lagna block vacant).")
+                
+                if not has_lagna_shuddhi:
+                    reasons.append(f"No Lagna Shuddhi ({', '.join(planets_in_lagna)} in Lagna)!")
+                else:
+                    reasons.append("Lagna Shuddhi: Clean (Lagna block vacant).")
 
                 if is_yoga_avoid:
                     reasons.append(f"Avoid: Unfavorable {p_win['yoga']['name']} yoga!")
