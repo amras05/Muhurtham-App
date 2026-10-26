@@ -102,3 +102,117 @@ LUNAR_MONTH_NAMES = [
     None, "Chaitra", "Vaishakha", "Jyeshtha", "Ashadha", "Shravana",
     "Bhadrapada", "Ashwina", "Kartika", "Margashira", "Pushya", "Magha", "Phalguna"
 ]
+
+TELUGU_LUNAR_MONTH_NAMES = [
+    None, "చైత్ర మాసం", "వైశాఖ మాసం", "జ్యేష్ఠ మాసం", "ఆషాఢ మాసం", "శ్రావణ మాసం",
+    "భాద్రపద మాసం", "ఆశ్వయుజ మాసం", "కార్తీక మాసం", "మార్గశిర మాసం", "పుష్య మాసం", "మాఘ మాసం", "ఫాల్గుణ మాసం"
+]
+
+TELUGU_SAMVATSARAS = [
+    "ప్రభవ", "విభవ", "శుక్ల", "ప్రమోదూత", "ప్రజోత్పత్తి", "ఆంగీరస", "శ్రీముఖ", "భావ", "యువ", "ధాత",
+    "ఈశ్వర", "బహుధాన్య", "ప్రమాథి", "విక్రమ", "వృష", "చిత్రభాను", "స్వభాను", "తారణ", "పార్థివ", "వ్యయ",
+    "సర్వజిత్", "సర్వధారి", "విరోధి", "వికృతి", "ఖర", "నందన", "విజయ", "జయ", "మన్మథ", "దుర్ముఖి",
+    "హేవిలంబి", "విలంబి", "వికారి", "శార్వరి", "ప్లవ", "శుభకృత్", "శోభకృత్", "క్రోధి", "విశ్వావసు", "పరాభవ",
+    "ప్లవంగ", "కీలక", "సౌమ్య", "సాధారణ", "విరోధికృత్", "పరిధావి", "ప్రమాదీచ", "ఆనంద", "రాక్షస", "నల",
+    "పింగళ", "కాలయుక్త", "సిద్ధార్థి", "రౌద్రి", "దుర్మతి", "దుందుభి", "రుధిరోద్గారి", "రక్తాక్షి", "క్రోధన", "క్షయ"
+]
+
+RUTHU_NAMES = [
+    None,
+    {"en": "Vasanta Ruthu", "te": "వసంత ఋతువు"},
+    {"en": "Greeshma Ruthu", "te": "గ్రీష్మ ఋతువు"},
+    {"en": "Varsha Ruthu", "te": "వర్ష ఋతువు"},
+    {"en": "Sharad Ruthu", "te": "శరత్ ఋతువు"},
+    {"en": "Hemanta Ruthu", "te": "హేమంత ఋతువు"},
+    {"en": "Shishira Ruthu", "te": "శిశిర ఋతువు"}
+]
+
+AYANAM_NAMES = {
+    "uttarayana": {"en": "Uttarayana", "te": "ఉత్తరాయణం"},
+    "dakshinayana": {"en": "Dakshinayana", "te": "దక్షిణాయణం"}
+}
+
+PANCHAKA_CLASSIFICATIONS = {
+    1: {
+        "name_en": "Mrityu Panchakam",
+        "name_te": "మృత్యు పంచకం",
+        "is_pass": False,
+        "effect_en": "Danger of death / severe obstacle. Avoid for marriage and life ceremonies.",
+        "effect_te": "మృత్యు భయము, అత్యంత కీడు. వివాహాది శుభకార్యములకు వర్జ్యం.",
+        "pariharam_en": "Avoid especially during dusk/dawn sandhyas. If unavoidable, perform Mrityunjaya Japa / Til Danam.",
+        "pariharam_te": "సాయం-ప్రాతః సంధ్యా సమయాల్లో పూర్తిగా విడువవలెను. అత్యవసరమైతే మృత్యుంజయ జపం, తిల దానం చేయవలెను."
+    },
+    2: {
+        "name_en": "Agni Panchakam",
+        "name_te": "అగ్ని పంచకం",
+        "is_pass": False,
+        "effect_en": "Danger of fire / destruction. Avoid for house construction, entry, or factory openings.",
+        "effect_te": "అగ్ని భయము, నష్టము. గృహారంభం, గృహప్రవేశం, అగ్ని సంబంధిత పనులకు వర్జ్యం.",
+        "pariharam_en": "Avoid on Tuesdays. If unavoidable, offer ghee to Agni or donate sandalwood.",
+        "pariharam_te": "మంగళవారం నాడు విశేషంగా విడువవలెను. చందన దానం లేదా నెయ్యి దీపారాధన పరిహారం."
+    },
+    4: {
+        "name_en": "Raja Panchakam",
+        "name_te": "రాజ పంచకం",
+        "is_pass": False,
+        "effect_en": "Obstacles from authorities / legal issues. Avoid for political or government ventures.",
+        "effect_te": "రాజభయము, అధికార సమస్యలు, ప్రభుత్వ పనులలో ఆటంకం.",
+        "pariharam_en": "Panchaka Shastra notes: Daytime cancels Raja Panchaka (no dosha in daylight hours). Avoid on Saturdays.",
+        "pariharam_te": "పగటి పూట రాజపంచకమునకు దోషము లేదు (శాస్త్ర పరిహారం). శనివారం నాడు విడువవలెను."
+    },
+    6: {
+        "name_en": "Chora Panchakam",
+        "name_te": "చోర పంచకం",
+        "is_pass": False,
+        "effect_en": "Danger of theft / financial loss. Avoid for travel, buying assets, or business start.",
+        "effect_te": "దొంగల భయము, ధన నష్టము. యాత్రలు, వ్యాపారం, ఒప్పందములకు వర్జ్యం.",
+        "pariharam_en": "Avoid on Tuesdays. If unavoidable, donate copper or offer prayers to Lord Kartikeya.",
+        "pariharam_te": "మంగళవారం విడువవలెను. సుబ్రహ్మణ్య స్వామి పూజ, రాగి పాత్ర దానం పరిహారం."
+    },
+    8: {
+        "name_en": "Roga Panchakam",
+        "name_te": "రోగ పంచకం",
+        "is_pass": False,
+        "effect_en": "Danger of disease / physical affliction. Avoid for surgery or health-sensitive undertakings.",
+        "effect_te": "రోగ భయము, అనారోగ్య బాధలు. శస్త్రచికిత్సలు, ఆరోగ్యంపై ప్రభావం చూపే పనులకు వర్జ్యం.",
+        "pariharam_en": "Panchaka Shastra notes: Night hours cancel Roga Panchaka (no dosha after sunset). Avoid on Sundays.",
+        "pariharam_te": "రాత్రి యందు రోగపంచకమునకు దోషము లేదు (శాస్త్ర పరిహారం). ఆదివారం నాడు విడువవలెను."
+    },
+    0: {
+        "name_en": "Panchaka Rahitam (Subha Panchakam)",
+        "name_te": "పంచకరహితం (శుభ పంచకం)",
+        "is_pass": True,
+        "effect_en": "Auspicious & Clean! Free from all five afflictions.",
+        "effect_te": "పంచక రహితం! సర్వ కార్యములకు అత్యంత శ్రేష్ఠమైనది.",
+        "pariharam_en": "No dosha present. Naturally protected and favorable.",
+        "pariharam_te": "ఎలాంటి దోషం లేదు. పరిపూర్ణ శుభప్రదం."
+    },
+    3: {
+        "name_en": "Panchaka Rahitam (Subha Panchakam)",
+        "name_te": "పంచకరహితం (శుభ పంచకం)",
+        "is_pass": True,
+        "effect_en": "Auspicious & Clean! Free from all five afflictions.",
+        "effect_te": "పంచక రహితం! సర్వ కార్యములకు అత్యంత శ్రేష్ఠమైనది.",
+        "pariharam_en": "No dosha present. Naturally protected and favorable.",
+        "pariharam_te": "ఎలాంటి దోషం లేదు. పరిపూర్ణ శుభప్రదం."
+    },
+    5: {
+        "name_en": "Panchaka Rahitam (Subha Panchakam)",
+        "name_te": "పంచకరహితం (శుభ పంచకం)",
+        "is_pass": True,
+        "effect_en": "Auspicious & Clean! Free from all five afflictions.",
+        "effect_te": "పంచక రహితం! సర్వ కార్యములకు అత్యంత శ్రేష్ఠమైనది.",
+        "pariharam_en": "No dosha present. Naturally protected and favorable.",
+        "pariharam_te": "ఎలాంటి దోషం లేదు. పరిపూర్ణ శుభప్రదం."
+    },
+    7: {
+        "name_en": "Panchaka Rahitam (Subha Panchakam)",
+        "name_te": "పంచకరహితం (శుభ పంచకం)",
+        "is_pass": True,
+        "effect_en": "Auspicious & Clean! Free from all five afflictions.",
+        "effect_te": "పంచక రహితం! సర్వ కార్యములకు అత్యంత శ్రేష్ఠమైనది.",
+        "pariharam_en": "No dosha present. Naturally protected and favorable.",
+        "pariharam_te": "ఎలాంటి దోషం లేదు. పరిపూర్ణ శుభప్రదం."
+    }
+}
+

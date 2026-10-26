@@ -96,7 +96,7 @@ def evaluate_21_maha_doshas(
     vaara_name = str(panchang.get("vaara", ""))
 
     p_bad = (
-        tithi_name in ["Chaturthi", "Navami", "Purnima", "Amavasya"] or
+        tithi_name in ["Chaturthi", "Ashtami", "Navami", "Chaturdashi", "Purnima", "Amavasya"] or
         yoga_name in ["Vaidhriti", "Ganda", "Vyatipata", "Parigha"] or
         karana_name in ["Vishti (Bhadra)", "Shakuni", "Chatushpada", "Naga", "Kimstughna"] or
         vaara_name in ["Tuesday", "Saturday"]
@@ -362,16 +362,49 @@ def evaluate_21_maha_doshas(
         "desc_en": "Lagnastra Dosha present!" if has_lagnastra else "Clean! No Lagnastra affliction."
     })
 
-    # 20. Gandantam (గండాంతము)
-    is_gandantam = panchang.get("is_gandanta", False) or nak_name in ["Ashlesha", "Magha", "Jyeshtha", "Mula", "Revati", "Ashwini"]
+    # 20. Gandantam (గండాంతము) - Nakshatra, Lagna (Gandantara Lagna), and Tithi Gandanta
+    is_nak_gandanta = nak_name in ["Ashlesha", "Magha", "Jyeshtha", "Mula", "Revati", "Ashwini"]
+    
+    # Lagna Gandanta (Junction of Water & Fire rasis: Cancer-Leo, Scorpio-Sagittarius, Pisces-Aries)
+    is_lagna_gandanta = False
+    lagna_deg_str = ""
+    for item in raw_d1:
+        if item[0] == 'L':
+            l_rasi = item[1][0]  # 0-indexed: 0=Mesha, 3=Karka, 4=Simha, 7=Vrischika, 8=Dhanus, 11=Meena
+            l_deg = item[1][1]   # degree within sign 0.0 - 30.0
+            lagna_deg_str = f"{l_deg:.1f}°"
+            if (l_rasi == 11 and l_deg >= 28.0) or (l_rasi == 0 and l_deg <= 2.0):
+                is_lagna_gandanta = True
+            elif (l_rasi == 3 and l_deg >= 28.0) or (l_rasi == 4 and l_deg <= 2.0):
+                is_lagna_gandanta = True
+            elif (l_rasi == 7 and l_deg >= 28.0) or (l_rasi == 8 and l_deg <= 2.0):
+                is_lagna_gandanta = True
+            break
+            
+    is_tithi_gandanta = panchang.get("is_tithi_gandanta", False)
+    is_gandantam = is_nak_gandanta or is_lagna_gandanta or is_tithi_gandanta
+
+    if is_lagna_gandanta:
+        g_desc_te = f"గండాంతర లగ్న దోషం ఉంది! లగ్నం జల-అగ్ని రాశుల సంధిలో ({lagna_deg_str}) ఉన్నది."
+        g_desc_en = f"Lagna Gandanta (Gandantara Lagna) present! Lagna in Water-Fire junction ({lagna_deg_str})."
+    elif is_nak_gandanta:
+        g_desc_te = f"గండాంత నక్షత్ర సంధి కాలం ({nak_name})!"
+        g_desc_en = f"Gandanta Nakshatra junction ({nak_name})!"
+    elif is_tithi_gandanta:
+        g_desc_te = "తిథి గండాంత సంధి కాలం!"
+        g_desc_en = "Tithi Gandanta junction!"
+    else:
+        g_desc_te = "గండాంతర లగ్న, నక్షత్ర, తిథి గండాంత రహితము (పరిపూర్ణ శుభం)."
+        g_desc_en = "Clean! Free from Lagna Gandanta, Nakshatra Gandanta & Tithi Gandanta."
+
     doshas.append({
         "id": "gandantam",
         "name_te": "20. గండాంతము",
         "name_en": "20. Gandantam",
         "score": 0 if is_gandantam else 10,
         "is_pass": not is_gandantam,
-        "desc_te": f"గండాంత నక్షత్రం/సంధి కాలం ({nak_name})!" if is_gandantam else "గండాంత దోష రహితము.",
-        "desc_en": f"Gandanta Nakshatra/Junction ({nak_name})!" if is_gandantam else "Clean! Free from Gandanta."
+        "desc_te": g_desc_te,
+        "desc_en": g_desc_en
     })
 
     # 21. Vyatipata Vaidhriti Yogas (వ్యతీపాత వైదృతియోగములు)
@@ -554,3 +587,106 @@ def evaluate_10_dashavidha_doshas(
     })
 
     return doshas
+
+
+def evaluate_muhurta_pariharas(
+    panchang: Dict[str, Any],
+    raw_d1: List[Any],
+    muhurta_lagna_idx: int,
+    birth_details: Optional[Dict[str, Any]] = None,
+    pushkara_info: Optional[Dict[str, Any]] = None
+) -> List[Dict[str, Any]]:
+    """
+    Evaluates classical Vedic remedies (ముహూర్త దోష పరిహారములు) 
+    that mitigate or neutralize astrological flaws for the candidate Muhurta.
+    """
+    pariharas = []
+    
+    # 1. Jupiter (Guru) Kendra or Aspect
+    # Kendras from Muhurta Lagna: 1, 4, 7, 10
+    jupiter_rasi = None
+    for item in raw_d1:
+        if str(item[0]) in ["Ju", "Jupiter", "JUPITER", "5"]:
+            jupiter_rasi = item[1][0] + 1
+            break
+            
+    if jupiter_rasi:
+        jup_house = (jupiter_rasi - muhurta_lagna_idx) % 12 + 1
+        is_jup_kendra = jup_house in [1, 4, 7, 10]
+        # Jupiter aspects 5th, 7th, 9th houses from itself
+        aspects_lagna = ((muhurta_lagna_idx - jupiter_rasi) % 12 + 1) in [1, 5, 7, 9]
+        if is_jup_kendra or aspects_lagna:
+            pariharas.append({
+                "id": "guru_kendra_drishti",
+                "name_en": "Brihaspati (Jupiter) Kendra / Aspect Protection",
+                "name_te": "గురు కేంద్ర బలం / లగ్న దృష్టి రక్షణ",
+                "status": "Active (బలమైన రక్షణ)",
+                "shloka": "ఏకోహి దేవదేవేశః కేంద్రస్థో వా బలీ గురుః | హంతి దోషసహస్రాణి సూర్యస్తమ ఇవోదితః ||",
+                "desc_en": f"Jupiter is in house {jup_house} (Kendra/Aspecting Lagna), radiating supreme protection that neutralizes thousands of minor and moderate doshas.",
+                "desc_te": f"దేవగురువైన బృహస్పతి లగ్నానికి {jup_house}వ ఇంట (కేంద్రంలో/లగ్న దృష్టితో) ఉండి వేలాది దోషములను సూర్యుడు చీకట్లను పారద్రోలినట్లు నివారిస్తున్నాడు."
+            })
+            
+    # 2. Pushkara Navamsha / Pushkara Bhaga
+    if pushkara_info and (pushkara_info.get("has_pushkara") or pushkara_info.get("is_pushkara") or "పుష్కర" in str(pushkara_info)):
+        pariharas.append({
+            "id": "pushkara_pariharam",
+            "name_en": "Pushkara Navamsha / Bhaga Inherent Sanctity",
+            "name_te": "పుష్కరాంశ / పుష్కర భాగ దోష నివృత్తి",
+            "status": "Active (దివ్య శుభత్వం)",
+            "shloka": "పుష్కరాంశగతే లగ్నే సర్వే దోషాః వినశ్యంతి",
+            "desc_en": "Muhurta Lagna is fortified by Pushkara placement, imparting innate divine nectar that overcomes astrological blemishes.",
+            "desc_te": "లగ్నము పుష్కరాంశ / పుష్కర భాగములో స్థితమై ఉన్నందున సమస్త అశుభ ప్రభావములను అధిగమించి అమృత తుల్యమైన శుభ ఫలితములను ఇచ్చును."
+        })
+
+    # 3. Abhijit Muhurta
+    am_muhurta = panchang.get("abhijit_kala_muhurtham")
+    if am_muhurta and am_muhurta.get("status") == "auspicious":
+        pariharas.append({
+            "id": "abhijit_pariharam",
+            "name_en": "Abhijit Kala Victory Power",
+            "name_te": "అభిజిత్ కాల విజయ శక్తి",
+            "status": "Active (సర్వదోష హరము)",
+            "shloka": "అభిజిన్నాను ముహూర్తోస్తి సర్వదోష వినాశకః",
+            "desc_en": "Blessed with midday solar sanctity of Abhijit, which naturally cancels structural planetary flaws.",
+            "desc_te": "మధ్యాహ్న కాల అభిజిత్ ముహూర్త శక్తి సర్వదోషములను హరించి విజయమును చేకూర్చును."
+        })
+
+    # 4. Panchaka Pariharam
+    panchaka = panchang.get("panchaka_rahitam")
+    if panchaka:
+        rem = panchaka.get("remainder", 0)
+        pariharam_te = panchaka.get("pariharam_te", "")
+        pariharam_en = panchaka.get("pariharam_en", "")
+        if rem != 0 and rem not in [3, 5, 7]:
+            pariharas.append({
+                "id": "panchaka_shastra_pariharam",
+                "name_en": f"Panchaka Remedy ({panchaka.get('name_en')})",
+                "name_te": f"పంచక శాస్త్ర పరిహారం ({panchaka.get('name_te')})",
+                "status": "Remedy Prescribed",
+                "shloka": "రాత్రౌ రోగం దివా రాజం సంధ్యయోశ్చ మృతౌ త్యజేత్",
+                "desc_en": pariharam_en,
+                "desc_te": pariharam_te
+            })
+
+    # 5. Ashtama Lagna Pariharam (if applicable)
+    if birth_details and birth_details.get("birth_lagna_idx"):
+        b_lagna = birth_details["birth_lagna_idx"]
+        # If lords of birth lagna and muhurta lagna are friends or same
+        FRIENDLY_PAIRS = [{1, 8}, {2, 7}, {3, 6}, {4, 9}, {5, 12}, {10, 11}, {1, 5}, {2, 12}]
+        pair = {b_lagna, muhurta_lagna_idx}
+        if (muhurta_lagna_idx - b_lagna) % 12 == 7:
+            for fp in FRIENDLY_PAIRS:
+                if pair == fp:
+                    pariharas.append({
+                        "id": "ashtama_lagna_pariharam",
+                        "name_en": "Ashtama Lagna Planetary Friendship Relief",
+                        "name_te": "అష్టమ లగ్న మైత్రీ పరిహారం",
+                        "status": "Active (దోష నివృత్తి)",
+                        "shloka": "జన్మలగ్నాధిపౌ వాపి ముహూర్తపతిరేవ వా | మిత్రత్వే నైవ దోషః స్యాత్",
+                        "desc_en": "Birth Lagna Lord and Muhurta Lagna Lord share planetary friendship, mitigating the 8th house lagna dosha.",
+                        "desc_te": "జన్మలగ్నాధిపతి మరియు ముహూర్త లగ్నాధిపతుల మధ్య పరస్పర మైత్రి/ఏకాధిపత్యం ఉన్నందున అష్టమ లగ్న దోష పరిహారమగును."
+                    })
+                    break
+
+    return pariharas
+

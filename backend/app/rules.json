@@ -556,7 +556,9 @@
       "avoid": {
         "tithi": [
           "Chaturthi",
+          "Ashtami",
           "Navami",
+          "Chaturdashi",
           "Purnima",
           "Amavasya"
         ]

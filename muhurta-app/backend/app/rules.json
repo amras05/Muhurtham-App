@@ -537,9 +537,11 @@
         "nakshatra": [
           "Ashwini",
           "Rohini",
+          "Mrigashira",
           "Punarvasu",
           "Pushya",
           "Uttara Phalguni",
+          "Hasta",
           "Chitra",
           "Swati",
           "Anuradha",
@@ -547,13 +549,16 @@
           "Shravana",
           "Dhanishtha",
           "Shatabhisha",
-          "Uttara Bhadrapada"
+          "Uttara Bhadrapada",
+          "Revati"
         ]
       },
       "avoid": {
         "tithi": [
           "Chaturthi",
+          "Ashtami",
           "Navami",
+          "Chaturdashi",
           "Purnima",
           "Amavasya"
         ]
