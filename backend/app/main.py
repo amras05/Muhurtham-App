@@ -21,6 +21,7 @@ from .names import CANONICAL_NAKSHATRA, RASI_NAMES, VAARA_NAMES
 from .doshas_engine import evaluate_21_maha_doshas, evaluate_10_dashavidha_doshas, evaluate_muhurta_pariharas
 from .panchang import compute_panchaka_rahitam, compute_chandrabalam
 from .samskaras_engine import SAMSKARA_REGISTRY, find_samskara_muhurtas
+from .pitrukarya_engine import find_pitrukarya
 
 def get_panchang_calculator(method: str):
     # if method == "chandramana":
@@ -730,7 +731,7 @@ def compute_pushkara_window(cand_date, lat, lon, tz_offset, place_name, p, birth
 
 @app.get("/muhurta/samskaras/list")
 def list_all_samskaras():
-    """List all 9 Classical Vedic Samskaras (from Pages 8 to 16 of treatise) with metadata."""
+    """List all 16 Classical Vedic Samskaras digitized from the treatise with metadata."""
     return [
         {
             "id": s["id"],
@@ -750,7 +751,7 @@ def list_all_samskaras():
 
 @app.get("/muhurta/samskara-finder")
 def samskara_finder(
-    type: str = Query(..., description="Samskara ID: garbhadhana, pumsavana, seemantha, jatakarma, namakarana, annaprashana, choodakarana, karnavedha, upanayana"),
+    type: str = Query(..., description="Samskara ID: garbhadhana, pumsavana, seemantha, jatakarma, namakarana, annaprashana, choodakarana, karnavedha, upanayana, samavartana, keshanta_godana, aksharabhyasam, prajapatya_vrata, saumya_vrata, agneya_vrata, vaishvadeva_vrata"),
     dob: str = Query(..., description="Reference date (YYYY-MM-DD) e.g. birth date, LMP date, or target date"),
     tob: str = Query("12:00", description="HH:MM"),
     lat: float = Query(...),
@@ -762,12 +763,14 @@ def samskara_finder(
     timing_mode: Optional[str] = Query(None, description="'early' (12/16 days) or 'later' (6/7/8 months) (used for Karnavedha)"),
     age_mode: Optional[str] = Query(None, description="'months' or 'years' (used for Choodakarana)"),
     varna: Optional[str] = Query(None, description="'brahmin' (8th yr), 'kshatriya' (11th yr), 'vaishya' (12th yr) (used for Upanayana)"),
+    study_years: Optional[int] = Query(None, description="Target year offset from birth for year-based samskaras: Samavartana (Veda study years), Keshanta/Godana (default 16), Aksharabhyasam (default 5), and the post-Upanayana vratas"),
     husband_moon_rasi_idx: Optional[int] = Query(None, description="1-12 Janma Rasi index of husband (for Garbhadhana Chandrashtama)"),
     husband_nak_idx: Optional[int] = Query(None, description="1-27 Janma Nakshatra index of husband"),
     bride_ritu_lagna_idx: Optional[int] = Query(None, description="1-12 First Ritu Lagna of bride (for Garbhadhana)"),
+    bride_nak_idx: Optional[int] = Query(None, description="1-27 Janma Nakshatra of bride (for Vivaha Tarabala / Trijashta)"),
     method: str = Query("drik", description="Calculation method: 'drik' or 'chandramana'"),
 ):
-    """Find the best classical Muhurtas for any of the 9 Samskaras from Pages 8 to 16."""
+    """Find the best classical Muhurtas for any of the 16 digitized Samskaras."""
     try:
         base_date = datetime.strptime(dob, "%Y-%m-%d").date()
     except ValueError:
@@ -790,9 +793,11 @@ def samskara_finder(
             timing_mode=timing_mode or "early",
             age_mode=age_mode or "months",
             varna=varna or "brahmin",
+            study_years=study_years,
             husband_moon_rasi_idx=husband_moon_rasi_idx,
             husband_nak_idx=husband_nak_idx,
             bride_ritu_lagna_idx=bride_ritu_lagna_idx,
+            bride_nak_idx=bride_nak_idx,
         )
         return results
     except ValueError as ex:
@@ -825,8 +830,56 @@ def namakarana_finder(
     )
 
 
+@app.get("/muhurta/pitrukarya-finder")
+def pitrukarya_finder(
+    death_date: str = Query(..., description="Date of death (YYYY-MM-DD)"),
+    tob: str = Query("12:00", description="HH:MM"),
+    lat: float = Query(...),
+    lon: float = Query(...),
+    tz_offset: float = Query(...),
+    place_name: str = Query("Location"),
+    mode: str = Query("pending", description="'pending' (next permissible days after death) or 'calendar' (annual Ashtaka/Sankranti calendar)"),
+    calendar_year: Optional[int] = Query(None, description="Gregorian year for calendar mode"),
+):
+    """Antyeshti / Pitrukarya — tithi-locked karya windows (treatise Part 5.3)."""
+    from datetime import datetime as _dt
+    try:
+        d0 = _dt.strptime(death_date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(400, "death_date must be YYYY-MM-DD")
+    try:
+        return find_pitrukarya(
+            death_date=d0, lat=lat, lon=lon, tz_offset=tz_offset,
+            place_name=place_name, mode=mode, calendar_year=calendar_year,
+        )
+    except Exception as ex:
+        print(f"Error in pitrukarya_finder: {ex}")
+        raise HTTPException(500, f"Pitrukarya calculation failed: {str(ex)}")
+
+
+@app.post("/dev/save-pdf")
+def dev_save_pdf(payload: dict):
+    """Dev utility: persist a base64 PDF (e.g. generated client-side via pdfmake) to disk."""
+    b64 = (payload or {}).get("b64", "")
+    name = (payload or {}).get("name", "generated.pdf")
+    name = os.path.basename(name) or "generated.pdf"
+    import base64 as _b64
+    out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..")
+    out_path = os.path.abspath(os.path.join(out_dir, name))
+    with open(out_path, "wb") as f:
+        f.write(_b64.b64decode(b64))
+    return {"saved": out_path, "bytes": os.path.getsize(out_path)}
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# Dev: serve project root for local preview of generated PDFs
+from fastapi.staticfiles import StaticFiles
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".."))
+app.mount("/files", StaticFiles(directory=_ROOT, follow_symlink=True), name="files")
+app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")), name="static")
 
 

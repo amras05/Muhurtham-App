@@ -89,7 +89,7 @@ SAMSKARA_REGISTRY = {
         "good_vaaras": [2, 4, 5, 6],
         "avoid_vaaras": [1, 3, 7],
         "good_tithis": [1, 2, 3, 5, 7, 8, 9, 10, 12, 13, 16, 17, 18, 20, 21, 22, 24, 25, 26, 27, 28],
-        "avoid_tithis": [4, 6, 11, 14, 15, 19, 29, 30],
+        "avoid_tithis": [6, 11, 15, 19, 29],
         "good_nakshatras": [3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16, 17, 20, 21, 22, 23, 24, 25, 26],
         "avoid_yogas": [1, 18, 20],
         "avoid_karanas": [8, 9, 10, 11],
@@ -104,12 +104,12 @@ SAMSKARA_REGISTRY = {
         "tagline_en": "Fetus Protection & Male Child Rite (3rd Month)",
         "tagline_te": "తొలి గర్భవతికి 3వ మాసమందు భర్తచే చేయబడు సంస్కారము",
         "icon": "🌿",
-        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Avoid Sun, Tue, Sat. Avoid Rikta tithis (4, 9, 14) and Amavasya (30). Avoid Leo (5) & Scorpio (8) Lagnas. Taras 1, 3, 5, 7 avoided. Performed in 3rd month of pregnancy.",
-        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శ్రేష్టం. 1, 3, 7 వారములు నిషిద్ధం. 4, 9, 14, 30 తిథులు నిషిద్ధం. సింహ (5), వృశ్చిక (8) లగ్నములు వర్జ్యం. తొలి గర్భము కలిగిన వనితకు 3వ మాసమందు భర్త చేయవలెను.",
+        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Avoid Sun, Tue, Sat. Avoid Leo (5) & Scorpio (8) Lagnas. Taras 1, 3, 5, 7 avoided. Performed in 3rd month of pregnancy.",
+        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శ్రేష్టం. 1, 3, 7 వారములు నిషిద్ధం. సింహ (5), వృశ్చిక (8) లగ్నములు వర్జ్యం. తొలి గర్భము కలిగిన వనితకు 3వ మాసమందు భర్త చేయవలెను.",
         "good_vaaras": [2, 4, 5, 6],
         "avoid_vaaras": [1, 3, 7],
         "good_tithis": [],  # Any except avoid_tithis
-        "avoid_tithis": [4, 9, 14, 30],
+        "avoid_tithis": [],
         "good_lagnas": [1, 2, 3, 4, 6, 7, 9, 10, 11, 12],
         "avoid_lagnas": [5, 8],
         "good_nakshatras": [1, 4, 5, 7, 8, 12, 13, 14, 15, 17, 19, 21, 22, 23, 24, 26, 27],
@@ -126,12 +126,12 @@ SAMSKARA_REGISTRY = {
         "tagline_en": "Mother & Child Blessing / Baby Shower Ceremony",
         "tagline_te": "గర్భిణీ స్త్రీకి సీమంతం (4, 6, 8 మాసాలు) మరియు గాజులు (5, 7 మాసాలు)",
         "icon": "🪔",
-        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Avoid Sun, Tue, Sat. Avoid Rikta tithis (4, 9, 14) and Amavasya (30). Avoid Leo & Scorpio Lagnas. Mandatory Lagna Shuddhi and Navama Shuddhi (9th house must be clean). 4, 6, 8 months for Seemantha; 5, 7 months for Bangles.",
-        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శ్రేష్టం. 4, 9, 14, 30 తిథులు నిషిద్ధం. సింహ, వృశ్చిక లగ్నాలు వర్జ్యం. లగ్న శుద్ధి మరియు నవమ శుద్ధి (9వ ఇల్లు పాపగ్రహ రహితం) తప్పనిసరి. సీమంతమునకు 4, 6, 8 మాసములు, గాజులు పెట్టుటకు 5, 7 మాసములు శ్రేష్టము.",
+        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Avoid Sun, Tue, Sat. Avoid Leo & Scorpio Lagnas. Mandatory Lagna Shuddhi and Navama Shuddhi (9th house must be clean). 4, 6, 8 months for Seemantha; 5, 7 months for Bangles.",
+        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శ్రేష్టం. సింహ, వృశ్చిక లగ్నాలు వర్జ్యం. లగ్న శుద్ధి మరియు నవమ శుద్ధి (9వ ఇల్లు పాపగ్రహ రహితం) తప్పనిసరి. సీమంతమునకు 4, 6, 8 మాసములు, గాజులు పెట్టుటకు 5, 7 మాసములు శ్రేష్టము.",
         "good_vaaras": [2, 4, 5, 6],
         "avoid_vaaras": [1, 3, 7],
         "good_tithis": [],
-        "avoid_tithis": [4, 9, 14, 30],
+        "avoid_tithis": [],
         "good_lagnas": [1, 2, 3, 4, 6, 7, 9, 10, 11, 12],
         "avoid_lagnas": [5, 8],
         "good_nakshatras": [1, 4, 5, 7, 8, 12, 13, 14, 15, 17, 19, 21, 22, 23, 24, 26, 27],
@@ -148,12 +148,12 @@ SAMSKARA_REGISTRY = {
         "tagline_en": "Newborn Birth Ceremony & Honey/Ghee Feeding",
         "tagline_te": "శిశువు పుట్టిన దినము, 10వ రోజు లేదా 11వ రోజు చేయు సంస్కారము",
         "icon": "🌟",
-        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Avoid tithis 4, 9, 15 (Purnima), 19, 24, 30 (Amavasya). Muhurta Lagna must NOT be 8th house from Janma Lagna. Taras 1, 3, 5, 7 avoided. Performed on day of birth, 10th day, or 11th day during daytime.",
-        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం (2, 4, 5, 6). 4, 9, 15, 19, 24, 30 తిథులు నిషిద్ధం. జన్మలగ్నం నుండి ముహూర్త లగ్నం 8వ లగ్నం కారాదు. జన్మ, 3, 5, 7 తారలు నిషిద్ధం. పుట్టినరోజు నాడు కానీ 10వ రోజు కానీ 11వ రోజు కానీ చేయవలెను.",
+        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Avoid tithis 15 (Purnima), 19, 24. Muhurta Lagna must NOT be 8th house from Janma Lagna. Taras 1, 3, 5, 7 avoided. Performed on day of birth, 10th day, or 11th day during daytime.",
+        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం (2, 4, 5, 6). 15, 19, 24 తిథులు నిషిద్ధం. జన్మలగ్నం నుండి ముహూర్త లగ్నం 8వ లగ్నం కారాదు. జన్మ, 3, 5, 7 తారలు నిషిద్ధం. పుట్టినరోజు నాడు కానీ 10వ రోజు కానీ 11వ రోజు కానీ చేయవలెను.",
         "good_vaaras": [2, 4, 5, 6],
         "avoid_vaaras": [1, 3, 7],
         "good_tithis": [],
-        "avoid_tithis": [4, 9, 15, 19, 24, 30],
+        "avoid_tithis": [15, 19, 24],
         "good_nakshatras": [1, 4, 7, 8, 12, 14, 15, 17, 21, 22, 23, 24, 26],
         "avoid_yogas": [1, 11, 18, 20],
         "avoid_karanas": [7, 8, 9, 10, 11],
@@ -168,12 +168,12 @@ SAMSKARA_REGISTRY = {
         "tagline_en": "Baby Naming Ceremony",
         "tagline_te": "శిశువుకు నామకరణం చేయుటకు ఉత్తమ ముహూర్త నిర్ణయము",
         "icon": "👶",
-        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Avoid tithis 4, 9, 15, 19, 24, 30. Muhurta Lagna cannot be 8th house from Janma Lagna. Taras 1, 3, 5, 7 avoided. Primary day: 11th day from birth; alternate days: 12th, 16th, 20th, 22nd day.",
-        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం (2, 4, 5, 6). 4, 9, 15, 19, 24, 30 తిథులు నిషిద్ధం. జన్మలగ్నం నుండి ముహూర్త లగ్నం 8వ లగ్నం కారాదు. జన్మ, 3, 5, 7 తారలు వర్జ్యం. 11వ రోజు ముఖ్యము; లేదా 12, 16, 20, 22 వ రోజులలో చేయవలెను.",
+        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Avoid tithis 15 (Purnima), 19, 24. Muhurta Lagna cannot be 8th house from Janma Lagna. Taras 1, 3, 5, 7 avoided. Primary day: 11th day from birth; alternate days: 12th, 16th, 20th, 22nd day.",
+        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం (2, 4, 5, 6). 15, 19, 24 తిథులు నిషిద్ధం. జన్మలగ్నం నుండి ముహూర్త లగ్నం 8వ లగ్నం కారాదు. జన్మ, 3, 5, 7 తారలు వర్జ్యం. 11వ రోజు ముఖ్యము; లేదా 12, 16, 20, 22 వ రోజులలో చేయవలెను.",
         "good_vaaras": [2, 4, 5, 6],
         "avoid_vaaras": [1, 3, 7],
         "good_tithis": [],
-        "avoid_tithis": [4, 9, 15, 19, 24, 30],
+        "avoid_tithis": [15, 19, 24],
         "good_nakshatras": [1, 4, 7, 8, 12, 14, 15, 17, 21, 22, 23, 24, 26],
         "avoid_yogas": [1, 11, 18, 20],
         "avoid_karanas": [7, 8, 9, 10, 11],
@@ -188,12 +188,12 @@ SAMSKARA_REGISTRY = {
         "tagline_en": "First Solid Food Feeding Ceremony",
         "tagline_te": "బాలురకు సరి మాసములు (6, 8, 10), బాలికలకు బేసి మాసములు (5, 7, 9)",
         "icon": "🥣",
-        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Good Lagnas: 2 (Vrishabha), 3 (Mithuna), 4 (Karka), 6 (Kanya), 9 (Dhanu), 12 (Meena). Avoid listed tithis (1, 4, 6, 8, 9, 11, 12, 15, 16, 19, 21, 23, 24, 26, 27, 30). Dashama Shuddhi mandatory (10th house from Lagna must be vacant). Boys: 6, 8, 10 months; Girls: 5, 7, 9 months.",
-        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం. లగ్నములు: 2, 3, 4, 6, 9, 12 శ్రేష్టం. 1, 4, 6, 8, 9, 11, 12, 15, 16, 19, 21, 23, 24, 26, 27, 30 తిథులు నిషిద్ధం. దశమ శుద్ధి (లగ్నము నుండి 10వ ఇల్లు ఖాళీగా ఉండాలి) తప్పనిసరి. పురుషులకు 6, 8, 10 మాసములలో, స్త్రీకి 5, 7, 9 మాసములలో చేయవలెను.",
+        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Good Lagnas: 2 (Vrishabha), 3 (Mithuna), 4 (Karka), 6 (Kanya), 9 (Dhanu), 12 (Meena). Avoid listed tithis (1, 6, 11, 12, 15, 16, 19, 21, 23, 24, 26, 27). Dashama Shuddhi mandatory (10th house from Lagna must be vacant). Boys: 6, 8, 10 months; Girls: 5, 7, 9 months.",
+        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం. లగ్నములు: 2, 3, 4, 6, 9, 12 శ్రేష్టం. 1, 6, 11, 12, 15, 16, 19, 21, 23, 24, 26, 27 తిథులు నిషిద్ధం. దశమ శుద్ధి (లగ్నము నుండి 10వ ఇల్లు ఖాళీగా ఉండాలి) తప్పనిసరి. పురుషులకు 6, 8, 10 మాసములలో, స్త్రీకి 5, 7, 9 మాసములలో చేయవలెను.",
         "good_vaaras": [2, 4, 5, 6],
         "avoid_vaaras": [1, 3, 7],
         "good_lagnas": [2, 3, 4, 6, 9, 12],
-        "avoid_tithis": [1, 4, 6, 8, 9, 11, 12, 15, 16, 19, 21, 23, 24, 26, 27, 30],
+        "avoid_tithis": [1, 6, 8, 11, 12, 15, 16, 19, 21, 23, 24, 26, 27],
         "good_nakshatras": [1, 4, 5, 7, 8, 9, 12, 13, 14, 15, 17, 21, 22, 23, 24, 26, 27],
         "avoid_yogas": [1, 2, 11, 18],
         "avoid_karanas": [7, 8, 9, 10, 11],
@@ -208,12 +208,12 @@ SAMSKARA_REGISTRY = {
         "tagline_en": "First Haircut / Tonsure Ceremony (Keshakhandana)",
         "tagline_te": "బాలురకు 2, 4, 6 మాసాలు లేదా 3, 5వ ఏట; బాలికలకు 3, 5, 7 మాసాలు",
         "icon": "✂️",
-        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Shubha Lagnas (2, 3, 4, 6, 9, 12) with Ashtama Shuddhi. Avoid tithis 2, 8, 13, 30 (and Rikta 4, 9, 14). Taras 1, 3, 5, 7 avoided. Boys: 2, 4, 6 months or 3rd/5th year; Girls: 3, 5, 7 months. Uttarayana preferred.",
-        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం (2, 4, 5, 6). శుభలగ్నములు శ్రేష్టం. 2, 8, 13, 30 తిథులు నిషిద్ధం. జన్మ, 3, 5, 7 తారలు నిషిద్ధం. పుత్రులకు 2, 4, 6 మాసములలో లేదా 3, 5వ సంవత్సరమున; పుత్రికకు 3, 5, 7 మాసములలో చేయవలెను. ఉత్తరాయణము అనుకూలము.",
+        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Shubha Lagnas (2, 3, 4, 6, 9, 12) with Ashtama Shuddhi. Avoid tithis 2, 8, 13. Taras 1, 3, 5, 7 avoided. Boys: 2, 4, 6 months or 3rd/5th year; Girls: 3, 5, 7 months. Uttarayana preferred.",
+        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం (2, 4, 5, 6). శుభలగ్నములు శ్రేష్టం. 2, 8, 13 తిథులు నిషిద్ధం. జన్మ, 3, 5, 7 తారలు నిషిద్ధం. పుత్రులకు 2, 4, 6 మాసములలో లేదా 3, 5వ సంవత్సరమున; పుత్రికకు 3, 5, 7 మాసములలో చేయవలెను. ఉత్తరాయణము అనుకూలము.",
         "good_vaaras": [2, 4, 5, 6],
         "avoid_vaaras": [1, 3, 7],
         "good_lagnas": [2, 3, 4, 6, 9, 12],
-        "avoid_tithis": [2, 4, 8, 9, 13, 14, 30],
+        "avoid_tithis": [2, 8, 13],
         "good_nakshatras": [1, 5, 7, 8, 13, 14, 15, 22, 23, 24, 27],
         "avoid_yogas": [1, 2, 11, 18],
         "avoid_karanas": [7, 8, 9, 10, 11],
@@ -228,12 +228,12 @@ SAMSKARA_REGISTRY = {
         "tagline_en": "Ear Piercing Ceremony",
         "tagline_te": "12, 16వ రోజులలో లేదా 6, 7, 8 మాసముల యందు పగటివేళ చేయు సంస్కారము",
         "icon": "👂",
-        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Good Lagnas: 2, 3, 4, 6, 9, 12 with Ashtama Shuddhi. Avoid tithis 4, 9, 14, 15, 16, 23, 29, 30. Taras 1, 3, 5, 7 avoided. Performed on 12th or 16th day from birth, or in 6th, 7th, 8th month during daylight hours.",
-        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం (2, 4, 5, 6). 2, 3, 4, 6, 9, 12 లగ్నములు శ్రేష్టం. 4, 9, 14, 15, 16, 23, 29, 30 తిథులు నిషిద్ధం. జన్మ, 3, 5, 7 తారలు నిషిద్ధం. పుట్టిన 12, 16 రోజులలో లేదా 6, 7, 8 మాసముల యందు పగటివేళ చేయవలెను.",
+        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Good Lagnas: 2, 3, 4, 6, 9, 12 with Ashtama Shuddhi. Avoid tithis 15, 16, 23, 29. Taras 1, 3, 5, 7 avoided. Performed on 12th or 16th day from birth, or in 6th, 7th, 8th month during daylight hours.",
+        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం (2, 4, 5, 6). 2, 3, 4, 6, 9, 12 లగ్నములు శ్రేష్టం. 15, 16, 23, 29 తిథులు నిషిద్ధం. జన్మ, 3, 5, 7 తారలు నిషిద్ధం. పుట్టిన 12, 16 రోజులలో లేదా 6, 7, 8 మాసముల యందు పగటివేళ చేయవలెను.",
         "good_vaaras": [2, 4, 5, 6],
         "avoid_vaaras": [1, 3, 7],
         "good_lagnas": [2, 3, 4, 6, 9, 12],
-        "avoid_tithis": [4, 9, 14, 15, 16, 23, 29, 30],
+        "avoid_tithis": [15, 16, 23, 29],
         "good_nakshatras": [5, 6, 7, 8, 12, 13, 14, 21, 22, 23, 26, 27],
         "avoid_yogas": [1, 2, 11, 18],
         "avoid_karanas": [7, 8, 9, 10, 11],
@@ -255,12 +255,174 @@ SAMSKARA_REGISTRY = {
         "avoid_vaaras": [3, 7],
         "good_lagnas": [2, 3, 4, 6, 9, 12],
         "good_tithis": [2, 3, 5, 7, 10, 11, 12, 13],
-        "avoid_tithis": [4, 9, 14, 30],
+        "avoid_tithis": [],
         "good_nakshatras": [17, 27, 1, 5, 12, 21, 26, 7, 8, 22, 23, 24, 13, 14, 15, 4],
         "avoid_yogas": [1, 11, 18, 20],
         "avoid_karanas": [7, 8, 9, 10, 11],
         "avoid_taras": [1, 3, 5, 7],
         "special_checks": ["uttarayana_only", "guru_strength", "kendras_clean", "ashtama_shuddhi"]
+    },
+    "samavartana": {
+        "id": "samavartana",
+        "page_number": 17,
+        "name_en": "Samavartana Muhurtham",
+        "name_te": "సమావర్తన ముహూర్తము",
+        "tagline_en": "Snatakavrata / Return from Gurus Home (Graduation Rite)",
+        "tagline_te": "వేదాధ్యయనము పూర్తిగావించి గురుకులము నుండి గృహస్థాశ్రమమునకు ప్రవేశించు సంస్కారము",
+        "icon": "🎓",
+        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Shubha Lagnas (2, 3, 4, 6, 9, 12) with Ashtama Shuddhi. Taras 1, 3, 5, 7 avoided. Uttarayana preferred; performed after completion of Veda study.",
+        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం (2, 4, 5, 6). శుభలగ్నములు (2, 3, 4, 6, 9, 12) శ్రేష్టం. జన్మ, 3, 5, 7 తారలు నిషిద్ధం. వేదాధ్యయన సమాప్తి అనంతరము ఉత్తరాయణమునందు చేయవలెను.",
+        "good_vaaras": [2, 4, 5, 6],
+        "avoid_vaaras": [1, 3, 7],
+        "avoid_tithis": [],
+        "good_lagnas": [2, 3, 4, 6, 9, 12],
+        "good_nakshatras": [1, 4, 5, 7, 8, 12, 13, 14, 15, 17, 21, 22, 23, 24, 26, 27],
+        "avoid_yogas": [1, 18, 20],
+        "avoid_karanas": [8, 9, 10, 11],
+        "avoid_taras": [1, 3, 5, 7],
+        "special_checks": ["uttarayana_only", "ashtama_shuddhi", "lagna_shuddhi", "daytime_only"]
+    },
+    "keshanta_godana": {
+        "id": "keshanta_godana",
+        "page_number": 18,
+        "name_en": "Keshanta / Godana Muhurtham",
+        "name_te": "కేశాంత / గోదాన ముహూర్తము",
+        "tagline_en": "Godana Vrata — First Shaving Rite (16th Year)",
+        "tagline_te": "బ్రహ్మచారి 16వ సంవత్సరమున గోదానవ్రతముతో శ్మశ్రు త్యాగ సంస్కారము",
+        "icon": "💈",
+        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Shubha Lagnas (2, 3, 4, 6, 9, 12) with Ashtama Shuddhi. Avoid tithis 2, 8, 13. Taras 1, 3, 5, 7 avoided. Uttarayana mandatory; classically performed in the 16th year.",
+        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం (2, 4, 5, 6). శుభలగ్నములు శ్రేష్టం. 2, 8, 13 తిథులు నిషిద్ధం. జన్మ, 3, 5, 7 తారలు నిషిద్ధం. ఉత్తరాయణము తప్పనిసరి; సాంప్రదాయకంగా 16వ సంవత్సరమున చేయుదురు.",
+        "good_vaaras": [2, 4, 5, 6],
+        "avoid_vaaras": [1, 3, 7],
+        "avoid_tithis": [2, 8, 13],
+        "good_lagnas": [2, 3, 4, 6, 9, 12],
+        "good_nakshatras": [1, 5, 7, 8, 13, 14, 15, 22, 23, 24, 27],
+        "avoid_yogas": [1, 2, 11, 18],
+        "avoid_karanas": [7, 8, 9, 10, 11],
+        "avoid_taras": [1, 3, 5, 7],
+        "special_checks": ["uttarayana_only", "ashtama_shuddhi", "daytime_only"]
+    },
+    "aksharabhyasam": {
+        "id": "aksharabhyasam",
+        "page_number": 19,
+        "name_en": "Aksharabhyasam / Vidyarambham Muhurtham",
+        "name_te": "అక్షరాభ్యాస / విద్యారంభ ముహూర్తము",
+        "tagline_en": "Learning Initiation — Writing of First Letters",
+        "tagline_te": "శిశువు తొలిసారి అక్షరములు వ్రాయుటకు / విద్యారంభమునకు శుభ కాలము",
+        "icon": "✍️",
+        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Shubha Lagnas (2, 3, 4, 6, 9, 12) with Ashtama Shuddhi. Taras 1, 3, 5, 7 avoided. Performed during daytime; Vasanta season (Uttarayana) preferred; Anadhyaya (study-prohibited) days excluded.",
+        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం. శుభలగ్నములు శ్రేష్టం. జన్మ, 3, 5, 7 తారలు నిషిద్ధం. పగటివేళ, వసంత ఋతువు (ఉత్తరాయణం) అనుకూలము. అనధ్యాయ దినములు వర్జ్యం.",
+        "good_vaaras": [2, 4, 5, 6],
+        "avoid_vaaras": [1, 3, 7],
+        "avoid_tithis": [],
+        "good_lagnas": [2, 3, 4, 6, 9, 12],
+        "good_nakshatras": [1, 4, 7, 8, 12, 14, 15, 17, 21, 22, 23, 24, 26],
+        "avoid_yogas": [1, 11, 18, 20],
+        "avoid_karanas": [7, 8, 9, 10, 11],
+        "avoid_taras": [1, 3, 5, 7],
+        "special_checks": ["uttarayana_only", "ashtama_shuddhi", "daytime_only"]
+    },
+    "prajapatya_vrata": {
+        "id": "prajapatya_vrata",
+        "page_number": 20,
+        "name_en": "Prajapatya Vrata Muhurtham",
+        "name_te": "ప్రాజాపత్య వ్రత ముహూర్తము",
+        "tagline_en": "First Year Vrata of Brahmacharya (Prajapatya)",
+        "tagline_te": "ఉపనయనానంతరము బ్రహ్మచర్య వ్రతములు — ప్రాజాపత్యవ్రతము (మొదటి సంవత్సరము)",
+        "icon": "🔥",
+        "rules_summary_en": "Mon, Wed, Thu, Fri favorable. Shubha Lagnas with Ashtama Shuddhi and Lagna Shuddhi. Taras 1, 3, 5, 7 avoided. Performed during daytime; classically in the year following Upanayana.",
+        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం. శుభలగ్నములు, అష్టమ శుద్ధి, లగ్న శుద్ధి తప్పనిసరి. జన్మ, 3, 5, 7 తారలు నిషిద్ధం. పగటివేళ; సాంప్రదాయకంగా ఉపనయనానంతర సంవత్సరమున చేయుదురు.",
+        "good_vaaras": [2, 4, 5, 6],
+        "avoid_vaaras": [1, 3, 7],
+        "avoid_tithis": [],
+        "good_lagnas": [2, 3, 4, 6, 9, 12],
+        "good_nakshatras": [1, 4, 5, 7, 8, 12, 13, 14, 15, 17, 21, 22, 23, 24, 26, 27],
+        "avoid_yogas": [1, 18, 20],
+        "avoid_karanas": [8, 9, 10, 11],
+        "avoid_taras": [1, 3, 5, 7],
+        "special_checks": ["ashtama_shuddhi", "lagna_shuddhi", "daytime_only"]
+    },
+    "saumya_vrata": {
+        "id": "saumya_vrata",
+        "page_number": 20,
+        "name_en": "Saumya Vrata Muhurtham",
+        "name_te": "సౌమ్య వ్రత ముహూర్తము",
+        "tagline_en": "Second Year Vrata of Brahmacharya (Saumya)",
+        "tagline_te": "ఉపనయనానంతరము బ్రహ్మచర్య వ్రతములు — సౌమ్యవ్రతము (రెండవ సంవత్సరము)",
+        "icon": "🌙",
+        "rules_summary_en": "Same auspicious pattern as Prajapatya Vrata: Mon, Wed, Thu, Fri favorable; Shubha Lagnas with Ashtama & Lagna Shuddhi; Taras 1, 3, 5, 7 avoided; daytime ceremony.",
+        "rules_summary_te": "ప్రాజాపత్య వ్రతము వలెనే: సోమ, బుధ, గురు, శుక్రవారములు శుభం; శుభలగ్నములు, అష్టమ లగ్న శుద్ధులు తప్పనిసరి; జన్మ 3 5 7 తారలు నిషిద్ధం; పగటివేళ చేయుదురు.",
+        "good_vaaras": [2, 4, 5, 6],
+        "avoid_vaaras": [1, 3, 7],
+        "avoid_tithis": [],
+        "good_lagnas": [2, 3, 4, 6, 9, 12],
+        "good_nakshatras": [1, 4, 5, 7, 8, 12, 13, 14, 15, 17, 21, 22, 23, 24, 26, 27],
+        "avoid_yogas": [1, 18, 20],
+        "avoid_karanas": [8, 9, 10, 11],
+        "avoid_taras": [1, 3, 5, 7],
+        "special_checks": ["ashtama_shuddhi", "lagna_shuddhi", "daytime_only"]
+    },
+    "agneya_vrata": {
+        "id": "agneya_vrata",
+        "page_number": 20,
+        "name_en": "Agneya Vrata Muhurtham",
+        "name_te": "ఆగ్నేయ వ్రత ముహూర్తము",
+        "tagline_en": "Third Year Vrata of Brahmacharya (Agneya)",
+        "tagline_te": "ఉపనయనానంతరము బ్రహ్మచర్య వ్రతములు — ఆగ్నేయవ్రతము (మూడవ సంవత్సరము)",
+        "icon": "🔥",
+        "rules_summary_en": "Same auspicious pattern as Prajapatya Vrata: Mon, Wed, Thu, Fri favorable; Shubha Lagnas with Ashtama & Lagna Shuddhi; Taras 1, 3, 5, 7 avoided; daytime ceremony.",
+        "rules_summary_te": "ప్రాజాపత్య వ్రతము వలెనే: సోమ, బుధ, గురు, శుక్రవారములు శుభం; శుభలగ్నములు, అష్టమ లగ్న శుద్ధులు తప్పనిసరి; జన్మ 3 5 7 తారలు నిషిద్ధం; పగటివేళ చేయుదురు.",
+        "good_vaaras": [2, 4, 5, 6],
+        "avoid_vaaras": [1, 3, 7],
+        "avoid_tithis": [],
+        "good_lagnas": [2, 3, 4, 6, 9, 12],
+        "good_nakshatras": [1, 4, 5, 7, 8, 12, 13, 14, 15, 17, 21, 22, 23, 24, 26, 27],
+        "avoid_yogas": [1, 18, 20],
+        "avoid_karanas": [8, 9, 10, 11],
+        "avoid_taras": [1, 3, 5, 7],
+        "special_checks": ["ashtama_shuddhi", "lagna_shuddhi", "daytime_only"]
+    },
+    "vaishvadeva_vrata": {
+        "id": "vaishvadeva_vrata",
+        "page_number": 20,
+        "name_en": "Vaishvadeva Vrata Muhurtham",
+        "name_te": "వైశ్వదేవ వ్రత ముహూర్తము",
+        "tagline_en": "Fourth Year Vrata of Brahmacharya (Vaishvadeva)",
+        "tagline_te": "ఉపనయనానంతరము బ్రహ్మచర్య వ్రతములు — వైశ్వదేవవ్రతము (నాలుగవ సంవత్సరము)",
+        "icon": "🙏",
+        "rules_summary_en": "Same auspicious pattern as Prajapatya Vrata: Mon, Wed, Thu, Fri favorable; Shubha Lagnas with Ashtama & Lagna Shuddhi; Taras 1, 3, 5, 7 avoided; daytime ceremony.",
+        "rules_summary_te": "ప్రాజాపత్య వ్రతము వలెనే: సోమ, బుధ, గురు, శుక్రవారములు శుభం; శుభలగ్నములు, అష్టమ లగ్న శుద్ధులు తప్పనిసరి; జన్మ 3 5 7 తారలు నిషిద్ధం; పగటివేళ చేయుదురు.",
+        "good_vaaras": [2, 4, 5, 6],
+        "avoid_vaaras": [1, 3, 7],
+        "avoid_tithis": [],
+        "good_lagnas": [2, 3, 4, 6, 9, 12],
+        "good_nakshatras": [1, 4, 5, 7, 8, 12, 13, 14, 15, 17, 21, 22, 23, 24, 26, 27],
+        "avoid_yogas": [1, 18, 20],
+        "avoid_karanas": [8, 9, 10, 11],
+        "avoid_taras": [1, 3, 5, 7],
+        "special_checks": ["ashtama_shuddhi", "lagna_shuddhi", "daytime_only"]
+    },
+    "vivaha": {
+        "id": "vivaha",
+        "page_number": 21,
+        "name_en": "Vivaha Muhurtham",
+        "name_te": "వివాహ ముహూర్తము",
+        "tagline_en": "Marriage Ceremony — Grahastha Ashrama Pravesham",
+        "tagline_te": "గృహస్థాశ్రమ స్వీకారము — వివాహ ముహూర్త నిర్ణయము",
+        "icon": "💍",
+        "rules_summary_en": "Mon, Wed, Thu, Fri (and Sun/Mon per tradition) favorable; avoid Tue, Sat. Good months: Magha, Phalguna, Vaishakha, Jyeshta-lite per table; prohibited: Ashadha, Shravana, Bhadrapada, Pushya months. Shubha nakshatras with Ashtama/Lagna Shuddhi. Jupiter or Venus must NOT be combust/weak at muhurta. Avoid 18th (Trijashta) star from bride's janma nakshatra. Chandrashtama for bride/groom strictly avoided.",
+        "rules_summary_te": "సోమ, బుధ, గురు, శుక్రవారములు శుభం; మంగళ, శనివారములు నిషిద్ధం. శుభ మాసములు: మాఘ, ఫాల్గుణ, వైశాఖ, జ్యేష్ఠములు (సాంప్రదాయ ప్రాంతీయ భేదము ఉంది); నిషిద్ధ మాసములు: ఆషాఢ, శ్రావణ, భాద్రపద, పుష్యములు. శుభ నక్షత్రములు, అష్టమ/లగ్న శుద్ధులు తప్పనిసరి. ముహూర్త సమయమున గురు గానీ శుక్రుడు గానీ అస్తమించి / వక్రగతిన ఉండరాదు (గురు-శుక్ర అవస్థలు). వధువు జన్మ నక్షత్రమునుండి 18వ (త్రిజేష్ఠ) నక్షత్రం వర్జ్యం. వధూవరుల చంద్రాష్టమము అత్యంత నిషిద్ధం.",
+        "good_vaaras": [2, 4, 5, 6],
+        "moderate_vaaras": [1, 2],
+        "avoid_vaaras": [3, 7],
+        "good_tithis": [1, 2, 3, 5, 7, 10, 11, 13],
+        "avoid_tithis": [4, 9, 14, 15, 30],
+        "good_lagnas": [2, 3, 4, 6, 9, 12],
+        "good_nakshatras": [1, 4, 5, 7, 8, 11, 13, 14, 16, 17, 21, 22, 23, 24, 26, 27],
+        "avoid_yogas": [1, 18, 20],
+        "avoid_karanas": [8, 9, 10, 11],
+        "avoid_taras": [1, 3, 5, 7],
+        "special_checks": ["guru_shukra_avastha", "trijashta_star", "vivaha_masas", "ashtama_shuddhi", "lagna_shuddhi"]
     }
 }
 
@@ -769,6 +931,77 @@ def generate_candidate_dates(samskara_id: str, base_date: date, **kwargs) -> Lis
                 c_date = month_start + timedelta(days=day_off)
                 dates_info.append({"date": c_date, "day_label": f"Year {target_years} · {c_date.strftime('%B %d')}", "day_label_te": f"{target_years}వ సంవత్సరం · {c_date.strftime('%d-%m-%Y')}", "day_number": target_years})
 
+    elif sid == "samavartana":
+        # Uttarayana of the year Veda study completes. Default: 8 yrs study starting at Upanayana age (varna-based),
+        # i.e. varna_years(varna) + study_years passed by the user.
+        varna = kwargs.get("varna", "brahmin").lower()
+        varna_years = {"brahmin": 8, "kshatriya": 11, "vaishya": 12}
+        study_years = int(kwargs.get("study_years") or 8)
+        target_years = varna_years.get(varna, 8) + study_years
+        target_year_val = base_date.year + target_years
+        for month_idx in [2, 3, 4, 5]:
+            month_start = date(target_year_val, month_idx, 5)
+            for day_off in [0, 5, 10, 15, 20]:
+                c_date = month_start + timedelta(days=day_off)
+                dates_info.append({"date": c_date, "day_label": f"Year {target_years} (Uttarayana)", "day_label_te": f"{target_years}వ సంవత్సరము (ఉత్తరాయణం)", "day_number": target_years})
+
+    elif sid == "keshanta_godana":
+        # Classically the 16th year (Brahmachari), Uttarayana months. Configurable via study offset.
+        target_years = int(kwargs.get("study_years") or 16)
+        target_year_val = base_date.year + target_years
+        for month_idx in [2, 3, 4, 5]:
+            month_start = date(target_year_val, month_idx, 5)
+            for day_off in [0, 5, 10, 15, 20]:
+                c_date = month_start + timedelta(days=day_off)
+                dates_info.append({"date": c_date, "day_label": f"Year {target_years} (Uttarayana)", "day_label_te": f"{target_years}వ సంవత్సరము (ఉత్తరాయణం)", "day_number": target_years})
+
+    elif sid == "aksharabhyasam":
+        # Vidyaarambha: default 5th year, Vasanta/Uttarayana months (Jan-Jun); 3 candidates per month
+        target_years = int(kwargs.get("study_years") or 5)
+        target_year_val = base_date.year + target_years
+        for month_idx in [1, 2, 3, 4, 5, 6]:
+            month_start = date(target_year_val, month_idx, 5)
+            for day_off in [0, 7, 14, 21]:
+                c_date = month_start + timedelta(days=day_off)
+                dates_info.append({"date": c_date, "day_label": f"Year {target_years} · {c_date.strftime('%B %d')}", "day_label_te": f"{target_years}వ సంవత్సరం · {c_date.strftime('%d-%m-%Y')}", "day_number": target_years})
+
+    elif sid in ("prajapatya_vrata", "saumya_vrata", "agneya_vrata", "vaishvadeva_vrata"):
+        # Post-Upanayana Brahmacharya vratas, performed sequentially in consecutive years after Upanayana:
+        # Prajapatya (+1), Saumya (+2), Agneya (+3), Vaishvadeva (+4). Core years overridable via study_years.
+        vrata_offsets = {
+            "prajapatya_vrata": 1,
+            "saumya_vrata": 2,
+            "agneya_vrata": 3,
+            "vaishvadeva_vrata": 4,
+        }
+        varna = kwargs.get("varna", "brahmin").lower()
+        base_upanayana_year = {"brahmin": 8, "kshatriya": 11, "vaishya": 12}.get(varna, 8)
+        target_years = int(kwargs.get("study_years") or (base_upanayana_year + vrata_offsets.get(sid, 1)))
+        target_year_val = base_date.year + target_years
+        for month_idx in [2, 3, 4, 5]:
+            month_start = date(target_year_val, month_idx, 5)
+            for day_off in [0, 5, 10, 15, 20]:
+                c_date = month_start + timedelta(days=day_off)
+                dates_info.append({"date": c_date, "day_label": f"Year {target_years} (Uttarayana)", "day_label_te": f"{target_years}వ సంవత్సరము (ఉత్తరాయణం)", "day_number": target_years})
+
+    elif sid == "vivaha":
+        # Marriage months: Shubha chandramana masas (Chaitra-Vaishakha-Jyeshtha ~ Mar 15–May 13;
+        # Magha-Phalguna ~ Jan 5–Mar 14). Avoid Ashadha/Bhadrapada (Jun–Sep) & Pushya (Dec–early Jan).
+        target_year_val = base_date.year + int(kwargs.get("study_years") or 0)
+        windows = [
+            (date(target_year_val, 1, 6), 20, date(target_year_val, 2, 26)),   # Magha-Phalguna (Jan 5 – Feb 26)
+            (date(target_year_val, 2, 27), 20, date(target_year_val, 3, 14)),  # Phalguna (Feb 27 – Mar 14)
+            (date(target_year_val, 3, 15), 20, date(target_year_val, 4, 13)),  # Chaitra (Mar 15 – Apr 13)
+            (date(target_year_val, 4, 14), 20, date(target_year_val, 5, 13)),  # Vaishakha/Jyeshtha (Apr 14 – May 13)
+        ]
+        idx = 0
+        for w_start, step, w_end in windows:
+            c_date = w_start
+            while c_date <= w_end:
+                idx += 1
+                dates_info.append({"date": c_date, "day_label": f"{c_date.strftime('%b %d')} · Shubha Masa", "day_label_te": f"{c_date.strftime('%d-%m-%Y')} · శుభ మాసము", "day_number": idx})
+                c_date += timedelta(days=step)
+
     return dates_info
 
 
@@ -1068,6 +1301,36 @@ def find_samskara_muhurtas(
                     sun_rasi = p_win.get("sun_rasi_index", 1)
                     is_uttarayana = sun_rasi in [10, 11, 12, 1, 2, 3]
 
+                # 16a. Guru-Shukra Avastha Check (Vivaha, Page 21)
+                guru_shukra_issues = []
+                is_guru_shukra_ok = True
+                if "guru_shukra_avastha" in rule.get("special_checks", []):
+                    for pos in (cand_d1_positions or []):
+                        if str(pos.get("planet")) in ["4", "Ju"]:
+                            if pos.get("is_retro"): guru_shukra_issues.append("గురుడు వక్రగతిలో (Jupiter retrograde)")
+                            if pos.get("is_combust"): guru_shukra_issues.append("గురుడు అస్తమించినాడు (Jupiter combust)")
+                        if str(pos.get("planet")) in ["5", "Ve"]:
+                            if pos.get("is_retro"): guru_shukra_issues.append("శుక్రుడు వక్రగతిలో (Venus retrograde)")
+                            if pos.get("is_combust"): guru_shukra_issues.append("శుక్రుడు అస్తమించినాడు (Venus combust)")
+                    if guru_shukra_issues:
+                        is_guru_shukra_ok = False
+
+                # 16b. Trijashta Star Check (Vivaha, Page 21)
+                is_trijashta = False
+                bride_nak_ref = kwargs.get("bride_nak_idx") or birth_nak_idx
+                if "trijashta_star" in rule.get("special_checks", []):
+                    if (nak_idx - bride_nak_ref) % 27 == 17:  # 18th star from bride's janma nakshatra
+                        is_trijashta = True
+
+                # 16c. Vivaha Masa Shuddhi Check (Vivaha, approximate chandramana month windows)
+                is_masa_avoid = False
+                if "vivaha_masas" in rule.get("special_checks", []):
+                    m, d = cand_date.month, cand_date.day
+                    # Approx chandramana masa windows (approx boundaries): prohibited
+                    # Ashadha/Shravana/Bhadrapada (~Jun 15 – Sep 8) & Pushya (~Dec 6 – Jan 4)
+                    if (m == 6 and d >= 15) or (m in (7, 8)) or (m == 9 and d <= 8) or (m == 12 and d <= 4):
+                        is_masa_avoid = True
+
                 # 17. Panchaka Rahitam
                 tithi_num_for_panchaka = p_win["tithi"].get("number", 1)
                 panchaka_info = compute_panchaka_rahitam(tithi_num_for_panchaka, vaara_idx - 1, nak_idx, cand_lagna_idx)
@@ -1077,7 +1340,8 @@ def find_samskara_muhurtas(
                     is_tithi_avoid or is_vaara_avoid or is_tara_avoid or is_chandrashtama or
                     is_ashtama_lagna or is_lagna_avoid or not has_ashtama_shuddhi or
                     not has_navama_shuddhi or not has_dashama_shuddhi or is_ritu_lagna_dosha or
-                    is_7th_star_dosha or not is_uttarayana
+                    is_7th_star_dosha or not is_uttarayana or
+                    not is_guru_shukra_ok or is_trijashta or is_masa_avoid
                 )
 
                 # Scoring calculation
@@ -1109,6 +1373,9 @@ def find_samskara_muhurtas(
                     if is_ritu_lagna_dosha: deductions += 15
                     if is_7th_star_dosha: deductions += 15
                     if not is_uttarayana: deductions += 20
+                    if not is_guru_shukra_ok: deductions += 25
+                    if is_trijashta: deductions += 15
+                    if is_masa_avoid: deductions += 20
 
                 total_pct = max(5, min(100, base_score - deductions))
                 if has_strict_dosha:
@@ -1154,10 +1421,30 @@ def find_samskara_muhurtas(
                     reasons.append("7th Star (Vipat) Dosha: Current star is the 7th from Janma Nakshatra.")
                 if not is_uttarayana and "uttarayana_only" in rule.get("special_checks", []):
                     reasons.append("Dakshinayana: This Samskara requires Uttarayana period.")
+                if "guru_shukra_avastha" in rule.get("special_checks", []):
+                    if is_guru_shukra_ok:
+                        reasons.append("గురు-శుక్ర అవస్థ: శుభం — గురు, శుక్రులు అస్తమించి/వక్రగతిన లేరు (Guru & Venus well placed).")
+                    else:
+                        reasons.append("గురు-శుక్ర దోషం: " + "; ".join(guru_shukra_issues))
+                if "trijashta_star" in rule.get("special_checks", []):
+                    if is_trijashta:
+                        reasons.append("త్రిజేష్ఠ నక్షత్ర దోషం: వధువు జన్మ నక్షత్రానికి 18వ నక్షత్రము (Trijashta star avoided).")
+                    else:
+                        reasons.append("త్రిజేష్ఠ వర్జితం: శుభం (No Trijashta star issue).")
+                if "vivaha_masas" in rule.get("special_checks", []):
+                    if is_masa_avoid:
+                        reasons.append("నిషిద్ధ మాసము: ఆషాఢ/శ్రావణ/భాద్రపద/పుష్య మాసాలలో వివాహం చేయరాదు (Prohibited marriage month).")
+                    else:
+                        reasons.append("శుభ మాసము: వివాహానికి అనుకూల చంద్రమాన మాసము (Favorable marriage month).")
 
                 birth_details_dict = {"birth_lagna_idx": birth_lagna_idx, "birth_moon_rasi": birth_moon_rasi_idx}
-                maha_doshas_list = evaluate_21_maha_doshas(p_win, cand_d1_positions, cand_raw_d1, cand_lagna_idx, birth_details_dict)
-                dashavidha_doshas_list = evaluate_10_dashavidha_doshas(p_win, cand_d1_positions, cand_raw_d1, cand_lagna_idx, birth_details_dict)
+                # Per the treatise, the 21 Maha Doshas & 10 Dashavidha Doshas apply ONLY to Vivaha (marriage).
+                if sid == "vivaha":
+                    maha_doshas_list = evaluate_21_maha_doshas(p_win, cand_d1_positions, cand_raw_d1, cand_lagna_idx, birth_details_dict)
+                    dashavidha_doshas_list = evaluate_10_dashavidha_doshas(p_win, cand_d1_positions, cand_raw_d1, cand_lagna_idx, birth_details_dict)
+                else:
+                    maha_doshas_list = []
+                    dashavidha_doshas_list = []
                 pariharas_list = evaluate_muhurta_pariharas(p_win, cand_raw_d1, cand_lagna_idx, birth_details=birth_details_dict, pushkara_info=win)
 
                 result_card = {
