@@ -1,0 +1,14 @@
+services:
+  muhurtham:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: "8000"
+      # Restrict CORS to the origins that may call the API from another
+      # origin (same-origin serving needs none). Example:
+      #   https://muhurtham.example.com,https://admin.example.com
+      MUHURTHAM_CORS_ORIGINS: ""
+      MUHURTHAM_ENABLE_DEV_PDF: "0"
+      MUHURTHAM_WORKERS: "2"
+    restart: unless-stopped

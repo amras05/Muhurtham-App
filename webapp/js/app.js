@@ -3,6 +3,11 @@
 // (binds all panels via the shared helpers, initial load)
 // ============================================================
 
+// Render the full layout once on load (component architecture),
+// then wire all panels via the shared helpers — ids unchanged.
+UI.mount(Views.layoutRootId, Views.layout());
+el("apiBaseLabel").textContent = API_BASE || "same-origin";
+
 el("dateInput").valueAsDate = new Date();
 el("birthDateInput").valueAsDate = new Date();
 

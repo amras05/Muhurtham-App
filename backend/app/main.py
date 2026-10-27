@@ -34,44 +34,56 @@ from .auth import auth_router
 
 app = FastAPI(title="Muhurta Finder API", version="0.1.0")
 
+# ============================================================
+# SERVER CONFIGURATION (env-driven, production-safe defaults)
+# ============================================================
+import os as _os
+from pathlib import Path as _Path
+
+# CORS: comma-separated list of origins, "*" for all (dev only).
+_CORS_ENV = _os.environ.get("MUHURTHAM_CORS_ORIGINS", "*")
+_CORS_ORIGINS = [o.strip() for o in _CORS_ENV.split(",") if o.strip()]
+
+# Dev PDF save endpoint: enabled explicitly, disabled in deployments.
+_ENABLE_DEV_PDF = _os.environ.get("MUHURTHAM_ENABLE_DEV_PDF", "0") == "1"
+
+# Static frontend tree (pages + css + js), served by this same server.
+_WEBAPP_DIR = _Path(_os.path.abspath(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "..", "webapp")))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten before production
-    allow_methods=["*"],
+    allow_origins=_CORS_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
-from fastapi.responses import FileResponse
-import os
+from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 app.include_router(auth_router)
 
 from .muhurta_finder import router as muhurta_finder_router
 app.include_router(muhurta_finder_router)
 
+
 @app.get("/", include_in_schema=False)
 def serve_root():
-    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-    index_file = os.path.join(root_dir, "panchang-lookup.html")
-    if os.path.exists(index_file):
+    """Serve the main app page at the server root."""
+    index_file = _WEBAPP_DIR / "panchang-lookup.html"
+    if index_file.exists():
         return FileResponse(index_file)
-    return {"message": "Muhurtham Backend API is running"}
+    return {"message": "Muhurtham Backend API is running", "docs_url": "/docs"}
 
-@app.get("/panchang-lookup.html", include_in_schema=False)
-def serve_panchang_lookup():
-    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-    index_file = os.path.join(root_dir, "panchang-lookup.html")
-    if os.path.exists(index_file):
-        return FileResponse(index_file)
-    raise HTTPException(404, "panchang-lookup.html not found")
 
-@app.get("/muhurta-finder.html", include_in_schema=False)
-def serve_muhurta_finder():
-    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-    index_file = os.path.join(root_dir, "muhurta-finder.html")
-    if os.path.exists(index_file):
-        return FileResponse(index_file)
-    raise HTTPException(404, "muhurta-finder.html not found")
+@app.get("/index.html", include_in_schema=False)
+def serve_index_redirect():
+    return RedirectResponse(url="/", status_code=302)
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "version": app.version, "dev_pdf": _ENABLE_DEV_PDF}
 
 
 
@@ -857,29 +869,30 @@ def pitrukarya_finder(
         raise HTTPException(500, f"Pitrukarya calculation failed: {str(ex)}")
 
 
-@app.post("/dev/save-pdf")
-def dev_save_pdf(payload: dict):
-    """Dev utility: persist a base64 PDF (e.g. generated client-side via pdfmake) to disk."""
-    b64 = (payload or {}).get("b64", "")
-    name = (payload or {}).get("name", "generated.pdf")
-    name = os.path.basename(name) or "generated.pdf"
-    import base64 as _b64
-    out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..")
-    out_path = os.path.abspath(os.path.join(out_dir, name))
-    with open(out_path, "wb") as f:
-        f.write(_b64.b64decode(b64))
-    return {"saved": out_path, "bytes": os.path.getsize(out_path)}
+# Dev-only: persist a base64 PDF (client-side pdfmake output) to disk.
+# Gated by MUHURTHAM_ENABLE_DEV_PDF=1 — disabled in deployments by default.
+if _ENABLE_DEV_PDF:
+    from fastapi import Body
+
+    @app.post("/dev/save-pdf")
+    def dev_save_pdf(payload: dict):
+        """Dev utility: persist a base64 PDF (e.g. generated client-side via pdfmake) to disk."""
+        b64 = (payload or {}).get("b64", "")
+        name = _os.path.basename((payload or {}).get("name", "generated.pdf")) or "generated.pdf"
+        import base64 as _b64
+        out_path = _os.path.abspath(_os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), "..", name))
+        with open(out_path, "wb") as f:
+            f.write(_b64.b64decode(b64))
+        return {"saved": out_path, "bytes": _os.path.getsize(out_path)}
 
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+# Static assets from the webapp tree (pages write no state; hash-routing safe).
+# /files kept as a legacy alias so older shared links resolve.
+app.mount("/files", StaticFiles(directory=str(_WEBAPP_DIR), html=False), name="files")
+app.mount("/static", StaticFiles(directory=_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "static")), name="static")
 
-
-# Dev: serve project root for local preview of generated PDFs
-from fastapi.staticfiles import StaticFiles
-_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".."))
-app.mount("/files", StaticFiles(directory=_ROOT, follow_symlink=True), name="files")
-app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")), name="static")
+# Serve all pages/assets at their natural paths (must be mounted LAST —
+# it catches everything the API routes didn't).
+app.mount("/", StaticFiles(directory=str(_WEBAPP_DIR), html=True), name="webapp")
 
 
