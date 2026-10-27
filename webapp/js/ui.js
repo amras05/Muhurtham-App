@@ -92,9 +92,11 @@ var UI = (function () {
     );
   }
 
-  function kaalaSection(titleTe, titleEn, body, sectionStyle, titleStyle) {
+  function kaalaSection(titleTe, titleEn, body, sectionClsOrStyle, titleStyle) {
+    var isClass = sectionClsOrStyle && !sectionClsOrStyle.includes(":") && !sectionClsOrStyle.includes(";");
     return (
-      '<div class="kaala-section"' + (sectionStyle ? ' style="' + sectionStyle + '"' : "") + ">" +
+      '<div class="kaala-section' + (isClass ? " " + sectionClsOrStyle : "") + '"' +
+      (!isClass && sectionClsOrStyle ? ' style="' + sectionClsOrStyle + '"' : "") + ">" +
       '<div class="kaala-title"' + (titleStyle ? ' style="' + titleStyle + '"' : "") +
       ' data-en="' + esc(titleEn) + '" data-te="' + esc(titleTe) + '">' + titleEn + "</div>" +
       body +

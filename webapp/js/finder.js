@@ -42,22 +42,22 @@ function buildD1ChartHTML(d1Array, centerLabel) {
     d1Array.forEach(item => {
       let pAbbr = PLANET_ABBRS[currentLang][item.planet] || item.planet;
       if (item.is_retro && item.planet !== "L" && item.planet !== "Mnd" && item.planet !== "Gk") {
-        pAbbr += `<span style="color:#b71c1c;font-weight:700;font-size:11px;">${currentLang === "te" ? "(వ)" : "(R)"}</span>`;
+        pAbbr += `<span class="chart-retro">${currentLang === "te" ? "(వ)" : "(R)"}</span>`;
       }
       if (item.is_combust && item.planet !== "L" && item.planet !== "Mnd" && item.planet !== "Gk") {
-        pAbbr += `<span style="color:#d84315;font-weight:700;font-size:11px;">${currentLang === "te" ? "(మ)" : "(C)"}</span>`;
+        pAbbr += `<span class="chart-combust">${currentLang === "te" ? "(మ)" : "(C)"}</span>`;
       }
       rasiPlanets[item.rasi_index].push(pAbbr);
     });
   }
-  let html = `<div class="south-chart" style="grid-template-columns: repeat(4, 1fr); max-width: 400px; margin: 10px auto; font-size:12px;">`;
-  html += `<div class="chart-center" style="font-size:13px; line-height:1.2;">${centerLabel}</div>`;
+  let html = `<div class="south-chart">`;
+  html += `<div class="chart-center">${centerLabel}</div>`;
   for (let rasiIdx = 0; rasiIdx < 12; rasiIdx++) {
     const pos = CHART_GRID_POSITIONS[rasiIdx];
     const rasiName = D9_RASI_LABELS[currentLang][rasiIdx];
     const pList = rasiPlanets[rasiIdx].join(", ");
     html += `
-      <div class="chart-cell" style="grid-row: ${pos.row}; grid-column: ${pos.col}; padding: 4px; font-size:12px; min-height: 60px; text-align:center;">
+      <div class="chart-cell" style="grid-row: ${pos.row}; grid-column: ${pos.col};">
         <div class="rasi-label">${rasiName}</div>
         <div class="planets-list">${pList || "—"}</div>
       </div>`;
@@ -167,19 +167,19 @@ function renderResults(data) {
 
   el("summaryBar").innerHTML = `
     <div class="summary-stat">
-      <div class="num" style="color: #1b5e20;">${excellent}</div>
+      <div class="num num--excellent">${excellent}</div>
       <div class="label" data-en="Excellent" data-te="ఉత్తమం">${currentLang === "te" ? "ఉత్తమం" : "Excellent"}</div>
     </div>
     <div class="summary-stat">
-      <div class="num" style="color: #f57f17;">${favorable}</div>
+      <div class="num num--favorable">${favorable}</div>
       <div class="label" data-en="Favorable" data-te="మధ్యమం">${currentLang === "te" ? "మధ్యమం" : "Favorable"}</div>
     </div>
     <div class="summary-stat">
-      <div class="num" style="color: #b71c1c;">${unfavorable}</div>
+      <div class="num num--unfavorable">${unfavorable}</div>
       <div class="label" data-en="Unfavorable" data-te="అశుభం">${currentLang === "te" ? "అశుభం" : "Unfavorable"}</div>
     </div>
     <div class="summary-stat">
-      <div class="num" style="color: var(--gold);">${withMuhurta}</div>
+      <div class="num num--muhurta">${withMuhurta}</div>
       <div class="label" data-en="With Muhurta" data-te="ముహూర్తంతో">${currentLang === "te" ? "ముహూర్తంతో" : "With Muhurta"}</div>
     </div>
   `;
@@ -240,7 +240,7 @@ function renderResults(data) {
       pushMini = `
         <div class="pushkara-mini">
           <strong>⏰ ${stmt}</strong>
-          <div style="font-size: 11px; margin-top: 4px; color: #5d4037;">
+          <div class="pushkara-mini__details">
             🏛️ ${currentLang === "te" ? "లగ్నాంతాలు:" : "Lagna:"} ${pi.lagna_duration || "—"}
             ${pi.pushkara_bhaga?.is_available ? `<br>📌 ${currentLang === "te" ? "పుష్కర భాగం:" : "P. Bhaga:"} ${pi.pushkara_bhaga.precise_time}` : ""}
             ${pi.pushkara_navamsha?.is_available ? `<br>📌 ${currentLang === "te" ? "పుష్కర నవాంశ:" : "P. Nav:"} ${pi.pushkara_navamsha.precise_time}` : ""}
@@ -255,9 +255,9 @@ function renderResults(data) {
             <div class="day-date">${r.date} · ${currentLang === "te" ? vaaraTe : dayName}</div>
             <div class="day-vaara">${currentLang === "te" ? `రోజు ${r.day_offset}` : `Day ${r.day_offset}`}</div>
           </div>
-          <div style="text-align: right;">
+          <div class="day-right">
             <span class="verdict-badge ${verdictClass}">${verdictText}</span>
-            <div style="font-size: 11px; color: #6b6152; margin-top: 4px;">${r.percentage}%</div>
+            <div class="day-percentage">${r.percentage}%</div>
           </div>
         </div>
         <div class="day-panchang">
@@ -307,13 +307,13 @@ function openDayModal(idx) {
     }
 
     bodyHtml += `
-      <div style="background: #fff8e1; border: 1.5px solid #ffa000; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;">
-        <h4 style="margin: 0 0 6px 0; color: #b71c1c; font-size: 14px;">☀️ ${currentLang === "te" ? "శుభ ముహూర్త సమయ నిర్ణయం" : "Recommended Time Prediction"}</h4>
-        <div style="font-size: 16px; font-weight: 700; color: #1b5e20;">⏰ ${stmt}</div>
-        <div style="font-size: 13px; font-weight: 600; color: #4e342e; margin-top: 6px; line-height: 1.6;">
+      <div class="rec-time-box">
+        <h4 class="rec-time-box__title">☀️ ${currentLang === "te" ? "శుభ ముహూర్త సమయ నిర్ణయం" : "Recommended Time Prediction"}</h4>
+        <div class="rec-time-box__time">⏰ ${stmt}</div>
+        <div class="rec-time-box__details">
           ${subDetails.join("<br>")}
         </div>
-        ${avoidNote ? `<div style="font-size: 12px; font-weight: 600; color: #b71c1c; margin-top: 6px; background: #fff0f0; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffcdd2;">⚠️ ${currentLang === "te" ? "గమనిక:" : "Note:"} ${avoidNote}</div>` : ''}
+        ${avoidNote ? `<div class="rec-time-box__note">⚠️ ${currentLang === "te" ? "గమనిక:" : "Note:"} ${avoidNote}</div>` : ''}
       </div>`;
   }
 
@@ -324,18 +324,19 @@ function openDayModal(idx) {
     const bNakTe = bd ? te(bd.janma_nakshatra || "", NAKSHATRA_NAMES_TE) : "";
     const bRasiTe = bd?.birth_moon_rasi ? (te(bd.birth_moon_rasi, RASI_NAMES_TE) || bd.birth_moon_rasi) : "";
     const cbDesc = cb ? (currentLang === "te" ? cb.desc_te : cb.desc_en) : "";
+    const cbBadgeClass = cb?.is_pass ? "native-profile-box__badge--pass" : "native-profile-box__badge--fail";
     bodyHtml += `
-      <div style="background:#eef7ee; border:1.5px solid #81c784; padding:10px 14px; border-radius:8px; margin-bottom:16px; display:flex; flex-direction:column; gap:6px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-          <strong style="color:#1b5e20; font-size:13px;">👤 ${currentLang === "te" ? "వ్యక్తిగత సమాచారం & గోచారం (Native & Transit)" : "Native Profile & Transit Details"}</strong>
-          ${cb ? `<span style="background:${cb.is_pass ? '#c8e6c9' : '#ffcdd2'}; color:${cb.is_pass ? '#1b5e20' : '#b71c1c'}; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:700;">🌙 ${currentLang === "te" ? "చంద్రబలం:" : "Chandrabalam:"} ${cb.house ? cb.house + 'వ ఇల్లు' : 'అనుకూలం'}</span>` : ''}
+      <div class="native-profile-box">
+        <div class="native-profile-box__header">
+          <strong class="native-profile-box__title">👤 ${currentLang === "te" ? "వ్యక్తిగత సమాచారం & గోచారం (Native & Transit)" : "Native Profile & Transit Details"}</strong>
+          ${cb ? `<span class="native-profile-box__badge ${cbBadgeClass}">🌙 ${currentLang === "te" ? "చంద్రబలం:" : "Chandrabalam:"} ${cb.house ? cb.house + 'వ ఇల్లు' : 'అనుకూలం'}</span>` : ''}
         </div>
-        <div style="font-size:12px; color:#2e7d32; display:flex; flex-wrap:wrap; gap:12px;">
+        <div class="native-profile-box__grid">
           ${bd ? `<span><strong>${currentLang === "te" ? "జన్మ నక్షత్రం:" : "Janma Nakshatra:"}</strong> ${bNakTe || bd.janma_nakshatra} (${bd.janma_nakshatra_pada} పాదం)</span>` : ''}
           ${bd?.birth_moon_rasi ? `<span><strong>${currentLang === "te" ? "జన్మ రాశి:" : "Janma Rasi:"}</strong> ${bRasiTe}</span>` : ''}
           ${d?.tara ? `<span><strong>${currentLang === "te" ? "తారాబలం:" : "Tarabalam:"}</strong> ${te(d.tara.name, TARA_NAMES_TE) || d.tara.name}</span>` : ''}
         </div>
-        ${cbDesc ? `<div style="font-size:11px; color:#33691e; border-top:1px dashed #a5d6a7; padding-top:4px; margin-top:2px;">ℹ️ ${cbDesc}</div>` : ''}
+        ${cbDesc ? `<div class="native-profile-box__footer">ℹ️ ${cbDesc}</div>` : ''}
       </div>`;
   }
 
@@ -349,25 +350,26 @@ function openDayModal(idx) {
     const maasa = currentLang === "te" ? (cm.month_telugu || cm.month_name) : `${cm.month_name} Masam`;
     const paksha = currentLang === "te" ? (cm.paksha_te || cm.paksha_en) : `${cm.paksha_en} Paksham`;
     cmBanner = `
-      <div style="background: linear-gradient(135deg, #fff9e6 0%, #fff1c6 100%); border: 1px solid #d4af37; padding: 8px 12px; border-radius: 6px; margin-bottom: 10px; font-size: 13px; font-weight: 700; color: #5d4037; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-        <span style="color: #b71c1c;">🪔 ${samName}</span>
+      <div class="cm-banner">
+        <span class="cm-banner__sam">🪔 ${samName}</span>
         <span>·</span>
-        <span style="color: #4e342e;">${ayanam}</span>
+        <span class="cm-banner__ayanam">${ayanam}</span>
         <span>·</span>
-        <span style="color: #4e342e;">${ruthu}</span>
+        <span class="cm-banner__ruthu">${ruthu}</span>
         <span>·</span>
-        <span style="color: #1b5e20;">${maasa}</span>
+        <span class="cm-banner__maasa">${maasa}</span>
         <span>·</span>
-        <span style="color: #0d47a1;">${paksha}</span>
+        <span class="cm-banner__paksha">${paksha}</span>
       </div>`;
   }
 
   // Panchang Grid
+  const isAbhijitAuspicious = r.panchang?.abhijit_kala_muhurtham && r.panchang.abhijit_kala_muhurtham.status === 'auspicious';
   bodyHtml += `
-    <div style="background:var(--card-bg); padding:12px; border-radius:8px; border:1px solid var(--line); margin-bottom:16px;">
-      <h4 style="margin:0 0 8px 0; color:var(--deep-maroon);">📌 ${currentLang === "te" ? "పంచాంగ వివరాలు" : "Panchang Details"}</h4>
+    <div class="detail-card">
+      <h4 class="detail-card__title">📌 ${currentLang === "te" ? "పంచాంగ వివరాలు" : "Panchang Details"}</h4>
       ${cmBanner}
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:8px; font-size:13px;">
+      <div class="detail-card__grid">
         <div><strong>${currentLang === "te" ? "వారం:" : "Weekday:"}</strong> ${vaaraTe}</div>
         <div><strong>${currentLang === "te" ? "తిథి:" : "Tithi:"}</strong> ${r.panchang?.tithi}</div>
         <div><strong>${currentLang === "te" ? "నక్షత్రం:" : "Nakshatra:"}</strong> ${nakTe}</div>
@@ -376,12 +378,8 @@ function openDayModal(idx) {
         <div><strong>${currentLang === "te" ? "సూర్యోదయం:" : "Sunrise:"}</strong> ${r.panchang?.sunrise || "—"}</div>
         <div><strong>${currentLang === "te" ? "సూర్యాస్తమయం:" : "Sunset:"}</strong> ${r.panchang?.sunset || "—"}</div>
         <div><strong>${currentLang === "te" ? "అభిజిత్ ముహూర్తం:" : "Abhijit:"}</strong> ${r.panchang?.abhijit_muhurta ? (r.panchang.abhijit_muhurta.start + ' – ' + r.panchang.abhijit_muhurta.end) : '—'}</div>
-        <div style="grid-column: 1 / -1; margin-top: 6px; padding: 6px 10px; border-radius: 6px; font-weight: 600; display: flex; align-items: center; gap: 6px;
-          ${r.panchang?.abhijit_kala_muhurtham && r.panchang.abhijit_kala_muhurtham.status === 'auspicious' ? 
-            'background: #fffde7; border: 1px solid #fdd835; color: #e65100;' : 
-            'background: #fff0f0; border: 1px solid #ffcdd2; color: #b71c1c;'
-          }">
-          <span>${r.panchang?.abhijit_kala_muhurtham && r.panchang.abhijit_kala_muhurtham.status === 'auspicious' ? '✨' : '⚠️'}</span>
+        <div class="abhijit-strip ${isAbhijitAuspicious ? 'abhijit-strip--auspicious' : 'abhijit-strip--inauspicious'}">
+          <span>${isAbhijitAuspicious ? '✨' : '⚠️'}</span>
           <span>
             <strong>${currentLang === "te" ? "అభిజిత్ కాల ముహూర్తం:" : "Abhijit Kala Muhurtham:"}</strong>
             ${r.panchang?.abhijit_kala_muhurtham ? 
@@ -401,20 +399,20 @@ function openDayModal(idx) {
     const panPariharam = currentLang === "te" ? pan.pariharam_te : pan.pariharam_en;
     const isPass = pan.is_pass;
     bodyHtml += `
-      <div style="background: ${isPass ? '#f1f8e9' : '#fff3e0'}; border: 1.5px solid ${isPass ? '#81c784' : '#ffb74d'}; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <h4 style="margin: 0; color: ${isPass ? '#1b5e20' : '#e65100'}; font-size: 14px;">
+      <div class="panchaka-box ${isPass ? 'panchaka-box--pass' : 'panchaka-box--fail'}">
+        <div class="panchaka-box__header">
+          <h4 class="panchaka-box__title ${isPass ? 'panchaka-box__title--pass' : 'panchaka-box__title--fail'}">
             ☸️ ${currentLang === "te" ? "పంచక రహిత విశ్లేషణ (Panchaka Rahitam)" : "Panchaka Rahitam Analysis"}
           </h4>
-          <span style="background: ${isPass ? '#2e7d32' : '#e65100'}; color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;">
+          <span class="panchaka-box__badge ${isPass ? 'panchaka-box__badge--pass' : 'panchaka-box__badge--fail'}">
             ${isPass ? (currentLang === "te" ? "శుభ పంచకం (దోష రహితం)" : "Subha (Clean)") : (currentLang === "te" ? "అశుభ పంచకం" : "Dosha")}
           </span>
         </div>
-        <div style="font-size: 12px; color: #424242; line-height: 1.5;">
+        <div class="panchaka-box__body">
           <div><strong>${currentLang === "te" ? "పంచక నిర్ణయ సూత్రం:" : "Formula:"}</strong> <code>${pan.formula || `(తిథి + వారం + నక్షత్రం + లగ్నం) % 9 = శేషం ${pan.remainder}`}</code></div>
-          <div style="margin-top: 4px;"><strong>${currentLang === "te" ? "పంచక ఫలితం:" : "Classification:"}</strong> <span style="font-weight: 700; color: ${isPass ? '#1b5e20' : '#b71c1c'};">${panName}</span> — <em>${panEffect}</em></div>
+          <div class="panchaka-box__classification"><strong>${currentLang === "te" ? "పంచక ఫలితం:" : "Classification:"}</strong> <span class="${isPass ? 'panchaka-box__classification-name--pass' : 'panchaka-box__classification-name--fail'}">${panName}</span> — <em>${panEffect}</em></div>
           ${panPariharam && !isPass ? `
-            <div style="margin-top: 6px; background: #ffffff; padding: 6px 10px; border-radius: 4px; border: 1px dashed #ff9800; font-size: 11px; color: #e65100;">
+            <div class="panchaka-box__remedy">
               <strong>🌿 ${currentLang === "te" ? "శాస్త్రోక్త పరిహారం:" : "Classical Remedy:"}</strong> ${panPariharam}
             </div>
           ` : ''}
@@ -426,40 +424,40 @@ function openDayModal(idx) {
   const kv = r.panchang?.kala_vibhajana;
   if (kv) {
     bodyHtml += `
-      <div style="background: #fafafa; border: 1px solid #e0e0e0; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-        <h4 style="margin: 0 0 8px 0; color: var(--maroon); font-size: 14px; display: flex; align-items: center; justify-content: space-between;">
+      <div class="kv-section">
+        <h4 class="kv-header">
           <span>⏳ ${currentLang === "te" ? "రోజు మొత్తంలో కాల విభజన (పంచధా కాల విభజన)" : "Daily 5-Fold Time Division (Kala Vibhajana)"}</span>
-          <span style="font-size: 11px; font-weight: 500; color: #757575;">${currentLang === "te" ? "పగలు 5 భాగాలు + రాత్రి పవిత్ర కాలాలు" : "5 Day divisions + Night Sacred Periods"}</span>
+          <span class="kv-header__sub">${currentLang === "te" ? "పగలు 5 భాగాలు + రాత్రి పవిత్ర కాలాలు" : "5 Day divisions + Night Sacred Periods"}</span>
         </h4>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; font-size: 12px;">
-          <div style="background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0;">
-            <div style="font-weight: 700; color: #e65100;">🌅 ${currentLang === "te" ? kv.pratah_kalam?.name_te : kv.pratah_kalam?.name_en}</div>
-            <div style="font-weight: 600; color: #333; margin: 2px 0;">${kv.pratah_kalam?.start} – ${kv.pratah_kalam?.end}</div>
-            <div style="font-size: 11px; color: #666;">${currentLang === "te" ? kv.pratah_kalam?.desc_te : kv.pratah_kalam?.desc_en}</div>
+        <div class="kv-grid">
+          <div class="kv-card">
+            <div class="kv-card__name kv-card__name--pratah">🌅 ${currentLang === "te" ? kv.pratah_kalam?.name_te : kv.pratah_kalam?.name_en}</div>
+            <div class="kv-card__time">${kv.pratah_kalam?.start} – ${kv.pratah_kalam?.end}</div>
+            <div class="kv-card__desc">${currentLang === "te" ? kv.pratah_kalam?.desc_te : kv.pratah_kalam?.desc_en}</div>
           </div>
-          <div style="background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0;">
-            <div style="font-weight: 700; color: #2e7d32;">🌾 ${currentLang === "te" ? kv.sangava_kalam?.name_te : kv.sangava_kalam?.name_en}</div>
-            <div style="font-weight: 600; color: #333; margin: 2px 0;">${kv.sangava_kalam?.start} – ${kv.sangava_kalam?.end}</div>
-            <div style="font-size: 11px; color: #666;">${currentLang === "te" ? kv.sangava_kalam?.desc_te : kv.sangava_kalam?.desc_en}</div>
+          <div class="kv-card">
+            <div class="kv-card__name kv-card__name--sangava">🌾 ${currentLang === "te" ? kv.sangava_kalam?.name_te : kv.sangava_kalam?.name_en}</div>
+            <div class="kv-card__time">${kv.sangava_kalam?.start} – ${kv.sangava_kalam?.end}</div>
+            <div class="kv-card__desc">${currentLang === "te" ? kv.sangava_kalam?.desc_te : kv.sangava_kalam?.desc_en}</div>
           </div>
-          <div style="background: #fffde7; padding: 8px; border-radius: 6px; border: 1px solid #ffd54f;">
-            <div style="font-weight: 700; color: #f57f17;">☀️ ${currentLang === "te" ? kv.madhyahnika_kalam?.name_te : kv.madhyahnika_kalam?.name_en} <span style="font-size: 10px; background: #fff; padding: 1px 4px; border-radius: 4px; border: 1px solid #fbc02d;">అభిజిత్</span></div>
-            <div style="font-weight: 600; color: #333; margin: 2px 0;">${kv.madhyahnika_kalam?.start} – ${kv.madhyahnika_kalam?.end}</div>
-            <div style="font-size: 11px; color: #666;">${currentLang === "te" ? kv.madhyahnika_kalam?.desc_te : kv.madhyahnika_kalam?.desc_en}</div>
+          <div class="kv-card kv-card--highlight">
+            <div class="kv-card__name kv-card__name--madhya">☀️ ${currentLang === "te" ? kv.madhyahnika_kalam?.name_te : kv.madhyahnika_kalam?.name_en} <span class="kv-tag">అభిజిత్</span></div>
+            <div class="kv-card__time">${kv.madhyahnika_kalam?.start} – ${kv.madhyahnika_kalam?.end}</div>
+            <div class="kv-card__desc">${currentLang === "te" ? kv.madhyahnika_kalam?.desc_te : kv.madhyahnika_kalam?.desc_en}</div>
           </div>
-          <div style="background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0;">
-            <div style="font-weight: 700; color: #5d4037;">⛅ ${currentLang === "te" ? kv.aparahna_kalam?.name_te : kv.aparahna_kalam?.name_en}</div>
-            <div style="font-weight: 600; color: #333; margin: 2px 0;">${kv.aparahna_kalam?.start} – ${kv.aparahna_kalam?.end}</div>
-            <div style="font-size: 11px; color: #666;">${currentLang === "te" ? kv.aparahna_kalam?.desc_te : kv.aparahna_kalam?.desc_en}</div>
+          <div class="kv-card">
+            <div class="kv-card__name kv-card__name--aparahna">⛅ ${currentLang === "te" ? kv.aparahna_kalam?.name_te : kv.aparahna_kalam?.name_en}</div>
+            <div class="kv-card__time">${kv.aparahna_kalam?.start} – ${kv.aparahna_kalam?.end}</div>
+            <div class="kv-card__desc">${currentLang === "te" ? kv.aparahna_kalam?.desc_te : kv.aparahna_kalam?.desc_en}</div>
           </div>
-          <div style="background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0;">
-            <div style="font-weight: 700; color: #ad1457;">🌇 ${currentLang === "te" ? kv.sayahna_kalam?.name_te : kv.sayahna_kalam?.name_en}</div>
-            <div style="font-weight: 600; color: #333; margin: 2px 0;">${kv.sayahna_kalam?.start} – ${kv.sayahna_kalam?.end}</div>
-            <div style="font-size: 11px; color: #666;">${currentLang === "te" ? kv.sayahna_kalam?.desc_te : kv.sayahna_kalam?.desc_en}</div>
+          <div class="kv-card">
+            <div class="kv-card__name kv-card__name--sayahna">🌇 ${currentLang === "te" ? kv.sayahna_kalam?.name_te : kv.sayahna_kalam?.name_en}</div>
+            <div class="kv-card__time">${kv.sayahna_kalam?.start} – ${kv.sayahna_kalam?.end}</div>
+            <div class="kv-card__desc">${currentLang === "te" ? kv.sayahna_kalam?.desc_te : kv.sayahna_kalam?.desc_en}</div>
           </div>
-          <div style="background: #ede7f6; padding: 8px; border-radius: 6px; border: 1px solid #d1c4e9;">
-            <div style="font-weight: 700; color: #4527a0;">🕉️ ${currentLang === "te" ? "రాత్రి విశేష కాలములు" : "Night Sacred Timings"}</div>
-            <div style="font-size: 11px; color: #311b92; margin-top: 2px;">
+          <div class="kv-card kv-card--sacred">
+            <div class="kv-card__name kv-card__name--sacred">🕉️ ${currentLang === "te" ? "రాత్రి విశేష కాలములు" : "Night Sacred Timings"}</div>
+            <div class="kv-card__sacred-times">
               <strong>${currentLang === "te" ? "ప్రదోషం:" : "Pradosha:"}</strong> ${kv.pradosha_kalam?.start} – ${kv.pradosha_kalam?.end}<br>
               <strong>${currentLang === "te" ? "నిశీథ కాలం:" : "Nisitha:"}</strong> ${kv.nisitha_kalam?.start} – ${kv.nisitha_kalam?.end}<br>
               <strong>${currentLang === "te" ? "బ్రాహ్మీ ముహూర్తం:" : "Brahma:"}</strong> ${kv.brahma_muhurtham?.start} – ${kv.brahma_muhurtham?.end}
@@ -474,25 +472,22 @@ function openDayModal(idx) {
   if (lsched && lsched.length > 0) {
     const currentLagnaName = d?.lagna_shuddhi?.muhurta_lagna || "";
     bodyHtml += `
-      <div style="background: #ffffff; border: 1px solid #c59b27; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-        <h4 style="margin: 0 0 8px 0; color: var(--maroon); font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
+      <div class="lagna-section">
+        <h4 class="lagna-section__title">
           <span>🏛️ ${currentLang === "te" ? "ప్రతి లగ్న అంతము (సూర్యోదయం నుండి 12 లగ్నాలు)" : "Daily Lagna Schedule (Lagna Antyalu - All 12 Signs)"}</span>
-          <span style="font-size: 11px; font-weight: 600; color: #b71c1c;">${currentLang === "te" ? "ముహూర్త లగ్నం హైలైట్ చేయబడినది" : "Muhurta Lagna Highlighted"}</span>
+          <span class="lagna-section__subtitle">${currentLang === "te" ? "ముహూర్త లగ్నం హైలైట్ చేయబడినది" : "Muhurta Lagna Highlighted"}</span>
         </h4>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 6px; font-size: 11px;">`;
+        <div class="lagna-grid">`;
     lsched.forEach(l => {
       const isCurrent = currentLagnaName && (l.lagna_name === currentLagnaName || l.lagna_name_te === currentLagnaName);
       const lName = currentLang === "te" ? l.lagna_name_te : l.lagna_name;
-      const lCardStyle = isCurrent ? 
-        "background: #fff8e1; border: 1.5px solid #ffa000; box-shadow: 0 2px 6px rgba(255,160,0,0.25);" : 
-        "background: #fdfdfd; border: 1px solid #e0e0e0;";
       bodyHtml += `
-        <div style="${lCardStyle} padding: 6px 8px; border-radius: 6px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <strong style="color: ${isCurrent ? '#b71c1c' : '#333'}; font-size: 12px;">${lName}</strong>
-            ${isCurrent ? `<span style="background: #1b5e20; color: #fff; padding: 1px 4px; border-radius: 3px; font-size: 9px; font-weight: 700;">ముహూర్తం</span>` : ''}
+        <div class="lagna-item ${isCurrent ? 'lagna-item--current' : ''}">
+          <div class="lagna-item__header">
+            <strong class="lagna-item__name">${lName}</strong>
+            ${isCurrent ? `<span class="lagna-item__muhurta-tag">ముహూర్తం</span>` : ''}
           </div>
-          <div style="color: #616161; font-weight: 600; margin-top: 2px;">${l.start_time} – ${l.end_time}</div>
+          <div class="lagna-item__time">${l.start_time} – ${l.end_time}</div>
         </div>`;
     });
     bodyHtml += `</div></div>`;
@@ -508,16 +503,16 @@ function openDayModal(idx) {
     return String(p) || "—";
   }
   bodyHtml += `
-    <div style="background:#fff5f5; padding:12px; border-radius:8px; border:1px solid #ffcdd2; margin-bottom:16px;">
-      <h4 style="margin:0 0 8px 0; color:#b71c1c;">⏳ ${currentLang === "te" ? "అశుభ సమయములు" : "Inauspicious Timings"}</h4>
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:8px; font-size:13px; color:#5c0011;">
+    <div class="inauspicious-card">
+      <h4 class="inauspicious-card__title">⏳ ${currentLang === "te" ? "అశుభ సమయములు" : "Inauspicious Timings"}</h4>
+      <div class="inauspicious-card__grid">
         <div><strong>${currentLang === "te" ? "రాహు కాలం:" : "Rahu:"}</strong> ${fmtP(ip.rahu_kalam)}</div>
         <div><strong>${currentLang === "te" ? "యమగండం:" : "Yama:"}</strong> ${fmtP(ip.yamagandam)}</div>
         <div><strong>${currentLang === "te" ? "గుళిక కాలం:" : "Gulika:"}</strong> ${fmtP(ip.gulika_kalam)}</div>
         <div><strong>${currentLang === "te" ? "దుర్ముహూర్తం:" : "Dur:"}</strong> ${fmtP(ip.durmuhurtam)}</div>
         <div><strong>${currentLang === "te" ? "వర్జ్యం:" : "Varjyam:"}</strong> ${fmtP(ip.varjyam)}</div>
       </div>
-      <div style="font-size: 11px; color: #7f0000; margin-top: 8px; background: #ffebee; padding: 6px 10px; border-radius: 4px; border: 1px dashed #ef9a9a; line-height: 1.4;">
+      <div class="inauspicious-card__note">
         ℹ️ <strong>${currentLang === "te" ? "పంచాంగ సమయాల వివరణ:" : "Note on Astrological Timings Across Apps:"}</strong> 
         ${currentLang === "te" ? 
           "ఒక App లో ఒక రకంగా, ఇంకో App లో వేరే రకంగా ఉండటానికి కారణం: ఈ యాప్ ఖచ్చితమైన స్థానిక దృక్సిద్ధాంతం (Drik-Ganita Topocentric Swiss Ephemeris) ఆధారంగా ఆ ప్రదేశపు నిజ సూర్యోదయ/సూర్యాస్తమయ సమయాలను అనుసరించి 8 సమాన భాగాలుగా రాహుకాలం, యమగండం, దుర్ముహూర్తములను గణిస్తుంది. ప్రామాణిక 12 గంటల ఫిక్స్‌డ్ సమయాలను కాకుండా ఖగోళ సంబంధిత కచ్చితమైన సమయాన్ని ఇస్తుంది." : 
@@ -529,14 +524,14 @@ function openDayModal(idx) {
   const mTime = pi ? pi.precise_time : "";
   const chartLabel = currentLang === "te" ? `ముహూర్త D1<br>(${mTime || r.date})` : `MUHURTA D1<br>(${mTime || r.date})`;
   bodyHtml += `
-    <div style="background:#ffffff; padding:12px; border-radius:8px; border:1px solid var(--maroon); margin-bottom:16px;">
-      <h4 style="margin:0 0 6px 0; color:var(--deep-maroon); text-align:center;">📊 ${currentLang === "te" ? `ముహూర్త D1 చక్రం (${r.date})` : `Muhurta D1 Chart (${r.date})`}</h4>
+    <div class="chart-card">
+      <h4 class="chart-card__title">📊 ${currentLang === "te" ? `ముహూర్త D1 చక్రం (${r.date})` : `Muhurta D1 Chart (${r.date})`}</h4>
       ${buildD1ChartHTML(r.d1_chart, chartLabel)}
     </div>`;
 
   // 9. Rule Evaluation Grid
   if (d) {
-    bodyHtml += `<h4 style="margin:16px 0 8px 0; color:var(--deep-maroon);">📜 ${currentLang === "te" ? "ముహూర్త నియమ విశ్లేషణ" : "Muhurta Rules Evaluation"}</h4>`;
+    bodyHtml += `<h4 class="rules-eval-title">📜 ${currentLang === "te" ? "ముహూర్త నియమ విశ్లేషణ" : "Muhurta Rules Evaluation"}</h4>`;
     bodyHtml += `<div class="rule-grid">`;
 
     // Vaara
@@ -610,23 +605,22 @@ function openDayModal(idx) {
     const mahaPass = d.maha_doshas.filter(m => m.is_pass).length;
     const mahaScore = mahaPass * 10;
     bodyHtml += `
-      <div style="margin-top: 16px; border: 1.5px solid #b71c1c; border-radius: 8px; overflow: hidden;">
-        <div style="background: #b71c1c; color: #ffffff; padding: 10px 14px; font-weight: 700; font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
+      <div class="dosha-panel dosha-panel--maha">
+        <div class="dosha-panel__header dosha-panel__header--maha">
           <span>🔥 ${currentLang === "te" ? "ఏకవింశతి మహాదోషముల విశ్లేషణ (21 Maha Doshas)" : "21 Maha Doshas Evaluation"}</span>
-          <span style="background: #ffffff; color: #b71c1c; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 800;">${mahaScore} / 210</span>
+          <span class="dosha-panel__score dosha-panel__score--maha">${mahaScore} / 210</span>
         </div>
-        <div style="padding: 10px; background: #fff8f8; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px;">`;
+        <div class="dosha-panel__body dosha-panel__body--maha">`;
     d.maha_doshas.forEach(m => {
       const mTitle = currentLang === "te" ? m.name_te : m.name_en;
       const mDesc = currentLang === "te" ? m.desc_te : m.desc_en;
-      const badgeClass = m.is_pass ? "background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7;" : "background:#ffebee; color:#c62828; border:1px solid #ef9a9a;";
       bodyHtml += `
-        <div style="background:#ffffff; border:1px solid ${m.is_pass ? '#c8e6c9' : '#ffcdd2'}; border-radius:6px; padding:8px 10px; font-size:12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-            <strong style="color:#2c3e50; font-size:13px;">${mTitle}</strong>
-            <span style="${badgeClass} padding:1px 6px; border-radius:4px; font-size:11px; font-weight:700;">${m.score}/10</span>
+        <div class="dosha-item ${m.is_pass ? 'dosha-item--pass' : 'dosha-item--fail-maha'}">
+          <div class="dosha-item__header">
+            <strong class="dosha-item__name">${mTitle}</strong>
+            <span class="dosha-item__badge ${m.is_pass ? 'dosha-item__badge--pass' : 'dosha-item__badge--fail'}">${m.score}/10</span>
           </div>
-          <div style="color:${m.is_pass ? '#388e3c' : '#d32f2f'}; font-size:11px; font-weight:500;">${mDesc}</div>
+          <div class="${m.is_pass ? 'dosha-item__desc--pass' : 'dosha-item__desc--fail'}">${mDesc}</div>
         </div>`;
     });
     bodyHtml += `</div></div>`;
@@ -637,23 +631,22 @@ function openDayModal(idx) {
     const dashaPass = d.dashavidha_doshas.filter(m => m.is_pass).length;
     const dashaScore = dashaPass * 10;
     bodyHtml += `
-      <div style="margin-top: 16px; border: 1.5px solid #e65100; border-radius: 8px; overflow: hidden;">
-        <div style="background: #e65100; color: #ffffff; padding: 10px 14px; font-weight: 700; font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
+      <div class="dosha-panel dosha-panel--dasha">
+        <div class="dosha-panel__header dosha-panel__header--dasha">
           <span>⚡ ${currentLang === "te" ? "దశవిధ దోషముల విశ్లేషణ (10 Dashavidha Doshas)" : "10 Dashavidha Doshas Evaluation"}</span>
-          <span style="background: #ffffff; color: #e65100; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 800;">${dashaScore} / 100</span>
+          <span class="dosha-panel__score dosha-panel__score--dasha">${dashaScore} / 100</span>
         </div>
-        <div style="padding: 10px; background: #fffde7; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px;">`;
+        <div class="dosha-panel__body dosha-panel__body--dasha">`;
     d.dashavidha_doshas.forEach(m => {
       const mTitle = currentLang === "te" ? m.name_te : m.name_en;
       const mDesc = currentLang === "te" ? m.desc_te : m.desc_en;
-      const badgeClass = m.is_pass ? "background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7;" : "background:#ffebee; color:#c62828; border:1px solid #ef9a9a;";
       bodyHtml += `
-        <div style="background:#ffffff; border:1px solid ${m.is_pass ? '#c8e6c9' : '#ffe0b2'}; border-radius:6px; padding:8px 10px; font-size:12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-            <strong style="color:#2c3e50; font-size:13px;">${mTitle}</strong>
-            <span style="${badgeClass} padding:1px 6px; border-radius:4px; font-size:11px; font-weight:700;">${m.score}/10</span>
+        <div class="dosha-item ${m.is_pass ? 'dosha-item--pass' : 'dosha-item--fail-dasha'}">
+          <div class="dosha-item__header">
+            <strong class="dosha-item__name">${mTitle}</strong>
+            <span class="dosha-item__badge ${m.is_pass ? 'dosha-item__badge--pass' : 'dosha-item__badge--fail'}">${m.score}/10</span>
           </div>
-          <div style="color:${m.is_pass ? '#388e3c' : '#d32f2f'}; font-size:11px; font-weight:500;">${mDesc}</div>
+          <div class="${m.is_pass ? 'dosha-item__desc--pass' : 'dosha-item__desc--fail'}">${mDesc}</div>
         </div>`;
     });
     bodyHtml += `</div></div>`;
@@ -663,23 +656,23 @@ function openDayModal(idx) {
   const pariharas = d?.pariharas;
   if (pariharas && pariharas.length > 0) {
     bodyHtml += `
-      <div style="background: #f3e5f5; border: 1.5px solid #8e24aa; border-radius: 8px; overflow: hidden; margin-top: 16px; margin-bottom: 16px;">
-        <div style="background: #8e24aa; color: #ffffff; padding: 10px 14px; font-weight: 700; font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
+      <div class="dosha-panel dosha-panel--pariharam">
+        <div class="dosha-panel__header dosha-panel__header--pariharam">
           <span>🛡️ ${currentLang === "te" ? "ముహూర్తములో దోషాలకు పరిహారములు (Muhurta Dosha Remedies)" : "Muhurta Dosha Cancellation Remedies (Pariharams)"}</span>
-          <span style="background: #ffffff; color: #8e24aa; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 800;">${pariharas.length} ${currentLang === "te" ? "పరిహారములు వర్తించును" : "Active Remedies"}</span>
+          <span class="dosha-panel__score dosha-panel__score--pariharam">${pariharas.length} ${currentLang === "te" ? "పరిహారములు వర్తించును" : "Active Remedies"}</span>
         </div>
-        <div style="padding: 10px; background: #faf5fb; display: flex; flex-direction: column; gap: 8px;">`;
+        <div class="dosha-panel__body dosha-panel__body--pariharam">`;
     pariharas.forEach(pr => {
       const prTitle = currentLang === "te" ? pr.name_te : pr.name_en;
       const prDesc = currentLang === "te" ? pr.desc_te : pr.desc_en;
       bodyHtml += `
-        <div style="background: #ffffff; border: 1px solid #ce93d8; border-radius: 6px; padding: 8px 12px; font-size: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <strong style="color: #4a148c; font-size: 13px;">✨ ${prTitle}</strong>
-            <span style="background: #e1bee7; color: #4a148c; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;">${pr.status}</span>
+        <div class="pariharam-item">
+          <div class="pariharam-item__header">
+            <strong class="pariharam-item__name">✨ ${prTitle}</strong>
+            <span class="pariharam-item__badge">${pr.status}</span>
           </div>
-          ${pr.shloka ? `<div style="font-family: serif; color: #6a1b9a; font-style: italic; margin-bottom: 4px; font-size: 11px;">"${pr.shloka}"</div>` : ''}
-          <div style="color: #333; line-height: 1.4;">${prDesc}</div>
+          ${pr.shloka ? `<div class="pariharam-item__shloka">"${pr.shloka}"</div>` : ''}
+          <div class="pariharam-item__desc">${prDesc}</div>
         </div>`;
     });
     bodyHtml += `</div></div>`;
@@ -687,13 +680,13 @@ function openDayModal(idx) {
 
   // 13. Special Yogas
   if (r.special_yogas?.length > 0) {
-    bodyHtml += `<div style="margin-top: 12px;">`;
+    bodyHtml += `<div class="special-yogas-container">`;
     r.special_yogas.forEach(y => {
       const yName = currentLang === "te" ? y.name_te : y.name_en;
       const yDesc = currentLang === "te" ? y.desc_te : y.desc_en;
-      let bg = "#fff8e1", border = "#c59b27", color = "#4a0e17";
-      if (y.type === "bad") { bg = "#ffebee"; border = "#e57373"; color = "#b71c1c"; }
-      bodyHtml += `<div style="background:${bg}; border:1px solid ${border}; color:${color}; padding:6px 10px; border-radius:6px; margin-top:6px; font-size:12px; font-weight:600;">✨ ${yName} — <span style="font-weight:400;">${yDesc}</span></div>`;
+      let yogaClass = "yoga-item--good";
+      if (y.type === "bad") { yogaClass = "yoga-item--bad"; }
+      bodyHtml += `<div class="yoga-item yoga-item--compact ${yogaClass}">✨ ${yName} — <span class="yoga-item__desc">${yDesc}</span></div>`;
     });
     bodyHtml += `</div>`;
   }

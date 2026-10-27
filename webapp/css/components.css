@@ -1,0 +1,1086 @@
+/* ============================================================
+   Muhurtham App · UI Components
+   Buttons, forms, controls, cards, tabs, modals, and charts
+   ============================================================ */
+
+/* ---- Reusable Button System ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+.btn--primary {
+  background: var(--maroon);
+  color: #fff;
+}
+.btn--primary:hover:not(:disabled) { background: var(--maroon-accent); }
+
+.btn--gold {
+  background: var(--marigold);
+  color: #fff;
+}
+.btn--gold:hover:not(:disabled) { filter: brightness(1.08); }
+
+.btn--maroon {
+  background: var(--maroon);
+  color: #fff;
+}
+.btn--maroon:hover:not(:disabled) { background: var(--deep-maroon); }
+
+.btn--ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: inherit;
+}
+.btn--ghost:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); }
+
+.btn--sm { padding: 6px 14px; font-size: 12px; }
+
+.btn--block { width: 100%; }
+
+/* ---- App Header & Actions ---- */
+.app-header {
+  text-align: center;
+  margin: 0;
+}
+
+.app-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+/* Language toggle */
+.lang-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  width: fit-content;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.lang-btn {
+  padding: 6px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: var(--card-bg);
+  color: #6b6152;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.lang-btn.active {
+  background: var(--maroon);
+  color: #fff;
+}
+
+.lang-btn:hover:not(.active) {
+  background: #efe6d0;
+}
+
+/* Controls Container */
+.controls {
+  display: flex;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.field {
+  flex: 1;
+  min-width: 150px;
+}
+
+.field label,
+.field-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8a7f68;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+select,
+input[type="date"],
+input[type="text"],
+input[type="number"],
+input[type="time"] {
+  width: 100%;
+  padding: 9px 10px;
+  font-size: 15px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+select:focus,
+input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(197, 155, 39, 0.15);
+}
+
+/* Legacy: button#goButton support — delegates to .btn system */
+button#goButton {
+  align-self: flex-end;
+  background: var(--maroon);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  transition: background 0.2s, transform 0.1s;
+}
+
+button#goButton:hover { background: var(--maroon-accent); }
+button#goButton:active { transform: translateY(1px); }
+button#goButton:disabled { opacity: 0.5; cursor: default; }
+
+.status {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 13px;
+  color: #8a7f68;
+}
+
+.status.error {
+  color: var(--bad);
+}
+
+/* Cards & Grids */
+.grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card .label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #a08d63;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.card .value {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.card .value.small {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.card .value.sub-time {
+  font-size: 11px;
+  color: #8a7f68;
+  font-weight: 400;
+  margin-top: 4px;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+/* Tabs */
+.tab-container {
+  display: flex;
+  border-bottom: 2.5px solid var(--line);
+  margin: 12px 0 24px;
+  gap: 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold) transparent;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tab-container::-webkit-scrollbar {
+  height: 5px;
+}
+
+.tab-container::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 4px;
+}
+
+.tab-item {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b6152;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px 8px 0 0;
+  border-bottom: 3.5px solid transparent;
+  margin-bottom: -3px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  user-select: none;
+  text-decoration: none;
+}
+
+.tab-item.active {
+  color: var(--maroon);
+  border-color: var(--line) var(--line) transparent;
+  border-bottom: 3.5px solid var(--maroon);
+  background: var(--card-bg);
+  box-shadow: 0 -2px 8px rgba(107, 21, 35, 0.08);
+}
+
+.tab-item:hover:not(.active) {
+  color: var(--marigold);
+  background: rgba(255, 248, 225, 0.8);
+  border-color: rgba(197, 155, 39, 0.3);
+}
+
+.tab-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: rgba(107, 21, 35, 0.08);
+  color: var(--maroon);
+  letter-spacing: 0.02em;
+}
+
+.tab-item.active .tab-badge {
+  background: var(--maroon);
+  color: #ffffff;
+}
+
+/* Suggestions autocomplete box */
+.suggestions-container {
+  position: absolute;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.suggestion-item {
+  padding: 10px 12px;
+  font-size: 13.5px;
+  cursor: pointer;
+  border-bottom: 1px solid #f6f0e2;
+  color: var(--ink);
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.suggestion-item:hover {
+  background: #efe6d0;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(30, 15, 10, 0.7);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.modal-content {
+  background: var(--ivory);
+  border: 2px solid var(--maroon);
+  border-radius: var(--radius-lg);
+  max-width: 760px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  animation: modalFadeIn 0.25s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  padding: 16px 20px;
+  background: var(--maroon);
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.modal-header__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* South Indian Astrology D9 Chart */
+.south-chart {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  border: 2px solid var(--maroon);
+  background: var(--card-bg);
+  width: 100%;
+  max-width: 400px;
+  aspect-ratio: 1 / 1;
+  margin: 14px auto;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chart-cell {
+  border: 1px solid var(--line);
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+}
+
+.chart-cell .rasi-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--marigold);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.chart-cell .planets-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+
+.chart-center {
+  grid-column: 2 / 4;
+  grid-row: 2 / 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fdfaf2;
+  border: 1px solid var(--line);
+  font-weight: 700;
+  color: var(--maroon);
+  font-size: 14px;
+  text-align: center;
+  line-height: 1.4;
+  padding: 10px;
+}
+
+/* ---- Panchang Dynamic Section Components ---- */
+/* Panchaka Rahitam analysis box */
+.panchaka-box {
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 16px;
+  border-width: 1.5px;
+  border-style: solid;
+}
+
+.panchaka-box--pass {
+  background: #f1f8e9;
+  border-color: #81c784;
+}
+
+.panchaka-box--fail {
+  background: #fff3e0;
+  border-color: #ffb74d;
+}
+
+.panchaka-box__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.panchaka-box__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.panchaka-box__title--pass { color: #1b5e20; }
+.panchaka-box__title--fail { color: #e65100; }
+
+.panchaka-box__badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.panchaka-box__badge--pass { background: #2e7d32; }
+.panchaka-box__badge--fail { background: #e65100; }
+
+.panchaka-box__body {
+  font-size: 12px;
+  color: #424242;
+  line-height: 1.5;
+}
+
+.panchaka-box__classification {
+  margin-top: 4px;
+}
+
+.panchaka-box__classification-name--pass { font-weight: 700; color: #1b5e20; }
+.panchaka-box__classification-name--fail { font-weight: 700; color: #b71c1c; }
+
+.panchaka-box__remedy {
+  margin-top: 6px;
+  background: #ffffff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px dashed #ff9800;
+  font-size: 11px;
+  color: #e65100;
+}
+
+/* Kala Vibhajana (5-fold daily time division) */
+.kv-section {
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.kv-header {
+  margin: 0 0 8px 0;
+  color: var(--maroon);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kv-header__sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: #757575;
+}
+
+.kv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  font-size: 12px;
+}
+
+.kv-card {
+  background: #ffffff;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.kv-card--highlight {
+  background: #fffde7;
+  border-color: #ffd54f;
+}
+
+.kv-card--sacred {
+  background: #ede7f6;
+  border-color: #d1c4e9;
+}
+
+.kv-card__name {
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.kv-card__name--pratah   { color: #e65100; }
+.kv-card__name--sangava  { color: #2e7d32; }
+.kv-card__name--madhya   { color: #f57f17; }
+.kv-card__name--aparahna { color: #5d4037; }
+.kv-card__name--sayahna  { color: #ad1457; }
+.kv-card__name--sacred   { color: #4527a0; }
+
+.kv-card__time {
+  font-weight: 600;
+  color: #333;
+  margin: 2px 0;
+}
+
+.kv-card__desc {
+  font-size: 11px;
+  color: #666;
+}
+
+.kv-card__sacred-times {
+  font-size: 11px;
+  color: #311b92;
+  margin-top: 2px;
+}
+
+.kv-tag {
+  font-size: 10px;
+  background: #fff;
+  padding: 1px 4px;
+  border-radius: 4px;
+  border: 1px solid #fbc02d;
+}
+
+/* Lagna Schedule */
+.lagna-section {
+  background: #ffffff;
+  border: 1px solid var(--gold);
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.lagna-section__title {
+  margin: 0 0 8px 0;
+  color: var(--maroon);
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lagna-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: 6px;
+  font-size: 11px;
+}
+
+.lagna-item {
+  background: #fdfdfd;
+  border: 1px solid #e0e0e0;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+.lagna-item__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lagna-item__name {
+  color: #333;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.lagna-item__time {
+  color: #616161;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Special Yoga Items */
+.yoga-item {
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.yoga-item--good {
+  background: #fff8e1;
+  border-color: #c59b27;
+  color: #4a0e17;
+}
+
+.yoga-item--bad {
+  background: #ffebee;
+  border-color: #e57373;
+  color: #b71c1c;
+}
+
+.yoga-item--info {
+  background: #e3f2fd;
+  border-color: #64b5f6;
+  color: #0d47a1;
+}
+
+.yoga-item__name {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.yoga-item__desc {
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+/* Pada timings grid */
+.padas-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--marigold);
+}
+
+.padas-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.padas-row__label {
+  color: #6b6152;
+}
+
+.padas-row__time {
+  font-weight: 600;
+  color: var(--maroon);
+}
+
+/* Empty state */
+.empty-msg {
+  font-size: 13px;
+  color: #6b6152;
+  padding: 4px 0;
+}
+
+/* ---- Shared Modal & Detail Components ---- */
+.rec-time-box, .mf-rec-time {
+  background: var(--gold-light);
+  border: 1.5px solid var(--marigold);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+}
+.rec-time-box__title {
+  margin: 0 0 6px 0;
+  color: var(--bad);
+  font-size: 14px;
+}
+.rec-time-box__time {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--good);
+}
+.rec-time-box__details {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4e342e;
+  margin-top: 6px;
+  line-height: 1.6;
+}
+.rec-time-box__note {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bad);
+  margin-top: 6px;
+  background: #fff0f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #ffcdd2;
+}
+
+/* Native Profile Box */
+.native-profile-box, .mf-native-profile {
+  background: #eef7ee;
+  border: 1.5px solid #81c784;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.native-profile-box__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.native-profile-box__title {
+  color: #1b5e20;
+  font-size: 13px;
+}
+.native-profile-box__badge {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+}
+.native-profile-box__badge--pass {
+  background: #c8e6c9;
+  color: #1b5e20;
+}
+.native-profile-box__badge--fail {
+  background: #ffcdd2;
+  color: #b71c1c;
+}
+.native-profile-box__grid {
+  font-size: 12px;
+  color: #2e7d32;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.native-profile-box__footer {
+  font-size: 11px;
+  color: #33691e;
+  border-top: 1px dashed #a5d6a7;
+  padding-top: 4px;
+  margin-top: 2px;
+}
+
+/* Chandramana Banner */
+.cm-banner, .mf-cm-banner {
+  background: linear-gradient(135deg, #fff9e6 0%, #fff1c6 100%);
+  border: 1px solid #d4af37;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #5d4037;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.cm-banner__sam { color: #b71c1c; }
+.cm-banner__ayanam,
+.cm-banner__ruthu { color: #4e342e; }
+.cm-banner__maasa { color: #1b5e20; }
+.cm-banner__paksha { color: #0d47a1; }
+
+/* Detail Card & Grid */
+.detail-card, .mf-panchang-card {
+  background: var(--card-bg);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+.detail-card__title {
+  margin: 0 0 8px 0;
+  color: var(--deep-maroon);
+  font-size: 14px;
+}
+.detail-card__grid, .mf-panchang-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  font-size: 13px;
+}
+.abhijit-strip, .mf-abhijit-strip {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.abhijit-strip--auspicious {
+  background: #fffde7;
+  border: 1px solid #fdd835;
+  color: #e65100;
+}
+.abhijit-strip--inauspicious {
+  background: #fff0f0;
+  border: 1px solid #ffcdd2;
+  color: #b71c1c;
+}
+
+/* Inauspicious Periods Card */
+.inauspicious-card, .mf-inauspicious {
+  background: #fff5f5;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid #ffcdd2;
+  margin-bottom: 16px;
+}
+.inauspicious-card__title {
+  margin: 0 0 8px 0;
+  color: #b71c1c;
+  font-size: 14px;
+}
+.inauspicious-card__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  font-size: 13px;
+  color: #5c0011;
+}
+.inauspicious-card__note {
+  font-size: 11px;
+  color: #7f0000;
+  margin-top: 8px;
+  background: #ffebee;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px dashed #ef9a9a;
+  line-height: 1.4;
+}
+
+/* Chart Container Card */
+.chart-card, .mf-chart-section {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--maroon);
+  margin-bottom: 16px;
+}
+.chart-card__title {
+  margin: 0 0 6px 0;
+  color: var(--deep-maroon);
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Chart planet status badges */
+.chart-retro { color: #b71c1c; font-weight: 700; font-size: 11px; }
+.chart-combust { color: #d84315; font-weight: 700; font-size: 11px; }
+
+/* Dosha Panels */
+.dosha-panel {
+  margin-top: 16px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.dosha-panel--maha { border: 1.5px solid #b71c1c; }
+.dosha-panel--dasha { border: 1.5px solid #e65100; }
+.dosha-panel--pariharam { border: 1.5px solid #8e24aa; margin-bottom: 16px; }
+
+.dosha-panel__header {
+  padding: 10px 14px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.dosha-panel__header--maha { background: #b71c1c; }
+.dosha-panel__header--dasha { background: #e65100; }
+.dosha-panel__header--pariharam { background: #8e24aa; }
+
+.dosha-panel__score {
+  background: #ffffff;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 800;
+}
+.dosha-panel__score--maha { color: #b71c1c; }
+.dosha-panel__score--dasha { color: #e65100; }
+.dosha-panel__score--pariharam { color: #8e24aa; font-size: 11px; }
+
+.dosha-panel__body {
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 8px;
+}
+.dosha-panel__body--maha { background: #fff8f8; }
+.dosha-panel__body--dasha { background: #fffde7; }
+.dosha-panel__body--pariharam {
+  background: #faf5fb;
+  display: flex;
+  flex-direction: column;
+}
+
+.dosha-item {
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.dosha-item--pass { border: 1px solid #c8e6c9; }
+.dosha-item--fail-maha { border: 1px solid #ffcdd2; }
+.dosha-item--fail-dasha { border: 1px solid #ffe0b2; }
+
+.dosha-item__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.dosha-item__name {
+  color: #2c3e50;
+  font-size: 13px;
+  font-weight: 700;
+}
+.dosha-item__badge {
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.dosha-item__badge--pass {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+.dosha-item__badge--fail {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+.dosha-item__desc--pass { color: #388e3c; font-size: 11px; font-weight: 500; }
+.dosha-item__desc--fail { color: #d32f2f; font-size: 11px; font-weight: 500; }
+
+.pariharam-item {
+  background: #ffffff;
+  border: 1px solid #ce93d8;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.pariharam-item__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.pariharam-item__name {
+  color: #4a148c;
+  font-size: 13px;
+  font-weight: 700;
+}
+.pariharam-item__badge {
+  background: #e1bee7;
+  color: #4a148c;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.pariharam-item__shloka {
+  font-family: serif;
+  color: #6a1b9a;
+  font-style: italic;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+.pariharam-item__desc {
+  color: #333;
+  line-height: 1.4;
+}
+
+.rules-eval-title, .mf-rules-title {
+  margin: 16px 0 8px 0;
+  color: var(--deep-maroon);
+  font-size: 14px;
+}

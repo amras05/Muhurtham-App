@@ -6,8 +6,7 @@ import secrets
 from datetime import datetime, timedelta
 
 # ─── Secrets Configuration ────────────────────────────────
-# In production, load this from environment variables
-SECRET_KEY = "muhurtham_super_secret_signing_key_change_in_production"
+from app.core.config import SECRET_KEY
 SALT_ROUNDS = 100000
 
 def hash_password(password: str) -> str:

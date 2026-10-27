@@ -156,45 +156,45 @@ var Views = (function () {
   var samskaraForm =
     samskaraBanner +
     '<div class="controls">' +
-      '<div class="field" style="flex:1;min-width:140px;">' +
+      '<div class="field field--dob">' +
         '<label id="birthDateLabel" for="birthDateInput">Date of Birth</label>' +
         '<input type="date" id="birthDateInput"></div>' +
-      '<div class="field" style="flex:1;min-width:100px;">' +
+      '<div class="field field--tob">' +
         '<label id="birthTimeLabel" for="birthTimeInput">Time of Birth</label>' +
         '<input type="time" id="birthTimeInput" value="12:00"></div>' +
       F("birthRegionSelect", "Place of Birth / Reference", "ప్రాంతము", '<select id="birthRegionSelect"></select>', { minWidth: 180 }) +
-      '<div id="fieldChildGender" class="field" style="display:none;flex:1;min-width:140px;">' +
+      '<div id="fieldChildGender" class="field field--child-gender" style="display:none;">' +
         '<label for="childGenderSelect" data-en="Child Gender" data-te="శిశువు లింగము">Child Gender</label>' +
         S("childGenderSelect", [
           { value: "male",   en: "Boy", te: "మగ శిశువు", label: "Boy" },
           { value: "female", en: "Girl", te: "ఆడ శిశువు", label: "Girl" },
         ]) + "</div>" +
-      '<div id="fieldCeremonyType" class="field" style="display:none;flex:1;min-width:180px;">' +
+      '<div id="fieldCeremonyType" class="field field--ceremony-type" style="display:none;">' +
         '<label for="ceremonyTypeSelect" data-en="Ceremony Type" data-te="వేడుక రకము">Ceremony Type</label>' +
         S("ceremonyTypeSelect", [
           { value: "seemantha", en: "Seemantha (4, 6, 8 Months)", te: "సీమంతము (4, 6, 8 మాసములు)", label: "Seemantha (4, 6, 8 Months)" },
           { value: "bangles",   en: "Bangles / Valaikappu (5, 7 Months)", te: "గాజుల ఉత్సవము (5, 7 మాసములు)", label: "Bangles / Valaikappu (5, 7 Months)" },
         ]) + "</div>" +
-      '<div id="fieldAgeMode" class="field" style="display:none;flex:1;min-width:160px;">' +
+      '<div id="fieldAgeMode" class="field field--age-mode" style="display:none;">' +
         '<label for="ageModeSelect" data-en="Age Calculation" data-te="వయస్సు గణన">Age Calculation</label>' +
         S("ageModeSelect", [
           { value: "months", en: "Infant Months (Boys: 2,4,6 / Girls: 3,5,7)", te: "శిశు మాసములు (మగ: 2,4,6 / ఆడ: 3,5,7)", label: "Infant Months" },
           { value: "years",  en: "Childhood Years (3rd or 5th Year)", te: "బాల్య సంవత్సరములు (3 లేదా 5వ ఏట)", label: "Childhood Years (3rd or 5th Year)" },
         ]) + "</div>" +
-      '<div id="fieldTimingMode" class="field" style="display:none;flex:1;min-width:160px;">' +
+      '<div id="fieldTimingMode" class="field field--timing-mode" style="display:none;">' +
         '<label for="timingModeSelect" data-en="Karnavedha Timing" data-te="కర్ణవేధ సమయం">Karnavedha Timing</label>' +
         S("timingModeSelect", [
           { value: "early",  en: "Early Days (12th or 16th Day)", te: "ప్రారంభ దినములు (12 లేదా 16వ రోజు)", label: "Early Days (12th / 16th Day)" },
           { value: "months", en: "Infant Months (6th, 7th, or 8th Month)", te: "శిశు మాసములు (6, 7 లేదా 8వ నెల)", label: "Infant Months (6th, 7th, 8th Month)" },
         ]) + "</div>" +
-      '<div id="fieldVarna" class="field" style="display:none;flex:1;min-width:170px;">' +
+      '<div id="fieldVarna" class="field field--varna" style="display:none;">' +
         '<label for="varnaSelect" data-en="Tradition / Prescribed Year" data-te="వర్ణము / నియమిత సంవత్సరము">Tradition / Prescribed Year</label>' +
         S("varnaSelect", [
           { value: "brahmin",   en: "Brahmin (8th Year / గర్భాష్టమం)", te: "బ్రాహ్మణ (8వ ఏట / గర్భాష్టమం)", label: "Brahmin (8th Year / గర్భాష్టమం)" },
           { value: "kshatriya", en: "Kshatriya (11th Year)", te: "క్షత్రియ (11వ ఏట)", label: "Kshatriya (11th Year)" },
           { value: "vaishya",   en: "Vaishya (12th Year)", te: "వైశ్య (12వ ఏట)", label: "Vaishya (12th Year)" },
         ]) + "</div>" +
-      '<div id="fieldStudyYears" class="field" style="display:none;flex:1;min-width:170px;">' +
+      '<div id="fieldStudyYears" class="field field--study-years" style="display:none;">' +
         '<label for="studyYearsInput" data-en="Target Year (from birth)" data-te="లక్ష్య సంవత్సరము (జన్మము నుండి)">Target Year (from birth)</label>' +
         '<input type="number" id="studyYearsInput" min="1" max="40" placeholder="e.g. 8">' + "</div>" +
       '<div id="fieldHusbandDetails" class="custom-place">' +
@@ -219,11 +219,11 @@ var Views = (function () {
     '<div id="namakaranaResults" style="display:none;">' +
       '<div class="card card--gold">' +
         '<div class="label" data-en="Birth / Reference Details & Janma Nakshatra" data-te="జన్మ / రిఫరెన్స్ వివరాలు & నక్షత్రం">Birth / Reference Details & Janma Nakshatra</div>' +
-        '<div class="value" id="nbirthStar" style="color: var(--maroon); font-size: 20px; margin-bottom: 4px;">—</div>' +
-        '<div class="value small" id="nbirthDetails" style="font-weight: 500; font-size: 14px; color: #6b6152;">—</div>' +
+        '<div class="value samskara-birth-star" id="nbirthStar">—</div>' +
+        '<div class="value small samskara-birth-details" id="nbirthDetails">—</div>' +
       "</div>" +
       '<div class="card card--maroon">' +
-        '<div class="label" data-en="Reference (D1) Chart" data-te="జన్మ / రిఫరెన్స్ (D1) చక్రం" style="margin-bottom: 10px;">Reference (D1) Chart</div>' +
+        '<div class="label samskara-chart-label" data-en="Reference (D1) Chart" data-te="జన్మ / రిఫరెన్స్ (D1) చక్రం">Reference (D1) Chart</div>' +
         '<div id="d1ChartContainer"></div>' +
       "</div>" +
       '<div class="kaala-section">' +

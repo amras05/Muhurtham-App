@@ -93,111 +93,14 @@ function render(data) {
   el("adhikaBadge").style.display = cm.is_adhika_masa ? "inline-block" : "none";
   el("adhikaBadge").textContent = currentLang === "te" ? "అధిక మాసం" : "Adhika Masa";
 
-  // Panchaka Rahitam
-  const panDiv = el("vPanchakaSection");
-  const pan = p.panchaka_rahitam;
-  if (pan && panDiv) {
-    const panName = currentLang === "te" ? pan.name_te : pan.name_en;
-    const panEffect = currentLang === "te" ? pan.effect_te : pan.effect_en;
-    const panPariharam = currentLang === "te" ? pan.pariharam_te : pan.pariharam_en;
-    const isPass = pan.is_pass;
-    panDiv.innerHTML = `
-      <div style="background: ${isPass ? '#f1f8e9' : '#fff3e0'}; border: 1.5px solid ${isPass ? '#81c784' : '#ffb74d'}; padding: 12px; border-radius: 8px; margin-top: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <h4 style="margin: 0; color: ${isPass ? '#1b5e20' : '#e65100'}; font-size: 14px;">
-            ☸️ ${currentLang === "te" ? "పంచక రహిత విశ్లేషణ (Panchaka Rahitam)" : "Panchaka Rahitam Analysis"}
-          </h4>
-          <span style="background: ${isPass ? '#2e7d32' : '#e65100'}; color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;">
-            ${isPass ? (currentLang === "te" ? "శుభ పంచకం (దోష రహితం)" : "Subha (Clean)") : (currentLang === "te" ? "అశుభ పంచకం" : "Dosha")}
-          </span>
-        </div>
-        <div style="font-size: 12px; color: #424242; line-height: 1.5;">
-          <div><strong>${currentLang === "te" ? "పంచక నిర్ణయ సూత్రం:" : "Formula:"}</strong> <code>${pan.formula || `(తిథి + వారం + నక్షత్రం + లగ్నం) % 9 = శేషం ${pan.remainder}`}</code></div>
-          <div style="margin-top: 4px;"><strong>${currentLang === "te" ? "పంచక ఫలితం:" : "Classification:"}</strong> <span style="font-weight: 700; color: ${isPass ? '#1b5e20' : '#b71c1c'};">${panName}</span> — <em>${panEffect}</em></div>
-          ${panPariharam && !isPass ? `
-            <div style="margin-top: 6px; background: #ffffff; padding: 6px 10px; border-radius: 4px; border: 1px dashed #ff9800; font-size: 11px; color: #e65100;">
-              <strong>🌿 ${currentLang === "te" ? "శాస్త్రోక్త పరిహారం:" : "Classical Remedy:"}</strong> ${panPariharam}
-            </div>
-          ` : ''}
-        </div>
-      </div>`;
-  } else if (panDiv) {
-    panDiv.innerHTML = "";
-  }
+  // ---- Panchaka Rahitam ----
+  renderPanchakaRahitam(p);
 
-  // Daily 5-Fold Division (Kala Vibhajana)
-  const kvDiv = el("vKalaVibhajanaSection");
-  const kv = p.kala_vibhajana;
-  if (kv && kvDiv) {
-    kvDiv.innerHTML = `
-      <div style="background: #fafafa; border: 1px solid #e0e0e0; padding: 12px; border-radius: 8px; margin-top: 16px;">
-        <h4 style="margin: 0 0 8px 0; color: var(--maroon); font-size: 14px; display: flex; align-items: center; justify-content: space-between;">
-          <span>⏳ ${currentLang === "te" ? "రోజు మొత్తంలో కాల విభజన (పంచధా కాల విభజన)" : "Daily 5-Fold Time Division (Kala Vibhajana)"}</span>
-          <span style="font-size: 11px; font-weight: 500; color: #757575;">${currentLang === "te" ? "పగలు 5 భాగాలు + రాత్రి పవిత్ర కాలాలు" : "5 Day divisions + Night Sacred Periods"}</span>
-        </h4>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; font-size: 12px;">
-          <div style="background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0;">
-            <div style="font-weight: 700; color: #e65100;">🌅 ${currentLang === "te" ? kv.pratah_kalam?.name_te : kv.pratah_kalam?.name_en}</div>
-            <div style="font-weight: 600; color: #333; margin: 2px 0;">${kv.pratah_kalam?.start} – ${kv.pratah_kalam?.end}</div>
-            <div style="font-size: 11px; color: #666;">${currentLang === "te" ? kv.pratah_kalam?.desc_te : kv.pratah_kalam?.desc_en}</div>
-          </div>
-          <div style="background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0;">
-            <div style="font-weight: 700; color: #2e7d32;">🌾 ${currentLang === "te" ? kv.sangava_kalam?.name_te : kv.sangava_kalam?.name_en}</div>
-            <div style="font-weight: 600; color: #333; margin: 2px 0;">${kv.sangava_kalam?.start} – ${kv.sangava_kalam?.end}</div>
-            <div style="font-size: 11px; color: #666;">${currentLang === "te" ? kv.sangava_kalam?.desc_te : kv.sangava_kalam?.desc_en}</div>
-          </div>
-          <div style="background: #fffde7; padding: 8px; border-radius: 6px; border: 1px solid #ffd54f;">
-            <div style="font-weight: 700; color: #f57f17;">☀️ ${currentLang === "te" ? kv.madhyahnika_kalam?.name_te : kv.madhyahnika_kalam?.name_en} <span style="font-size: 10px; background: #fff; padding: 1px 4px; border-radius: 4px; border: 1px solid #fbc02d;">అభిజిత్</span></div>
-            <div style="font-weight: 600; color: #333; margin: 2px 0;">${kv.madhyahnika_kalam?.start} – ${kv.madhyahnika_kalam?.end}</div>
-            <div style="font-size: 11px; color: #666;">${currentLang === "te" ? kv.madhyahnika_kalam?.desc_te : kv.madhyahnika_kalam?.desc_en}</div>
-          </div>
-          <div style="background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0;">
-            <div style="font-weight: 700; color: #5d4037;">⛅ ${currentLang === "te" ? kv.aparahna_kalam?.name_te : kv.aparahna_kalam?.name_en}</div>
-            <div style="font-weight: 600; color: #333; margin: 2px 0;">${kv.aparahna_kalam?.start} – ${kv.aparahna_kalam?.end}</div>
-            <div style="font-size: 11px; color: #666;">${currentLang === "te" ? kv.aparahna_kalam?.desc_te : kv.aparahna_kalam?.desc_en}</div>
-          </div>
-          <div style="background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid #e0e0e0;">
-            <div style="font-weight: 700; color: #ad1457;">🌇 ${currentLang === "te" ? kv.sayahna_kalam?.name_te : kv.sayahna_kalam?.name_en}</div>
-            <div style="font-weight: 600; color: #333; margin: 2px 0;">${kv.sayahna_kalam?.start} – ${kv.sayahna_kalam?.end}</div>
-            <div style="font-size: 11px; color: #666;">${currentLang === "te" ? kv.sayahna_kalam?.desc_te : kv.sayahna_kalam?.desc_en}</div>
-          </div>
-          <div style="background: #ede7f6; padding: 8px; border-radius: 6px; border: 1px solid #d1c4e9;">
-            <div style="font-weight: 700; color: #4527a0;">🕉️ ${currentLang === "te" ? "రాత్రి విశేష కాలములు" : "Night Sacred Timings"}</div>
-            <div style="font-size: 11px; color: #311b92; margin-top: 2px;">
-              <strong>${currentLang === "te" ? "ప్రదోషం:" : "Pradosha:"}</strong> ${kv.pradosha_kalam?.start} – ${kv.pradosha_kalam?.end}<br>
-              <strong>${currentLang === "te" ? "నిశీథ కాలం:" : "Nisitha:"}</strong> ${kv.nisitha_kalam?.start} – ${kv.nisitha_kalam?.end}<br>
-              <strong>${currentLang === "te" ? "బ్రాహ్మీ ముహూర్తం:" : "Brahma:"}</strong> ${kv.brahma_muhurtham?.start} – ${kv.brahma_muhurtham?.end}
-            </div>
-          </div>
-        </div>
-      </div>`;
-  } else if (kvDiv) {
-    kvDiv.innerHTML = "";
-  }
+  // ---- Daily 5-Fold Division (Kala Vibhajana) ----
+  renderKalaVibhajana(p);
 
-  // Daily Lagna Schedule
-  const lsDiv = el("vLagnaScheduleSection");
-  const lsched = p.lagna_schedule;
-  if (lsched && lsched.length > 0 && lsDiv) {
-    let lHtml = `
-      <div style="background: #ffffff; border: 1px solid #c59b27; padding: 12px; border-radius: 8px; margin-top: 16px;">
-        <h4 style="margin: 0 0 8px 0; color: var(--maroon); font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
-          <span>🏛️ ${currentLang === "te" ? "ప్రతి లగ్న అంతము (సూర్యోదయం నుండి 12 లగ్నాలు)" : "Daily Lagna Schedule (Lagna Antyalu - All 12 Signs)"}</span>
-        </h4>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 6px; font-size: 11px;">`;
-    lsched.forEach(l => {
-      const lName = currentLang === "te" ? l.lagna_name_te : l.lagna_name;
-      lHtml += `
-        <div style="background: #fdfdfd; border: 1px solid #e0e0e0; padding: 6px 8px; border-radius: 6px;">
-          <strong style="color: #333; font-size: 12px;">${lName}</strong>
-          <div style="color: #616161; font-weight: 600; margin-top: 2px;">${l.start_time} – ${l.end_time}</div>
-        </div>`;
-    });
-    lHtml += `</div></div>`;
-    lsDiv.innerHTML = lHtml;
-  } else if (lsDiv) {
-    lsDiv.innerHTML = "";
-  }
+  // ---- Daily Lagna Schedule ----
+  renderLagnaSchedule(p);
 
   // Five elements
   const vaara = p.vaara;
@@ -213,16 +116,17 @@ function render(data) {
   el("vNakshatra").textContent = `${nakName} · ${padaLabel} ${p.nakshatra.pada}`;
   el("vNakshatraEnd").textContent = `${p.nakshatra.start_time} → ${p.nakshatra.end_time}`;
 
+  // Nakshatra Padas
   const padasDiv = el("vNakshatraPadas");
   padasDiv.innerHTML = "";
   if (p.nakshatra.padas && p.nakshatra.padas.length > 0) {
     const titleText = currentLang === "te" ? "పాదాల సమయాలు:" : "Pada Timings:";
-    let html = `<div style="font-weight:600; margin-bottom: 6px; color: var(--marigold);">${titleText}</div>`;
+    let html = `<div class="padas-title">${titleText}</div>`;
     p.nakshatra.padas.forEach(pd => {
       const label = currentLang === "te" ? `పాదం ${pd.pada}` : `Pada ${pd.pada}`;
-      html += `<div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-    <span style="color:#6b6152;">${label}</span>
-    <span style="font-weight:600; color:var(--maroon);">${pd.start_time} → ${pd.end_time}</span>
+      html += `<div class="padas-row">
+    <span class="padas-row__label">${label}</span>
+    <span class="padas-row__time">${pd.start_time} → ${pd.end_time}</span>
   </div>`;
     });
     padasDiv.innerHTML = html;
@@ -275,31 +179,149 @@ function render(data) {
     el("vAmrit").textContent = "—";
   }
 
-  // Render Special Muhurta Yogas
+  // ---- Render Special Muhurta Yogas ----
+  renderSpecialYogas(p);
+
+  // ---- Render Activity Verdicts ----
+  renderFavorableActivities(data);
+  renderAvoidActivities(data);
+}
+
+// ---- Extracted rendering sub-functions ----
+
+function renderPanchakaRahitam(p) {
+  const panDiv = el("vPanchakaSection");
+  const pan = p.panchaka_rahitam;
+  if (pan && panDiv) {
+    const panName = currentLang === "te" ? pan.name_te : pan.name_en;
+    const panEffect = currentLang === "te" ? pan.effect_te : pan.effect_en;
+    const panPariharam = currentLang === "te" ? pan.pariharam_te : pan.pariharam_en;
+    const isPass = pan.is_pass;
+    const mod = isPass ? "pass" : "fail";
+
+    panDiv.innerHTML = `
+      <div class="panchaka-box panchaka-box--${mod}">
+        <div class="panchaka-box__header">
+          <h4 class="panchaka-box__title panchaka-box__title--${mod}">
+            ☸️ ${currentLang === "te" ? "పంచక రహిత విశ్లేషణ (Panchaka Rahitam)" : "Panchaka Rahitam Analysis"}
+          </h4>
+          <span class="panchaka-box__badge panchaka-box__badge--${mod}">
+            ${isPass ? (currentLang === "te" ? "శుభ పంచకం (దోష రహితం)" : "Subha (Clean)") : (currentLang === "te" ? "అశుభ పంచకం" : "Dosha")}
+          </span>
+        </div>
+        <div class="panchaka-box__body">
+          <div><strong>${currentLang === "te" ? "పంచక నిర్ణయ సూత్రం:" : "Formula:"}</strong> <code>${pan.formula || `(తిథి + వారం + నక్షత్రం + లగ్నం) % 9 = శేషం ${pan.remainder}`}</code></div>
+          <div class="panchaka-box__classification"><strong>${currentLang === "te" ? "పంచక ఫలితం:" : "Classification:"}</strong> <span class="panchaka-box__classification-name--${mod}">${panName}</span> — <em>${panEffect}</em></div>
+          ${panPariharam && !isPass ? `
+            <div class="panchaka-box__remedy">
+              <strong>🌿 ${currentLang === "te" ? "శాస్త్రోక్త పరిహారం:" : "Classical Remedy:"}</strong> ${panPariharam}
+            </div>
+          ` : ''}
+        </div>
+      </div>`;
+  } else if (panDiv) {
+    panDiv.innerHTML = "";
+  }
+}
+
+function renderKalaVibhajana(p) {
+  const kvDiv = el("vKalaVibhajanaSection");
+  const kv = p.kala_vibhajana;
+  if (kv && kvDiv) {
+    kvDiv.innerHTML = `
+      <div class="kv-section">
+        <h4 class="kv-header">
+          <span>⏳ ${currentLang === "te" ? "రోజు మొత్తంలో కాల విభజన (పంచధా కాల విభజన)" : "Daily 5-Fold Time Division (Kala Vibhajana)"}</span>
+          <span class="kv-header__sub">${currentLang === "te" ? "పగలు 5 భాగాలు + రాత్రి పవిత్ర కాలాలు" : "5 Day divisions + Night Sacred Periods"}</span>
+        </h4>
+        <div class="kv-grid">
+          <div class="kv-card">
+            <div class="kv-card__name kv-card__name--pratah">🌅 ${currentLang === "te" ? kv.pratah_kalam?.name_te : kv.pratah_kalam?.name_en}</div>
+            <div class="kv-card__time">${kv.pratah_kalam?.start} – ${kv.pratah_kalam?.end}</div>
+            <div class="kv-card__desc">${currentLang === "te" ? kv.pratah_kalam?.desc_te : kv.pratah_kalam?.desc_en}</div>
+          </div>
+          <div class="kv-card">
+            <div class="kv-card__name kv-card__name--sangava">🌾 ${currentLang === "te" ? kv.sangava_kalam?.name_te : kv.sangava_kalam?.name_en}</div>
+            <div class="kv-card__time">${kv.sangava_kalam?.start} – ${kv.sangava_kalam?.end}</div>
+            <div class="kv-card__desc">${currentLang === "te" ? kv.sangava_kalam?.desc_te : kv.sangava_kalam?.desc_en}</div>
+          </div>
+          <div class="kv-card kv-card--highlight">
+            <div class="kv-card__name kv-card__name--madhya">☀️ ${currentLang === "te" ? kv.madhyahnika_kalam?.name_te : kv.madhyahnika_kalam?.name_en} <span class="kv-tag">అభిజిత్</span></div>
+            <div class="kv-card__time">${kv.madhyahnika_kalam?.start} – ${kv.madhyahnika_kalam?.end}</div>
+            <div class="kv-card__desc">${currentLang === "te" ? kv.madhyahnika_kalam?.desc_te : kv.madhyahnika_kalam?.desc_en}</div>
+          </div>
+          <div class="kv-card">
+            <div class="kv-card__name kv-card__name--aparahna">⛅ ${currentLang === "te" ? kv.aparahna_kalam?.name_te : kv.aparahna_kalam?.name_en}</div>
+            <div class="kv-card__time">${kv.aparahna_kalam?.start} – ${kv.aparahna_kalam?.end}</div>
+            <div class="kv-card__desc">${currentLang === "te" ? kv.aparahna_kalam?.desc_te : kv.aparahna_kalam?.desc_en}</div>
+          </div>
+          <div class="kv-card">
+            <div class="kv-card__name kv-card__name--sayahna">🌇 ${currentLang === "te" ? kv.sayahna_kalam?.name_te : kv.sayahna_kalam?.name_en}</div>
+            <div class="kv-card__time">${kv.sayahna_kalam?.start} – ${kv.sayahna_kalam?.end}</div>
+            <div class="kv-card__desc">${currentLang === "te" ? kv.sayahna_kalam?.desc_te : kv.sayahna_kalam?.desc_en}</div>
+          </div>
+          <div class="kv-card kv-card--sacred">
+            <div class="kv-card__name kv-card__name--sacred">🕉️ ${currentLang === "te" ? "రాత్రి విశేష కాలములు" : "Night Sacred Timings"}</div>
+            <div class="kv-card__sacred-times">
+              <strong>${currentLang === "te" ? "ప్రదోషం:" : "Pradosha:"}</strong> ${kv.pradosha_kalam?.start} – ${kv.pradosha_kalam?.end}<br>
+              <strong>${currentLang === "te" ? "నిశీథ కాలం:" : "Nisitha:"}</strong> ${kv.nisitha_kalam?.start} – ${kv.nisitha_kalam?.end}<br>
+              <strong>${currentLang === "te" ? "బ్రాహ్మీ ముహూర్తం:" : "Brahma:"}</strong> ${kv.brahma_muhurtham?.start} – ${kv.brahma_muhurtham?.end}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  } else if (kvDiv) {
+    kvDiv.innerHTML = "";
+  }
+}
+
+function renderLagnaSchedule(p) {
+  const lsDiv = el("vLagnaScheduleSection");
+  const lsched = p.lagna_schedule;
+  if (lsched && lsched.length > 0 && lsDiv) {
+    let items = lsched.map(l => {
+      const lName = currentLang === "te" ? l.lagna_name_te : l.lagna_name;
+      return `<div class="lagna-item">
+          <div class="lagna-item__name">${lName}</div>
+          <div class="lagna-item__time">${l.start_time} – ${l.end_time}</div>
+        </div>`;
+    }).join("");
+
+    lsDiv.innerHTML = `
+      <div class="lagna-section">
+        <h4 class="lagna-section__title">
+          <span>🏛️ ${currentLang === "te" ? "ప్రతి లగ్న అంతము (సూర్యోదయం నుండి 12 లగ్నాలు)" : "Daily Lagna Schedule (Lagna Antyalu - All 12 Signs)"}</span>
+        </h4>
+        <div class="lagna-grid">${items}</div>
+      </div>`;
+  } else if (lsDiv) {
+    lsDiv.innerHTML = "";
+  }
+}
+
+function renderSpecialYogas(p) {
   const yogasDiv = el("vSpecialYogas");
   yogasDiv.innerHTML = "";
   if (p.special_yogas && p.special_yogas.length > 0) {
     p.special_yogas.forEach(y => {
       const title = currentLang === "te" ? y.name_te : y.name_en;
       const desc = currentLang === "te" ? y.desc_te : y.desc_en;
-      let bg = "#fff8e1", border = "#c59b27", color = "#4a0e17";
-      if (y.type === "bad") {
-        bg = "#ffebee"; border = "#e57373"; color = "#b71c1c";
-      } else if (y.type === "info") {
-        bg = "#e3f2fd"; border = "#64b5f6"; color = "#0d47a1";
-      }
+      let variant = "good";
+      if (y.type === "bad") variant = "bad";
+      else if (y.type === "info") variant = "info";
       yogasDiv.innerHTML += `
-        <div style="background:${bg}; border:1px solid ${border}; color:${color}; padding:10px 14px; border-radius:8px; margin-bottom:8px;">
-          <div style="font-weight:700; font-size:14px;">✨ ${title}</div>
-          <div style="font-size:13px; margin-top:2px;">${desc}</div>
+        <div class="yoga-item yoga-item--${variant}">
+          <div class="yoga-item__name">✨ ${title}</div>
+          <div class="yoga-item__desc">${desc}</div>
         </div>
       `;
     });
   } else {
-    yogasDiv.innerHTML = `<div style="font-size:13px; color:#6b6152; padding: 4px 0;">${currentLang === "te" ? "ఈ రోజున సాధారణ యోగాలు ఉన్నవి" : "Standard daily yogas apply."}</div>`;
+    yogasDiv.innerHTML = `<div class="empty-msg">${currentLang === "te" ? "ఈ రోజున సాధారణ యోగాలు ఉన్నవి" : "Standard daily yogas apply."}</div>`;
   }
+}
 
-  // Render Favorable Activities
+function renderFavorableActivities(data) {
   const favDiv = el("vFavorableActivities");
   favDiv.innerHTML = "";
   if (data.favorable_activities && data.favorable_activities.length > 0) {
@@ -317,10 +339,11 @@ function render(data) {
   `;
     });
   } else {
-    favDiv.innerHTML = `<div style="font-size:13px; color:#6b6152; padding: 4px 0;">${currentLang === "te" ? "అనుకూలమైన ముహూర్తాలు ఏవీ లేవు" : "No favorable activities found for this date."}</div>`;
+    favDiv.innerHTML = `<div class="empty-msg">${currentLang === "te" ? "అనుకూలమైన ముహూర్తాలు ఏవీ లేవు" : "No favorable activities found for this date."}</div>`;
   }
+}
 
-  // Render Avoid/Mixed Activities
+function renderAvoidActivities(data) {
   const avoidDiv = el("vAvoidActivities");
   avoidDiv.innerHTML = "";
   const avoidList = (data.avoid_activities || []).concat(data.mixed_activities || []);
@@ -342,6 +365,6 @@ function render(data) {
   `;
     });
   } else {
-    avoidDiv.innerHTML = `<div style="font-size:13px; color:#6b6152; padding: 4px 0;">${currentLang === "te" ? "నిషిద్ధ పనులు ఏవీ లేవు" : "No activities to avoid."}</div>`;
+    avoidDiv.innerHTML = `<div class="empty-msg">${currentLang === "te" ? "నిషిద్ధ పనులు ఏవీ లేవు" : "No activities to avoid."}</div>`;
   }
 }

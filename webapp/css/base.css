@@ -1,0 +1,61 @@
+/* ============================================================
+   Muhurtham App · Base Styles & Reset
+   ============================================================ */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--ivory);
+  color: var(--ink);
+  font-family: Inter, "Noto Sans Telugu", "Palatino Linotype", Georgia, serif;
+  padding: 32px 16px 80px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 660px;
+  margin: 0 auto;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+header .eyebrow {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: var(--marigold);
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--maroon);
+  font-family: var(--font-telugu);
+}
+
+header p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #6b6152;
+}
+
+footer {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 11px;
+  color: #a8987a;
+}
+
+footer code {
+  background: #efe6d0;
+  padding: 1px 5px;
+  border-radius: 4px;
+}

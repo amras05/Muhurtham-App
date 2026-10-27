@@ -1,0 +1,500 @@
+/* ============================================================
+   Muhurtham App · Panchang & Samskara Specific Styles
+   ============================================================ */
+
+/* ---- Samskara Form Field Sizing ---- */
+.field--dob { flex: 1; min-width: 140px; }
+.field--tob { flex: 1; min-width: 100px; }
+.field--child-gender { flex: 1; min-width: 140px; }
+.field--ceremony-type { flex: 1; min-width: 180px; }
+.field--age-mode { flex: 1; min-width: 160px; }
+.field--timing-mode { flex: 1; min-width: 160px; }
+.field--varna { flex: 1; min-width: 170px; }
+.field--study-years { flex: 1; min-width: 170px; }
+
+/* Samskara Results — Birth Star & Details */
+.samskara-birth-star {
+  color: var(--maroon);
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.samskara-birth-details {
+  font-weight: 500;
+  font-size: 14px;
+  color: #6b6152;
+}
+
+.samskara-chart-label {
+  margin-bottom: 10px;
+}
+
+/* Samvatsara Header Card */
+.samvatsara {
+  text-align: center;
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.samvatsara .name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--maroon);
+  font-family: var(--font-telugu);
+}
+
+.samvatsara .sub {
+  font-size: 13px;
+  color: #6b6152;
+  margin-top: 4px;
+}
+
+.samvatsara .adhika {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  background: #fbe9c9;
+  color: #8a5a12;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* Kaala Section */
+.kaala-section {
+  margin-top: 20px;
+}
+
+.kaala-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--marigold);
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px;
+  font-weight: 700;
+}
+
+.kaala-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--line);
+  font-size: 14px;
+  gap: 8px;
+}
+
+.kaala-row:last-child {
+  border-bottom: none;
+}
+
+.kaala-row .kname {
+  color: #6b6152;
+  white-space: nowrap;
+}
+
+.kaala-row .ktime {
+  font-weight: 600;
+  color: var(--maroon);
+  text-align: right;
+  word-break: break-word;
+}
+
+.kaala-section--highlight {
+  background: linear-gradient(180deg, var(--gold-light) 0%, #fffdf6 100%);
+  border: 1.5px solid var(--gold);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), var(--shadow-sm);
+}
+
+.kaala-section--highlight .kaala-title {
+  border-bottom-color: rgba(197, 155, 39, 0.4);
+}
+
+.kaala-row--borderless {
+  border-bottom: none;
+  padding-top: 4px;
+}
+
+.kname--gold {
+  color: var(--maroon);
+  font-weight: 600;
+}
+
+.ktime--gold {
+  color: var(--marigold);
+}
+
+.kaala-title--split {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Activity Listings */
+.activity-item {
+  padding: 12px;
+  background: #fbf9f4;
+  border-radius: 8px;
+  border-left: 4px solid var(--marigold);
+  margin-bottom: 8px;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--line);
+}
+
+.activity-item.favorable {
+  border-left-color: var(--good);
+  background: #f1f8e9;
+  border-color: #c5e1a5;
+}
+
+.activity-item.avoid {
+  border-left-color: var(--bad);
+  background: #ffebee;
+  border-color: #ffcdd2;
+}
+
+.activity-item.mixed {
+  border-left-color: var(--warn);
+  background: #fff3e0;
+  border-color: #ffe0b2;
+}
+
+.activity-name {
+  font-weight: 600;
+  font-size: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.activity-verdict-badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.activity-verdict-badge.favorable {
+  background: var(--good);
+}
+
+.activity-verdict-badge.avoid {
+  background: var(--bad);
+}
+
+.activity-verdict-badge.mixed {
+  background: var(--warn);
+}
+
+.activity-reasons {
+  font-size: 12px;
+  color: #555;
+  padding-left: 16px;
+  margin: 4px 0 0 0;
+}
+
+.activity-reasons li {
+  margin-bottom: 2px;
+}
+
+/* Samskara Result Cards */
+.activity-item--muhurta {
+  border-left: 4px solid var(--maroon);
+  background: var(--card-bg);
+  cursor: pointer;
+  margin-bottom: 16px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.activity-item--muhurta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.activity-subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--maroon);
+  margin-top: 6px;
+}
+
+.samskara-pushkara-box {
+  background: #fffdf5;
+  border: 1.5px solid var(--gold);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  margin-top: 10px;
+  font-size: 13px;
+  color: #4a0e17;
+  box-shadow: 0 2px 6px rgba(197, 155, 39, 0.12);
+}
+
+.samskara-pushkara-title {
+  font-size: 15px;
+  color: var(--good);
+}
+
+.samskara-pushkara-details {
+  font-size: 12px;
+  color: #5d4037;
+  margin-top: 5px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.samskara-note-badge {
+  font-size: 11px;
+  color: var(--bad);
+  font-weight: 600;
+  margin-top: 3px;
+  background: #fff0f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.activity-actions {
+  margin-top: 10px;
+}
+
+/* Rule evaluation modal styles */
+.rule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.rule-card {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+}
+
+.rule-card.pass {
+  border-left: 5px solid var(--good);
+  background: #f1f8e9;
+}
+
+.rule-card.fail {
+  border-left: 5px solid var(--bad);
+  background: #ffebee;
+}
+
+.rule-card--full {
+  grid-column: 1 / -1;
+  border-left: 5px solid var(--gold);
+  background: #fffdf5;
+}
+
+.rule-desc--col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rule-title {
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Samskara Banner */
+.samskara-banner {
+  margin-bottom: 14px;
+  padding: 16px 18px;
+  border-left: 4px solid var(--gold);
+  background: linear-gradient(160deg, var(--gold-light) 0%, #fffdf6 100%);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.samskara-banner__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.samskara-banner__id {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.samskara-banner__icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.samskara-banner__id h3 {
+  margin: 0;
+  color: var(--maroon);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.samskara-banner__rules {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #4a3b32;
+  font-weight: 500;
+}
+
+/* Custom place row & badges */
+.custom-place {
+  flex-basis: 100%;
+  display: none;
+}
+
+.custom-place[data-shown="true"],
+#customPlaceField[style*="block"] {
+  display: block;
+}
+
+.place-row {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.place-row input[type="text"] {
+  flex: 1;
+  width: 100%;
+  padding: 9px 10px;
+  font-size: 15px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  font-family: inherit;
+}
+
+.place-row .suggestions-container {
+  left: 0;
+  right: 96px;
+  top: 100%;
+  margin-top: 2px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.badge--maroon {
+  background: var(--maroon);
+  color: #fff;
+}
+
+.pill {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.pill--gold {
+  color: var(--marigold);
+  background: #fff;
+  border: 1px solid var(--gold);
+}
+
+.card--wide {
+  grid-column: 1 / -1;
+}
+
+.card--gold {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, var(--gold-light) 0%, #fffdf6 100%);
+}
+
+.card--maroon {
+  border-color: rgba(74, 14, 23, 0.25);
+  border-left: 4px solid var(--maroon);
+}
+
+/* Print Styles */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm 12mm 10mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    font-size: 11pt !important;
+  }
+
+  .no-print,
+  .lang-toggle,
+  .tab-container,
+  .controls,
+  button,
+  footer,
+  .suggestions-container,
+  #apiBaseLabel {
+    display: none !important;
+  }
+
+  .wrap {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  header {
+    margin-bottom: 16px !important;
+    text-align: left !important;
+    border-bottom: 2px solid var(--maroon);
+    padding-bottom: 10px;
+  }
+
+  header h1 {
+    font-size: 20pt !important;
+    color: var(--maroon) !important;
+  }
+
+  .card, .activity-item, .samvatsara {
+    border: 1px solid #777 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .south-chart {
+    border: 2px solid var(--maroon) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

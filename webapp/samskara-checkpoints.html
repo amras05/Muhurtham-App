@@ -2,17 +2,26 @@
 <html lang="te">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>షోడశ సంస్కారముల — పరీక్షాంశములు (PDF via pdfmake)</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/common.css">
 <link rel="stylesheet" href="css/checkpoints.css">
 </head>
 <body>
 <h1>షోడశ సంస్కారముల — ముహూర్త పరీక్షాంశములు</h1>
 <p class="sub">గ్రంథము (Dr. Vamsee Nemani · గాయత్రి జ్యోతిర్నిధి) ఆధారితము — ముహూర్తం ఇంజన్ / SAMSKARA_REGISTRY నుండి ప్రత్యక్ష డేటా</p>
 
+<!-- Navigation Tabs -->
+<div class="nav-tabs no-print">
+  <a href="panchang-lookup.html" class="nav-tab">Panchangam</a>
+  <a href="panchang-lookup.html#namakarana" class="nav-tab">Namakarana</a>
+  <a href="muhurta-finder.html" class="nav-tab">Muhurta Finder</a>
+  <button class="nav-tab active">Checkpoints PDF</button>
+</div>
+
 <div class="controls">
-  <label>API: <input id="apiBase" value="http://127.0.0.1:8555" style="width:180px; padding:8px;"></label>
+  <label>API: <input id="apiBase" class="api-input" value="http://127.0.0.1:8555"></label>
   <button id="genBtn">📄 PDF తయారుచేయి (pdfmake)</button>
   <button id="dlBtn" disabled>⬇️ డౌన్‌లోడ్ PDF</button>
 </div>

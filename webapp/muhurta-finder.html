@@ -17,8 +17,7 @@
   <div class="wrap">
     <header>
       <div class="eyebrow" data-en="30-Day Muhurta Scanner" data-te="30 రోజుల ముహూర్త శోధన">30-Day Muhurta Scanner</div>
-      <h1 style="font-family: 'Outfit', 'Noto Sans Telugu', Georgia, serif; font-size: 30px; margin: 4px 0 0 0;">
-        ముహూర్త శోధన · Muhurta Finder</h1>
+      <h1>ముహూర్త శోధన · Muhurta Finder</h1>
       <p data-en="Scan 30 days of Panchang with Pushkara Bhaga, Lagna Shuddhi & Ashtama Shuddhi analysis"
         data-te="పుష్కర భాగ, లగ్న శుద్ధి & అష్టమ శుద్ధి విశ్లేషణతో 30 రోజుల పంచాంగం శోధన">
         Scan 30 days of Panchang with Pushkara Bhaga, Lagna Shuddhi & Ashtama Shuddhi analysis
@@ -35,38 +34,38 @@
       <a href="panchang-lookup.html" class="nav-tab" data-en="Panchangam" data-te="పంచాంగం">Panchangam</a>
       <a href="panchang-lookup.html#namakarana" class="nav-tab" data-en="Namakarana" data-te="నామకరణం">Namakarana</a>
       <button class="nav-tab active" data-en="Muhurta Finder" data-te="ముహూర్త శోధన">Muhurta Finder</button>
+      <a href="samskara-checkpoints.html" class="nav-tab" data-en="Checkpoints PDF" data-te="సంస్కార పరీక్షలు">Checkpoints PDF</a>
     </div>
 
     <!-- Input Form -->
     <div class="controls">
-      <div class="field" style="flex: 1; min-width: 140px;">
+      <div class="field field--start-date">
         <label for="startDate" data-en="Start Date" data-te="ప్రారంభ తేదీ">Start Date</label>
         <input type="date" id="startDate">
       </div>
-      <div class="field" style="flex: 1; min-width: 180px;">
+      <div class="field field--location">
         <label for="mfRegionSelect" data-en="Location" data-te="ప్రాంతం">Location</label>
         <select id="mfRegionSelect"></select>
       </div>
-      <div class="field" style="flex: 0.5; min-width: 80px;">
+      <div class="field field--days">
         <label for="daysInput" data-en="Days" data-te="రోజులు">Days</label>
         <input type="number" id="daysInput" value="30" min="1" max="60">
       </div>
 
       <!-- Optional birth details (collapsible) -->
-      <div style="flex: 0 0 100%; margin-top: 6px;">
-        <button type="button" id="toggleBirthDetails" onclick="toggleBirth()"
-          style="padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px dashed var(--line); border-radius: 6px; background: #fffdf5; color: #8a7f68; font-family: inherit;">
+      <div class="birth-toggle-wrap">
+        <button type="button" id="toggleBirthDetails" onclick="toggleBirth()" class="btn-toggle-birth">
           ➕ <span data-en="Add Birth Details (for Tarabalam / Ashtama checks)" data-te="జన్మ వివరాలు జోడించండి (తారాబలం / అష్టమ తనిఖీ కోసం)">Add Birth Details (for Tarabalam / Ashtama checks)</span>
         </button>
       </div>
 
-      <div id="birthDetailsSection" style="display: none; flex: 0 0 100%; margin-top: 8px; padding-top: 12px; border-top: 1px dashed var(--line);">
-        <div style="display: flex; flex-wrap: wrap; gap: 14px;">
-          <div class="field" style="flex: 1; min-width: 140px;">
+      <div id="birthDetailsSection" class="birth-details-section" style="display: none;">
+        <div class="birth-details-row">
+          <div class="field field--birth-dob">
             <label for="mfBirthDob" data-en="Birth Date" data-te="పుట్టిన తేదీ">Birth Date</label>
             <input type="date" id="mfBirthDob">
           </div>
-          <div class="field" style="flex: 1; min-width: 100px;">
+          <div class="field field--birth-tob">
             <label for="mfBirthTob" data-en="Birth Time" data-te="పుట్టిన సమయం">Birth Time</label>
             <input type="time" id="mfBirthTob" value="12:00">
           </div>
@@ -74,19 +73,14 @@
       </div>
 
       <!-- Custom place search -->
-      <div id="mfCustomPlaceField"
-        style="display:none; flex: 0 0 100%; margin-top: 14px; border-top: 1px dashed var(--line); padding-top: 14px; width: 100%;">
-        <label for="mfCustomPlaceInput"
-          style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a7f68; margin-bottom: 6px;"
+      <div id="mfCustomPlaceField" class="custom-place-section" style="display:none;">
+        <label for="mfCustomPlaceInput" class="custom-place-label"
           data-en="Search Place (e.g. London, Kakinada)" data-te="ప్రాంతం పేరు (ఉదా: లండన్, కాకినాడ)">Search Place</label>
-        <div style="display:flex; gap: 8px; position: relative;">
-          <input type="text" id="mfCustomPlaceInput" placeholder="Enter place name..." autocomplete="off"
-            style="flex: 1; padding: 9px 10px; font-size: 15px; border: 1px solid var(--line); border-radius: 6px; background: var(--card-bg); color: var(--ink);">
-          <button id="mfSearchPlaceBtn"
-            style="width:auto; padding: 0 20px; background:var(--marigold); color:white; font-weight:600; border:none; border-radius:6px; cursor:pointer;"
+        <div class="custom-place-row">
+          <input type="text" id="mfCustomPlaceInput" class="custom-place-input" placeholder="Enter place name..." autocomplete="off">
+          <button id="mfSearchPlaceBtn" class="btn-search-place"
             data-en="Search & Go" data-te="వెతకండి">Search & Go</button>
-          <div id="mfSuggestionsList" class="suggestions-container"
-            style="display:none; position:absolute; top: 100%; left:0; right: 120px; width: calc(100% - 130px);">
+          <div id="mfSuggestionsList" class="suggestions-container custom-place-suggestions" style="display:none;">
           </div>
         </div>
       </div>
@@ -117,8 +111,8 @@
     <div class="modal-content">
       <div class="modal-header">
         <div id="mfModalTitle" class="modal-title"></div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <button class="no-print" onclick="window.print()" style="background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5); color: #fff; padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 700;">🖨️ <span data-en="Print PDF" data-te="ప్రింట్ PDF">Print PDF</span></button>
+        <div class="modal-header__actions">
+          <button class="btn btn--sm btn--ghost no-print" onclick="window.print()">🖨️ <span data-en="Print PDF" data-te="ప్రింట్ PDF">Print PDF</span></button>
           <button class="modal-close no-print" onclick="closeModal()">&times;</button>
         </div>
       </div>
