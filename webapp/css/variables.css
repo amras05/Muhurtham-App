@@ -2,23 +2,38 @@
    Muhurtham App · Design Tokens & CSS Custom Properties
    ============================================================ */
 :root {
-  /* Colors */
-  --ivory: #faf6ee;
-  --ink: #1e1814;
-  --maroon: #4a0e17;
-  --maroon-accent: #6b1523;
-  --deep-maroon: #3e0a12;
+  /* Semantic palette */
+  --color-primary: #6f1725;
+  --color-primary-strong: #4d0d17;
+  --color-accent: #b98219;
+  --color-success: #1f7a45;
+  --color-warning: #a65b00;
+  --color-danger: #b42318;
+  --color-info: #175cd3;
+  --color-bg: #fbfaf8;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f5f1ea;
+  --color-text: #211a18;
+  --color-text-muted: #655c57;
+  --color-border: #ded6cc;
+
+  /* Legacy aliases retained while pages are migrated. */
+  --ivory: var(--color-bg);
+  --ink: var(--color-text);
+  --maroon: var(--color-primary);
+  --maroon-accent: #8a2434;
+  --deep-maroon: var(--color-primary-strong);
   --gold: #c59b27;
   --gold-light: #fff8e1;
-  --line: #e2d7be;
-  --card-bg: #ffffff;
-  --marigold: #d4890e;
+  --line: var(--color-border);
+  --card-bg: var(--color-surface);
+  --marigold: var(--color-accent);
 
   /* Semantic Feedback */
-  --good: #2e7d32;
-  --bad: #c62828;
-  --warn: #ef6c00;
-  --info: #1565c0;
+  --good: var(--color-success);
+  --bad: var(--color-danger);
+  --warn: var(--color-warning);
+  --info: var(--color-info);
 
   /* Elevation & Shadows */
   --shadow-sm: 0 2px 8px rgba(74, 14, 23, 0.06);
@@ -31,7 +46,22 @@
   --radius-lg: 14px;
   --radius-pill: 9999px;
 
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
   /* Typography */
   --font-sans: "Outfit", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-telugu: "Noto Sans Telugu", "Outfit", Georgia, serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
 }

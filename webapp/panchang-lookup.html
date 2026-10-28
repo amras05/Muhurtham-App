@@ -8,24 +8,26 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/common.css?v=phase4">
 </head>
 
 <body>
+  <a class="skip-link" href="#mainContent">Skip to main content</a>
   <!-- The entire UI is rendered once on load from the component views:
        js/ui.js (component framework) + js/views.js (composed layout).
        All DOM ids and inline handlers match the previous static markup. -->
-  <div id="app"></div>
+  <main id="mainContent"><div id="app"></div></main>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js"></script>
   <script src="js/config.js"></script>
+  <script src="js/app-shell.js?v=phase3"></script>
   <script src="js/i18n.js"></script>
   <script src="js/regions.js"></script>
   <script src="js/panchang.js"></script>
   <script src="js/samskaras.js"></script>
   <script src="js/ui.js"></script>
-  <script src="js/views.js"></script>
+  <script src="js/views.js?v=phase4"></script>
   <script src="js/pdf-core.js"></script>
   <script src="js/pdf.js"></script>
   <script src="js/app.js"></script>
