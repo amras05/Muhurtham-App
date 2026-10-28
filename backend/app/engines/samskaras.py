@@ -249,8 +249,8 @@ SAMSKARA_REGISTRY = {
         "tagline_en": "Sacred Thread Ceremony (Janeu / Yagnopavita)",
         "tagline_te": "ఉత్తరాయణము నందే చేయదగిన మహోన్నత వేదారంభ సంస్కారము",
         "icon": "📿",
-        "rules_summary_en": "Wed, Thu, Fri best; Sun, Mon acceptable. Avoid Tue, Sat. Uttarayana strictly mandatory! Benefic signs (2, 3, 4, 6, 9, 12) with Ashtama Shuddhi. Guru (Jupiter) strength required in Kendra/Kona. Kendras must be free of malefics. 16 auspicious stars.",
-        "rules_summary_te": "బుధ, గురు, శుక్రవారములు అత్యుత్తమం; భాను, సోమవారములు మధ్యమం; కుజ, శనివారములు నిషిద్ధం. ఉత్తరాయణము తప్పనిసరి! శుక్లపక్షం శ్రేష్టం. బృహస్పతి (గురుడు) కేంద్ర త్రికోణములలో బలముగా ఉండాలి. అష్టమ శుద్ధి తప్పనిసరి. కేంద్రములలో పాపగ్రహములు ఉండకూడదు. 16 ఉపనయన నక్షత్రములు.",
+        "rules_summary_en": "Wed, Thu, Fri best; Sun, Mon acceptable. Avoid Tue, Sat. Uttarayana strictly mandatory! Benefic signs (2, 3, 4, 6, 9, 12) with Ashtama Shuddhi. Guru (Jupiter) strength required in Kendra/Kona. Kendras must be free of malefics. 16 auspicious stars. If the guru (acharya) is known, his janma nakshatra Tarabala must also be checked.",
+        "rules_summary_te": "బుధ, గురు, శుక్రవారములు అత్యుత్తమం; భాను, సోమవారములు మధ్యమం; కుజ, శనివారములు నిషిద్ధం. ఉత్తరాయణము తప్పనిసరి! శుక్లపక్షం శ్రేష్టం. బృహస్పతి (గురుడు) కేంద్ర త్రికోణములలో బలముగా ఉండాలి. అష్టమ శుద్ధి తప్పనిసరి. కేంద్రములలో పాపగ్రహములు ఉండకూడదు. 16 ఉపనయన నక్షత్రములు. తల్లి తండ్రి వటువు అవకాశం ఉంటే గురువుగారి నక్షత్రం కూడా చూడాలి.",
         "good_vaaras": [4, 5, 6],
         "moderate_vaaras": [1, 2],
         "avoid_vaaras": [3, 7],
@@ -1332,6 +1332,32 @@ def find_samskara_muhurtas(
                     if (m == 6 and d >= 15) or (m in (7, 8)) or (m == 9 and d <= 8) or (m == 12 and d <= 4):
                         is_masa_avoid = True
 
+                # 16d. Guru Nakshatra Tarabala (Upanayana, treatise addendum:
+                #      "తల్లి తండ్రి వటువు అవకాశం ఉంటే గురువుగారి నక్షత్రం కూడా చూడాలి")
+                #      When the guru (acharya) performing the ceremony is known,
+                #      the candidate star's Tara must also be checked from the
+                #      guru's janma nakshatra — adverse Taras harm the guru.
+                guru_nak_idx = kwargs.get("guru_nak_idx")
+                is_guru_tara_avoid = False
+                guru_tarabala_info = None
+                if sid == "upanayana" and guru_nak_idx:
+                    try:
+                        _gnak = int(guru_nak_idx)
+                    except (TypeError, ValueError):
+                        _gnak = None
+                    if _gnak and 1 <= _gnak <= 27:
+                        _g_inc = utils.count_stars(_gnak, nak_idx)
+                        _g_rem = _g_inc % 9
+                        _g_tara = 9 if _g_rem == 0 else _g_rem
+                        _g_tara_name = TARA_NAMES[_g_tara]
+                        is_guru_tara_avoid = _g_tara in rule.get("avoid_taras", [1, 3, 5, 7])
+                        guru_tarabala_info = {
+                            "guru_nak_idx": _gnak,
+                            "tara": _g_tara_name,
+                            "tara_idx": _g_tara,
+                            "is_pass": not is_guru_tara_avoid,
+                        }
+
                 # 17. Panchaka Rahitam
                 tithi_num_for_panchaka = p_win["tithi"].get("number", 1)
                 panchaka_info = compute_panchaka_rahitam(tithi_num_for_panchaka, vaara_idx - 1, nak_idx, cand_lagna_idx)
@@ -1359,6 +1385,10 @@ def find_samskara_muhurtas(
                 if not has_lagna_shuddhi: deductions += 15
                 if not panchaka_info["is_pass"]: deductions += 10
                 if not is_guru_strong: deductions += 20
+                # Guru nakshatra Tarabala (Upanayana) — "అవకాశం ఉంటే చూడాలి":
+                # a known guru with adverse Tara reduces the score but does not
+                # strictly invalidate the candidate.
+                if is_guru_tara_avoid: deductions += 15
 
                 # Additional deductions for strict dosha items
                 if has_strict_dosha:
@@ -1437,6 +1467,11 @@ def find_samskara_muhurtas(
                         reasons.append("నిషిద్ధ మాసము: ఆషాఢ/శ్రావణ/భాద్రపద/పుష్య మాసాలలో వివాహం చేయరాదు (Prohibited marriage month).")
                     else:
                         reasons.append("శుభ మాసము: వివాహానికి అనుకూల చంద్రమాన మాసము (Favorable marriage month).")
+                if guru_tarabala_info:
+                    if is_guru_tara_avoid:
+                        reasons.append(f"గురువు నక్షత్ర దోషము: వటువు గురువు జన్మ నక్షత్రానికి {_g_tara_name} తారము — అశుభకరము (Guru Tarabala dosha: {_g_tara_name} tara from the guru's janma nakshatra).")
+                    else:
+                        reasons.append(f"గురువు నక్షత్ర తారాబలము: శుభం — {_g_tara_name} తారము (Guru Tarabala favorable: {_g_tara_name}).")
 
                 birth_details_dict = {"birth_lagna_idx": birth_lagna_idx, "birth_moon_rasi": birth_moon_rasi_idx}
                 # Per the treatise, the 21 Maha Doshas & 10 Dashavidha Doshas apply ONLY to Vivaha (marriage).
@@ -1465,6 +1500,7 @@ def find_samskara_muhurtas(
                     "panchaka_rahitam": panchaka_info,
                     "pariharas": pariharas_list,
                     "tara": tara_name,
+                    "guru_tarabala": guru_tarabala_info,
                     "reasons": reasons,
                     "pushkara_info": win,
                     "special_yogas": p_win.get("special_yogas", []),

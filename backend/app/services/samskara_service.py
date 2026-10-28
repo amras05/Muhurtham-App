@@ -47,6 +47,7 @@ def find_samskara_candidate_muhurtas(
     husband_nak_idx: Optional[int] = None,
     bride_ritu_lagna_idx: Optional[int] = None,
     bride_nak_idx: Optional[int] = None,
+    guru_nak_idx: Optional[int] = None,
     method: str = "drik",
 ) -> Any:
     """Find the best classical Muhurtas for any of the 16 digitized Samskaras."""
@@ -72,6 +73,7 @@ def find_samskara_candidate_muhurtas(
         husband_nak_idx=husband_nak_idx,
         bride_ritu_lagna_idx=bride_ritu_lagna_idx,
         bride_nak_idx=bride_nak_idx,
+        guru_nak_idx=guru_nak_idx,
     )
 
 

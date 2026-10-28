@@ -118,9 +118,9 @@ const SAMSKARAS_CONFIG = {
     date_label_te: "శిశువు పుట్టిన తేదీ",
     time_label_en: "Time of Birth",
     time_label_te: "పుట్టిన సమయం",
-    rules_en: "Sacred thread in 8th year (Brahmin), 11th year (Kshatriya), 12th year (Vaishya). Strictly during Uttarayana only. Guru must be strong in Kendra (1, 4, 7, 10) or Kona (5, 9). Avoid Sukra/Guru Moudhya. 16 auspicious stars. Ashtama Shuddhi mandatory.",
-    rules_te: "బ్రాహ్మణులకు 8వ ఏట (గర్భాష్టమం), క్షత్రియులకు 11వ ఏట, వైశ్యులకు 12వ ఏట చేయవలెను. తప్పనిసరిగా ఉత్తరాయణమునందే చేయవలెను. గురుడు కేంద్ర (1, 4, 7, 10) లేదా కోణములలో (5, 9) బలముగా ఉండవలెను. శుక్ర, గురు మౌఢ్యములు వర్జ్యం. 16 ప్రశస్త నక్షత్రములు. అష్టమ శుద్ధి తప్పనిసరి.",
-    fields: ["varna"]
+    rules_en: "Sacred thread in 8th year (Brahmin), 11th year (Kshatriya), 12th year (Vaishya). Strictly during Uttarayana only. Guru must be strong in Kendra (1, 4, 7, 10) or Kona (5, 9). Avoid Sukra/Guru Moudhya. 16 auspicious stars. Ashtama Shuddhi mandatory. If the guru (acharya) is known, his janma nakshatra Tarabala must also be checked.",
+    rules_te: "బ్రాహ్మణులకు 8వ ఏట (గర్భాష్టమం), క్షత్రియులకు 11వ ఏట, వైశ్యులకు 12వ ఏట చేయవలెను. తప్పనిసరిగా ఉత్తరాయణమునందే చేయవలెను. గురుడు కేంద్ర (1, 4, 7, 10) లేదా కోణములలో (5, 9) బలముగా ఉండవలెను. శుక్ర, గురు మౌఢ్యములు వర్జ్యం. 16 ప్రశస్త నక్షత్రములు. అష్టమ శుద్ధి తప్పనిసరి. తల్లి తండ్రి వటువు అవకాశం ఉంటే గురువుగారి నక్షత్రం కూడా చూడాలి — తారాబల పరీక్ష తప్పనిసరి.",
+    fields: ["varna", "guru_nak"]
   },
   samavartana: {
     id: "samavartana",
@@ -282,6 +282,7 @@ function setupSamskaraView(sid) {
   el("fieldAgeMode").style.display = fields.includes("age_mode") ? "block" : "none";
   el("fieldTimingMode").style.display = fields.includes("timing_mode") ? "block" : "none";
   el("fieldVarna").style.display = fields.includes("varna") ? "block" : "none";
+  el("fieldGuruNak").style.display = fields.includes("guru_nak") ? "block" : "none";
   el("fieldHusbandDetails").style.display = fields.includes("husband_details") ? "block" : "none";
   el("fieldStudyYears").style.display = fields.includes("study_years") ? "block" : "none";
   if (fields.includes("study_years")) {
@@ -289,22 +290,32 @@ function setupSamskaraView(sid) {
     el("studyYearsInput").placeholder = fallbacks[sid] || "e.g. 8";
   }
 
-  // Populate husband nakshatras if empty
+  // Populate husband nakshatras + guru nakshatras if empty
+  const NAKSHATRAS_LIST = [
+    "Ashwini (అశ్విని)", "Bharani (భరణి)", "Krittika (కృత్తిక)", "Rohini (రోహిణి)", "Mrigashira (మృగశిర)",
+    "Ardra (ఆరుద్ర)", "Punarvasu (పునర్వసు)", "Pushya (పుష్యమి)", "Ashlesha (ఆశ్లేష)", "Magha (మఖ)",
+    "Purva Phalguni (పూర్వఫల్గుణి)", "Uttara Phalguni (ఉత్తరఫల్గుణి)", "Hasta (హస్త)", "Chitra (చిత్త)",
+    "Swati (స్వాతి)", "Vishakha (విశాఖ)", "Anuradha (అనూరాధ)", "Jyeshtha (జ్యేష్ఠ)", "Moola (మూల)",
+    "Purva Ashadha (పూర్వాషాఢ)", "Uttara Ashadha (ఉత్తరాషాఢ)", "Shravana (శ్రవణం)", "Dhanishtha (ధనిష్ఠ)",
+    "Shatabhisha (శతభిషం)", "Purva Bhadrapada (పూర్వాభాద్ర)", "Uttara Bhadrapada (ఉత్తరాభాద్ర)", "Revati (రేవతి)"
+  ];
   const hNak = el("husbandNakSelect");
   if (hNak && hNak.options.length <= 1) {
-    const NAKSHATRAS_LIST = [
-      "Ashwini (అశ్విని)", "Bharani (భరణి)", "Krittika (కృత్తిక)", "Rohini (రోహిణి)", "Mrigashira (మృగశిర)",
-      "Ardra (ఆరుద్ర)", "Punarvasu (పునర్వసు)", "Pushya (పుష్యమి)", "Ashlesha (ఆశ్లేష)", "Magha (మఖ)",
-      "Purva Phalguni (పూర్వఫల్గుణి)", "Uttara Phalguni (ఉత్తరఫల్గుణి)", "Hasta (హస్త)", "Chitra (చిత్త)",
-      "Swati (స్వాతి)", "Vishakha (విశాఖ)", "Anuradha (అనూరాధ)", "Jyeshtha (జ్యేష్ఠ)", "Moola (మూల)",
-      "Purva Ashadha (పూర్వాషాఢ)", "Uttara Ashadha (ఉత్తరాషాఢ)", "Shravana (శ్రవణం)", "Dhanishtha (ధనిష్ఠ)",
-      "Shatabhisha (శతభిషం)", "Purva Bhadrapada (పూర్వాభాద్ర)", "Uttara Bhadrapada (ఉత్తరాభాద్ర)", "Revati (రేవతి)"
-    ];
     NAKSHATRAS_LIST.forEach((name, i) => {
       const opt = document.createElement("option");
       opt.value = (i + 1).toString();
       opt.textContent = `${i + 1}. ${name}`;
       hNak.appendChild(opt);
+    });
+  }
+  // Guru (acharya) nakshatra for the Upanayana Tarabala check
+  const gNak = el("guruNakSelect");
+  if (gNak && gNak.options.length <= 1) {
+    NAKSHATRAS_LIST.forEach((name, i) => {
+      const opt = document.createElement("option");
+      opt.value = (i + 1).toString();
+      opt.textContent = `${i + 1}. ${name}`;
+      gNak.appendChild(opt);
     });
   }
 
@@ -394,6 +405,9 @@ async function findSamskaraMuhurtas() {
   }
   if (sid === "upanayana") {
     url += `&varna=${el("varnaSelect").value}`;
+    // Treatise: తల్లి తండ్రి వటువు అవకాశం ఉంటే గురువుగారి నక్షత్రం కూడా చూడాలి
+    const gNak = el("guruNakSelect").value;
+    if (gNak) url += `&guru_nak_idx=${gNak}`;
   }
   const STUDY_YEARS_IDS = ["samavartana", "keshanta_godana", "aksharabhyasam", "prajapatya_vrata", "saumya_vrata", "agneya_vrata", "vaishvadeva_vrata", "vivaha"];
   if (STUDY_YEARS_IDS.includes(sid)) {
