@@ -8,46 +8,125 @@
 var Views = (function () {
   var h = UI.h, F = UI.field, S = UI.selectInput, B = UI.button, K = UI.kaalaRow, KS = UI.kaalaSection;
 
-  // ---- Tab bar (data-driven) ---------------------------------------------
-  var TABS = [
-    { id: "panchang",        icon: "📅", en: "Panchangam",      te: "పంచాంగము" },
-    { id: "garbhadhana",     icon: "🤰", en: "Garbhadhana",     te: "గర్భాదానం" },
-    { id: "pumsavana",       icon: "🌿", en: "Pumsavana",       te: "పుంసవనం" },
-    { id: "seemantha",       icon: "🪔", en: "Seemantha",       te: "సీమంతం" },
-    { id: "jatakarma",       icon: "🌟", en: "Jatakarma",       te: "జాతకర్మ" },
-    { id: "namakarana",      icon: "👶", en: "Namakarana",      te: "నామకరణం" },
-    { id: "annaprashana",    icon: "🥣", en: "Annaprashana",    te: "అన్నప్రాశన" },
-    { id: "choodakarana",    icon: "✂️", en: "Choodakarana",    te: "చూడాకర్మ" },
-    { id: "karnavedha",      icon: "👂", en: "Karnavedha",      te: "కర్ణవేధ" },
-    { id: "upanayana",       icon: "📿", en: "Upanayana",       te: "ఉపనయనం" },
-    { id: "samavartana",     icon: "🎓", en: "Samavartana",     te: "సమావర్తనం" },
-    { id: "keshanta_godana", icon: "💈", en: "Keshanta",        te: "కేశాంత / గోదానం" },
-    { id: "aksharabhyasam",  icon: "✍️", en: "Aksharabhyasam",  te: "అక్షరాభ్యాసం" },
-    { id: "vivaha",          icon: "💍", en: "Vivaha",          te: "వివాహం" },
-    { id: "prajapatya_vrata",   icon: "🔥", en: "Prajapatya Vrata", te: "ప్రాజాపత్య వ్రతం" },
-    { id: "saumya_vrata",       icon: "🌙", en: "Saumya Vrata",     te: "సౌమ్య వ్రతం" },
-    { id: "agneya_vrata",       icon: "🔥", en: "Agneya Vrata",     te: "ఆగ్నేయ వ్రతం" },
-    { id: "vaishvadeva_vrata",  icon: "🙏", en: "Vaishvadeva Vrata", te: "వైశ్వదేవ వ్రతం" },
-  ];
-  var LINK_TABS = [
-    { href: "samskara-checkpoints.html", icon: "📄", en: "Checkpoints PDF", te: "పరీక్షాంశాల PDF" },
-    { href: "muhurta-finder.html",       icon: "🔮", en: "Muhurta Finder",  te: "ముహూర్త శోధన" },
+  // ---- Samskara catalog taxonomy (5 life stages, 17 ceremonies) -------------
+  var SAMSKARA_GROUPS = [
+    {
+      titleEn: "Pre-natal & Pregnancy",
+      titleTe: "గర్భ సంస్కారములు",
+      icon: "🤰",
+      items: [
+        { id: "garbhadhana", icon: "🤰", en: "Garbhadhana", te: "గర్భాదానం", tag: "Conception" },
+        { id: "pumsavana", icon: "🌿", en: "Pumsavana", te: "పుంసవనం", tag: "3rd Month" },
+        { id: "seemantha", icon: "🪔", en: "Seemantha", te: "సీమంతం", tag: "4, 6, 8 Months" },
+      ]
+    },
+    {
+      titleEn: "Infancy & Childhood",
+      titleTe: "బాల్య సంస్కారములు",
+      icon: "👶",
+      items: [
+        { id: "jatakarma", icon: "🌟", en: "Jatakarma", te: "జాతకర్మ", tag: "At Birth / 10th Day" },
+        { id: "namakarana", icon: "👶", en: "Namakarana", te: "నామకరణం", tag: "11, 12, 16 Days" },
+        { id: "annaprashana", icon: "🥣", en: "Annaprashana", te: "అన్నప్రాశన", tag: "First Food (5-10 mo)" },
+        { id: "choodakarana", icon: "✂️", en: "Choodakarana", te: "చూడాకర్మ", tag: "Tonsure" },
+        { id: "karnavedha", icon: "👂", en: "Karnavedha", te: "కర్ణవేధ", tag: "Ear Piercing" },
+      ]
+    },
+    {
+      titleEn: "Education & Initiation",
+      titleTe: "విద్యా & దీక్షా సంస్కారములు",
+      icon: "✍️",
+      items: [
+        { id: "aksharabhyasam", icon: "✍️", en: "Aksharabhyasam", te: "అక్షరాభ్యాసం", tag: "5th Year" },
+        { id: "upanayana", icon: "📿", en: "Upanayana", te: "ఉపనయనం", tag: "Sacred Thread (8-12 yr)" },
+        { id: "samavartana", icon: "🎓", en: "Samavartana", te: "సమావర్తనం", tag: "Convocation" },
+        { id: "keshanta_godana", icon: "💈", en: "Keshanta", te: "కేశాంత / గోదానం", tag: "16th Year" },
+      ]
+    },
+    {
+      titleEn: "Veda Vratas (Brahmacharya)",
+      titleTe: "చతుర్వేద వ్రతములు",
+      icon: "🔥",
+      items: [
+        { id: "prajapatya_vrata", icon: "🔥", en: "Prajapatya Vrata", te: "ప్రాజాపత్య వ్రతం", tag: "1st Year Vrata" },
+        { id: "saumya_vrata", icon: "🌙", en: "Saumya Vrata", te: "సౌమ్య వ్రతం", tag: "2nd Year Vrata" },
+        { id: "agneya_vrata", icon: "🔥", en: "Agneya Vrata", te: "ఆగ్నేయ వ్రతం", tag: "3rd Year Vrata" },
+        { id: "vaishvadeva_vrata", icon: "🙏", en: "Vaishvadeva Vrata", te: "వైశ్వదేవ వ్రతం", tag: "4th Year Vrata" },
+      ]
+    },
+    {
+      titleEn: "Marriage & Grihastha",
+      titleTe: "గృహస్థాశ్రమం",
+      icon: "💍",
+      items: [
+        { id: "vivaha", icon: "💍", en: "Vivaha", te: "వివాహం", tag: "Sacred Union" },
+      ]
+    }
   ];
 
   function camel(id) {
     return id.split("_").map(function (p) { return p.charAt(0).toUpperCase() + p.slice(1); }).join("");
   }
 
-  var tabBar = (function () {
-    var btns = TABS.map(function (t) {
-      return '<button class="tab-item" id="tab' + camel(t.id) + 'Btn" onclick="switchTab(\'' + t.id + '\')">' +
-        "<span>" + t.icon + "</span> <span data-en=\"" + t.en + '" data-te="' + t.te + '">' + t.en + "</span></button>";
+  // Primary mode switcher: Panchang vs Samskara
+  var modeSwitcher =
+    '<div class="mode-switcher" id="mainTabContainer" role="tablist">' +
+      '<button type="button" class="mode-tab active" id="tabPanchangBtn" onclick="switchTab(\'panchang\')" role="tab" aria-selected="true">' +
+        '<span class="mode-tab__icon">📅</span>' +
+        '<span class="mode-tab__text">' +
+          '<strong data-en="Daily Panchangam" data-te="దిన పంచాంగము">Daily Panchangam</strong>' +
+          '<small data-en="Drik Siddhanta & Auspicious Timings" data-te="దృక్ సిద్ధాంత తిథి వార నక్షత్రములు">Drik Siddhanta & Auspicious Timings</small>' +
+        '</span>' +
+      '</button>' +
+      '<button type="button" class="mode-tab" id="tabSamskarasModeBtn" onclick="switchTab(window.currentActiveSamskara || \'namakarana\')" role="tab" aria-selected="false">' +
+        '<span class="mode-tab__icon">🪔</span>' +
+        '<span class="mode-tab__text">' +
+          '<strong data-en="17 Vedic Samskaras" data-te="షోడశ సంస్కారములు">17 Vedic Samskaras</strong>' +
+          '<small data-en="Classical Ceremony Muhurta Engine" data-te="శాస్త్రీయ సంస్కార ముహూర్త నిర్ణయి">Classical Ceremony Muhurta Engine</small>' +
+        '</span>' +
+      '</button>' +
+    '</div>';
+
+  // Categorized Samskara Catalog
+  var samskaraCatalog = (function () {
+    var groupsHtml = SAMSKARA_GROUPS.map(function (g) {
+      var cards = g.items.map(function (t) {
+        return (
+          '<button type="button" class="samskara-choice' + (t.id === 'namakarana' ? ' active' : '') + '" ' +
+            'id="tab' + camel(t.id) + 'Btn" ' +
+            'data-samskara="' + t.id + '" ' +
+            'onclick="switchTab(\'' + t.id + '\')">' +
+            '<div class="samskara-choice__top">' +
+              '<span class="samskara-choice__icon">' + t.icon + '</span>' +
+              '<span class="samskara-choice__badge">' + t.tag + '</span>' +
+            '</div>' +
+            '<div>' +
+              '<div class="samskara-choice__name" data-en="' + t.en + '" data-te="' + t.te + '">' + t.en + '</div>' +
+              '<div class="samskara-choice__te">' + t.te + '</div>' +
+            '</div>' +
+          '</button>'
+        );
+      }).join("");
+
+      return (
+        '<div class="samskara-group">' +
+          '<div class="samskara-group__heading">' +
+            '<span class="samskara-group__heading-icon">' + g.icon + '</span>' +
+            '<span data-en="' + g.titleEn + '" data-te="' + g.titleTe + '">' + g.titleEn + '</span>' +
+          '</div>' +
+          '<div class="samskara-card-grid">' + cards + '</div>' +
+        '</div>'
+      );
     }).join("");
-    var links = LINK_TABS.map(function (t) {
-      return '<a href="' + t.href + '" class="tab-item tab-item--link">' +
-        "<span>" + t.icon + "</span> <span data-en=\"" + t.en + '" data-te="' + t.te + '">' + t.en + "</span></a>";
-    }).join("");
-    return '<div class="tab-container" id="mainTabContainer">' + btns + links + "</div>";
+
+    return (
+      '<section class="samskara-catalog" aria-label="Samskara selection catalog">' +
+        '<div class="samskara-catalog__header">' +
+          '<div class="samskara-catalog__title" data-en="Choose Vedic Samskara (17 Classical Ceremonies)" data-te="సంస్కార ఎంపిక (17 శాస్త్రీయ సంస్కారములు)">Choose Vedic Samskara (17 Classical Ceremonies)</div>' +
+        '</div>' +
+        '<div class="samskara-groups">' + groupsHtml + '</div>' +
+      '</section>'
+    );
   })();
 
   // ---- Header + language toggle -------------------------------------------
@@ -64,6 +143,17 @@ var Views = (function () {
     '<button class="lang-btn" id="langTe" onclick="setLang(\'te\')">తెలుగు</button>' +
     "</div>" +
     "</div>";
+
+  var shellNav =
+    '<nav class="app-shell__nav" aria-label="Primary navigation">' +
+      '<a class="app-shell__brand" href="panchang-lookup.html">ముహూర్తం</a>' +
+      '<div class="app-shell__links">' +
+        '<a class="app-shell__link" href="panchang-lookup.html" aria-current="page">Panchang</a>' +
+        '<a class="app-shell__link" href="panchang-lookup.html#namakarana">Samskaras</a>' +
+        '<a class="app-shell__link" href="muhurta-finder.html">Muhurta Finder</a>' +
+        '<a class="app-shell__link" href="samskara-checkpoints.html">Checkpoints</a>' +
+      '</div>' +
+    '</nav>';
 
   // ---- Panchang panel -------------------------------------------------------
   var RASIS12 = UI.selectInput("_noop", [{ value: "" }]).replace('<select id="_noop"></select>', "");
@@ -127,6 +217,16 @@ var Views = (function () {
       KS("అనుకూలమైన ముహూర్తములు", "Favorable Muhurtas", '<div id="vFavorableActivities" class="list-body"></div>') +
       KS("నిషిద్ధ సమయాలు / పనులు", "Activities to Avoid", '<div id="vAvoidActivities" class="list-body"></div>') +
     "</div>";
+
+  var taskLauncher =
+    '<section class="task-launcher" aria-label="Choose a task">' +
+      '<p class="task-launcher__intro">Choose the task you want to complete. Your existing Panchang, Samskara, and Muhurta tools remain available.</p>' +
+      '<div class="task-grid">' +
+        '<button type="button" class="task-card" onclick="switchTab(\'panchang\')"><span class="task-card__icon">📅</span><span class="task-card__title">Panchang for a date</span><span class="task-card__text">View daily timings and activities.</span></button>' +
+        '<button type="button" class="task-card" onclick="switchTab(\'namakarana\')"><span class="task-card__icon">🪔</span><span class="task-card__title">Find a ceremony Muhurta</span><span class="task-card__text">Choose a Samskara, then enter its details.</span></button>' +
+        '<a class="task-card" href="muhurta-finder.html"><span class="task-card__icon">🔮</span><span class="task-card__title">Scan multiple days</span><span class="task-card__text">Compare Muhurta results across a date range.</span></a>' +
+      '</div>' +
+    '</section>';
 
   // ---- Samskara panel (shared by all 17 samskaras) --------------------------
   var rasiSelect = (function () {
@@ -257,13 +357,14 @@ var Views = (function () {
   // ---- Layout -----------------------------------------------------------------
   var layout = function (rootId) {
     return (
-      '<div class="wrap">' +
+      '<div class="app-shell"><div class="wrap">' +
+        shellNav +
         '<header id="appHeader">' + header + "</header>" +
-        tabBar +
-        '<section id="tabPanchangContent">' + panchangForm + panchangResults + "</section>" +
-        '<section id="tabNamakaranaContent" style="display:none;">' + samskaraForm + samskaraResults + "</section>" +
+        modeSwitcher +
+        '<section id="tabPanchangContent">' + panchangForm + panchangResults + taskLauncher + "</section>" +
+        '<section id="tabNamakaranaContent" style="display:none;">' + samskaraCatalog + samskaraForm + samskaraResults + "</section>" +
         footer +
-      "</div>" +
+      "</div></div>" +
       modal
     );
   };

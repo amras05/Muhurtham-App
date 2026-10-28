@@ -246,10 +246,16 @@ function switchTab(tab) {
   if (tab === 'panchang') {
     el("tabPanchangContent").style.display = "block";
     el("tabNamakaranaContent").style.display = "none";
+    const pBtn = el("tabPanchangBtn"), sBtn = el("tabSamskarasModeBtn");
+    if (pBtn) pBtn.classList.add("active");
+    if (sBtn) sBtn.classList.remove("active");
     history.replaceState(null, "", "#panchang");
   } else {
     el("tabPanchangContent").style.display = "none";
     el("tabNamakaranaContent").style.display = "block";
+    const pBtn = el("tabPanchangBtn"), sBtn = el("tabSamskarasModeBtn");
+    if (pBtn) pBtn.classList.remove("active");
+    if (sBtn) sBtn.classList.add("active");
     setupSamskaraView(tab);
     history.replaceState(null, "", `#${tab}`);
   }
