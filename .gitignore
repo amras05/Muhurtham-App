@@ -1,6 +1,7 @@
 # Virtual environment
 venv/
 .venv/
+.agents/
 
 # Python cache
 __pycache__/
@@ -27,3 +28,4 @@ yarn-error.log*
 # OS files
 .DS_Store
 Thumbs.db
+AGENTS.md
