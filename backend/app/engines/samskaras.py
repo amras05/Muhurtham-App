@@ -1332,31 +1332,52 @@ def find_samskara_muhurtas(
                     if (m == 6 and d >= 15) or (m in (7, 8)) or (m == 9 and d <= 8) or (m == 12 and d <= 4):
                         is_masa_avoid = True
 
-                # 16d. Guru Nakshatra Tarabala (Upanayana, treatise addendum:
+                # 16d. Participant Nakshatra Tarabala (Upanayana, treatise addendum:
                 #      "తల్లి తండ్రి వటువు అవకాశం ఉంటే గురువుగారి నక్షత్రం కూడా చూడాలి")
-                #      When the guru (acharya) performing the ceremony is known,
-                #      the candidate star's Tara must also be checked from the
-                #      guru's janma nakshatra — adverse Taras harm the guru.
-                guru_nak_idx = kwargs.get("guru_nak_idx")
-                is_guru_tara_avoid = False
-                guru_tarabala_info = None
-                if sid == "upanayana" and guru_nak_idx:
-                    try:
-                        _gnak = int(guru_nak_idx)
-                    except (TypeError, ValueError):
-                        _gnak = None
-                    if _gnak and 1 <= _gnak <= 27:
-                        _g_inc = utils.count_stars(_gnak, nak_idx)
-                        _g_rem = _g_inc % 9
-                        _g_tara = 9 if _g_rem == 0 else _g_rem
-                        _g_tara_name = TARA_NAMES[_g_tara]
-                        is_guru_tara_avoid = _g_tara in rule.get("avoid_taras", [1, 3, 5, 7])
-                        guru_tarabala_info = {
-                            "guru_nak_idx": _gnak,
-                            "tara": _g_tara_name,
-                            "tara_idx": _g_tara,
-                            "is_pass": not is_guru_tara_avoid,
-                        }
+                #      Vatu (child)'s star is checked via #5. When the mother's /
+                #      father's / guru's (acharya's) janma nakshatra is known, the
+                #      candidate star's Tara must ALSO be checked from each of
+                #      their stars — an adverse Tara harms that participant.
+                participant_tarabala = []  # [{"who": "mother|father|guru", ...}]
+                if sid == "upanayana":
+                    _participants = [
+                        ("mother", kwargs.get("mother_nak_idx"),
+                         {"en": "mother's janma nakshatra",
+                          "te_favor": "తల్లి నక్షత్ర తారాబలము: శుభం — {tara} తారము",
+                          "te_dosha": "తల్లి నక్షత్ర దోషము: వటువు తల్లి జన్మ నక్షత్రానికి {tara} తారము — అశుభకరము",
+                          "en_dosha": "Mother Tarabala dosha: {tara} tara from the mother's janma nakshatra."}),
+                        ("father", kwargs.get("father_nak_idx"),
+                         {"en": "father's janma nakshatra",
+                          "te_favor": "తండ్రి నక్షత్ర తారాబలము: శుభం — {tara} తారము",
+                          "te_dosha": "తండ్రి నక్షత్ర దోషము: వటువు తండ్రి జన్మ నక్షత్రానికి {tara} తారము — అశుభకరము",
+                          "en_dosha": "Father Tarabala dosha: {tara} tara from the father's janma nakshatra."}),
+                        ("guru", kwargs.get("guru_nak_idx"),
+                         {"en": "guru's (acharya's) janma nakshatra",
+                          "te_favor": "గురువు నక్షత్ర తారాబలము: శుభం — {tara} తారము",
+                          "te_dosha": "గురువు నక్షత్ర దోషము: వటువు గురువు జన్మ నక్షత్రానికి {tara} తారము — అశుభకరము",
+                          "en_dosha": "Guru Tarabala dosha: {tara} tara from the guru's janma nakshatra."}),
+                    ]
+                    for _who, _nak, _msg in _participants:
+                        try:
+                            _pnak = int(_nak) if _nak else None
+                        except (TypeError, ValueError):
+                            _pnak = None
+                        if _pnak and 1 <= _pnak <= 27:
+                            _inc = utils.count_stars(_pnak, nak_idx)
+                            _rem = _inc % 9
+                            _tara = 9 if _rem == 0 else _rem
+                            _tara_name = TARA_NAMES[_tara]
+                            _avoid = _tara in rule.get("avoid_taras", [1, 3, 5, 7])
+                            participant_tarabala.append({
+                                "who": _who,
+                                "nak_idx": _pnak,
+                                "tara": _tara_name,
+                                "tara_idx": _tara,
+                                "is_pass": not _avoid,
+                                "desc_favor": _msg["te_favor"].format(tara=_tara_name) + f" (favorable — {_tara_name} tara)",
+                                "desc_dosha": _msg["te_dosha"].format(tara=_tara_name) + f" ({_msg['en_dosha'].format(tara=_tara_name)})",
+                            })
+                _p_tara_doshas = [p for p in participant_tarabala if not p["is_pass"]]
 
                 # 17. Panchaka Rahitam
                 tithi_num_for_panchaka = p_win["tithi"].get("number", 1)
@@ -1385,10 +1406,10 @@ def find_samskara_muhurtas(
                 if not has_lagna_shuddhi: deductions += 15
                 if not panchaka_info["is_pass"]: deductions += 10
                 if not is_guru_strong: deductions += 20
-                # Guru nakshatra Tarabala (Upanayana) — "అవకాశం ఉంటే చూడాలి":
-                # a known guru with adverse Tara reduces the score but does not
+                # If family/guru stars are known, each adverse participant Tara
+                # ("అవకాశం ఉంటే చూడాలి") reduces the score but does not
                 # strictly invalidate the candidate.
-                if is_guru_tara_avoid: deductions += 15
+                if _p_tara_doshas: deductions += 8 * len(_p_tara_doshas)
 
                 # Additional deductions for strict dosha items
                 if has_strict_dosha:
@@ -1467,11 +1488,11 @@ def find_samskara_muhurtas(
                         reasons.append("నిషిద్ధ మాసము: ఆషాఢ/శ్రావణ/భాద్రపద/పుష్య మాసాలలో వివాహం చేయరాదు (Prohibited marriage month).")
                     else:
                         reasons.append("శుభ మాసము: వివాహానికి అనుకూల చంద్రమాన మాసము (Favorable marriage month).")
-                if guru_tarabala_info:
-                    if is_guru_tara_avoid:
-                        reasons.append(f"గురువు నక్షత్ర దోషము: వటువు గురువు జన్మ నక్షత్రానికి {_g_tara_name} తారము — అశుభకరము (Guru Tarabala dosha: {_g_tara_name} tara from the guru's janma nakshatra).")
+                for _p in participant_tarabala:
+                    if _p["is_pass"]:
+                        reasons.append(_p["desc_favor"])
                     else:
-                        reasons.append(f"గురువు నక్షత్ర తారాబలము: శుభం — {_g_tara_name} తారము (Guru Tarabala favorable: {_g_tara_name}).")
+                        reasons.append(_p["desc_dosha"])
 
                 birth_details_dict = {"birth_lagna_idx": birth_lagna_idx, "birth_moon_rasi": birth_moon_rasi_idx}
                 # Per the treatise, the 21 Maha Doshas & 10 Dashavidha Doshas apply ONLY to Vivaha (marriage).
@@ -1500,7 +1521,7 @@ def find_samskara_muhurtas(
                     "panchaka_rahitam": panchaka_info,
                     "pariharas": pariharas_list,
                     "tara": tara_name,
-                    "guru_tarabala": guru_tarabala_info,
+                    "participant_tarabala": participant_tarabala or None,
                     "reasons": reasons,
                     "pushkara_info": win,
                     "special_yogas": p_win.get("special_yogas", []),

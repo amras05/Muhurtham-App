@@ -164,6 +164,9 @@ Find the best classical Muhurtas for any of the 16 Samskaras.
 **Example (Vivaha):**
 `/muhurta/samskara-finder?type=vivaha&dob=1995-03-10&tob=10:15&bride_nak_idx=14&lat=17.385&lon=78.4867&tz_offset=5.5`
 
+**Upanayana participant Tarabala (treatise addendum — "తల్లి తండ్రి వటువు అవకాశం ఉంటే గురువుగారి నక్షత్రం కూడా చూడాలి"):**
+optional `mother_nak_idx`, `father_nak_idx`, `guru_nak_idx` (1–27). Each known participant's Tara is computed from their janma nakshatra to the candidate star; adverse Taras (1/3/5/7) deduct 8 points each (soft dosha, not strict rejection). Response candidates carry `participant_tarabala: [{who: mother|father|guru, tara, tara_idx, is_pass, …}]`.
+
 ### `GET /muhurta/namakarana-finder`
 Backwards-compatible shortcut = `samskara-finder` with `type=namakarana`.
 Params: `dob` (req), `tob`, `lat`, `lon`, `tz_offset`, `place_name`, `method`.

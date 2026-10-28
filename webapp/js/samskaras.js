@@ -120,7 +120,7 @@ const SAMSKARAS_CONFIG = {
     time_label_te: "పుట్టిన సమయం",
     rules_en: "Sacred thread in 8th year (Brahmin), 11th year (Kshatriya), 12th year (Vaishya). Strictly during Uttarayana only. Guru must be strong in Kendra (1, 4, 7, 10) or Kona (5, 9). Avoid Sukra/Guru Moudhya. 16 auspicious stars. Ashtama Shuddhi mandatory. If the guru (acharya) is known, his janma nakshatra Tarabala must also be checked.",
     rules_te: "బ్రాహ్మణులకు 8వ ఏట (గర్భాష్టమం), క్షత్రియులకు 11వ ఏట, వైశ్యులకు 12వ ఏట చేయవలెను. తప్పనిసరిగా ఉత్తరాయణమునందే చేయవలెను. గురుడు కేంద్ర (1, 4, 7, 10) లేదా కోణములలో (5, 9) బలముగా ఉండవలెను. శుక్ర, గురు మౌఢ్యములు వర్జ్యం. 16 ప్రశస్త నక్షత్రములు. అష్టమ శుద్ధి తప్పనిసరి. తల్లి తండ్రి వటువు అవకాశం ఉంటే గురువుగారి నక్షత్రం కూడా చూడాలి — తారాబల పరీక్ష తప్పనిసరి.",
-    fields: ["varna", "guru_nak"]
+    fields: ["varna", "mother_nak", "father_nak", "guru_nak"]
   },
   samavartana: {
     id: "samavartana",
@@ -283,6 +283,8 @@ function setupSamskaraView(sid) {
   el("fieldTimingMode").style.display = fields.includes("timing_mode") ? "block" : "none";
   el("fieldVarna").style.display = fields.includes("varna") ? "block" : "none";
   el("fieldGuruNak").style.display = fields.includes("guru_nak") ? "block" : "none";
+  el("fieldMotherNak").style.display = fields.includes("mother_nak") ? "block" : "none";
+  el("fieldFatherNak").style.display = fields.includes("father_nak") ? "block" : "none";
   el("fieldHusbandDetails").style.display = fields.includes("husband_details") ? "block" : "none";
   el("fieldStudyYears").style.display = fields.includes("study_years") ? "block" : "none";
   if (fields.includes("study_years")) {
@@ -308,16 +310,20 @@ function setupSamskaraView(sid) {
       hNak.appendChild(opt);
     });
   }
-  // Guru (acharya) nakshatra for the Upanayana Tarabala check
+  // Guru + parents (acharya/mother/father) janma nakshatras — Upanayana participant Tarabala
   const gNak = el("guruNakSelect");
-  if (gNak && gNak.options.length <= 1) {
-    NAKSHATRAS_LIST.forEach((name, i) => {
-      const opt = document.createElement("option");
-      opt.value = (i + 1).toString();
-      opt.textContent = `${i + 1}. ${name}`;
-      gNak.appendChild(opt);
-    });
-  }
+  const mNak = el("motherNakSelect");
+  const fNak = el("fatherNakSelect");
+  [gNak, mNak, fNak].forEach(sel => {
+    if (sel && sel.options.length <= 1) {
+      NAKSHATRAS_LIST.forEach((name, i) => {
+        const opt = document.createElement("option");
+        opt.value = (i + 1).toString();
+        opt.textContent = `${i + 1}. ${name}`;
+        sel.appendChild(opt);
+      });
+    }
+  });
 
   // Update CTA button text
   const btn = el("findMuhurtaButton");
@@ -407,7 +413,11 @@ async function findSamskaraMuhurtas() {
     url += `&varna=${el("varnaSelect").value}`;
     // Treatise: తల్లి తండ్రి వటువు అవకాశం ఉంటే గురువుగారి నక్షత్రం కూడా చూడాలి
     const gNak = el("guruNakSelect").value;
+    const mNak = el("motherNakSelect").value;
+    const fNak = el("fatherNakSelect").value;
     if (gNak) url += `&guru_nak_idx=${gNak}`;
+    if (mNak) url += `&mother_nak_idx=${mNak}`;
+    if (fNak) url += `&father_nak_idx=${fNak}`;
   }
   const STUDY_YEARS_IDS = ["samavartana", "keshanta_godana", "aksharabhyasam", "prajapatya_vrata", "saumya_vrata", "agneya_vrata", "vaishvadeva_vrata", "vivaha"];
   if (STUDY_YEARS_IDS.includes(sid)) {

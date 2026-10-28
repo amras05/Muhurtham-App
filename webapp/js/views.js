@@ -294,6 +294,12 @@ var Views = (function () {
           { value: "kshatriya", en: "Kshatriya (11th Year)", te: "క్షత్రియ (11వ ఏట)", label: "Kshatriya (11th Year)" },
           { value: "vaishya",   en: "Vaishya (12th Year)", te: "వైశ్య (12వ ఏట)", label: "Vaishya (12th Year)" },
         ]) + "</div>" +
+      '<div id="fieldFatherNak" class="field field--father-nak" style="display:none;">' +
+        '<label for="fatherNakSelect" data-en="Father Janma Nakshatra — Tarabala Check" data-te="తండ్రి జన్మ నక్షత్రము — తారాబల పరీక్ష">Father Janma Nakshatra</label>' +
+        '<select id="fatherNakSelect"><option value="">-- Not known / optional --</option></select>' + "</div>" +
+      '<div id="fieldMotherNak" class="field field--mother-nak" style="display:none;">' +
+        '<label for="motherNakSelect" data-en="Mother Janma Nakshatra — Tarabala Check" data-te="తల్లి జన్మ నక్షత్రము — తారాబల పరీక్ష">Mother Janma Nakshatra</label>' +
+        '<select id="motherNakSelect"><option value="">-- Not known / optional --</option></select>' + "</div>" +
       '<div id="fieldGuruNak" class="field field--guru-nak" style="display:none;">' +
         '<label for="guruNakSelect" data-en="Guru (Acharya) Janma Nakshatra — Tarabala Check" data-te="గురువుగారి జన్మ నక్షత్రము — తారాబల పరీక్ష">Guru (Acharya) Janma Nakshatra</label>' +
         '<select id="guruNakSelect"><option value="">-- Not known / optional --</option></select>' + "</div>" +

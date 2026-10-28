@@ -40,6 +40,8 @@ def samskara_finder(
     bride_ritu_lagna_idx: Optional[int] = Query(None, description="1-12 First Ritu Lagna of bride"),
     bride_nak_idx: Optional[int] = Query(None, description="1-27 Janma Nakshatra of bride"),
     guru_nak_idx: Optional[int] = Query(None, description="1-27 Janma Nakshatra of the guru/acharya performing the ceremony (Upanayana)"),
+    mother_nak_idx: Optional[int] = Query(None, description="1-27 Janma Nakshatra of the vatu's mother (Upanayana participant Tarabala)"),
+    father_nak_idx: Optional[int] = Query(None, description="1-27 Janma Nakshatra of the vatu's father (Upanayana participant Tarabala)"),
     method: str = Query("drik", description="Calculation method: 'drik' or 'chandramana'"),
 ):
     """Find the best classical Muhurtas for any of the 16 digitized Samskaras."""
@@ -63,6 +65,8 @@ def samskara_finder(
             bride_ritu_lagna_idx=bride_ritu_lagna_idx,
             bride_nak_idx=bride_nak_idx,
             guru_nak_idx=guru_nak_idx,
+            mother_nak_idx=mother_nak_idx,
+            father_nak_idx=father_nak_idx,
             method=method,
         )
     except ValueError as ex:
