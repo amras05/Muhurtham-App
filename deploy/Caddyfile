@@ -1,0 +1,13 @@
+# Caddyfile for Muhurtham App on Hetzner
+# Caddy automatically provisions and renews Let's Encrypt HTTPS certificates.
+
+# Option A: If you have a domain pointing to this server's IP, uncomment and use this:
+# your-domain.com {
+#     reverse_proxy 127.0.0.1:8000
+# }
+
+# Option B: Direct IP access over HTTP (port 80)
+:80 {
+    reverse_proxy 127.0.0.1:8000
+}
+

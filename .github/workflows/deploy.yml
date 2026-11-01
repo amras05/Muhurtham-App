@@ -1,0 +1,53 @@
+name: Deploy to Hetzner (Native)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Remote Deployment via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER || 'root' }}
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          port: ${{ secrets.HETZNER_PORT || 22 }}
+          script_stop: true
+          script: |
+            echo "==> Deploying Muhurtham App to Hetzner..."
+            cd /var/www/muhurtham
+            
+            # 1. Pull latest code
+            git pull origin main
+            
+            # 2. Update dependencies in native virtual environment
+            source .venv/bin/activate
+            pip install --upgrade pip
+            pip install -r backend/requirements.txt
+            
+            # 3. Ensure Swiss Ephemeris data files are installed
+            bash backend/install_ephemeris.sh
+            
+            # 4. Update systemd service definition if changed
+            cp deploy/muhurtham.service /etc/systemd/system/muhurtham.service
+            systemctl daemon-reload
+            
+            # 5. Reload reverse proxy config if changed
+            if [ -f "/etc/caddy/Caddyfile" ]; then
+              cp deploy/Caddyfile /etc/caddy/Caddyfile
+              systemctl reload caddy || true
+            fi
+            
+            # 6. Restart the application service
+            systemctl restart muhurtham
+            
+            # 7. Verify health
+            sleep 2
+            curl -f http://127.0.0.1:8000/health || (echo "Health check failed!" && exit 1)
+            echo "==> Deployment successful!"
+
