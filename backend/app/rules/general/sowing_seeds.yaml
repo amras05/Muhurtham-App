@@ -1,0 +1,40 @@
+id: sowing_seeds
+category: general
+title_en: Sowing Seeds & Agriculture
+title_te: విత్తనములు జల్లుట / వ్యవసాయారంభము
+source:
+  part: 7
+  section: బీజవాపన కాలము
+  page: Part 7, Sec 7
+hard_filters:
+  tithi_exclude:
+  - rikta
+  nakshatra_allow:
+  - ashwini
+  - hasta
+  - pushya
+  - chitta
+  - revati
+  - mrigashira
+  - anuradha
+  - rohini
+  - uttara_phalguni
+  - uttara_ashadha
+  - uttara_bhadrapada
+  - swati
+  - mula
+  - magha
+  - shravana
+  - dhanishta
+  - shatabhisha
+  lagna_allow:
+  - vrishabha
+  - karkataka
+  - kanya
+  - vrischika
+  - dhanus
+  - meena
+soft_scoring:
+  vaara_weights:
+    thursday: 3
+    friday: 3

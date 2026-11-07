@@ -10,3 +10,4 @@ timezonefinder
 geopy
 python-dateutil
 certifi
+pyyaml

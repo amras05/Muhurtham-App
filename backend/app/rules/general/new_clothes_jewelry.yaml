@@ -1,0 +1,35 @@
+id: new_clothes_jewelry
+category: general
+title_en: Wearing New Clothes & Jewelry
+title_te: నూతన వస్త్ర / ఆభరణ ధారణము
+source:
+  part: 7
+  section: నూతన వస్త్రాలంకారములు
+  page: Part 7, Sec 3
+hard_filters:
+  vaara_allow:
+  - sunday
+  - monday
+  - thursday
+  - friday
+  tithi_exclude:
+  - amavasya
+  karana_exclude:
+  - vishti
+  - bhadra
+  nakshatra_allow:
+  - ashwini
+  - rohini
+  - punarvasu
+  - pushya
+  - hasta
+  - chitta
+  - swati
+  - vishakha
+  - dhanishta
+  - revati
+soft_scoring:
+  vaara_weights:
+    friday: 4
+    thursday: 3
+    sunday: 2

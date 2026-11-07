@@ -1,0 +1,28 @@
+id: lending_money
+category: general
+title_en: Lending Money
+title_te: రుణం ఇచ్చుట
+source:
+  part: 7
+  section: ఋణదాన కాలము
+  page: Part 7, Sec 5
+hard_filters:
+  vaara_exclude:
+  - tuesday
+  - friday
+  tithi_exclude:
+  - amavasya
+  nakshatra_exclude:
+  - krittika
+  - punarvasu
+  - magha
+  - mula
+  - shatabhisha
+  - uttara_phalguni
+  house_rules:
+  - house: 8
+    planets: none
+soft_scoring:
+  vaara_weights:
+    thursday: 3
+    wednesday: 3

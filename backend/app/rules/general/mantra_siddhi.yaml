@@ -1,0 +1,38 @@
+id: mantra_siddhi
+category: general
+title_en: Mantra Initiation & Practice
+title_te: మంత్రోపదేశము / మంత్రసిద్ధి
+source:
+  part: 7
+  section: మంత్రసిద్ధి ప్రకరణము
+  page: Part 7, Sec 2
+hard_filters:
+  vaara_allow:
+  - monday
+  - wednesday
+  - thursday
+  - friday
+  tithi_numbers_both_paksha:
+  - 2
+  - 3
+  - 5
+  - 7
+  - 10
+  - 13
+  - 15
+  nakshatra_allow:
+  - mrigashira
+  - ashlesha
+  - uttara_phalguni
+  - hasta
+  - vishakha
+  - shravana
+  lagna_types:
+  - dvisvabhava
+  house_rules:
+  - house: 8
+    planets: none
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    wednesday: 3

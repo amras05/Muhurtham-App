@@ -1,0 +1,40 @@
+id: rented_entry
+category: griha
+title_en: Entering a Rented House
+title_te: అద్దె ఇల్లు ప్రవేశము
+source:
+  part: 6
+  section: అద్దె ఇండ్ల ప్రవేశము
+  page: Part 6, Sec 3
+hard_filters:
+  vaara_exclude:
+  - tuesday
+  - sunday
+  tithi_exclude:
+  - amavasya
+  - rikta
+  nakshatra_allow:
+  - ashwini
+  - rohini
+  - mrigashira
+  - punarvasu
+  - pushya
+  - uttara_phalguni
+  - hasta
+  - chitta
+  - swati
+  - anuradha
+  - uttara_ashadha
+  - shravana
+  - dhanishta
+  - shatabhisha
+  - uttara_bhadrapada
+  - revati
+  lagna_types:
+  - chara
+  - dvisvabhava
+soft_scoring:
+  vaara_weights:
+    thursday: 3
+    friday: 3
+    monday: 2

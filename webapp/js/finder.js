@@ -24,16 +24,254 @@ const D9_RASI_LABELS = {
   te: ["మేషం", "వృషభం", "మిథునం", "కర్కాటకం", "సింహం", "కన్య", "తుల", "వృశ్చికం", "ధనుస్సు", "మకరం", "కుంభం", "మీనం"]
 };
 
+// ---- Declarative 3-Layer Muhurtha Catalog ----
+let birthVisible = false;
+let progressInterval = null;
+
+const FALLBACK_MUHURTA_RULES = [
+  {"id": "adoption", "category": "general", "title_en": "Child Adoption", "title_te": "దత్తత స్వీకారము"},
+  {"id": "borrowing_money", "category": "general", "title_en": "Borrowing Money / Taking Loans", "title_te": "రుణం గ్రహించుట (అప్పు చేయుట)"},
+  {"id": "business_start", "category": "general", "title_en": "Business Opening & Commercial Start", "title_te": "నూతన వ్యాపారారంభము"},
+  {"id": "buying_vehicles", "category": "general", "title_en": "Buying Vehicles (Vahana Kraya)", "title_te": "నూతన వాహన కొనుగోలు"},
+  {"id": "contracts_agreements", "category": "general", "title_en": "Contracts & Agreements Signing", "title_te": "ఒప్పందములు / దస్తావేజులు"},
+  {"id": "first_bath_after_illness", "category": "general", "title_en": "First Bath After Illness", "title_te": "వ్యాధి తగ్గిన తరువాత మొదటి స్నానము"},
+  {"id": "haircut", "category": "general", "title_en": "Haircut & Shaving (Kshaura Karma)", "title_te": "క్షురకర్మ / కేశఖండనము"},
+  {"id": "idol_consecration", "category": "general", "title_en": "Idol Consecration (Vigraha Pratishtha)", "title_te": "విగ్రహ ప్రతిష్ఠ"},
+  {"id": "inheritance_division", "category": "general", "title_en": "Division of Inherited Property", "title_te": "వారసత్వ ఆస్తుల పంపకము"},
+  {"id": "lending_money", "category": "general", "title_en": "Lending Money", "title_te": "రుణం ఇచ్చుట"},
+  {"id": "mantra_siddhi", "category": "general", "title_en": "Mantra Initiation & Practice", "title_te": "మంత్రోపదేశము / మంత్రసిద్ధి"},
+  {"id": "medicine", "category": "general", "title_en": "Taking Medicine & Treatment", "title_te": "ఔషధ సేవన (చికిత్సారంభము)"},
+  {"id": "new_clothes_jewelry", "category": "general", "title_en": "Wearing New Clothes & Jewelry", "title_te": "నూతన వస్త్ర / ఆభరణ ధారణము"},
+  {"id": "sowing_seeds", "category": "general", "title_en": "Sowing Seeds & Agriculture", "title_te": "విత్తనములు జల్లుట / వ్యవసాయారంభము"},
+  {"id": "surgery", "category": "general", "title_en": "Surgical Operation", "title_te": "శస్త్రచికిత్స (ఆపరేషన్)"},
+  {"id": "will_writing", "category": "general", "title_en": "Writing a Legal Will", "title_te": "వీలునామా రచన"},
+  {"id": "door_placement", "category": "griha", "title_en": "Main Door Frame Installation (Dwara Sthapana)", "title_te": "సింహద్వార బంధ స్థాపన"},
+  {"id": "griha_pravesha", "category": "griha", "title_en": "Griha Pravesha (House Warming - New House)", "title_te": "నూతన గృహప్రవేశము"},
+  {"id": "rented_entry", "category": "griha", "title_en": "Entering a Rented House", "title_te": "అద్దె ఇల్లు ప్రవేశము"},
+  {"id": "sankusthapana", "category": "griha", "title_en": "Sankusthapana (Foundation Stone Laying)", "title_te": "శంకుస్థాపన (గృహారంభము)"},
+  {"id": "aksharabhyasa", "category": "samskaras", "title_en": "Aksharabhyasa (Vidyarambha)", "title_te": "అక్షరాభ్యాసము (విద్యారంభము)"},
+  {"id": "annaprashana", "category": "samskaras", "title_en": "Annaprashana (First Feeding)", "title_te": "అన్నప్రాశన సంస్కారము"},
+  {"id": "namakarana", "category": "samskaras", "title_en": "Namakarana (Naming Ceremony)", "title_te": "నామకరణ మహోత్సవము"},
+  {"id": "upanayana", "category": "samskaras", "title_en": "Upanayana (Sacred Thread Ceremony)", "title_te": "ఉపనయనము (వటువు బ్రహ్మోపదేశము)"},
+  {"id": "prayana", "category": "travel", "title_en": "Prayana (Travel & Journey)", "title_te": "ప్రయాణము (దేశాంతర గమనము)"},
+  {"id": "invitation_printing", "category": "vivaha", "title_en": "Lagna Patrika & Invitation Printing", "title_te": "లగ్నపత్రిక రచన / శుభలేఖల ముద్రణ"},
+  {"id": "nisheka", "category": "vivaha", "title_en": "Nisheka (First Night / Consummation)", "title_te": "నిశేకము (ప్రథమ రాత్రి)"},
+  {"id": "nutana_vadhu_pravesha", "category": "vivaha", "title_en": "Nutana Vadhu Griha Pravesha", "title_te": "నూతన వధూ గృహప్రవేశము"},
+  {"id": "vivaha", "category": "vivaha", "title_en": "Vivaha (Wedding Muhurtham)", "title_te": "వివాహ మహోత్సవము"}
+];
+
+let allMuhurtaRules = FALLBACK_MUHURTA_RULES.slice();
+
+async function loadMuhurtaCatalog() {
+  try {
+    const res = await fetch(`${API_BASE}/muhurta/catalog`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.all_activities && data.all_activities.length > 0) {
+      allMuhurtaRules = data.all_activities;
+      populateActivityDropdown();
+    }
+  } catch (e) {
+    console.error("Failed to load catalog:", e);
+  }
+}
+
+function populateActivityDropdown() {
+  const catSelect = el("mfCategorySelect");
+  const actSelect = el("mfActivitySelect");
+  if (!actSelect) return;
+  const selectedCat = catSelect ? catSelect.value : "all";
+
+  const prevVal = actSelect.value;
+  const filtered = selectedCat === "all"
+    ? allMuhurtaRules
+    : allMuhurtaRules.filter(r => r.category === selectedCat);
+
+  actSelect.innerHTML = "";
+  let hasSelected = false;
+  filtered.forEach(r => {
+    const opt = document.createElement("option");
+    opt.value = r.id;
+    opt.textContent = currentLang === "te" && r.title_te
+      ? `${r.title_te} (${r.title_en})`
+      : `${r.title_en} · ${r.title_te || ""}`;
+    if (r.id === prevVal) {
+      opt.selected = true;
+      hasSelected = true;
+    }
+    actSelect.appendChild(opt);
+  });
+  if (!hasSelected && filtered.length > 0) {
+    actSelect.selectedIndex = 0;
+  }
+  updateContextualFields();
+}
+
+const NAKSHATRAS_27 = [
+  { id: 1, en: "Ashwini", te: "అశ్విని" },
+  { id: 2, en: "Bharani", te: "భరణి" },
+  { id: 3, en: "Krittika", te: "కృత్తిక" },
+  { id: 4, en: "Rohini", te: "రోహిణి" },
+  { id: 5, en: "Mrigashira", te: "మృగశిర" },
+  { id: 6, en: "Ardra", te: "ఆర్ద్ర" },
+  { id: 7, en: "Punarvasu", te: "పునర్వసు" },
+  { id: 8, en: "Pushya", te: "పుష్యమి" },
+  { id: 9, en: "Ashlesha", te: "ఆశ్లేష" },
+  { id: 10, en: "Magha", te: "మఖ" },
+  { id: 11, en: "Purva Phalguni", te: "పూర్వఫల్గుని (పుబ్బ)" },
+  { id: 12, en: "Uttara Phalguni", te: "ఉత్తరఫల్గుని (ఉత్తర)" },
+  { id: 13, en: "Hasta", te: "హస్త" },
+  { id: 14, en: "Chitra", te: "చిత్త" },
+  { id: 15, en: "Swati", te: "స్వాతి" },
+  { id: 16, en: "Vishakha", te: "విశాఖ" },
+  { id: 17, en: "Anuradha", te: "అనూరాధ" },
+  { id: 18, en: "Jyeshtha", te: "జ్యేష్ఠ" },
+  { id: 19, en: "Mula", te: "మూల" },
+  { id: 20, en: "Purvashadha", te: "పూర్వాషాఢ" },
+  { id: 21, en: "Uttarashadha", te: "ఉత్తరాషాఢ" },
+  { id: 22, en: "Shravana", te: "శ్రవణము" },
+  { id: 23, en: "Dhanishta", te: "ధనిష్ఠ" },
+  { id: 24, en: "Shatabhisha", te: "శతభిషం" },
+  { id: 25, en: "Purvabhadra", te: "పూర్వాభాద్ర" },
+  { id: 26, en: "Uttarabhadra", te: "ఉత్తరాభాద్ర" },
+  { id: 27, en: "Revati", te: "రేవతి" },
+];
+
+function populateAllNakshatraDropdowns() {
+  const nakSelectIds = [
+    "mfDirectNakSelect",
+    "mfGroomNak", "mfBrideNak",
+    "mfFatherNak", "mfMotherNak",
+    "mfOwnerNak", "mfSpouseNak",
+    "mfPartnerNak"
+  ];
+
+  nakSelectIds.forEach(id => {
+    const sel = el(id);
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = `<option value="">${currentLang === "te" ? "— నక్షత్రం ఎంచుకోండి —" : "— Select Nakshatra —"}</option>`;
+    NAKSHATRAS_27.forEach(n => {
+      const opt = document.createElement("option");
+      opt.value = n.id;
+      opt.textContent = currentLang === "te" ? `${n.te} (${n.en})` : `${n.en} · ${n.te}`;
+      if (String(n.id) === String(prev)) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+// ---- Horoscope & 3-Mode Nama Nakshatra ----
+let horoscopeVisible = false;
+let currentNamaMode = 1;
+let detectedNamaNakIdx = null;
+let detectedNamaPada = null;
+let namaLookupTimer = null;
+
+function toggleHoroscopeSection() {
+  horoscopeVisible = !horoscopeVisible;
+  const sec = el("mfHoroscopeSection");
+  if (sec) sec.style.display = horoscopeVisible ? "block" : "none";
+}
+
+function switchNamaMode(mode) {
+  currentNamaMode = mode;
+  [1, 2, 3].forEach(m => {
+    const tab = el(`tabMode${m}`);
+    const content = el(`namaMode${m}Content`);
+    if (tab) tab.className = `nama-tab ${m === mode ? "active" : ""}`;
+    if (content) content.style.display = (m === mode) ? "block" : "none";
+  });
+}
+
+function onNamaNameInput(val) {
+  clearTimeout(namaLookupTimer);
+  const badge = el("mfNamaLookupBadge");
+  if (!val || val.trim().length < 1) {
+    if (badge) { badge.style.display = "none"; badge.innerHTML = ""; }
+    detectedNamaNakIdx = null;
+    detectedNamaPada = null;
+    return;
+  }
+  namaLookupTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/muhurta/nama-nakshatra/lookup?name=${encodeURIComponent(val.trim())}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.matched && data.result) {
+        const r = data.result;
+        detectedNamaNakIdx = r.nakshatra_index;
+        detectedNamaPada = r.pada;
+        if (badge) {
+          badge.style.display = "block";
+          badge.innerHTML = `✨ <strong>${currentLang === "te" ? "గుర్తించిన నామ నక్షత్రం:" : "Detected Nama Nakshatra:"}</strong> ${r.nakshatra_te} (${r.nakshatra_en}) · ${currentLang === "te" ? `${r.pada}వ పాదం` : `Pada ${r.pada}`} · <strong>${currentLang === "te" ? "రాశి:" : "Rasi:"}</strong> ${r.rasi_te} (${r.rasi_en}) (అక్షరం: <code>${r.matched_syllable}</code>)`;
+        }
+      } else {
+        if (badge) {
+          badge.style.display = "block";
+          badge.innerHTML = `<span style="color:#888;">${currentLang === "te" ? "ఈ పేరుకు నామ నక్షత్రం నేరుగా లభించలేదు. దయచేసి '1. నాకు నక్షత్రం తెలుసు' ద్వారా ఎంచుకోండి." : "Exact syllable not matched. Please pick manually in Tab 1."}</span>`;
+        }
+      }
+    } catch (e) {
+      console.error("Nama lookup error:", e);
+    }
+  }, 250);
+}
+
+// ---- Context-Sensitive Level 3 Fields ----
+function updateContextualFields() {
+  const catSelect = el("mfCategorySelect");
+  const actSelect = el("mfActivitySelect");
+  const cat = catSelect ? catSelect.value : "all";
+  const act = actSelect ? actSelect.value : "";
+
+  // Hide all context groups
+  const groups = ["fieldsVivaha", "fieldsUpanayana", "fieldsGriha", "fieldsBusiness", "fieldsTravel", "fieldsVehicle"];
+  groups.forEach(gId => {
+    const g = el(gId);
+    if (g) g.style.display = "none";
+  });
+
+  // Determine active category
+  let activeCat = cat;
+  if (cat === "all" && act) {
+    const foundRule = allMuhurtaRules.find(r => r.id === act);
+    if (foundRule) activeCat = foundRule.category;
+  }
+
+  if (activeCat === "vivaha") {
+    el("fieldsVivaha").style.display = "block";
+  } else if (activeCat === "samskaras") {
+    el("fieldsUpanayana").style.display = "block";
+  } else if (activeCat === "griha") {
+    el("fieldsGriha").style.display = "block";
+  } else if (activeCat === "travel") {
+    el("fieldsTravel").style.display = "block";
+  } else if (activeCat === "general") {
+    if (act === "business_start" || act === "contracts_agreements") {
+      el("fieldsBusiness").style.display = "block";
+    } else if (act === "buying_vehicles") {
+      el("fieldsVehicle").style.display = "block";
+    }
+  }
+}
+
+function onCategoryChange() {
+  populateActivityDropdown();
+  updateContextualFields();
+}
+
+function onActivityChange() {
+  updateContextualFields();
+}
+
 
 // ---- Birth details toggle ----
 function toggleBirth() {
-  birthVisible = !birthVisible;
-  el("birthDetailsSection").style.display = birthVisible ? "block" : "none";
-  el("toggleBirthDetails").querySelector("span:first-child") || null;
+  toggleHoroscopeSection();
 }
 
-// ---- Regions ----
-let allRegions = [];
+// (allRegions already declared in js/regions.js)
 
 // ---- D1 Chart Builder ----
 function buildD1ChartHTML(d1Array, centerLabel) {
@@ -120,16 +358,91 @@ async function findMuhurtas() {
   setStatus("");
 
   try {
-    const url = `${API_BASE}/muhurta/finder?date=${startDate}&lat=${lat}&lon=${lon}&tz_offset=${tz_offset}&place_name=${encodeURIComponent(place_name)}&days=${days}${birthParams}`;
-    
-    // Simulate progress
-    let progress = 10;
-    const progressInterval = setInterval(() => {
-      progress = Math.min(progress + 3, 90);
-      el("progressFill").style.width = progress + "%";
-    }, 500);
+    const actSelect = el("mfActivitySelect");
+    const catSelect = el("mfCategorySelect");
+    const activityId = actSelect ? actSelect.value : null;
+    const cat = catSelect ? catSelect.value : "all";
 
-    const res = await fetch(url);
+    const payload = {
+      activity_id: activityId,
+      start_date: startDate,
+      days_to_scan: days,
+      lat: lat,
+      lon: lon,
+      tz_offset: tz_offset,
+      place_name: place_name,
+      panchaka_method: "standard",
+      person_name: el("mfPersonName")?.value?.trim() || null,
+      gotra: el("mfGotra")?.value?.trim() || null
+    };
+
+    // Level 2 — Astrological & Nama Nakshatra
+    if (currentNamaMode === 1 && el("mfDirectNakSelect")) {
+      const nakVal = parseInt(el("mfDirectNakSelect").value);
+      if (nakVal) payload.janma_nak_idx = nakVal;
+      payload.janma_pada = parseInt(el("mfDirectPadaSelect")?.value) || 1;
+    } else if (currentNamaMode === 2 && detectedNamaNakIdx) {
+      payload.nama_nak_idx = detectedNamaNakIdx;
+      payload.nama_pada = detectedNamaPada || 1;
+    } else if (currentNamaMode === 3) {
+      payload.birth_dob = el("mfBirthDob")?.value || null;
+      payload.birth_tob = el("mfBirthTob")?.value || null;
+    }
+
+    // Level 3 — Category & Activity Specific Parameters
+    let activeCat = cat;
+    if (cat === "all" && activityId) {
+      const fr = allMuhurtaRules.find(r => r.id === activityId);
+      if (fr) activeCat = fr.category;
+    }
+
+    if (activeCat === "vivaha") {
+      payload.groom_name = el("mfGroomName")?.value?.trim() || null;
+      payload.groom_nak_idx = parseInt(el("mfGroomNak")?.value) || null;
+      payload.groom_gotra = el("mfGroomGotra")?.value?.trim() || null;
+      payload.bride_name = el("mfBrideName")?.value?.trim() || null;
+      payload.bride_nak_idx = parseInt(el("mfBrideNak")?.value) || null;
+      payload.bride_gotra = el("mfBrideGotra")?.value?.trim() || null;
+      payload.time_preference = el("mfTimePref")?.value || "any";
+    } else if (activeCat === "samskaras") {
+      payload.vatu_name = el("mfVatuName")?.value?.trim() || null;
+      payload.father_name = el("mfFatherName")?.value?.trim() || null;
+      payload.father_nak_idx = parseInt(el("mfFatherNak")?.value) || null;
+      payload.mother_nak_idx = parseInt(el("mfMotherNak")?.value) || null;
+      payload.veda_shakha = el("mfVedaShakha")?.value || null;
+      payload.sutra = el("mfSutra")?.value || null;
+    } else if (activeCat === "griha") {
+      payload.owner_name = el("mfOwnerName")?.value?.trim() || null;
+      payload.owner_nama_nak_idx = parseInt(el("mfOwnerNak")?.value) || null;
+      payload.spouse_name = el("mfSpouseName")?.value?.trim() || null;
+      payload.spouse_nama_nak_idx = parseInt(el("mfSpouseNak")?.value) || null;
+      payload.door_facing = el("mfDoorFacing")?.value || null;
+      payload.plot_facing = el("mfPlotFacing")?.value || null;
+      payload.house_type = el("mfHouseType")?.value || null;
+    } else if (activeCat === "travel") {
+      payload.person_name = el("mfTravelerName")?.value?.trim() || payload.person_name;
+      payload.origin = el("mfTravelOrigin")?.value?.trim() || null;
+      payload.destination = el("mfTravelDest")?.value?.trim() || null;
+      payload.travel_direction = el("mfTravelDir")?.value || null;
+      payload.travel_mode = el("mfTravelMode")?.value || null;
+    } else if (activeCat === "general") {
+      if (activityId === "business_start" || activityId === "contracts_agreements") {
+        payload.business_name = el("mfBusinessName")?.value?.trim() || null;
+        payload.business_type = el("mfBusinessType")?.value || null;
+        payload.partner_name = el("mfPartnerName")?.value?.trim() || null;
+        payload.partner_nama_nak_idx = parseInt(el("mfPartnerNak")?.value) || null;
+        payload.entrance_facing = el("mfEntranceFacing")?.value || null;
+      } else if (activityId === "buying_vehicles") {
+        payload.vehicle_type = el("mfVehicleType")?.value || null;
+        payload.vehicle_muhurta_type = el("mfVehicleMuhurtaType")?.value || null;
+      }
+    }
+
+    const res = await fetch(`${API_BASE}/muhurta/find`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
     clearInterval(progressInterval);
 
     if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
@@ -138,13 +451,18 @@ async function findMuhurtas() {
     el("progressText").textContent = currentLang === "te" ? "పూర్తయింది! ✓" : "Complete! ✓";
 
     const data = await res.json();
+    if (data.candidates && data.candidates.length > 0) {
+      data.results = data.candidates;
+    } else if (data.windows && data.windows.length > 0) {
+      data.results = data.windows;
+    }
     lastData = data;
 
     setTimeout(() => {
       el("progressSection").style.display = "none";
       renderResults(data);
       setStatus("");
-    }, 500);
+    }, 400);
 
   } catch (e) {
     el("progressSection").style.display = "none";
@@ -157,30 +475,31 @@ async function findMuhurtas() {
 // ---- Render Results ----
 function renderResults(data) {
   el("mfResults").style.display = "block";
-  const results = data.results || [];
+  const results = data.results || data.candidates || [];
+  const title = currentLang === "te" ? (data.title_te || data.title_en) : data.title_en;
 
   // Summary
-  const excellent = results.filter(r => r.verdict === "highly_favorable").length;
-  const favorable = results.filter(r => r.verdict === "favorable").length;
-  const unfavorable = results.filter(r => r.verdict === "unfavorable").length;
-  const withMuhurta = results.filter(r => r.pushkara_info).length;
+  const excellent = results.filter(r => (r.percentage || 0) >= 75 || r.verdict === "highly_favorable" || r.verdict === "ఉత్తమ ముహూర్తం").length;
+  const favorable = results.filter(r => (r.percentage || 0) >= 50 && (r.percentage || 0) < 75 || r.verdict === "favorable" || r.verdict === "మధ్యమ ముహూర్తం").length;
+  const unfavorable = results.filter(r => (r.percentage || 0) < 50 || r.verdict === "unfavorable" || r.verdict === "నిషిద్ధం").length;
+  const withMuhurta = results.filter(r => r.pushkara_info && r.pushkara_info.is_available).length;
 
   el("summaryBar").innerHTML = `
     <div class="summary-stat">
       <div class="num num--excellent">${excellent}</div>
-      <div class="label" data-en="Excellent" data-te="ఉత్తమం">${currentLang === "te" ? "ఉత్తమం" : "Excellent"}</div>
+      <div class="label" data-en="Excellent" data-te="ఉత్తమ ముహూర్తములు">${currentLang === "te" ? "ఉత్తమ ముహూర్తములు" : "Excellent"}</div>
     </div>
     <div class="summary-stat">
       <div class="num num--favorable">${favorable}</div>
-      <div class="label" data-en="Favorable" data-te="మధ్యమం">${currentLang === "te" ? "మధ్యమం" : "Favorable"}</div>
+      <div class="label" data-en="Medium" data-te="మధ్యమ ముహూర్తములు">${currentLang === "te" ? "మధ్యమ ముహూర్తములు" : "Medium"}</div>
     </div>
     <div class="summary-stat">
       <div class="num num--unfavorable">${unfavorable}</div>
-      <div class="label" data-en="Unfavorable" data-te="అశుభం">${currentLang === "te" ? "అశుభం" : "Unfavorable"}</div>
+      <div class="label" data-en="Avoid" data-te="నిషిద్ధములు">${currentLang === "te" ? "నిషిద్ధములు" : "Avoid"}</div>
     </div>
     <div class="summary-stat">
-      <div class="num num--muhurta">${withMuhurta}</div>
-      <div class="label" data-en="With Muhurta" data-te="ముహూర్తంతో">${currentLang === "te" ? "ముహూర్తంతో" : "With Muhurta"}</div>
+      <div class="num num--muhurta">${results.length}</div>
+      <div class="label" data-en="Total Evaluated" data-te="మొత్తం ముహూర్తములు">${currentLang === "te" ? "మొత్తం ముహూర్తములు" : "Total Evaluated"}</div>
     </div>
   `;
 
@@ -188,21 +507,36 @@ function renderResults(data) {
   const grid = el("dayGrid");
   grid.innerHTML = "";
 
+  if (results.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state" style="padding: 40px 20px; text-align: center; color: #888; background: #fff; border-radius: 8px; border: 1px dashed #ddd; width: 100%;">
+        <p style="font-size: 16px; margin: 0;">
+          ${currentLang === "te"
+            ? `ఎంచుకున్న ${data.days_scanned || 30} రోజులలో ఈ కార్యమునకు శాస్త్రోక్తమైన శుభ ముహూర్తములు లభించలేదు. దయచేసి శోధన రోజులు పెంచి లేదా ఇతర తేదీలను ఎంచుకోండి.`
+            : `No auspicious muhurtas found in the ${data.days_scanned || 30} days scanned. Try expanding the date range.`}
+        </p>
+      </div>`;
+    return;
+  }
+
   results.forEach((r, idx) => {
     const vaaraTe = VAARA_NAMES[currentLang][r.panchang?.vaara] || r.panchang?.vaara || "—";
-    const nakTe = te(r.panchang?.nakshatra || "", NAKSHATRA_NAMES_TE);
+    const nakTe = te(r.panchang?.nakshatra || "", NAKSHATRA_NAMES_TE) || r.panchang?.nakshatra || "—";
     const tithiRaw = r.panchang?.tithi || "—";
     const tName = tithiRaw.split(" ")[0];
     const pName = tithiRaw.includes("Shukla") ? "Shukla" : "Krishna";
-    const tithiTe = currentLang === "te" ? `${te(tName, TITHI_NAMES_TE)} (${PAKSHA_NAMES.te[pName] || pName})` : tithiRaw;
+    const tithiTe = currentLang === "te" ? `${te(tName, TITHI_NAMES_TE) || tName} (${PAKSHA_NAMES.te[pName] || pName})` : tithiRaw;
 
-    const verdictClass = r.verdict || "error";
+    const pct = r.percentage || 70;
+    const isAvoid = pct < 50;
+    const isGood = pct >= 75;
+    const verdictClass = isAvoid ? "unfavorable" : (isGood ? "highly_favorable" : "favorable");
     const verdictText = currentLang === "te" ?
-      (r.verdict === "highly_favorable" ? "ఉత్తమ ముహూర్తం" : (r.verdict === "favorable" ? "మధ్యమ ముహూర్తం" : "అశుభం")) :
-      (r.verdict === "highly_favorable" ? "Excellent" : (r.verdict === "favorable" ? "Favorable" : "Unfavorable"));
+      (isAvoid ? "నిషిద్ధం" : (isGood ? "ఉత్తమ ముహూర్తం" : "మధ్యమ ముహూర్తం")) :
+      (isAvoid ? "Avoid" : (isGood ? "Excellent" : "Medium"));
 
-    const dateObj = new Date(r.date + "T00:00:00");
-    const dayName = dateObj.toLocaleDateString("en-US", { weekday: "short" });
+    const windowTimeStr = r.window_start ? `${r.window_start} – ${r.window_end}` : (r.start_time ? `${r.start_time} – ${r.end_time}` : "");
+    const lagnaLabel = currentLang === "te" ? (r.lagna_te || r.lagna_en || "") : (r.lagna_en || "");
 
     // Eval dots
     const d = r.detailed_eval;
@@ -212,13 +546,13 @@ function renderResults(data) {
         { label: currentLang === "te" ? "వారం" : "Vaara", pass: d.vaara?.is_pass },
         { label: currentLang === "te" ? "తిథి" : "Tithi", pass: d.tithi?.is_pass },
         { label: currentLang === "te" ? "నక్షత్రం" : "Nak", pass: d.nakshatra?.is_pass },
-        { label: currentLang === "te" ? "యోగం" : "Yoga", pass: d.yoga?.is_pass },
-        { label: currentLang === "te" ? "కరణం" : "Karana", pass: d.karana?.is_pass },
         { label: currentLang === "te" ? "అష్టమ శుద్ధి" : "8th", pass: d.ashtama_shuddhi?.has_shuddhi },
-        { label: currentLang === "te" ? "లగ్న శుద్ధి" : "Lagna", pass: d.lagna_shuddhi?.has_shuddhi },
       ];
+      if (d.lagna?.is_pushkara_navamsa) {
+        checks.push({ label: currentLang === "te" ? "పుష్కర నవాంశ" : "P.Nav", pass: true });
+      }
       if (d.tara) {
-        checks.push({ label: currentLang === "te" ? "తార" : "Tara", pass: d.tara?.is_pass });
+        checks.push({ label: currentLang === "te" ? "తారాబలం" : "Tara", pass: d.tara?.is_pass });
       }
       if (d.chandrabalam) {
         checks.push({ label: currentLang === "te" ? "చంద్రబలం" : "Chandra", pass: d.chandrabalam?.is_pass });
@@ -226,48 +560,61 @@ function renderResults(data) {
       if (d.panchaka) {
         checks.push({ label: currentLang === "te" ? "పంచకం" : "Panchaka", pass: d.panchaka?.is_pass });
       }
-      dotsHtml = `<div class="eval-dots">${checks.map(c =>
+      dotsHtml = `<div class="eval-dots" style="margin-top: 8px;">${checks.map(c =>
         `<span class="eval-dot ${c.pass ? 'pass' : 'fail'}">${c.pass ? '✓' : '✕'} ${c.label}</span>`
       ).join("")}</div>`;
     }
 
-    // Pushkara mini card
+    // Pushkara Box
     let pushMini = "";
     if (r.pushkara_info) {
       const pi = r.pushkara_info;
       const stmt = currentLang === "te" ? pi.statement_te : pi.statement_en;
-
       pushMini = `
-        <div class="pushkara-mini">
+        <div class="pushkara-mini" style="margin-top: 10px;">
           <strong>⏰ ${stmt}</strong>
-          <div class="pushkara-mini__details">
-            🏛️ ${currentLang === "te" ? "లగ్నాంతాలు:" : "Lagna:"} ${pi.lagna_duration || "—"}
-            ${pi.pushkara_bhaga?.is_available ? `<br>📌 ${currentLang === "te" ? "పుష్కర భాగం:" : "P. Bhaga:"} ${pi.pushkara_bhaga.precise_time}` : ""}
-            ${pi.pushkara_navamsha?.is_available ? `<br>📌 ${currentLang === "te" ? "పుష్కర నవాంశ:" : "P. Nav:"} ${pi.pushkara_navamsha.precise_time}` : ""}
+          <div class="pushkara-mini__details" style="font-size: 12px; margin-top: 4px; color: #555;">
+            ${windowTimeStr ? `🏛️ <strong>${currentLang === "te" ? "శుభ ముహూర్త వ్యవధి:" : "Muhurtha Window:"}</strong> ${windowTimeStr} (${lagnaLabel} లగ్నం)` : ""}
+            ${pi.pushkara_bhaga?.is_available ? `<br>📌 <strong>${currentLang === "te" ? "పుష్కర భాగం:" : "P. Bhaga:"}</strong> ${pi.pushkara_bhaga.precise_time} (${pi.pushkara_bhaga.time_window})` : ""}
+            ${pi.pushkara_navamsha?.is_available ? `<br>📌 <strong>${currentLang === "te" ? "పుష్కర నవాంశ:" : "P. Navamsha:"}</strong> ${pi.pushkara_navamsha.precise_time}` : ""}
           </div>
         </div>`;
     }
 
+    // Reasons chips
+    let reasonsHtml = "";
+    if (r.reasons && r.reasons.length > 0) {
+      reasonsHtml = `<ul class="activity-reasons" style="margin-top: 8px; font-size: 12px; color: #444; line-height: 1.5;">${r.reasons.slice(0, 4).map(re => `<li>${re}</li>`).join("")}</ul>`;
+    }
+
+    // Special yogas
+    let yogasHtml = "";
+    if (r.special_yogas && r.special_yogas.length > 0) {
+      yogasHtml = `<div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px;">${r.special_yogas.map(y => `<span class="rule-chip" style="background:#fef7e0; color:#b06000; font-size:11px;">✨ ${currentLang === 'te' ? y.name_te : y.name_en}</span>`).join("")}</div>`;
+    }
+
     grid.innerHTML += `
-      <div class="day-card ${verdictClass}" onclick="openDayModal(${idx})">
+      <div class="day-card ${verdictClass}" onclick="openDayModal(${idx})" style="cursor: pointer; margin-bottom: 16px;">
         <div class="day-header">
           <div>
-            <div class="day-date">${r.date} · ${currentLang === "te" ? vaaraTe : dayName}</div>
-            <div class="day-vaara">${currentLang === "te" ? `రోజు ${r.day_offset}` : `Day ${r.day_offset}`}</div>
+            <div class="day-date" style="font-size: 16px; font-weight: 700;">${r.date} · ${vaaraTe}</div>
+            <div class="day-vaara" style="font-size: 13px; color: #777;">
+              ${r.panchang?.chandramana ? `🪔 ${r.panchang.chandramana.month_name || ''} · ${tithiTe}` : tithiTe} · ${nakTe}
+            </div>
           </div>
           <div class="day-right">
-            <span class="verdict-badge ${verdictClass}">${verdictText}</span>
-            <div class="day-percentage">${r.percentage}%</div>
+            <span class="verdict-badge ${verdictClass}">${pct}% · ${verdictText}</span>
           </div>
         </div>
-        <div class="day-panchang">
-          <div><strong>${currentLang === "te" ? "తిథి:" : "Tithi:"}</strong> ${tithiTe}</div>
-          <div><strong>${currentLang === "te" ? "నక్షత్రం:" : "Nak:"}</strong> ${nakTe}</div>
-          <div><strong>${currentLang === "te" ? "యోగం:" : "Yoga:"}</strong> ${r.panchang?.yoga || "—"}</div>
-          <div><strong>${currentLang === "te" ? "కరణం:" : "Karana:"}</strong> ${r.panchang?.karana || "—"}</div>
-        </div>
-        ${dotsHtml}
         ${pushMini}
+        ${dotsHtml}
+        ${yogasHtml}
+        ${reasonsHtml}
+        <div style="margin-top: 12px; text-align: right;">
+          <button type="button" onclick="event.stopPropagation(); openDayModal(${idx})" class="btn btn--primary btn--sm" style="font-size: 12px; padding: 6px 14px;">
+            🔍 ${currentLang === "te" ? "సమగ్ర విశ్లేషణ & D1 చక్రం చూడండి ➔" : "View Full Analysis & D1 Chart Popup ➔"}
+          </button>
+        </div>
       </div>
     `;
   });
@@ -715,4 +1062,8 @@ el("mfSearchPlaceBtn").addEventListener("click", findMuhurtas);
 attachRegionToggle("mfRegionSelect", "mfCustomPlaceField", "mfCustomPlaceInput");
 attachPlaceAutocomplete("mfCustomPlaceInput", "mfSuggestionsList", findMuhurtas);
 
+populateAllNakshatraDropdowns();
+populateActivityDropdown();
+updateContextualFields();
 loadRegions();
+loadMuhurtaCatalog();

@@ -1,0 +1,24 @@
+id: borrowing_money
+category: general
+title_en: Borrowing Money / Taking Loans
+title_te: రుణం గ్రహించుట (అప్పు చేయుట)
+source:
+  part: 7
+  section: ఋణ స్వీకార నియమములు
+  page: Part 7, Sec 5
+hard_filters:
+  vaara_exclude:
+  - saturday
+  - tuesday
+  nakshatra_exclude:
+  - krittika
+  - punarvasu
+  - mula
+  - dhanishta
+  house_rules:
+  - house: 8
+    planets: none
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    monday: 2

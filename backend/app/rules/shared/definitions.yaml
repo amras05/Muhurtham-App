@@ -1,0 +1,54 @@
+# Shared Vedic Astrology Groupings referenced by Muhurta rules
+# Source: Dr. Vamsee Nemani's Muhurta Shastra (Chapter 1 & 2)
+
+nakshatra_groups:
+  dhruva_sthira:
+    description: "Fixed / Constant stars (ideal for coronation, planting, foundation, griha pravesha)"
+    stars: [rohini, uttara_phalguni, uttara_ashadha, uttara_bhadrapada]
+  chara_chala:
+    description: "Movable stars (ideal for travel, vehicle purchase, gardening)"
+    stars: [punarvasu, svati, shravana, dhanishta, shatabhisha]
+  ugra_krura:
+    description: "Fierce stars (ideal for surgery, demolition, battle, arms)"
+    stars: [bharani, magha, purva_phalguni, purva_ashadha, purva_bhadrapada]
+  mishra_sadharana:
+    description: "Mixed stars (ideal for ceremonies, fire rituals, buying tools)"
+    stars: [krittika, vishakha]
+  kshipra_laghu:
+    description: "Swift stars (ideal for trade, medicine, learning, jewelry)"
+    stars: [ashwini, pushya, hasta, abhijit]
+  mridu_maitra:
+    description: "Soft / Tender stars (ideal for marriage, fine arts, new clothes, love)"
+    stars: [mrigashira, chitta, anuradha, revati]
+  tikshna_daruna:
+    description: "Sharp / Dreadful stars (ideal for exorcism, legal fights, separation)"
+    stars: [ardra, ashlesha, jyeshtha, mula]
+
+lagna_types:
+  chara:
+    description: "Movable signs"
+    signs: [mesha, karkataka, tula, makara]
+  sthira:
+    description: "Fixed signs (recommended for permanent structures, griha, marriage)"
+    signs: [vrishabha, simha, vrishchika, kumbha]
+  dvisvabhava:
+    description: "Common / Dual signs (recommended for study, trade, worship)"
+    signs: [mithuna, kanya, dhanus, meena]
+
+tithi_types:
+  nanda:
+    description: "Happiness / Prosperity (1, 6, 11)"
+    numbers: [1, 6, 11]
+  bhadra:
+    description: "Good / Auspicious (2, 7, 12)"
+    numbers: [2, 7, 12]
+  jaya:
+    description: "Victory / Success (3, 8, 13)"
+    numbers: [3, 8, 13]
+  rikta:
+    description: "Empty / Void (Avoid for auspicious work) (4, 9, 14)"
+    numbers: [4, 9, 14]
+  purna:
+    description: "Full / Complete (5, 10, 15, 30)"
+    numbers: [5, 10, 15, 30]
+

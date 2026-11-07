@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Muhurtham App — Hetzner Server Bootstrap Script (Native, Non-Docker)
+# Muhurtham App — Hetzner Server Bootstrap Script (Native, Non-Docker, Team-Ready)
 # ==============================================================================
 set -euo pipefail
 
@@ -11,6 +11,7 @@ apt update && apt install -y \
     python3-pip \
     git \
     curl \
+    sudo \
     debian-keyring \
     debian-archive-keyring \
     apt-transport-https
@@ -23,29 +24,55 @@ if ! command -v caddy &> /dev/null; then
     apt update && apt install -y caddy
 fi
 
-echo "==> 2. Setting up project directories..."
+echo "==> 2. Creating dedicated 'deploy' system user (Security best practice)..."
+if ! id -u deploy > /dev/null 2>&1; then
+    useradd -m -s /bin/bash deploy
+    mkdir -p /home/deploy/.ssh
+    chmod 700 /home/deploy/.ssh
+    touch /home/deploy/.ssh/authorized_keys
+    chmod 600 /home/deploy/.ssh/authorized_keys
+    chown -R deploy:deploy /home/deploy/.ssh
+    echo "==> User 'deploy' created."
+fi
+
+# Configure restricted sudo permissions for 'deploy' user (least-privilege)
+cat << 'EOF' > /etc/sudoers.d/deploy
+# Allow deploy user to manage only the muhurtham service and caddy without password
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl restart muhurtham, /bin/systemctl reload caddy, /bin/systemctl daemon-reload, /bin/cp deploy/muhurtham.service /etc/systemd/system/muhurtham.service, /bin/cp deploy/Caddyfile /etc/caddy/Caddyfile, /usr/bin/journalctl -u muhurtham *
+EOF
+chmod 440 /etc/sudoers.d/deploy
+
+echo "==> 3. Setting up project directories..."
 APP_DIR="/var/www/muhurtham"
 mkdir -p "$APP_DIR"
+
+# Ensure deploy user owns the app directory
+chown -R deploy:deploy "$APP_DIR"
 cd "$APP_DIR"
 
 if [ ! -d ".venv" ]; then
     echo "==> Creating Python 3 virtual environment..."
-    python3 -m venv .venv
+    sudo -u deploy python3 -m venv .venv
 fi
 
-echo "==> 3. Installing Python dependencies..."
-source .venv/bin/activate
-pip install --upgrade pip
-if [ -f "backend/requirements.txt" ]; then
-    pip install -r backend/requirements.txt
-fi
+echo "==> 4. Installing Python dependencies..."
+sudo -u deploy bash -c "
+    source .venv/bin/activate
+    pip install --upgrade pip
+    if [ -f 'backend/requirements.txt' ]; then
+        pip install -r backend/requirements.txt
+    fi
+"
 
-echo "==> 4. Installing Swiss Ephemeris data files..."
+echo "==> 5. Installing Swiss Ephemeris data files..."
 if [ -f "backend/install_ephemeris.sh" ]; then
-    bash backend/install_ephemeris.sh
+    sudo -u deploy bash -c "
+        source .venv/bin/activate
+        bash backend/install_ephemeris.sh
+    "
 fi
 
-echo "==> 5. Setting up systemd service..."
+echo "==> 6. Setting up systemd service..."
 if [ -f "deploy/muhurtham.service" ]; then
     cp deploy/muhurtham.service /etc/systemd/system/muhurtham.service
     systemctl daemon-reload
@@ -54,14 +81,16 @@ if [ -f "deploy/muhurtham.service" ]; then
     echo "==> muhurtham.service started and enabled!"
 fi
 
-echo "==> 6. Setting up Caddy reverse proxy..."
+echo "==> 7. Setting up Caddy reverse proxy..."
 if [ -f "deploy/Caddyfile" ]; then
     cp deploy/Caddyfile /etc/caddy/Caddyfile
     systemctl reload caddy
 fi
 
 echo "=============================================================================="
-echo " Setup complete! Verify with: systemctl status muhurtham"
-echo " Health check: curl http://127.0.0.1:8000/health"
+echo " Setup complete!"
+echo " IMPORTANT for Team CI/CD:"
+echo " 1. Copy your GitHub Actions deploy SSH public key to: /home/deploy/.ssh/authorized_keys"
+echo " 2. Verify service with: systemctl status muhurtham"
+echo " 3. Verify health with:  curl http://127.0.0.1:8000/health"
 echo "=============================================================================="
-

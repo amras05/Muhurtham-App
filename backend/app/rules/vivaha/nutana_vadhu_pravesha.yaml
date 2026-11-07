@@ -1,0 +1,40 @@
+id: nutana_vadhu_pravesha
+category: vivaha
+title_en: Nutana Vadhu Griha Pravesha
+title_te: నూతన వధూ గృహప్రవేశము
+source:
+  part: 5
+  section: వధూ ప్రవేశము
+  page: Part 5, Sec 2
+hard_filters:
+  vaara_exclude:
+  - tuesday
+  - sunday
+  tithi_exclude:
+  - amavasya
+  - rikta
+  nakshatra_allow:
+  - rohini
+  - mrigashira
+  - magha
+  - uttara_phalguni
+  - hasta
+  - chitta
+  - swati
+  - anuradha
+  - mula
+  - uttara_ashadha
+  - shravana
+  - dhanishta
+  - uttara_bhadrapada
+  - revati
+  lagna_types:
+  - sthira
+  house_rules:
+  - house: 8
+    planets: none
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    friday: 4
+    monday: 3

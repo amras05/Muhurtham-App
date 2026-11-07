@@ -1,0 +1,71 @@
+id: upanayana
+category: samskaras
+title_en: "Upanayana (Sacred Thread Ceremony)"
+title_te: "ఉపనయనము (వటువు బ్రహ్మోపదేశము)"
+source:
+  part: 5
+  section: "ఉపనయన కాల నిర్ణయము"
+  page: "Part 5, Section 1"
+  notes: "Sacred thread investiture. Uttarayana daytime only. Ashtama Shuddhi strictly required."
+
+inputs:
+  required: [location, date_range]
+  optional: [janma_nakshatra, janma_rashi]
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    dashavidha_10: true
+    panchaka_rahita: true
+    avoid_rahu_kalam: true
+    avoid_yamagandam: true
+    avoid_varjyam: true
+    avoid_durmuhurta: true
+
+  vaara_exclude: [tuesday, saturday]
+  tithi_exclude: [rikta, amavasya, krishna_chaturdashi, shashti, ashtami]
+  karana_exclude: [vishti, bhadra]
+
+  nakshatra_allow:
+    - ashwini
+    - rohini
+    - mrigashira
+    - ardra
+    - punarvasu
+    - pushya
+    - uttara_phalguni
+    - hasta
+    - chitta
+    - swati
+    - anuradha
+    - jyeshtha
+    - mula
+    - uttara_ashadha
+    - shravana
+    - dhanishta
+    - shatabhisha
+    - uttara_bhadrapada
+    - revati
+
+  lagna_types: [chara, sthira, dvisvabhava]
+  lagna_exclude: [karkataka] # Often avoided
+
+  house_rules:
+    - house: 8
+      planets: none # 8th house strictly vacant
+    - house: 1
+      planets: no_malefics
+
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    wednesday: 4
+    friday: 3
+    sunday: 2
+  lagna_weights:
+    vrishabha: 3
+    mithuna: 3
+    kanya: 3
+    dhanus: 3
+    meena: 3
+

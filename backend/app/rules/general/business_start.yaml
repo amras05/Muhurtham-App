@@ -1,0 +1,63 @@
+id: business_start
+category: general
+title_en: "Business Opening & Commercial Start"
+title_te: "నూతన వ్యాపారారంభము"
+source:
+  part: 7
+  section: "వ్యాపారారంభమునకు శుభ ముహూర్తములు"
+  page: "Part 7, Section 3"
+  notes: "Opening a new business or store. Fixed or dual lagnas preferred for steady growth."
+
+inputs:
+  required: [location, date_range]
+  optional: [janma_nakshatra]
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+    avoid_rahu_kalam: true
+    avoid_yamagandam: true
+    avoid_varjyam: true
+    avoid_durmuhurta: true
+
+  vaara_exclude: [tuesday]
+  tithi_exclude: [rikta, amavasya]
+  karana_exclude: [vishti, bhadra]
+
+  nakshatra_allow:
+    - ashwini
+    - rohini
+    - mrigashira
+    - pushya
+    - uttara_phalguni
+    - hasta
+    - chitta
+    - anuradha
+    - uttara_ashadha
+    - shravana
+    - dhanishta
+    - shatabhisha
+    - uttara_bhadrapada
+    - revati
+
+  lagna_types: [sthira, dvisvabhava]
+
+  house_rules:
+    - house: 8
+      planets: none
+    - house: [10, 11]
+      planets: shubha_preferred
+
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    wednesday: 4
+    friday: 3
+    monday: 2
+  lagna_weights:
+    vrishabha: 3
+    mithuna: 3
+    kanya: 3
+    kumbha: 2
+

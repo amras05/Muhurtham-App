@@ -1,0 +1,38 @@
+id: adoption
+category: general
+title_en: Child Adoption
+title_te: దత్తత స్వీకారము
+source:
+  part: 7
+  section: దత్తపుత్ర స్వీకారము
+  page: Part 7, Sec 4
+hard_filters:
+  vaara_allow:
+  - sunday
+  - thursday
+  - friday
+  tithi_numbers_both_paksha:
+  - 1
+  - 2
+  - 3
+  - 5
+  - 7
+  - 10
+  - 11
+  - 13
+  nakshatra_allow:
+  - ashwini
+  - pushya
+  - hasta
+  - chitta
+  - swati
+  - vishakha
+  - anuradha
+  - dhanishta
+  house_rules:
+  - house: 8
+    planets: none
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    friday: 3

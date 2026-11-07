@@ -1,0 +1,43 @@
+id: annaprashana
+category: samskaras
+title_en: Annaprashana (First Feeding)
+title_te: అన్నప్రాశన సంస్కారము
+source:
+  part: 3
+  section: అన్నప్రాశన నిర్ణయము
+  page: Part 3, Sec 3
+hard_filters:
+  vaara_allow:
+  - monday
+  - wednesday
+  - thursday
+  - friday
+  tithi_exclude:
+  - rikta
+  - amavasya
+  - nanda
+  nakshatra_allow:
+  - ashwini
+  - rohini
+  - mrigashira
+  - punarvasu
+  - pushya
+  - uttara_phalguni
+  - hasta
+  - chitta
+  - swati
+  - anuradha
+  - shravana
+  - dhanishta
+  - shatabhisha
+  - uttara_bhadrapada
+  - revati
+  house_rules:
+  - house: 8
+    planets: none
+  - house: 1
+    planets: no_malefics
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    friday: 4

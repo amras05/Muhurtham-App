@@ -6,6 +6,11 @@ on:
       - main
   workflow_dispatch:
 
+# Ensure team pushes are deployed sequentially without race conditions
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -14,16 +19,17 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HETZNER_HOST }}
-          username: ${{ secrets.HETZNER_USER || 'root' }}
+          username: ${{ secrets.HETZNER_USER || 'deploy' }}
           key: ${{ secrets.HETZNER_SSH_KEY }}
           port: ${{ secrets.HETZNER_PORT || 22 }}
           script_stop: true
           script: |
-            echo "==> Deploying Muhurtham App to Hetzner..."
+            echo "==> Deploying commit ${{ github.sha }} by ${{ github.actor }}..."
             cd /var/www/muhurtham
             
-            # 1. Pull latest code
-            git pull origin main
+            # 1. Fetch and align to latest main cleanly without merge conflicts
+            git fetch origin main
+            git reset --hard origin/main
             
             # 2. Update dependencies in native virtual environment
             source .venv/bin/activate
@@ -34,20 +40,25 @@ jobs:
             bash backend/install_ephemeris.sh
             
             # 4. Update systemd service definition if changed
-            cp deploy/muhurtham.service /etc/systemd/system/muhurtham.service
-            systemctl daemon-reload
+            sudo cp deploy/muhurtham.service /etc/systemd/system/muhurtham.service
+            sudo systemctl daemon-reload
             
             # 5. Reload reverse proxy config if changed
-            if [ -f "/etc/caddy/Caddyfile" ]; then
-              cp deploy/Caddyfile /etc/caddy/Caddyfile
-              systemctl reload caddy || true
+            if [ -f "deploy/Caddyfile" ]; then
+              sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
+              sudo systemctl reload caddy || true
             fi
             
             # 6. Restart the application service
-            systemctl restart muhurtham
+            sudo systemctl restart muhurtham
             
-            # 7. Verify health
+            # 7. Verify health endpoint
             sleep 2
-            curl -f http://127.0.0.1:8000/health || (echo "Health check failed!" && exit 1)
-            echo "==> Deployment successful!"
-
+            if curl -f http://127.0.0.1:8000/health; then
+              echo ""
+              echo "==> [SUCCESS] Deployment healthy! Commit ${{ github.sha }} is live."
+            else
+              echo "==> [ERROR] Health check failed after deployment!"
+              sudo journalctl -u muhurtham -n 30 --no-pager
+              exit 1
+            fi

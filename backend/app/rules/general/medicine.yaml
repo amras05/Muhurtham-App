@@ -1,0 +1,45 @@
+id: medicine
+category: general
+title_en: Taking Medicine & Treatment
+title_te: ఔషధ సేవన (చికిత్సారంభము)
+source:
+  part: 7
+  section: ఔషధ సేవనకు ముహూర్తములు
+  page: Part 7, Sec 1
+hard_filters:
+  vaara_allow:
+  - monday
+  - wednesday
+  - thursday
+  - friday
+  - sunday
+  tithi_exclude:
+  - rikta
+  - amavasya
+  nakshatra_allow:
+  - mrigashira
+  - punarvasu
+  - pushya
+  - ashlesha
+  - hasta
+  - chitta
+  - swati
+  - anuradha
+  - mula
+  - shravana
+  - dhanishta
+  - shatabhisha
+  - revati
+  lagna_types:
+  - dvisvabhava
+  house_rules:
+  - house:
+    - 7
+    - 8
+    - 12
+    planets: none
+soft_scoring:
+  vaara_weights:
+    thursday: 3
+    wednesday: 3
+    monday: 2

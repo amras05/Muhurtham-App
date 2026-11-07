@@ -1,0 +1,33 @@
+id: will_writing
+category: general
+title_en: Writing a Legal Will
+title_te: వీలునామా రచన
+source:
+  part: 7
+  section: వీలునామా నియమములు
+  page: Part 7, Sec 6
+hard_filters:
+  vaara_exclude:
+  - tuesday
+  - friday
+  tithi_numbers_both_paksha:
+  - 2
+  - 3
+  - 5
+  - 7
+  - 10
+  - 11
+  - 13
+  nakshatra_allow:
+  - pushya
+  - purva_phalguni
+  - anuradha
+  lagna_types:
+  - sthira
+  house_rules:
+  - house: 8
+    planets: none
+soft_scoring:
+  vaara_weights:
+    thursday: 3
+    wednesday: 3

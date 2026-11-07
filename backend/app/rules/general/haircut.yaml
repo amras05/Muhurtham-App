@@ -1,0 +1,37 @@
+id: haircut
+category: general
+title_en: Haircut & Shaving (Kshaura Karma)
+title_te: క్షురకర్మ / కేశఖండనము
+source:
+  part: 7
+  section: క్షురకర్మ నిషేధములు
+  page: Part 7, Sec 5
+hard_filters:
+  vaara_allow:
+  - monday
+  - wednesday
+  vaara_exclude:
+  - tuesday
+  - friday
+  - saturday
+  tithi_exclude:
+  - amavasya
+  - purnima
+  - rikta
+  nakshatra_allow:
+  - ashwini
+  - mrigashira
+  - punarvasu
+  - pushya
+  - hasta
+  - chitta
+  - swati
+  - jyeshtha
+  - shravana
+  - dhanishta
+  - shatabhisha
+  - revati
+soft_scoring:
+  vaara_weights:
+    wednesday: 4
+    monday: 3

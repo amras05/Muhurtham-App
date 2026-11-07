@@ -104,6 +104,9 @@ function setLang(lang) {
   if (typeof currentNamakaranaData !== "undefined" && currentNamakaranaData && typeof renderNamakarana === "function") {
     renderNamakarana(currentNamakaranaData);
   }
+  if (typeof populateActivityDropdown === "function") {
+    populateActivityDropdown();
+  }
 }
 
 let lastPanchang = null;

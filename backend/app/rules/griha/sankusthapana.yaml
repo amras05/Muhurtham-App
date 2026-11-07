@@ -1,0 +1,56 @@
+id: sankusthapana
+category: griha
+title_en: "Sankusthapana (Foundation Stone Laying)"
+title_te: "శంకుస్థాపన (గృహారంభము)"
+source:
+  part: 6
+  section: "శంకుస్థాపన నియమములు"
+  page: "Part 6, Section 2"
+  notes: "Laying the foundation stone. Sthira rasis mandatory. Avoid Rikta and Amavasya."
+
+inputs:
+  required: [location, date_range]
+  optional: [janma_nakshatra]
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+    avoid_rahu_kalam: true
+    avoid_yamagandam: true
+    avoid_varjyam: true
+    avoid_durmuhurta: true
+
+  vaara_exclude: [tuesday, sunday]
+  tithi_exclude: [rikta, amavasya]
+  karana_exclude: [vishti, bhadra]
+
+  nakshatra_allow:
+    - rohini
+    - mrigashira
+    - chitta
+    - swati
+    - anuradha
+    - uttara_phalguni
+    - uttara_ashadha
+    - uttara_bhadrapada
+    - hasta
+    - revati
+
+  lagna_types: [sthira]
+
+  house_rules:
+    - house: 8
+      planets: none
+    - house: 1
+      planets: no_malefics
+
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    friday: 3
+    monday: 3
+  lagna_weights:
+    vrishabha: 3
+    simha: 3
+

@@ -1,0 +1,56 @@
+id: prayana
+category: travel
+title_en: "Prayana (Travel & Journey)"
+title_te: "ప్రయాణము (దేశాంతర గమనము)"
+source:
+  part: 5
+  section: "ప్రయాణ ప్రకరణము"
+  page: "Part 5, Section 4"
+  notes: "Rules for long distance travel, foreign trips, and auspicious journeys. Chara lagnas preferred. Varashula and directional rules apply."
+
+inputs:
+  required: [location, date_range]
+  optional: [janma_nakshatra]
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+    avoid_rahu_kalam: true
+    avoid_yamagandam: true
+    avoid_varjyam: true
+    avoid_durmuhurta: true
+
+  vaara_exclude: [tuesday] # Avoid Tuesday travel (Kuja Shula)
+  tithi_exclude: [rikta, amavasya]
+  karana_exclude: [vishti, bhadra]
+
+  nakshatra_allow:
+    - ashwini
+    - mrigashira
+    - punarvasu
+    - pushya
+    - hasta
+    - anuradha
+    - shravana
+    - dhanishta
+    - revati
+
+  lagna_types: [chara] # Movable signs favored for travel
+
+  house_rules:
+    - house: 8
+      planets: none
+
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    friday: 4
+    wednesday: 3
+    monday: 2
+  lagna_weights:
+    mesha: 3
+    karkataka: 3
+    tula: 3
+    makara: 3
+

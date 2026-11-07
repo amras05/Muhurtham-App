@@ -1,0 +1,43 @@
+id: inheritance_division
+category: general
+title_en: Division of Inherited Property
+title_te: వారసత్వ ఆస్తుల పంపకము
+source:
+  part: 7
+  section: భాగ పరిష్కారము
+  page: Part 7, Sec 4
+hard_filters:
+  vaara_exclude:
+  - tuesday
+  - saturday
+  tithi_numbers_both_paksha:
+  - 2
+  - 3
+  - 5
+  - 7
+  - 10
+  - 11
+  - 13
+  nakshatra_allow:
+  - ashwini
+  - rohini
+  - mrigashira
+  - punarvasu
+  - pushya
+  - uttara_phalguni
+  - hasta
+  - chitta
+  - swati
+  - uttara_ashadha
+  - shravana
+  - dhanishta
+  - shatabhisha
+  - uttara_bhadrapada
+  - revati
+  house_rules:
+  - house: 8
+    planets: none
+soft_scoring:
+  vaara_weights:
+    thursday: 3
+    friday: 3

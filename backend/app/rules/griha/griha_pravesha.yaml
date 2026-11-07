@@ -1,0 +1,61 @@
+id: griha_pravesha
+category: griha
+title_en: "Griha Pravesha (House Warming - New House)"
+title_te: "నూతన గృహప్రవేశము"
+source:
+  part: 6
+  section: "గృహప్రవేశమునకు నక్షత్రములు మరియు లగ్న నియమములు"
+  page: "Part 6, Section 1"
+  notes: "Applies to newly constructed houses. Sthira lagnas preferred. Ashtama Shuddhi mandatory."
+
+inputs:
+  required: [location, date_range]
+  optional: [janma_nakshatra, janma_rashi]
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    dashavidha_10: false
+    panchaka_rahita: true
+    avoid_rahu_kalam: true
+    avoid_yamagandam: true
+    avoid_gulika: false
+    avoid_varjyam: true
+    avoid_durmuhurta: true
+
+  vaara_exclude: [tuesday, sunday]
+  tithi_exclude: [rikta, amavasya, krishna_chaturdashi]
+  karana_exclude: [vishti, bhadra]
+
+  nakshatra_allow:
+    - rohini
+    - mrigashira
+    - chitta
+    - anuradha
+    - revati
+    - uttara_phalguni
+    - uttara_ashadha
+    - uttara_bhadrapada
+    - dhanishta
+    - shatabhisha
+
+  lagna_types: [sthira]
+  lagna_exclude: [kumbha] # Kumbha is often avoided for new house entry
+
+  house_rules:
+    - house: 8
+      planets: none # Ashtama Shuddhi: 8th house must have 0 planets
+    - house: [3, 6, 11]
+      planets: papa_allowed # Malefics in Upachaya are auspicious
+
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    friday: 4
+    monday: 3
+    wednesday: 3
+  lagna_weights:
+    vrishabha: 3
+    simha: 3
+    vrishchika: 2
+

@@ -1,0 +1,45 @@
+id: buying_vehicles
+category: general
+title_en: Buying Vehicles (Vahana Kraya)
+title_te: నూతన వాహన కొనుగోలు
+source:
+  part: 7
+  section: వాహన కొనుగోలు కాలము
+  page: Part 7, Sec 6
+hard_filters:
+  vaara_allow:
+  - monday
+  - wednesday
+  - thursday
+  - friday
+  - sunday
+  vaara_exclude:
+  - tuesday
+  - saturday
+  tithi_exclude:
+  - amavasya
+  - rikta
+  nakshatra_allow:
+  - ashwini
+  - mrigashira
+  - punarvasu
+  - pushya
+  - hasta
+  - chitta
+  - swati
+  - anuradha
+  - shravana
+  - dhanishta
+  - shatabhisha
+  - revati
+  lagna_types:
+  - chara
+  house_rules:
+  - house: 4
+    planets: no_malefics
+  - house: 8
+    planets: none
+soft_scoring:
+  vaara_weights:
+    friday: 4
+    thursday: 3

@@ -1,0 +1,39 @@
+id: invitation_printing
+category: vivaha
+title_en: Lagna Patrika & Invitation Printing
+title_te: లగ్నపత్రిక రచన / శుభలేఖల ముద్రణ
+source:
+  part: 5
+  section: లగ్నపత్రికా రచన
+  page: Part 5, Sec 2
+hard_filters:
+  vaara_allow:
+  - monday
+  - wednesday
+  - thursday
+  - friday
+  tithi_exclude:
+  - rikta
+  - amavasya
+  nakshatra_allow:
+  - ashwini
+  - rohini
+  - mrigashira
+  - pushya
+  - uttara_phalguni
+  - hasta
+  - chitta
+  - swati
+  - anuradha
+  - uttara_ashadha
+  - shravana
+  - dhanishta
+  - uttara_bhadrapada
+  - revati
+  house_rules:
+  - house: 8
+    planets: none
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    friday: 4

@@ -1,0 +1,66 @@
+id: vivaha
+category: vivaha
+title_en: "Vivaha (Wedding Muhurtham)"
+title_te: "వివాహ మహోత్సవము"
+source:
+  part: 5
+  section: "వివాహ ప్రకరణము"
+  page: "Part 5, Section 2"
+  notes: "The royal samskara. Godhuli, Abhijit, and auspicious lagnas. Ashtama Shuddhi strictly required."
+
+inputs:
+  required: [location, date_range]
+  optional: [janma_nakshatra, janma_rashi]
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    dashavidha_10: true
+    panchaka_rahita: true
+    avoid_rahu_kalam: true
+    avoid_yamagandam: true
+    avoid_varjyam: true
+    avoid_durmuhurta: true
+
+  vaara_exclude: [tuesday] # Kuja vara strictly avoided for wedding
+  tithi_exclude: [rikta, amavasya, krishna_chaturdashi]
+  karana_exclude: [vishti, bhadra]
+
+  nakshatra_allow:
+    - rohini
+    - mrigashira
+    - magha
+    - uttara_phalguni
+    - hasta
+    - chitta
+    - swati
+    - anuradha
+    - mula
+    - uttara_ashadha
+    - uttara_bhadrapada
+    - revati
+
+  lagna_types: [sthira, dvisvabhava]
+  lagna_exclude: [simha] # Simha lagna often avoided unless specific exceptions apply
+
+  house_rules:
+    - house: 8
+      planets: none # 8th house strictly vacant (Mangalya Sthana)
+    - house: 7
+      planets: none # 7th house (Kalatra Sthana) vacant or benefics only
+    - house: 1
+      planets: no_malefics
+
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    friday: 4
+    monday: 3
+    wednesday: 3
+  lagna_weights:
+    vrishabha: 3
+    mithuna: 3
+    kanya: 3
+    dhanus: 3
+    meena: 3
+

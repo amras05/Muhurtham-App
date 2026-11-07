@@ -1,0 +1,45 @@
+id: namakarana
+category: samskaras
+title_en: Namakarana (Naming Ceremony)
+title_te: నామకరణ మహోత్సవము
+source:
+  part: 3
+  section: నామకరణ సంస్కారము
+  page: Part 3, Sec 2
+hard_filters:
+  vaara_allow:
+  - monday
+  - wednesday
+  - thursday
+  - friday
+  tithi_exclude:
+  - chaturthi
+  - ashtami
+  - navami
+  - chaturdashi
+  - amavasya
+  nakshatra_allow:
+  - ashwini
+  - rohini
+  - mrigashira
+  - punarvasu
+  - pushya
+  - uttara_phalguni
+  - hasta
+  - chitta
+  - swati
+  - anuradha
+  - uttara_ashadha
+  - shravana
+  - dhanishta
+  - shatabhisha
+  - uttara_bhadrapada
+  - revati
+  house_rules:
+  - house: 8
+    planets: none
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    friday: 4
+    monday: 3

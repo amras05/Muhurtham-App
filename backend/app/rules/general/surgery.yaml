@@ -1,0 +1,52 @@
+id: surgery
+category: general
+title_en: "Surgical Operation"
+title_te: "శస్త్రచికిత్స (ఆపరేషన్)"
+source:
+  part: 7
+  section: "శస్త్రచికిత్సకు శుభ ముహూర్తములు"
+  page: "Part 7, Section 1"
+  notes: "Timing for medical surgery. Mars (Kuja) must be strong and not in 8th house. Rikta tithis and fierce stars sometimes allowed for destruction of disease, but 8th house must be clean."
+
+inputs:
+  required: [location, date_range]
+  optional: [janma_nakshatra]
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: false # For urgent surgery, Panchaka is secondary to lagna strength
+    avoid_rahu_kalam: true
+    avoid_yamagandam: true
+    avoid_varjyam: true
+    avoid_durmuhurta: true
+
+  vaara_exclude: [saturday]
+  tithi_exclude: [amavasya]
+
+  nakshatra_allow:
+    - ashwini
+    - rohini
+    - mrigashira
+    - ardra
+    - pushya
+    - hasta
+    - chitta
+    - jyeshtha
+    - mula
+    - shravana
+    - dhanishta
+    - shatabhisha
+
+  house_rules:
+    - house: 8
+      planets: none # 8th house must be vacant
+    - house: 1
+      planets: no_malefics
+
+soft_scoring:
+  vaara_weights:
+    tuesday: 3 # Mars rules surgery
+    thursday: 3
+    sunday: 2
+

@@ -16,6 +16,7 @@ from app.routers.muhurta import router as muhurta_router
 from app.routers.samskara import router as samskara_router
 from app.routers.geo import router as geo_router
 from app.routers.activities import router as activities_router
+from app.routers.muhurta_finder import router as muhurta_finder_router
 from app.routers.dev import router as dev_router
 
 settings = get_settings()
@@ -41,6 +42,7 @@ app.include_router(muhurta_router)
 app.include_router(samskara_router)
 app.include_router(geo_router)
 app.include_router(activities_router)
+app.include_router(muhurta_finder_router)
 if settings.ENABLE_DEV_PDF:
     app.include_router(dev_router)
 

@@ -1,0 +1,56 @@
+id: nisheka
+category: vivaha
+title_en: "Nisheka (First Night / Consummation)"
+title_te: "నిశేకము (ప్రథమ రాత్రి)"
+source:
+  part: 5
+  section: "నిశేకమునకు శుభ ముహూర్తములు"
+  page: "Part 5, Section 2"
+  notes: "Corrupted text in main.docx ('గ్యాస్ స్టవ్') restored to canonical stars: Uttara Ashadha and Hasta based on Muhurtha Chintamani and Kalaprakasika."
+
+inputs:
+  required: [location, date_range]
+  optional: [janma_nakshatra, janma_rashi]
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+    avoid_rahu_kalam: true
+    avoid_yamagandam: true
+    avoid_varjyam: true
+    avoid_durmuhurta: true
+
+  vaara_exclude: [tuesday, saturday]
+  tithi_exclude: [rikta, amavasya, krishna_chaturdashi, shashti, ashtami]
+  karana_exclude: [vishti, bhadra]
+
+  nakshatra_allow:
+    - rohini
+    - mrigashira
+    - pushya
+    - uttara_phalguni
+    - hasta              # Restored from damaged OCR text
+    - chitta
+    - swati
+    - anuradha
+    - uttara_ashadha     # Restored from damaged OCR text
+    - shravana
+    - dhanishta
+    - shatabhisha
+    - uttara_bhadrapada
+    - revati
+
+  house_rules:
+    - house: 8
+      planets: none
+    - house: 1
+      planets: no_malefics
+
+soft_scoring:
+  vaara_weights:
+    thursday: 4
+    friday: 4
+    monday: 3
+    wednesday: 3
+

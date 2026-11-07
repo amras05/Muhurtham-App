@@ -94,6 +94,79 @@ header h1 {
   border-color: var(--gold);
 }
 
+.field--person-name { flex: 1; min-width: 180px; }
+
+.horoscope-section {
+  flex: 0 0 100%;
+  margin-top: 10px;
+  padding: 14px;
+  background: #fffef8;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.nama-mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.nama-tab {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: #fff;
+  color: #6b6152;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nama-tab.active {
+  background: var(--maroon);
+  color: #fff;
+  border-color: var(--maroon);
+}
+
+.nama-detected-badge {
+  margin-top: 18px;
+  padding: 8px 12px;
+  background: #fdf5ea;
+  border: 1px solid #e0c8a5;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--maroon);
+}
+
+.contextual-section {
+  flex: 0 0 100%;
+  width: 100%;
+}
+
+.context-group {
+  margin-top: 10px;
+  padding: 14px;
+  background: #faf7f2;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.context-group__title {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--maroon);
+}
+
+.context-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
 .birth-details-section {
   flex: 0 0 100%;
   margin-top: 8px;
@@ -786,3 +859,60 @@ button#findBtn:disabled {
   border-style: solid;
 }
 
+
+
+/* --- Declarative 3-Layer Engine UI Styles --- */
+.source-citation {
+  background: #fdfaf6;
+  border-left: 3px solid var(--gold, #d4af37);
+  padding: 8px 12px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #795548;
+  border-radius: 0 4px 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.window-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eef7ee;
+  color: #2e7d32;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #c8e6c9;
+}
+.pushkara-star {
+  background: #fff8e1;
+  color: #b78103;
+  border: 1px solid #ffe082;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-left: 6px;
+}
+.rule-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+.rule-chip {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #f1f8e9;
+  color: #33691e;
+  border: 1px solid #dcedc8;
+}
+.rule-chip--caution {
+  background: #ffebee;
+  color: #c62828;
+  border-color: #ffcdd2;
+}
