@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'idol_consecration'.
+id: kalasha_sthapana
+category: general
+extends: idol_consecration
+tab: spiritual
+title_en: "Kalasha sthapana"
+title_te: "కలశ స్థాపన"
+description_en: "Installing the kalasha"
+description_te: "కలశ స్థాపన"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

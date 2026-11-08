@@ -1,56 +1,27 @@
 id: nisheka
 category: vivaha
-title_en: "Nisheka (First Night / Consummation)"
-title_te: "నిశేకము (ప్రథమ రాత్రి)"
+tab: vivaha
+title_en: "Nisheka"
+title_te: "నిషేకము"
+description_en: "Night muhurta after the wedding."
+description_te: "వివాహానంతర రాత్రి ముహూర్తం."
+tab_inputs: [vivaha_couple]
 source:
   part: 5
-  section: "నిశేకమునకు శుభ ముహూర్తములు"
-  page: "Part 5, Section 2"
-  notes: "Corrupted text in main.docx ('గ్యాస్ స్టవ్') restored to canonical stars: Uttara Ashadha and Hasta based on Muhurtha Chintamani and Kalaprakasika."
-
-inputs:
-  required: [location, date_range]
-  optional: [janma_nakshatra, janma_rashi]
-
+  section: "నిషేకము"
+  notes: >-
+    Plan M16 18.9. Medium nakshatras (Mrigashira, Punarvasu, Chitra, Dhanishta, Pushya) and
+    Saturday are allowed with a lower score. Shraddha and vrata days are not yet modelled.
 hard_filters:
-  common:
-    mahadoshas_21: true
-    panchaka_rahita: true
-    avoid_rahu_kalam: true
-    avoid_yamagandam: true
-    avoid_varjyam: true
-    avoid_durmuhurta: true
-
-  vaara_exclude: [tuesday, saturday]
-  tithi_exclude: [rikta, amavasya, krishna_chaturdashi, shashti, ashtami]
-  karana_exclude: [vishti, bhadra]
-
-  nakshatra_allow:
-    - rohini
-    - mrigashira
-    - pushya
-    - uttara_phalguni
-    - hasta              # Restored from damaged OCR text
-    - chitta
-    - swati
-    - anuradha
-    - uttara_ashadha     # Restored from damaged OCR text
-    - shravana
-    - dhanishta
-    - shatabhisha
-    - uttara_bhadrapada
-    - revati
-
-  house_rules:
-    - house: 8
-      planets: none
-    - house: 1
-      planets: no_malefics
-
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  time_of_day: night
+  vaara_allow: [monday, wednesday, thursday, friday, saturday]
+  tithi_exclude: [shashti, ashtami, chaturdashi, pratipada, parva, rikta, trayodashi, saptami]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, rohini, uttara_phalguni, hasta, swati, anuradha, mula, uttara_ashadha, shravana, shatabhisha, uttara_bhadrapada, revati, mrigashira, punarvasu, chitra, dhanishta, pushya]
+  masa_allow: [magha, phalguna, chaitra, vaishakha, jyeshtha, shravana, kartika, margashira]
+  exclude_periods: [midnight]
+  tarabala_for: [groom, bride]
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    friday: 4
-    monday: 3
-    wednesday: 3
-
+  vaara_weights: {monday: 2, wednesday: 2, thursday: 2, friday: 2, saturday: -1}
+  nakshatra_weights: {ashwini: 2, rohini: 2, uttaraphalguni: 2, hasta: 2, swati: 2, anuradha: 2, mula: 2, uttaraashadha: 2, shravana: 2, shatabhisha: 2, uttarabhadrapada: 2, revati: 2}

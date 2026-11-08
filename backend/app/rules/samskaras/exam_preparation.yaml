@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'vidyarambha'.
+id: exam_preparation
+category: samskaras
+extends: vidyarambha
+tab: vidya
+title_en: "Starting exam preparation"
+title_te: "పరీక్షలకు సిద్ధమవడం ప్రారంభం"
+description_en: "Beginning preparation for an examination"
+description_te: "పరీక్షలకు సిద్ధమవడానికి ప్రారంభకాలము"
+tab_inputs: []
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

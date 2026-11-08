@@ -1,0 +1,25 @@
+id: taking_charge
+category: general
+tab: career
+also_in: [general]
+title_en: "Taking Charge in a New Post or Place"
+title_te: "నూతన పదవీ స్వీకారము"
+description_en: "Assuming a new office or posting. The book allows Abhijit muhurta when nothing else is available."
+description_te: "నూతన పదవి స్వీకరించుట. వేరే ముహూర్తం లేనప్పుడు అభిజిత్ ముహూర్తం ఆమోదయోగ్యం."
+source:
+  part: 7
+  section: "సాధారణ కార్యములకు ముహూర్తములు"
+  notes: "Plan M20 row 'Taking charge in a new place'. Siddha, Amrita and Ravi yogas preferred (shown via special yogas)."
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+  vaara_allow: [monday, wednesday, thursday, friday]
+  tithi_numbers_both_paksha: [2, 3, 5, 7, 10, 11, 13]
+  tithi_allow: [purnima]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, rohini, mrigashira, pushya, uttara_phalguni, hasta, chitra, anuradha, uttara_ashadha, abhijit, uttara_bhadrapada, revati]
+
+soft_scoring:
+  vaara_weights: {thursday: 3, wednesday: 2, friday: 2, monday: 2}

@@ -1084,3 +1084,8 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   color: var(--deep-maroon);
   font-size: 14px;
 }
+
+/* Dosha rows that were not evaluated (data or author input missing) */
+.dosha-item--muted { border: 1px dashed #cfd8dc; background: #fafafa; }
+.dosha-item__badge--muted { background: #eceff1; color: #546e7a; border: 1px solid #cfd8dc; }
+.dosha-item__desc--muted { color: #607d8b; font-size: 11px; font-weight: 500; }

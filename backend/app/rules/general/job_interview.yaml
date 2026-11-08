@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'job_application'.
+id: job_interview
+category: general
+extends: job_application
+tab: career
+title_en: "Job interview"
+title_te: "ఉద్యోగ ఇంటర్వ్యూ"
+description_en: "Attending a job interview"
+description_te: "ఉద్యోగ ఇంటర్వ్యూకు హాజరు కావుట"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

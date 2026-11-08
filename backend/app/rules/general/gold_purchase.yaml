@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'buying_goods'.
+id: gold_purchase
+category: general
+extends: buying_goods
+tab: finance
+title_en: "Buying gold"
+title_te: "బంగారం కొనుగోలు"
+description_en: "Buying gold"
+description_te: "బంగారం కొనుగోలు"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

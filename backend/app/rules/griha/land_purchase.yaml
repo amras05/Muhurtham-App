@@ -1,0 +1,13 @@
+# New event (Phase 14): inherits the rules of 'buying_house'.
+id: land_purchase
+category: griha
+extends: buying_house
+tab: griha
+also_in: [finance]
+sub_group: land
+title_en: "Land purchase"
+title_te: "భూమి కొనుగోలు"
+description_en: "Buying a plot or land"
+description_te: "భూమి కొనుగోలు ముహూర్తము"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

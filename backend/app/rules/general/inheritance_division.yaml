@@ -1,43 +1,27 @@
 id: inheritance_division
 category: general
+tab: finance
+also_in: [general]
 title_en: Division of Inherited Property
 title_te: వారసత్వ ఆస్తుల పంపకము
 source:
   part: 7
   section: భాగ పరిష్కారము
   page: Part 7, Sec 4
+  notes: "Plan M20 row 'Partition of inherited property'."
 hard_filters:
-  vaara_exclude:
-  - tuesday
-  - saturday
-  tithi_numbers_both_paksha:
-  - 2
-  - 3
-  - 5
-  - 7
-  - 10
-  - 11
-  - 13
-  nakshatra_allow:
-  - ashwini
-  - rohini
-  - mrigashira
-  - punarvasu
-  - pushya
-  - uttara_phalguni
-  - hasta
-  - chitta
-  - swati
-  - uttara_ashadha
-  - shravana
-  - dhanishta
-  - shatabhisha
-  - uttara_bhadrapada
-  - revati
+  common: {mahadoshas_21: true, panchaka_rahita: true}
+  vaara_exclude: [tuesday, saturday]
+  tithi_numbers_both_paksha: [2, 3, 5, 7, 10, 11, 13]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, rohini, mrigashira, punarvasu, pushya, uttara_phalguni, hasta, chitra, swati, uttara_ashadha, shravana, dhanishta, shatabhisha, uttara_bhadrapada, revati]
   house_rules:
-  - house: 8
-    planets: none
+    - house: 8
+      planets: no_malefics
+  planet_rules:
+    - planet: benefic
+      in_houses: [1]
+      soft_points: 3
+      note: "Benefic lagna"
 soft_scoring:
-  vaara_weights:
-    thursday: 3
-    friday: 3
+  vaara_weights: {thursday: 2, wednesday: 2}

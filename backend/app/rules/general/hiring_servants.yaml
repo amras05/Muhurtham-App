@@ -1,0 +1,36 @@
+id: hiring_servants
+category: general
+tab: business
+also_in: [general]
+title_en: "Hiring Staff"
+title_te: "సేవకుల / సిబ్బంది నియామకము"
+description_en: "Employing a servant or staff member."
+description_te: "సేవకులను / సిబ్బందిని నియమించుట."
+source:
+  part: 7
+  section: "సాధారణ కార్యములకు ముహూర్తములు"
+  notes: >-
+    Plan M20 row 'Hiring servants'. Book issue: the row says 'avoid auspicious yogas,
+    favourable karanas', which reads reversed; awaiting the author, so no yoga or karana
+    filter is applied beyond the mahadoshas.
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+  vaara_exclude: [tuesday, saturday]
+  tithi_shukla_numbers: [3, 5, 7, 11]
+  nakshatra_allow: [rohini, mrigashira, punarvasu, ashlesha, uttara_phalguni, hasta, chitra, anuradha, uttara_ashadha, abhijit, shravana, uttara_bhadrapada, revati]
+  lagna_types: [sthira]
+  planet_rules:
+    - planet: saturn
+      in_houses: [11]
+      soft_points: 3
+      note: "Saturn in the 11th without malefic influence is preferred"
+    - planet: mercury
+      not_in_houses: [6, 8, 12]
+      soft_points: 1
+      note: "Mercury unafflicted"
+
+soft_scoring:
+  vaara_weights: {wednesday: 2, thursday: 2}

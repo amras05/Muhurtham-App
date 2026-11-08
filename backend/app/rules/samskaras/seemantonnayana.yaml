@@ -1,0 +1,28 @@
+id: seemantonnayana
+category: samskaras
+tab: garbha
+title_en: "Seemantonnayana"
+title_te: "సీమంతోన్నయనము"
+description_en: "In the 4th, 6th or 8th month of pregnancy."
+description_te: "గర్భం 4, 6 లేదా 8వ మాసంలో."
+tab_inputs: [samskara_pregnancy]
+source:
+  part: 4
+  section: "సీమంతోన్నయనము"
+  notes: "Plan M14 16.4. Tithis Panchami, Ashtami, Dwadashi as printed (to confirm with the author)."
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  age_rule: {reference: conception, unit: months, allowed: [4, 6, 8]}
+  tithi_allow: [panchami, ashtami, dwadashi]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, rohini, mrigashira, punarvasu, pushya, uttara_phalguni, hasta, chitra, swati, anuradha, mula, uttara_ashadha, shravana, dhanishta, shatabhisha, uttara_bhadrapada, revati]
+  lagna_exclude: [vrishchika, simha]
+  house_rules:
+    - house: 9
+      planets: none
+  planet_rules:
+    - planet: malefic
+      not_in_houses: [1]
+    - planet: moon
+      not_in_houses: [1]
+soft_scoring: {}

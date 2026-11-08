@@ -1,0 +1,13 @@
+# New event (Phase 14): inherits the rules of 'contracts_agreements'.
+id: document_signing
+category: general
+extends: contracts_agreements
+tab: finance
+also_in: [general]
+title_en: "Signing documents"
+title_te: "దస్తావేజులపై సంతకాలు"
+description_en: "Signing deeds and documents"
+description_te: "దస్తావేజులపై సంతకాలు చేయుట"
+tab_inputs: []
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

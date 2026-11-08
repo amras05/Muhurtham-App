@@ -1,0 +1,25 @@
+id: chaula
+category: samskaras
+tab: shishu
+title_en: "Chaula (Choodakarana)"
+title_te: "చౌలము (చూడాకర్మ)"
+description_en: "In the 3rd or 5th year."
+description_te: "3వ లేదా 5వ సంవత్సరంలో."
+tab_inputs: [samskara_child]
+source:
+  part: 4
+  section: "చౌలము"
+  notes: "Plan M14 16.10. Book issue: Part 3 says first or third year; Part 4 says 3 or 5 (using Part 4). Best nakshatras score higher."
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  age_rule: {reference: birth, unit: years, allowed: [3, 5]}
+  vaara_allow: [monday, wednesday, thursday, friday]
+  tithi_exclude: [shukla_pratipada, chaturthi, navami, chaturdashi, ashtami, purnima, amavasya]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, mrigashira, punarvasu, pushya, hasta, chitra, shravana, dhanishta, rohini, uttara_phalguni, swati, anuradha, uttara_ashadha, uttara_bhadrapada]
+  lagna_allow: [vrishabha, mithuna, karkataka, kanya, dhanus, meena]
+  house_rules:
+    - house: 8
+      planets: none
+soft_scoring:
+  nakshatra_weights: {ashwini: 3, mrigashira: 3, punarvasu: 3, pushya: 3, hasta: 3, chitra: 3, shravana: 3, dhanishtha: 3}

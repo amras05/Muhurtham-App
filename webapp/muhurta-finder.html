@@ -23,7 +23,6 @@
       <a class="app-shell__link" href="panchang-lookup.html">Panchang</a>
       <a class="app-shell__link" href="panchang-lookup.html#namakarana">Samskaras</a>
       <a class="app-shell__link" href="muhurta-finder.html" aria-current="page">Muhurta Finder</a>
-      <a class="app-shell__link" href="samskara-checkpoints.html">Checkpoints</a>
     </div>
   </nav>
   <div class="wrap">
@@ -43,29 +42,21 @@
       </div>
     </div>
 
+    <!-- Category tabs (built from /muhurta/catalog) -->
+    <div class="tab-container" id="mfCategoryTabs" role="tablist" aria-label="Muhurta categories"></div>
+
     <!-- Input Form -->
-    <div class="controls">
-      <!-- Category & Event Selection -->
-      <div class="field field--category">
-        <label for="mfCategorySelect" data-en="Category" data-te="వర్గము">Category</label>
-        <select id="mfCategorySelect" onchange="onCategoryChange()">
-          <option value="all" data-en="All Categories (29)" data-te="అన్ని వర్గములు (29)">All Categories (29)</option>
-          <option value="general" data-en="General Activities (16)" data-te="సాధారణ కార్యములు (16)">General Activities (16)</option>
-          <option value="griha" data-en="Griha / Vastu (4)" data-te="గృహ / వాస్తు (4)">Griha / Vastu (4)</option>
-          <option value="vivaha" data-en="Vivaha Cluster (4)" data-te="వివాహ ప్రకరణము (4)">Vivaha Cluster (4)</option>
-          <option value="samskaras" data-en="Samskaras (4)" data-te="షోడశ సంస్కారములు (4)">Samskaras (4)</option>
-          <option value="travel" data-en="Travel / Prayana (1)" data-te="ప్రయాణము (1)">Travel / Prayana (1)</option>
-        </select>
-      </div>
+    <div class="controls" id="mfControls">
       <div class="field field--activity">
         <label for="mfActivitySelect" data-en="Muhurtha Event" data-te="ముహూర్త కార్యము">Muhurtha Event</label>
         <select id="mfActivitySelect" onchange="onActivityChange()">
           <option value="">Loading activities...</option>
         </select>
+        <small id="mfEventDesc" class="event-desc"></small>
       </div>
-      <div class="field field--person-name">
-        <label for="mfPersonName" data-en="Primary Person / Karta" data-te="కర్త / ముఖ్య వ్యక్తి పేరు">Primary Person / Karta</label>
-        <input type="text" id="mfPersonName" placeholder="e.g. Rama Rao / రామారావు" autocomplete="off">
+      <div class="field field--variant" id="mfVariantField" hidden>
+        <label for="mfVariantSelect" data-en="Rule list" data-te="నియమ జాబితా">Rule list</label>
+        <select id="mfVariantSelect"></select>
       </div>
       <div class="field field--start-date">
         <label for="startDate" data-en="Start Date" data-te="ప్రారంభ తేదీ">Start Date</label>
@@ -79,147 +70,91 @@
         <label for="daysInput" data-en="Days to Scan" data-te="శోధన రోజులు">Days to Scan</label>
         <input type="number" id="daysInput" value="30" min="1" max="60">
       </div>
-
-      <!-- Level 2: Astrological & Nama Nakshatra (Collapsible 3-Mode Selector) -->
-      <div class="birth-toggle-wrap">
-        <button type="button" id="toggleHoroscopeBtn" onclick="toggleHoroscopeSection()" class="btn-toggle-birth">
-          🌟 <span data-en="Add Horoscope / Nama Nakshatra (for Tarabalam & Balas)" data-te="జాతక & నామ నక్షత్ర వివరాలు (తారాబలం, చంద్రబలం కోసం)">Add Horoscope / Nama Nakshatra (for Tarabalam & Balas)</span>
-        </button>
+      <div class="field field--strictness">
+        <label for="mfStrictness" data-en="Strictness" data-te="నియమ కఠినత">Strictness</label>
+        <select id="mfStrictness">
+          <option value="strict" data-en="Strict: drop windows with a fatal mahadosha" data-te="కఠినం: మహాదోషం ఉన్న సమయాలు తొలగించు">Strict: drop windows with a fatal mahadosha</option>
+          <option value="lenient" data-en="Lenient: keep them with a warning" data-te="సడలింపు: హెచ్చరికతో చూపించు">Lenient: keep them with a warning</option>
+        </select>
       </div>
-
-      <div id="mfHoroscopeSection" class="horoscope-section" style="display: none;">
-        <div class="nama-mode-tabs">
-          <button type="button" class="nama-tab active" id="tabMode1" onclick="switchNamaMode(1)"
-            data-en="1. I know my Nakshatra" data-te="1. నాకు నక్షత్రం తెలుసు">1. నాకు నక్షత్రం తెలుసు</button>
-          <button type="button" class="nama-tab" id="tabMode2" onclick="switchNamaMode(2)"
-            data-en="2. Determine by Name" data-te="2. పేరు ద్వారా తెలుసుకోవాలి">2. పేరు ద్వారా తెలుసుకోవాలి</button>
-          <button type="button" class="nama-tab" id="tabMode3" onclick="switchNamaMode(3)"
-            data-en="3. Birth Date & Time" data-te="3. జన్మ వివరాల ద్వారా">3. జన్మ వివరాల ద్వారా</button>
-        </div>
-
-        <!-- Mode 1: Direct Nakshatra & Pada -->
-        <div id="namaMode1Content" class="nama-mode-content">
-          <div class="birth-details-row">
-            <div class="field">
-              <label for="mfDirectNakSelect" data-en="Janma / Nama Nakshatra" data-te="నక్షత్రము">Janma / Nama Nakshatra</label>
-              <select id="mfDirectNakSelect"></select>
-            </div>
-            <div class="field">
-              <label for="mfDirectPadaSelect" data-en="Pada (Quarter)" data-te="పాదం">Pada (Quarter)</label>
-              <select id="mfDirectPadaSelect">
-                <option value="1">1వ పాదం (Pada 1)</option>
-                <option value="2">2వ పాదం (Pada 2)</option>
-                <option value="3">3వ పాదం (Pada 3)</option>
-                <option value="4">4వ పాదం (Pada 4)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Mode 2: Phonetic Name Lookup -->
-        <div id="namaMode2Content" class="nama-mode-content" style="display: none;">
-          <div class="birth-details-row">
-            <div class="field" style="flex: 2;">
-              <label for="mfNamaLookupInput" data-en="Enter Person Name (First Syllable Lookup)" data-te="పేరు నమోదు చేయండి (మొదటి అక్షర పరిశీలన)">Enter Name</label>
-              <input type="text" id="mfNamaLookupInput" placeholder="e.g. కార్తీక్ / Karthik / రామయ్య" oninput="onNamaNameInput(this.value)">
-            </div>
-            <div class="field" style="flex: 2;">
-              <div id="mfNamaLookupBadge" class="nama-detected-badge" style="display: none;"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Mode 3: Birth Details -->
-        <div id="namaMode3Content" class="nama-mode-content" style="display: none;">
-          <div class="birth-details-row">
-            <div class="field field--birth-dob">
-              <label for="mfBirthDob" data-en="Birth Date" data-te="పుట్టిన తేదీ">Birth Date</label>
-              <input type="date" id="mfBirthDob">
-            </div>
-            <div class="field field--birth-tob">
-              <label for="mfBirthTob" data-en="Birth Time" data-te="పుట్టిన సమయం">Birth Time</label>
-              <input type="time" id="mfBirthTob" value="12:00">
-            </div>
-          </div>
-        </div>
-
-        <!-- Gotra -->
-        <div class="birth-details-row" style="margin-top: 8px;">
-          <div class="field">
-            <label for="mfGotra" data-en="Family Gotra (Optional)" data-te="గోత్రము (ఐచ్ఛికం)">Family Gotra</label>
-            <input type="text" id="mfGotra" placeholder="e.g. Bharadwaja / భారద్వాజ" autocomplete="off">
-          </div>
-        </div>
+      <div class="field field--timepref">
+        <label for="mfTimePref" data-en="Preferred time" data-te="సమయ ప్రాధాన్యత">Preferred time</label>
+        <select id="mfTimePref">
+          <option value="any" data-en="Any time" data-te="ఏ సమయమైనా">Any time</option>
+          <option value="morning" data-en="Morning (sunrise to midday)" data-te="ఉదయం (సూర్యోదయం నుండి మధ్యాహ్నం)">Morning (sunrise to midday)</option>
+          <option value="afternoon" data-en="Afternoon (midday to sunset)" data-te="మధ్యాహ్నం (మధ్యాహ్నం నుండి సూర్యాస్తమయం)">Afternoon (midday to sunset)</option>
+          <option value="evening" data-en="Evening (early night)" data-te="సాయంత్రం (రాత్రి మొదటి భాగం)">Evening (early night)</option>
+          <option value="night" data-en="Night (sunset to sunrise)" data-te="రాత్రి (సూర్యాస్తమయం నుండి సూర్యోదయం)">Night (sunset to sunrise)</option>
+        </select>
       </div>
+      <div class="field field--masa">
+        <label for="mfMasaSystem" data-en="Month names" data-te="మాస పద్ధతి">Month names</label>
+        <select id="mfMasaSystem">
+          <option value="amanta" data-en="Amanta" data-te="అమాంత">Amanta</option>
+          <option value="purnimanta" data-en="Purnimanta" data-te="పూర్ణిమాంత">Purnimanta</option>
+        </select>
+      </div>
+      <div id="mfInfoBanner" class="info-banner" role="note" hidden></div>
+
+      <!-- People taking part (built per event from the catalog) -->
+      <section id="mfParticipants" class="participants" aria-label="People taking part"></section>
+
+      <!-- Pitru tab: switch between a rite's muhurta and the shraddha calendar -->
+      <section id="mfPitruPanel" class="yoga-panel" hidden>
+        <div class="nama-mode-tabs" role="tablist" aria-label="Pitru tools">
+          <button type="button" role="tab" class="nama-tab active" id="mfPitruTabRite" aria-selected="true" onclick="setPitruMode(false)"
+            data-en="Find a muhurta for a rite" data-te="కర్మకు ముహూర్తం">Find a muhurta for a rite</button>
+          <button type="button" role="tab" class="nama-tab" id="mfPitruTabCal" aria-selected="false" onclick="setPitruMode(true)"
+            data-en="Shraddha calendar" data-te="శ్రాద్ధ తిథి నిర్ణయం">Shraddha calendar</button>
+        </div>
+        <div id="mfPitruCalFields" class="context-grid" hidden>
+          <div class="field"><label for="mfPitruMode" data-en="What to find" data-te="ఏది కావాలి">What to find</label>
+            <select id="mfPitruMode">
+              <option value="annual" data-en="Yearly shraddha dates" data-te="వార్షిక శ్రాద్ధ తేదీలు">Yearly shraddha dates</option>
+              <option value="after_death" data-en="Rites after a death (days 1–12, masikas)" data-te="మరణానంతర కర్మలు (1–12 రోజులు, మాసికాలు)">Rites after a death (days 1–12, masikas)</option>
+              <option value="shannavati" data-en="The 96 shraddha days of a year" data-te="సంవత్సరంలో 96 శ్రాద్ధ దినాలు">The 96 shraddha days of a year</option>
+            </select></div>
+          <div class="field pitru-death"><label for="mfPitruDeathDate" data-en="Date of death" data-te="మరణ తేదీ">Date of death</label><input type="date" id="mfPitruDeathDate"></div>
+          <div class="field pitru-death"><label for="mfPitruDeathTime" data-en="Time of death (sets the tithi)" data-te="మరణ సమయం (తిథి నిర్ణయానికి)">Time of death (sets the tithi)</label><input type="time" id="mfPitruDeathTime"></div>
+          <div class="field pitru-annual"><label for="mfPitruYears" data-en="Years to list" data-te="ఎన్ని సంవత్సరాలు">Years to list</label><input type="number" id="mfPitruYears" min="1" max="10" value="3"></div>
+          <div class="field pitru-year" hidden><label for="mfPitruYear" data-en="Year" data-te="సంవత్సరం">Year</label><input type="number" id="mfPitruYear" min="1900" max="2200"></div>
+        </div>
+      </section>
+
+      <!-- Special Yogas tab: search by yoga, no event -->
+      <section id="mfYogaPanel" class="yoga-panel" hidden>
+        <p class="participants__hint" data-en="Find windows where a chosen yoga forms. Every condition you tick must also hold. The yoga tables are classical and still to be confirmed against the book."
+          data-te="ఎంచుకున్న యోగం ఏర్పడే సమయాలు చూపిస్తాం. మీరు ఎంచుకున్న నియమాలన్నీ కూడా సరిపోవాలి. యోగ పట్టికలు గ్రంథంతో ఇంకా సరిచూడవలసి ఉంది.">Find windows where a chosen yoga forms.</p>
+        <fieldset class="yoga-group"><legend data-en="Yogas (any of these)" data-te="యోగాలు (వీటిలో ఏదైనా)">Yogas (any of these)</legend><div id="mfYogaList" class="check-grid"></div></fieldset>
+        <fieldset class="yoga-group"><legend data-en="Also require (all of these)" data-te="తప్పనిసరి నియమాలు (అన్నీ)">Also require (all of these)</legend><div id="mfCondList" class="check-grid"></div></fieldset>
+        <div class="context-grid">
+          <div class="field"><label for="mfYogaNak" data-en="Your janma nakshatra (for tarabala)" data-te="మీ జన్మ నక్షత్రం (తారాబలం కోసం)">Your janma nakshatra (for tarabala)</label><select id="mfYogaNak"></select></div>
+          <div class="field"><label for="mfYogaRasi" data-en="Your janma rashi (for chandrabala)" data-te="మీ జన్మ రాశి (చంద్రబలం కోసం)">Your janma rashi (for chandrabala)</label><select id="mfYogaRasi"></select></div>
+        </div>
+      </section>
 
       <!-- Level 3: Context-Sensitive Form Container (Loaded per category) -->
       <div id="mfContextualSection" class="contextual-section">
-        <!-- Vivaha Fields -->
-        <div id="fieldsVivaha" class="context-group" style="display: none;">
-          <h4 class="context-group__title">💍 <span data-en="Vivaha (Wedding) Participant Details" data-te="వివాహ వధూవరుల వివరాలు">Vivaha Participant Details</span></h4>
-          <div class="context-grid">
-            <div class="field">
-              <label for="mfGroomName" data-en="Groom Name" data-te="వరుని పేరు">Groom Name</label>
-              <input type="text" id="mfGroomName" placeholder="వరుని పూర్తి పేరు">
-            </div>
-            <div class="field">
-              <label for="mfGroomNak" data-en="Groom Nakshatra" data-te="వరుని నక్షత్రం">Groom Nakshatra</label>
-              <select id="mfGroomNak"></select>
-            </div>
-            <div class="field">
-              <label for="mfGroomGotra" data-en="Groom Gotra" data-te="వరుని గోత్రం">Groom Gotra</label>
-              <input type="text" id="mfGroomGotra" placeholder="గోత్రం">
-            </div>
-            <div class="field">
-              <label for="mfBrideName" data-en="Bride Name" data-te="వధువు పేరు">Bride Name</label>
-              <input type="text" id="mfBrideName" placeholder="వధువు పూర్తి పేరు">
-            </div>
-            <div class="field">
-              <label for="mfBrideNak" data-en="Bride Nakshatra" data-te="వధువు నక్షత్రం">Bride Nakshatra</label>
-              <select id="mfBrideNak"></select>
-            </div>
-            <div class="field">
-              <label for="mfBrideGotra" data-en="Bride Gotra" data-te="వధువు గోత్రం">Bride Gotra</label>
-              <input type="text" id="mfBrideGotra" placeholder="గోత్రం">
-            </div>
-            <div class="field">
-              <label for="mfTimePref" data-en="Preferred Time" data-te="సమయ ప్రాధాన్యత">Preferred Time</label>
-              <select id="mfTimePref">
-                <option value="any">ఏ సమయమైనా (Any Time)</option>
-                <option value="morning">ఉదయం (Morning)</option>
-                <option value="afternoon">మధ్యాహ్నం (Afternoon)</option>
-                <option value="night">రాత్రి (Night Muhurtham)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
         <!-- Upanayana Fields -->
         <div id="fieldsUpanayana" class="context-group" style="display: none;">
-          <h4 class="context-group__title">🪔 <span data-en="Upanayana Ceremony Details" data-te="ఉపనయన వివరాలు">Upanayana Ceremony Details</span></h4>
+          <h4 class="context-group__title">🪔 <span data-en="Upanayana tradition" data-te="ఉపనయన సంప్రదాయం">Upanayana tradition</span></h4>
           <div class="context-grid">
-            <div class="field">
-              <label for="mfVatuName" data-en="Vatu Name" data-te="వటువు పేరు">Vatu Name</label>
-              <input type="text" id="mfVatuName" placeholder="వటువు పూర్తి పేరు">
-            </div>
-            <div class="field">
-              <label for="mfFatherName" data-en="Father Name" data-te="తండ్రి పేరు">Father Name</label>
-              <input type="text" id="mfFatherName" placeholder="తండ్రి పూర్తి పేరు">
-            </div>
-            <div class="field">
-              <label for="mfFatherNak" data-en="Father Nakshatra" data-te="తండ్రి నక్షత్రం">Father Nakshatra</label>
-              <select id="mfFatherNak"></select>
-            </div>
-            <div class="field">
-              <label for="mfMotherNak" data-en="Mother Nakshatra" data-te="తల్లి నక్షత్రం">Mother Nakshatra</label>
-              <select id="mfMotherNak"></select>
-            </div>
             <div class="field">
               <label for="mfVedaShakha" data-en="Veda Shakha" data-te="వేద శాఖ">Veda Shakha</label>
               <select id="mfVedaShakha">
                 <option value="yajur">యజుర్వేదం (Yajurveda)</option>
                 <option value="rig">ఋగ్వేదం (Rigveda)</option>
                 <option value="sama">సామవేదం (Samaveda)</option>
+                <option value="atharva">అథర్వవేదం (Atharvaveda)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="mfVarna" data-en="Varna (for the varnesha check)" data-te="వర్ణం (వర్ణేశ పరిశీలనకు)">Varna (for the varnesha check)</label>
+              <select id="mfVarna">
+                <option value="" data-en="— Not specified —" data-te="— పేర్కొనలేదు —">— Not specified —</option>
+                <option value="brahmana" data-en="Brahmana" data-te="బ్రాహ్మణ">Brahmana</option>
+                <option value="kshatriya" data-en="Kshatriya" data-te="క్షత్రియ">Kshatriya</option>
+                <option value="vaishya" data-en="Vaishya" data-te="వైశ్య">Vaishya</option>
               </select>
             </div>
             <div class="field">
@@ -233,26 +168,43 @@
           </div>
         </div>
 
-        <!-- Griha / Vastu Fields -->
-        <div id="fieldsGriha" class="context-group" style="display: none;">
-          <h4 class="context-group__title">🏛️ <span data-en="Griha / Vastu Construction & Entry Details" data-te="గృహ నిర్మాణ & ప్రవేశ వివరాలు">Griha / Vastu Details</span></h4>
+        <!-- Samskara: pregnancy -->
+        <div id="fieldsSamskaraPregnancy" class="context-group" style="display: none;">
+          <h4 class="context-group__title"><span data-en="Pregnancy details" data-te="గర్భ వివరాలు">Pregnancy details</span></h4>
           <div class="context-grid">
             <div class="field">
-              <label for="mfOwnerName" data-en="Owner Name" data-te="గృహ యజమాని పేరు">Owner Name</label>
-              <input type="text" id="mfOwnerName" placeholder="యజమాని పేరు">
+              <label for="mfConceptionDate" data-en="Approximate conception date" data-te="గర్భధారణ తేదీ (సుమారు)">Approximate conception date</label>
+              <input type="date" id="mfConceptionDate">
             </div>
+          </div>
+        </div>
+
+        <!-- Samskara: depends on the main event -->
+        <div id="fieldsSamskaraMainEvent" class="context-group" style="display: none;">
+          <h4 class="context-group__title"><span data-en="Main samskara" data-te="ప్రధాన సంస్కారము">Main samskara</span></h4>
+          <div class="context-grid">
             <div class="field">
-              <label for="mfOwnerNak" data-en="Owner Nama Nakshatra" data-te="యజమాని నామ నక్షత్రం">Owner Nama Nakshatra</label>
-              <select id="mfOwnerNak"></select>
+              <label for="mfMainEventDate" data-en="Date of the main samskara" data-te="ప్రధాన సంస్కార తేదీ">Date of the main samskara</label>
+              <input type="date" id="mfMainEventDate">
             </div>
+          </div>
+        </div>
+
+        <!-- Pitru karya: date of death -->
+        <div id="fieldsPitruDeath" class="context-group" style="display: none;">
+          <h4 class="context-group__title"><span data-en="Details for the rite" data-te="కర్మ వివరాలు">Details for the rite</span></h4>
+          <div class="context-grid">
             <div class="field">
-              <label for="mfSpouseName" data-en="Spouse Name (Optional)" data-te="యజమానురాలి పేరు">Spouse Name</label>
-              <input type="text" id="mfSpouseName" placeholder="యజమానురాలి పేరు">
+              <label for="mfDeathDate" data-en="Date of passing" data-te="మరణ తేదీ">Date of passing</label>
+              <input type="date" id="mfDeathDate">
             </div>
-            <div class="field">
-              <label for="mfSpouseNak" data-en="Spouse Nama Nakshatra" data-te="యజమానురాలి నామ నక్షత్రం">Spouse Nama Nakshatra</label>
-              <select id="mfSpouseNak"></select>
-            </div>
+          </div>
+        </div>
+
+        <!-- Griha / Vastu Fields -->
+        <div id="fieldsGriha" class="context-group" style="display: none;">
+          <h4 class="context-group__title">🏛️ <span data-en="House and plot" data-te="ఇల్లు · స్థలం వివరాలు">House and plot</span></h4>
+          <div class="context-grid">
             <div class="field">
               <label for="mfDoorFacing" data-en="Main Door Facing Direction" data-te="సింహద్వార ముఖద్వార దిశ">Main Door Facing</label>
               <select id="mfDoorFacing">
@@ -305,14 +257,6 @@
               </select>
             </div>
             <div class="field">
-              <label for="mfPartnerName" data-en="Partner Name (Optional)" data-te="భాగస్వామి పేరు (ఐచ్ఛికం)">Partner Name</label>
-              <input type="text" id="mfPartnerName" placeholder="భాగస్వామి పేరు">
-            </div>
-            <div class="field">
-              <label for="mfPartnerNak" data-en="Partner Nakshatra" data-te="భాగస్వామి నక్షత్రం">Partner Nakshatra</label>
-              <select id="mfPartnerNak"></select>
-            </div>
-            <div class="field">
               <label for="mfEntranceFacing" data-en="Office / Shop Entrance Direction" data-te="కార్యాలయ ముఖద్వార దిశ">Office Entrance Facing</label>
               <select id="mfEntranceFacing">
                 <option value="east">తూర్పు (East)</option>
@@ -329,16 +273,35 @@
           <h4 class="context-group__title">✈️ <span data-en="Prayana (Travel) Journey Details" data-te="ప్రయాణ వివరాలు (వారశూల పరిశీలన)">Prayana Journey Details</span></h4>
           <div class="context-grid">
             <div class="field">
-              <label for="mfTravelerName" data-en="Traveler Name" data-te="ప్రయాణించే వ్యక్తి పేరు">Traveler Name</label>
-              <input type="text" id="mfTravelerName" placeholder="వ్యక్తి పేరు">
-            </div>
-            <div class="field">
               <label for="mfTravelDir" data-en="Travel Direction (Vaara Sula Check)" data-te="ప్రయాణ దిశ (వారశూల తనిఖీ)">Travel Direction</label>
               <select id="mfTravelDir">
                 <option value="east">తూర్పు (East - Mon/Sat Sula)</option>
                 <option value="north">ఉత్తరం (North - Tue/Wed Sula)</option>
                 <option value="west">పడమర (West - Sun/Fri Sula)</option>
                 <option value="south">దక్షిణం (South - Thu Sula)</option>
+                <option value="northeast">ఈశాన్యం (North-east)</option>
+                <option value="northwest">వాయువ్యం (North-west)</option>
+                <option value="southeast">ఆగ్నేయం (South-east)</option>
+                <option value="southwest">నైరుతి (South-west)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="mfTravelPurpose" data-en="Purpose" data-te="ప్రయోజనం">Purpose</label>
+              <select id="mfTravelPurpose">
+                <option value="" data-en="General" data-te="సాధారణ">General</option>
+                <option value="trade" data-en="Trade" data-te="వ్యాపారం">Trade</option>
+                <option value="cattle_trade" data-en="Cattle trade" data-te="పశు వ్యాపారం">Cattle trade</option>
+                <option value="women" data-en="Women travelling" data-te="స్త్రీల ప్రయాణం">Women travelling</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="mfTravelExemption" data-en="Exemption from the Venus rule" data-te="శుక్ర సమ్ముఖ మినహాయింపు">Exemption from the Venus rule</label>
+              <select id="mfTravelExemption">
+                <option value="" data-en="None" data-te="లేదు">None</option>
+                <option value="gotra" data-en="Exempt gotra (Bharadvaja, Vasishtha, Bhrigu, Atri, Angirasa, Kashyapa, Gargya, Gautama)" data-te="మినహాయింపు గోత్రం">Exempt gotra</option>
+                <option value="marriage" data-en="Travelling for a marriage" data-te="వివాహ ప్రయాణం">Travelling for a marriage</option>
+                <option value="distress" data-en="In distress or escaping" data-te="ఆపద / పలాయనం">In distress or escaping</option>
+                <option value="pilgrimage" data-en="Pilgrimage" data-te="తీర్థయాత్ర">Pilgrimage</option>
               </select>
             </div>
             <div class="field">

@@ -1,52 +1,26 @@
 id: idol_consecration
 category: general
+tab: spiritual
 title_en: Idol Consecration (Vigraha Pratishtha)
 title_te: విగ్రహ ప్రతిష్ఠ
 source:
   part: 7
   section: దేవతా ప్రతిష్ఠా కాలము
   page: Part 7, Sec 2
+  notes: "Plan M20 row 'Installing an idol'."
 hard_filters:
-  vaara_allow:
-  - monday
-  - wednesday
-  - thursday
-  - friday
-  tithi_shukla_numbers:
-  - 1
-  - 2
-  - 5
-  - 10
-  - 11
-  - 13
-  - 15
-  tithi_krishna_numbers:
-  - 1
-  - 2
-  - 5
-  nakshatra_allow:
-  - rohini
-  - mrigashira
-  - punarvasu
-  - pushya
-  - ashlesha
-  - uttara_phalguni
-  - hasta
-  - uttara_ashadha
-  - shravana
-  - uttara_bhadrapada
-  - revati
-  lagna_types:
-  - sthira
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  vaara_allow: [monday, wednesday, thursday, friday]
+  tithi_shukla_numbers: [1, 2, 5, 10, 11, 13, 15]
+  tithi_krishna_numbers: [1, 2, 5]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [rohini, mrigashira, punarvasu, pushya, ashlesha, uttara_phalguni, hasta, uttara_ashadha, shravana, uttara_bhadrapada, revati]
   house_rules:
-  - house: 8
-    planets: none
-  - house:
-    - 3
-    - 6
-    - 11
-    planets: papa_allowed
+    - house: 8
+      planets: none
+    - house: [1, 4, 5, 7, 9, 10]
+      planets: no_malefics
+    - house: [3, 6, 11]
+      planets: papa_allowed
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    friday: 4
+  vaara_weights: {thursday: 3, monday: 2, wednesday: 2, friday: 2}

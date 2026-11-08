@@ -1,0 +1,34 @@
+id: yajna_start
+category: general
+tab: spiritual
+title_en: "Starting a Yajna, Yaga or Homa"
+title_te: "యజ్ఞ / యాగ / హోమ ప్రారంభము"
+description_en: "Beginning a fire ritual."
+description_te: "యజ్ఞ యాగ హోమాదుల ప్రారంభము."
+source:
+  part: 7
+  section: "సాధారణ కార్యములకు ముహూర్తములు"
+  notes: >-
+    Plan M20 row 'Starting yajna, yaga or homa'. Sun in 3, 6, 11 and Mars in 7, 10 are
+    scored as bonuses; 'no combust or debilitated planets' is checked for Jupiter and Venus.
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+    masa_shubha: true
+  tithi_exclude: [rikta]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [krittika, rohini, mrigashira, pushya, uttara_phalguni, vishakha, jyeshtha, uttara_ashadha, uttara_bhadrapada, revati]
+  lagna_allow: [karkataka, makara, kumbha, meena]
+  not_combust: [jupiter, venus]
+  planet_rules:
+    - planet: sun
+      in_houses: [3, 6, 11]
+      soft_points: 3
+    - planet: mars
+      in_houses: [7, 10]
+      soft_points: 2
+
+soft_scoring:
+  vaara_weights: {sunday: 3, tuesday: 3}

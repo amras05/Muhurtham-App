@@ -1,17 +1,19 @@
 id: vivaha
 category: vivaha
+tab: vivaha
 title_en: "Vivaha (Wedding Muhurtham)"
 title_te: "వివాహ మహోత్సవము"
+description_en: "Wedding muhurta with the book's month, tithi, time-of-day, moudhya and Guru bala rules."
+description_te: "గ్రంథోక్త మాస, తిథి, కాల, మౌఢ్య, గురుబల నియమాలతో వివాహ ముహూర్తం."
+tab_inputs: [vivaha_couple]
 source:
   part: 5
   section: "వివాహ ప్రకరణము"
   page: "Part 5, Section 2"
-  notes: "The royal samskara. Godhuli, Abhijit, and auspicious lagnas. Ashtama Shuddhi strictly required."
-
-inputs:
-  required: [location, date_range]
-  optional: [janma_nakshatra, janma_rashi]
-
+  notes: >-
+    Plan M16 18.1-18.5. Monday (punarvivaha) is scored lower rather than excluded. Not yet
+    modelled: manvadi and yugadi days, tri-tithi days, the janma masa and 8th month from it,
+    the first half of Parigha only (whole yoga excluded), age parity, month preference scores.
 hard_filters:
   common:
     mahadoshas_21: true
@@ -21,46 +23,25 @@ hard_filters:
     avoid_yamagandam: true
     avoid_varjyam: true
     avoid_durmuhurta: true
-
-  vaara_exclude: [tuesday] # Kuja vara strictly avoided for wedding
-  tithi_exclude: [rikta, amavasya, krishna_chaturdashi]
-  karana_exclude: [vishti, bhadra]
-
-  nakshatra_allow:
-    - rohini
-    - mrigashira
-    - magha
-    - uttara_phalguni
-    - hasta
-    - chitta
-    - swati
-    - anuradha
-    - mula
-    - uttara_ashadha
-    - uttara_bhadrapada
-    - revati
-
-  lagna_types: [sthira, dvisvabhava]
-  lagna_exclude: [simha] # Simha lagna often avoided unless specific exceptions apply
-
+    masa_shubha: true
+  vaara_exclude: [tuesday]
+  tithi_exclude: [rikta, ashtami, dwadashi, shashti, saptami, trayodashi, shukla_pratipada,
+                  krishna_ekadashi, krishna_dwadashi, krishna_trayodashi, krishna_chaturdashi, amavasya]
+  yoga_exclude: [parigha]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [rohini, mrigashira, magha, uttara_phalguni, hasta, swati, anuradha, mula, uttara_ashadha, uttara_bhadrapada, revati]
+  sun_sign_allow: [mesha, vrishabha, mithuna, tula, kumbha, dhanus, makara]
+  masa_sun_exclude:
+    - {masa: pushya, sun_signs: [dhanus, makara]}
+    - {masa: ashadha, sun_signs: [mithuna, karkataka]}
+  exclude_periods: [third_yama, ghati_26_30, dawn, midnight, pradosha]
+  no_moudhya: [jupiter, venus]
+  simha_guru: true
+  guru_bala_couple: true
+  trijyeshtha: true
+  tarabala_for: [groom, bride]
   house_rules:
     - house: 8
-      planets: none # 8th house strictly vacant (Mangalya Sthana)
-    - house: 7
-      planets: none # 7th house (Kalatra Sthana) vacant or benefics only
-    - house: 1
-      planets: no_malefics
-
+      planets: none
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    friday: 4
-    monday: 3
-    wednesday: 3
-  lagna_weights:
-    vrishabha: 3
-    mithuna: 3
-    kanya: 3
-    dhanus: 3
-    meena: 3
-
+  vaara_weights: {wednesday: 4, thursday: 4, friday: 4, sunday: 1, saturday: 1, monday: -2}

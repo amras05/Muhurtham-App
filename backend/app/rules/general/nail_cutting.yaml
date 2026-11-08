@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'haircut'.
+id: nail_cutting
+category: general
+extends: haircut
+tab: personal
+title_en: "Nail cutting"
+title_te: "గోళ్ళు కత్తిరించుట"
+description_en: "Cutting nails"
+description_te: "గోళ్ళు కత్తిరించుట"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

@@ -1,0 +1,34 @@
+id: roof_construction
+category: griha
+tab: griha
+sub_group: construction
+title_en: "Roof / Slab Casting"
+title_te: "పైకప్పు / స్లాబ్ వేయుట"
+description_en: "Roof or slab work: griharambha rules, avoiding Dhanishta panchaka."
+description_te: "పైకప్పు పని: గృహారంభ నియమాలు, ధనిష్ఠా పంచకం వర్జ్యం."
+tab_inputs: [griha_owner]
+source:
+  part: 6
+  section: "గృహ పైకప్పు"
+  notes: >-
+    Plan M19 21.11. Dhanishta panchaka is taken as the Moon in Kumbha or Meena (Dhanishta
+    padas 3-4 through Revati, as in plan M8 10.4). Book conflict: one passage says 'the first
+    two padas of Dhanishta'; awaiting the author. Kartari is not applied (roof work on a
+    raised surface may ignore it, per Part 2).
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  vaara_exclude: [sunday, tuesday]
+  monday_needs_waxing_moon: true
+  masa_exclude: [jyeshtha, ashadha, bhadrapada, ashwina, pushya]
+  tithi_exclude: [rikta, amavasya]
+  karana_exclude: [bhadra]
+  lagna_types: [sthira, dvisvabhava]
+  house_rules:
+    - house: 8
+      planets: none
+  planet_rules:
+    - planet: moon
+      not_in_signs: [kumbha, meena]
+      note: "Dhanishta panchaka"
+soft_scoring:
+  vaara_weights: {thursday: 2, friday: 2, wednesday: 2}

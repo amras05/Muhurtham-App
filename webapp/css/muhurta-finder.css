@@ -76,34 +76,8 @@ header h1 {
 .field--birth-dob { flex: 1; min-width: 140px; }
 .field--birth-tob { flex: 1; min-width: 100px; }
 
-.birth-toggle-wrap { flex: 0 0 100%; margin-top: 6px; }
-.btn-toggle-birth {
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px dashed var(--line);
-  border-radius: var(--radius-sm);
-  background: #fffdf5;
-  color: #8a7f68;
-  font-family: inherit;
-  transition: all 0.2s ease;
-}
-.btn-toggle-birth:hover {
-  background: var(--gold-light);
-  border-color: var(--gold);
-}
 
-.field--person-name { flex: 1; min-width: 180px; }
 
-.horoscope-section {
-  flex: 0 0 100%;
-  margin-top: 10px;
-  padding: 14px;
-  background: #fffef8;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-}
 
 .nama-mode-tabs {
   display: flex;
@@ -130,8 +104,23 @@ header h1 {
   border-color: var(--maroon);
 }
 
+/* People taking part: one card per participant */
+.participants { flex: 0 0 100%; display: grid; gap: 10px; margin-top: 10px; }
+.participants__title { margin: 0; font-size: 14px; font-weight: 700; color: var(--maroon); }
+.participants__hint { margin: 0; font-size: 12.5px; color: #6b6152; }
+.person-card { background: #fffef8; border: 1px solid var(--line); border-radius: var(--radius-md); }
+.person-card[open] { box-shadow: 0 1px 4px rgba(107, 21, 35, 0.06); }
+.person-card__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 10px 14px; cursor: pointer; }
+.person-card__head strong { color: var(--maroon); font-size: 14px; }
+.person-card__note { font-size: 12px; color: #8a7f68; }
+.person-card__head:focus-visible { outline: 2px solid var(--maroon); outline-offset: -2px; border-radius: var(--radius-md); }
+.person-card__body { display: grid; gap: 12px; padding: 0 14px 14px; }
+.person-card .nama-mode-tabs { margin-bottom: 0; }
+.field--timepref, .field--masa { flex: 1; min-width: 160px; }
+.nama-detected-badge .btn { margin-left: 8px; }
+
 .nama-detected-badge {
-  margin-top: 18px;
+  margin-top: 8px;
   padding: 8px 12px;
   background: #fdf5ea;
   border: 1px solid #e0c8a5;
@@ -916,3 +905,88 @@ button#findBtn:disabled {
   color: #c62828;
   border-color: #ffcdd2;
 }
+
+/* ---- Category tabs, event description, strictness, info banner ---- */
+.tab-item:disabled { opacity: 0.45; cursor: not-allowed; }
+.event-desc { display: block; margin-top: 4px; color: #6b6152; font-size: 12px; line-height: 1.4; }
+.info-banner {
+  flex-basis: 100%;
+  background: #fff8e1;
+  border: 1px solid rgba(197, 155, 39, 0.45);
+  color: #6b4e00;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+/* ---- Dosha rows: not evaluated / not applicable ---- */
+.dosha-item--muted { border: 1px dashed #cfd8dc; background: #fafafa; }
+.dosha-item__badge--muted { background: #eceff1; color: #546e7a; border: 1px solid #cfd8dc; }
+.dosha-item__desc--muted { color: #607d8b; font-size: 11px; font-weight: 500; }
+.dosha-item__ref { margin-top: 3px; color: #8d8170; font-size: 10px; letter-spacing: 0.02em; }
+
+/* ---- Empty results with rejection reasons ---- */
+.empty-state {
+  padding: 28px 20px;
+  color: #5d5446;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px dashed #ddd;
+  width: 100%;
+  display: grid;
+  gap: 10px;
+}
+.empty-state p { margin: 0; font-size: 15px; }
+.empty-state__label { font-weight: 700; font-size: 13px !important; }
+.empty-state__reasons { margin: 0; padding-left: 20px; font-size: 13px; display: grid; gap: 4px; }
+.empty-state__note { font-size: 12.5px !important; color: #8d6e00; }
+.reject-count { color: #8d8170; font-variant-numeric: tabular-nums; }
+.field--check { display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+.field--check label { display: flex; align-items: center; gap: 6px; font-weight: 500; }
+
+/* Special Yogas tab */
+.yoga-panel { flex: 0 0 100%; display: grid; gap: 12px; margin-top: 10px; }
+.yoga-group { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 10px 14px 12px; margin: 0; background: #fffef8; }
+.yoga-group legend { font-size: 13px; font-weight: 700; color: var(--maroon); padding: 0 6px; }
+.check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px 14px; font-size: 13.5px; }
+.check-grid label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.mode-yogas .field--activity, .mode-yogas .field--variant, .mode-yogas .field--strictness,
+.mode-yogas .field--timepref, .mode-yogas .field--masa, .mode-yogas #mfInfoBanner,
+.mode-yogas #mfParticipants, .mode-yogas #mfContextualSection { display: none !important; }
+.mode-pitrucal .field--activity, .mode-pitrucal .field--variant, .mode-pitrucal .field--strictness,
+.mode-pitrucal .field--timepref, .mode-pitrucal .field--masa, .mode-pitrucal .field--start-date,
+.mode-pitrucal .field--days, .mode-pitrucal #mfInfoBanner, .mode-pitrucal #mfParticipants,
+.mode-pitrucal #mfContextualSection { display: none !important; }
+.yoga-row { display: grid; grid-template-columns: minmax(130px, auto) 1fr; gap: 4px 14px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+.yoga-row__when { font-weight: 700; color: var(--maroon); font-variant-numeric: tabular-nums; }
+.yoga-row__chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+@media (max-width: 520px) { .yoga-row { grid-template-columns: 1fr; } }
+
+/* Result detail (Phase 12) */
+.verdict-strip {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-left: 4px solid var(--maroon);
+  background: #fffaf0;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  line-height: 1.5;
+  color: #3b2f22;
+}
+.limb-time { color: #8a7f68; font-size: 12px; font-variant-numeric: tabular-nums; }
+.table-scroll { overflow-x: auto; }
+.people-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.people-table th, .people-table td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.people-table thead th { font-size: 12px; color: #8a7f68; font-weight: 700; }
+.people-table small { color: #8a7f68; font-weight: 400; }
+.strength-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.people-table .pill, .strength-row .pill, .yoga-row .pill {
+  display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+  border: 1px solid transparent; white-space: nowrap;
+}
+.pill--pass { background: #e8f3ea; color: #23633a; border-color: #bfdcc6; }
+.pill--fail { background: #fbe9e7; color: #9b2c22; border-color: #efc2bc; }
+.pill--muted { background: #f3f0ea; color: #7b725f; border-color: #e2dccf; }
+.inauspicious-card__cut { margin-top: 10px; font-size: 13px; color: #9b2c22; }
+.event-header { display: grid; gap: 3px; margin: 0 0 12px; font-size: 13.5px; color: #3b2f22; }
+.event-header strong { color: var(--maroon); font-size: 15px; }

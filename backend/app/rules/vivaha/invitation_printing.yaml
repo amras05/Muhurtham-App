@@ -1,39 +1,21 @@
 id: invitation_printing
 category: vivaha
+tab: vivaha
 title_en: Lagna Patrika & Invitation Printing
 title_te: లగ్నపత్రిక రచన / శుభలేఖల ముద్రణ
+description_en: "Writing the lagna patrika or printing wedding invitations."
+description_te: "లగ్నపత్రిక రచన లేదా శుభలేఖల ముద్రణ."
+tab_inputs: [vivaha_couple]
 source:
   part: 5
-  section: లగ్నపత్రికా రచన
-  page: Part 5, Sec 2
+  section: "శుభలేఖ ముద్రణ"
+  notes: "Plan M16 18.9 'Invitation printing'."
 hard_filters:
-  vaara_allow:
-  - monday
-  - wednesday
-  - thursday
-  - friday
-  tithi_exclude:
-  - rikta
-  - amavasya
-  nakshatra_allow:
-  - ashwini
-  - rohini
-  - mrigashira
-  - pushya
-  - uttara_phalguni
-  - hasta
-  - chitta
-  - swati
-  - anuradha
-  - uttara_ashadha
-  - shravana
-  - dhanishta
-  - uttara_bhadrapada
-  - revati
-  house_rules:
-  - house: 8
-    planets: none
+  common: {mahadoshas_21: true, panchaka_rahita: true}
+  vaara_allow: [thursday, friday, wednesday, saturday, monday]
+  tithi_exclude: [rikta, amavasya, pratipada]
+  yoga_exclude: [vyatipata, vaidhriti]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [dhanishta, shravana, purva_phalguni, purva_ashadha, purva_bhadrapada, uttara_phalguni, uttara_ashadha, uttara_bhadrapada, rohini, punarvasu, krittika, jyeshtha, swati]
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    friday: 4
+  vaara_weights: {thursday: 3, friday: 3, wednesday: 2}

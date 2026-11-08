@@ -1090,25 +1090,25 @@ function openMuhurtaModal(idx) {
 
   // 10. 21 Maha Doshas Evaluation
   if (d && d.maha_doshas && d.maha_doshas.length > 0) {
-    const mahaPass = d.maha_doshas.filter(m => m.is_pass).length;
-    const mahaScore = mahaPass * 10;
+    const mahaScored = d.maha_doshas.filter(m => m.is_pass !== null);
+    const mahaScore = mahaScored.filter(m => m.is_pass).length * 10;
     bodyHtml += `
       <div class="dosha-panel dosha-panel--maha">
         <div class="dosha-panel__header dosha-panel__header--maha">
           <span>🔥 ${currentLang === "te" ? "ఏకవింశతి మహాదోషముల విశ్లేషణ (21 Maha Doshas)" : "21 Maha Doshas Evaluation"}</span>
-          <span class="dosha-panel__score dosha-panel__score--maha">${mahaScore} / 210</span>
+          <span class="dosha-panel__score dosha-panel__score--maha">${mahaScore} / ${mahaScored.length * 10}</span>
         </div>
         <div class="dosha-panel__body dosha-panel__body--maha">`;
     d.maha_doshas.forEach(m => {
       const mTitle = currentLang === "te" ? m.name_te : m.name_en;
       const mDesc = currentLang === "te" ? m.desc_te : m.desc_en;
       bodyHtml += `
-        <div class="dosha-item ${m.is_pass ? 'dosha-item--pass' : 'dosha-item--fail-maha'}">
+        <div class="dosha-item ${m.is_pass === null ? 'dosha-item--muted' : m.is_pass ? 'dosha-item--pass' : 'dosha-item--fail-maha'}">
           <div class="dosha-item__header">
             <strong class="dosha-item__name">${mTitle}</strong>
-            <span class="dosha-item__badge ${m.is_pass ? 'dosha-item__badge--pass' : 'dosha-item__badge--fail'}">${m.score}/10</span>
+            <span class="dosha-item__badge ${m.is_pass === null ? 'dosha-item__badge--muted' : m.is_pass ? 'dosha-item__badge--pass' : 'dosha-item__badge--fail'}">${m.is_pass === null ? (currentLang === "te" ? "పరిశీలించలేదు" : "Not evaluated") : `${m.score}/10`}</span>
           </div>
-          <div class="${m.is_pass ? 'dosha-item__desc--pass' : 'dosha-item__desc--fail'}">${mDesc}</div>
+          <div class="${m.is_pass === null ? 'dosha-item__desc--muted' : m.is_pass ? 'dosha-item__desc--pass' : 'dosha-item__desc--fail'}">${mDesc}</div>
         </div>`;
     });
     bodyHtml += `</div></div>`;
@@ -1116,25 +1116,25 @@ function openMuhurtaModal(idx) {
 
   // 11. 10 Dashavidha Doshas Evaluation
   if (d && d.dashavidha_doshas && d.dashavidha_doshas.length > 0) {
-    const dashaPass = d.dashavidha_doshas.filter(m => m.is_pass).length;
-    const dashaScore = dashaPass * 10;
+    const dashaScored = d.dashavidha_doshas.filter(m => m.is_pass !== null);
+    const dashaScore = dashaScored.filter(m => m.is_pass).length * 10;
     bodyHtml += `
       <div class="dosha-panel dosha-panel--dasha">
         <div class="dosha-panel__header dosha-panel__header--dasha">
           <span>⚡ ${currentLang === "te" ? "దశవిధ దోషముల విశ్లేషణ (10 Dashavidha Doshas)" : "10 Dashavidha Doshas Evaluation"}</span>
-          <span class="dosha-panel__score dosha-panel__score--dasha">${dashaScore} / 100</span>
+          <span class="dosha-panel__score dosha-panel__score--dasha">${dashaScore} / ${dashaScored.length * 10}</span>
         </div>
         <div class="dosha-panel__body dosha-panel__body--dasha">`;
     d.dashavidha_doshas.forEach(m => {
       const mTitle = currentLang === "te" ? m.name_te : m.name_en;
       const mDesc = currentLang === "te" ? m.desc_te : m.desc_en;
       bodyHtml += `
-        <div class="dosha-item ${m.is_pass ? 'dosha-item--pass' : 'dosha-item--fail-dasha'}">
+        <div class="dosha-item ${m.is_pass === null ? 'dosha-item--muted' : m.is_pass ? 'dosha-item--pass' : 'dosha-item--fail-dasha'}">
           <div class="dosha-item__header">
             <strong class="dosha-item__name">${mTitle}</strong>
-            <span class="dosha-item__badge ${m.is_pass ? 'dosha-item__badge--pass' : 'dosha-item__badge--fail'}">${m.score}/10</span>
+            <span class="dosha-item__badge ${m.is_pass === null ? 'dosha-item__badge--muted' : m.is_pass ? 'dosha-item__badge--pass' : 'dosha-item__badge--fail'}">${m.is_pass === null ? (currentLang === "te" ? "పరిశీలించలేదు" : "Not evaluated") : `${m.score}/10`}</span>
           </div>
-          <div class="${m.is_pass ? 'dosha-item__desc--pass' : 'dosha-item__desc--fail'}">${mDesc}</div>
+          <div class="${m.is_pass === null ? 'dosha-item__desc--muted' : m.is_pass ? 'dosha-item__desc--pass' : 'dosha-item__desc--fail'}">${mDesc}</div>
         </div>`;
     });
     bodyHtml += `</div></div>`;

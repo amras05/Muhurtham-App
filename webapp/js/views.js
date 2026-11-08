@@ -151,7 +151,6 @@ var Views = (function () {
         '<a class="app-shell__link" href="panchang-lookup.html" aria-current="page">Panchang</a>' +
         '<a class="app-shell__link" href="panchang-lookup.html#namakarana">Samskaras</a>' +
         '<a class="app-shell__link" href="muhurta-finder.html">Muhurta Finder</a>' +
-        '<a class="app-shell__link" href="samskara-checkpoints.html">Checkpoints</a>' +
       '</div>' +
     '</nav>';
 

@@ -1,36 +1,28 @@
 id: contracts_agreements
 category: general
+tab: general
+also_in: [business]
 title_en: Contracts & Agreements Signing
 title_te: ఒప్పందములు / దస్తావేజులు
+tab_inputs: [business]
 source:
   part: 7
   section: దస్తావేజుల రచన
   page: Part 7, Sec 4
+  notes: "Plan M20 row 'Agreements, documents'."
 hard_filters:
-  vaara_allow:
-  - monday
-  - wednesday
-  - thursday
-  vaara_exclude:
-  - tuesday
-  - friday
-  tithi_shukla_numbers:
-  - 2
-  - 3
-  - 5
-  - 7
-  - 10
-  - 11
-  - 13
-  lagna_allow:
-  - vrishabha
-  - tula
-  - dhanus
-  - meena
+  common: {mahadoshas_21: true, panchaka_rahita: true}
+  vaara_allow: [monday, wednesday, thursday]
+  tithi_shukla_numbers: [2, 3, 5, 7, 10, 11, 13]
+  karana_exclude: [bhadra]
+  lagna_allow: [vrishabha, tula, dhanus, meena]
   house_rules:
-  - house: 8
-    planets: none
+    - house: 8
+      planets: none
+  planet_rules:
+    - planet: mars
+      not_in_houses: [3, 11]
+    - planet: saturn
+      not_in_houses: [3, 11]
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    wednesday: 3
+  vaara_weights: {wednesday: 3, thursday: 2, monday: 1}

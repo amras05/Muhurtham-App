@@ -1,9 +1,0 @@
-fastapi
-uvicorn[standard]
-pyjhora
-pyswisseph
-geocoder
-geopy
-pytz
-timezonefinder
-reverse_geocode

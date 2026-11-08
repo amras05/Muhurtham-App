@@ -1,0 +1,28 @@
+id: joining_job
+category: general
+tab: career
+title_en: "Joining a New Job"
+title_te: "నూతన ఉద్యోగ ప్రవేశము"
+description_en: "First day at a new job."
+description_te: "నూతన ఉద్యోగంలో చేరుట."
+source:
+  part: 7
+  section: "సాధారణ కార్యములకు ముహూర్తములు"
+  notes: "Plan M20 row 'Joining a new job'."
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+  vaara_allow: [monday, wednesday, thursday, friday]
+  tithi_numbers_both_paksha: [2, 3, 5, 7, 10, 11, 12, 13]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, rohini, mrigashira, pushya, uttara_phalguni, hasta, chitra, anuradha, uttara_ashadha, abhijit, uttara_bhadrapada, revati, shravana, dhanishta]
+  house_rules:
+    - house: [1, 4, 5, 7, 9, 10]
+      planets: no_malefics
+    - house: [3, 6, 11]
+      planets: papa_allowed
+
+soft_scoring:
+  vaara_weights: {thursday: 3, wednesday: 2, friday: 2, monday: 2}

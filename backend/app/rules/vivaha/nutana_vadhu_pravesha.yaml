@@ -1,40 +1,23 @@
 id: nutana_vadhu_pravesha
 category: vivaha
+tab: vivaha
 title_en: Nutana Vadhu Griha Pravesha
 title_te: నూతన వధూ గృహప్రవేశము
+description_en: "The new bride enters the home on an even day from the 6th to the 16th day after the wedding. Needs the wedding date."
+description_te: "వివాహం తరువాత 6 నుండి 16వ రోజు వరకు సరి రోజులలో. వివాహ తేదీ అవసరం."
+tab_inputs: [samskara_main_event]
+depends_on: {days_after: [6, 8, 10, 12, 14, 16]}
 source:
   part: 5
-  section: వధూ ప్రవేశము
-  page: Part 5, Sec 2
+  section: "నూతన వధూ ప్రవేశము"
+  notes: "Plan M16 18.9: the book says tithi, vara, nakshatra, yoga and karana are not checked for this entry."
 hard_filters:
-  vaara_exclude:
-  - tuesday
-  - sunday
-  tithi_exclude:
-  - amavasya
-  - rikta
-  nakshatra_allow:
-  - rohini
-  - mrigashira
-  - magha
-  - uttara_phalguni
-  - hasta
-  - chitta
-  - swati
-  - anuradha
-  - mula
-  - uttara_ashadha
-  - shravana
-  - dhanishta
-  - uttara_bhadrapada
-  - revati
-  lagna_types:
-  - sthira
-  house_rules:
-  - house: 8
-    planets: none
-soft_scoring:
-  vaara_weights:
-    thursday: 4
-    friday: 4
-    monday: 3
+  common:
+    mahadoshas_21: false
+    panchaka_rahita: false
+    avoid_rahu_kalam: true
+    avoid_yamagandam: true
+    avoid_varjyam: true
+    avoid_durmuhurta: true
+  time_of_day: daytime
+soft_scoring: {}

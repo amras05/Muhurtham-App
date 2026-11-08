@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'contracts_agreements'.
+id: property_agreement
+category: general
+extends: contracts_agreements
+tab: finance
+title_en: "Property agreement"
+title_te: "ఆస్తి ఒప్పందం"
+description_en: "Agreement for a property"
+description_te: "ఆస్తి ఒప్పందాలు"
+tab_inputs: []
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

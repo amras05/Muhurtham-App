@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'medicine'.
+id: treatment_start
+category: general
+extends: medicine
+tab: health
+title_en: "Starting treatment"
+title_te: "చికిత్స ప్రారంభం"
+description_en: "Starting a course of treatment"
+description_te: "చికిత్స ప్రారంభించుటకు శుభకాలము"
+informational: true
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

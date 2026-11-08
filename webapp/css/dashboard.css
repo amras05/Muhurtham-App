@@ -63,14 +63,6 @@
   margin-top: 2px;
 }
 
-/* Secondary Quick-links (30-day scanner & Checkpoints) */
-.mode-tab--secondary {
-  flex: 0 0 auto;
-  padding: var(--space-3);
-  border-left: 1px solid var(--color-border, #e8dfd1);
-  border-radius: 0 var(--radius-md, 8px) var(--radius-md, 8px) 0;
-}
-
 /* Task Launcher cards */
 .task-launcher {
   margin: var(--space-4) 0 var(--space-6);

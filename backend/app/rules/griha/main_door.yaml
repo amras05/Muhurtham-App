@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'door_placement'.
+id: main_door
+category: griha
+extends: door_placement
+tab: griha
+sub_group: construction
+title_en: "Main door"
+title_te: "ప్రధాన ద్వార నిర్మాణం"
+description_en: "Building the main door"
+description_te: "ప్రధాన ద్వార నిర్మాణము"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

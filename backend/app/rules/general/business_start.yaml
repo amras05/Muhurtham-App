@@ -1,63 +1,26 @@
 id: business_start
 category: general
+tab: business
 title_en: "Business Opening & Commercial Start"
 title_te: "నూతన వ్యాపారారంభము"
+tab_inputs: [business]
 source:
   part: 7
   section: "వ్యాపారారంభమునకు శుభ ముహూర్తములు"
   page: "Part 7, Section 3"
-  notes: "Opening a new business or store. Fixed or dual lagnas preferred for steady growth."
-
-inputs:
-  required: [location, date_range]
-  optional: [janma_nakshatra]
-
+  notes: "Plan M20 row 'Starting a new business'."
 hard_filters:
-  common:
-    mahadoshas_21: true
-    panchaka_rahita: true
-    avoid_rahu_kalam: true
-    avoid_yamagandam: true
-    avoid_varjyam: true
-    avoid_durmuhurta: true
-
-  vaara_exclude: [tuesday]
-  tithi_exclude: [rikta, amavasya]
-  karana_exclude: [vishti, bhadra]
-
-  nakshatra_allow:
-    - ashwini
-    - rohini
-    - mrigashira
-    - pushya
-    - uttara_phalguni
-    - hasta
-    - chitta
-    - anuradha
-    - uttara_ashadha
-    - shravana
-    - dhanishta
-    - shatabhisha
-    - uttara_bhadrapada
-    - revati
-
-  lagna_types: [sthira, dvisvabhava]
-
+  common: {mahadoshas_21: true, panchaka_rahita: true}
+  vaara_allow: [wednesday, thursday, friday]
+  tithi_numbers_both_paksha: [2, 3, 5, 6, 7, 10, 11, 13]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [pushya, uttara_phalguni, hasta, chitra, uttara_ashadha, abhijit, uttara_bhadrapada]
+  lagna_types: [sthira]
   house_rules:
-    - house: 8
+    - house: [4, 8]
       planets: none
-    - house: [10, 11]
-      planets: shubha_preferred
-
+  planet_rules:
+    - planet: moon
+      not_in_houses: [6, 8, 12]
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    wednesday: 4
-    friday: 3
-    monday: 2
-  lagna_weights:
-    vrishabha: 3
-    mithuna: 3
-    kanya: 3
-    kumbha: 2
-
+  vaara_weights: {wednesday: 3, thursday: 3, friday: 2}

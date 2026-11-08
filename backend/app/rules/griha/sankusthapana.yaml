@@ -1,56 +1,61 @@
 id: sankusthapana
 category: griha
-title_en: "Sankusthapana (Foundation Stone Laying)"
+tab: griha
+sub_group: construction
+title_en: "Sankusthapana / Griharambha (Foundation)"
 title_te: "శంకుస్థాపన (గృహారంభము)"
+description_en: "Foundation and first pillar of a house. Only Agni kartari (Sun in Krittika) applies."
+description_te: "గృహారంభం / శంకుస్థాపన. అగ్ని కర్తరి మాత్రమే వర్తిస్తుంది."
+tab_inputs: [griha_owner]
+kartari: agni
 source:
   part: 6
-  section: "శంకుస్థాపన నియమములు"
-  page: "Part 6, Section 2"
-  notes: "Laying the foundation stone. Sthira rasis mandatory. Avoid Rikta and Amavasya."
-
-inputs:
-  required: [location, date_range]
-  optional: [janma_nakshatra]
-
+  section: "గృహారంభము / స్తంభ ప్రతిష్ఠ"
+  notes: >-
+    Plan M19 21.3-21.8. Book conflict: Part 6 lists the Sun in Bharani's second half and
+    Rohini pada 1 as prohibited, while Part 2 says only Agni kartari applies to griha nirmana;
+    Part 2 is followed here pending the author. Not yet modelled: a planet in its own or an
+    enemy sign in the 7th or 10th.
 hard_filters:
-  common:
-    mahadoshas_21: true
-    panchaka_rahita: true
-    avoid_rahu_kalam: true
-    avoid_yamagandam: true
-    avoid_varjyam: true
-    avoid_durmuhurta: true
-
-  vaara_exclude: [tuesday, sunday]
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  vaara_exclude: [sunday, tuesday]
+  monday_needs_waxing_moon: true
+  masa_exclude: [jyeshtha, ashadha, bhadrapada, ashwina, pushya]
   tithi_exclude: [rikta, amavasya]
-  karana_exclude: [vishti, bhadra]
-
-  nakshatra_allow:
-    - rohini
-    - mrigashira
-    - chitta
-    - swati
-    - anuradha
-    - uttara_phalguni
-    - uttara_ashadha
-    - uttara_bhadrapada
-    - hasta
-    - revati
-
-  lagna_types: [sthira]
-
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, punarvasu, revati, hasta, pushya, shravana, dhanishta, shatabhisha, mrigashira, uttara_phalguni, uttara_ashadha, uttara_bhadrapada, anuradha, chitra, rohini]
+  lagna_types: [sthira, dvisvabhava]
+  lagna_exclude: [simha, vrishchika]
   house_rules:
     - house: 8
       planets: none
-    - house: 1
-      planets: no_malefics
-
+    - house: [3, 6, 11]
+      planets: papa_allowed
+  planet_rules:
+    - planet: moon
+      not_in_nakshatras: [krittika]
+    - planet: mars
+      not_in_nakshatras: [krittika, magha, revati, uttara_phalguni, hasta, mula, pushya]
+      note: "fire and sorrow"
+    - planet: saturn
+      not_in_nakshatras: [anuradha, jyeshtha, swati, purva_bhadrapada, uttara_bhadrapada, bharani]
+    - planet: jupiter
+      not_in_signs: [makara]
+    - planet: venus
+      not_in_signs: [kanya]
+    - planet: mercury
+      in_nakshatras: [chitra, ashwini, uttara_phalguni, hasta, mrigashira, rohini]
+      soft_points: 2
+      note: "prosperity"
+    - planet: jupiter
+      in_nakshatras: [rohini, pushya, mrigashira, ashlesha, shravana, uttara_phalguni, uttara_ashadha, uttara_bhadrapada, purva_ashadha]
+      soft_points: 2
+    - planet: jupiter
+      in_houses: [1]
+      soft_points: 2
+      note: "long life of the house"
+    - planet: venus
+      in_houses: [1]
+      soft_points: 1
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    friday: 3
-    monday: 3
-  lagna_weights:
-    vrishabha: 3
-    simha: 3
-
+  vaara_weights: {thursday: 3, friday: 3, wednesday: 3, saturday: 1, monday: 2}

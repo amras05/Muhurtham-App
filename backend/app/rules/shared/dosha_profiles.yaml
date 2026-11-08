@@ -1,0 +1,76 @@
+# Dosha profile per category (category index, part 3: "one dosha rule must not apply the
+# same way to every event"). Merged in order: default <- tab <- event.
+#
+#   yogas:          special yoga id -> {points: N} (score bonus) or {severity: ...} (a dosha)
+#   extra_checks:   list C check id -> "off" | info | mild | serious | fatal  (quote "off": bare off means false in YAML)
+#   dosha_severity: mahadosha / dashavidha id -> severity override for this category
+#   exemptions:     dosha id -> parihara ids that relieve it (doshapavada). In Lenient mode a
+#                   relieved dosha becomes a caution. EMPTY until the author supplies the list (D7).
+#
+# Severities: fatal (dropped in Strict mode), serious (caps the grade at middling),
+# mild (small penalty), info (shown only).
+
+default:
+  yogas:
+    siddhi: {points: 2}
+    amrita_siddhi: {points: 4}
+    sarvartha_siddhi: {points: 3}
+    dvipushkara: {points: 2}
+    tripushkara: {points: 3}
+    mrityu: {severity: serious}
+    dagdha: {severity: serious}
+    yamaghanta: {severity: serious}
+  extra_checks:
+    paksharandhra: "off"
+    kshaya_tithi: "off"
+    papa_drishti: info
+    bandhana_nakshatra: info
+    tithi_tyajya: info
+  dosha_severity: {}
+  exemptions: {}
+
+tabs:
+  vivaha:
+    extra_checks: {paksharandhra: serious, kshaya_tithi: serious, papa_drishti: serious}
+  upanayana:
+    extra_checks: {paksharandhra: serious, kshaya_tithi: serious, papa_drishti: serious}
+  griha:
+    extra_checks: {paksharandhra: serious, kshaya_tithi: serious, papa_drishti: mild}
+  shishu:
+    extra_checks: {paksharandhra: serious, kshaya_tithi: mild, papa_drishti: mild}
+  vidya:
+    extra_checks: {paksharandhra: serious, kshaya_tithi: mild}
+  garbha:
+    extra_checks: {paksharandhra: serious, kshaya_tithi: mild}
+  spiritual:
+    extra_checks: {paksharandhra: serious, kshaya_tithi: serious, papa_drishti: mild}
+  business:
+    extra_checks: {paksharandhra: mild, kshaya_tithi: mild}
+  pitru:
+    # Pushkara yogas repeat what is done; for death rites that repetition is unwanted.
+    yogas:
+      dvipushkara: {severity: serious}
+      tripushkara: {severity: serious}
+      siddhi: {points: 0}
+      amrita_siddhi: {points: 0}
+      sarvartha_siddhi: {points: 0}
+
+events:
+  borrowing_money:
+    yogas: {dvipushkara: {severity: serious}, tripushkara: {severity: serious}}
+  demolition:
+    yogas: {dvipushkara: {severity: serious}, tripushkara: {severity: serious}}
+  surgery:
+    yogas: {dvipushkara: {severity: serious}, tripushkara: {severity: serious}}
+  buying_house:
+    yogas: {dvipushkara: {points: 4}, tripushkara: {points: 6}}
+  buying_goods:
+    yogas: {dvipushkara: {points: 4}, tripushkara: {points: 6}}
+  buying_vehicles:
+    yogas: {dvipushkara: {points: 4}, tripushkara: {points: 6}}
+  gold_purchase:
+    yogas: {dvipushkara: {points: 4}, tripushkara: {points: 6}}
+  jewellery_purchase:
+    yogas: {dvipushkara: {points: 4}, tripushkara: {points: 6}}
+  land_purchase:
+    yogas: {dvipushkara: {points: 4}, tripushkara: {points: 6}}

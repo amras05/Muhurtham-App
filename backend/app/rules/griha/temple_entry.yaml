@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'griha_pravesha'.
+id: temple_entry
+category: griha
+extends: griha_pravesha
+tab: spiritual
+title_en: "Temple entry"
+title_te: "దేవాలయ గృహప్రవేశం"
+description_en: "First entry into a new temple"
+description_te: "దేవాలయ గృహప్రవేశము"
+tab_inputs: []
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

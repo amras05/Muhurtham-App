@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'sankusthapana'.
+id: temple_construction
+category: griha
+extends: sankusthapana
+tab: spiritual
+title_en: "Temple construction start"
+title_te: "దేవాలయ నిర్మాణ ప్రారంభం"
+description_en: "Starting to build a temple"
+description_te: "దేవాలయ నిర్మాణ ప్రారంభము"
+tab_inputs: []
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

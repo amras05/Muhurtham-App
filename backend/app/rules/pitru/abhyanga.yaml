@@ -1,0 +1,22 @@
+id: abhyanga
+category: pitru
+tab: pitru
+title_en: "Abhyanga (Oil Bath)"
+title_te: "అభ్యంగ స్నానము"
+description_en: "Days allowed for an oil bath. Festival days (Deepavali, Sankranti, Ugadi) require it regardless."
+description_te: "అభ్యంగ స్నానానికి అనుకూల దినాలు. పండుగ రోజులలో తప్పనిసరి."
+source:
+  part: 5
+  section: "అభ్యంగ స్నానము"
+  notes: >-
+    Plan M17 19.3. Exceptions for children, the old and the sick (Sunday with durva, Thursday
+    with flowers, Friday with cow dung, Tuesday with clay) are shown as text only. Vrata and
+    shraddha days are not yet modelled.
+hard_filters:
+  common: {mahadoshas_21: false, panchaka_rahita: false, avoid_rahu_kalam: false, avoid_yamagandam: false, avoid_varjyam: false, avoid_durmuhurta: false}
+  time_of_day: daytime
+  vaara_exclude: [tuesday, friday, sunday, thursday]
+  tithi_exclude: [shukla_ashtami, shukla_dwadashi, nanda, parva, shukla_chaturdashi]
+  yoga_exclude: [vyatipata]
+  nakshatra_exclude: [shravana, ardra, ashwini, jyeshtha]
+soft_scoring: {}

@@ -1,0 +1,31 @@
+id: preparing_medicines
+category: general
+tab: health
+title_en: "Preparing Medicines"
+title_te: "ఔషధ తయారీ"
+description_en: "Preparing a medicine or formulation. Taking medicine is a separate event."
+description_te: "ఔషధములను తయారు చేయుట. ఔషధ సేవన వేరే కార్యము."
+informational: true
+source:
+  part: 7
+  section: "సాధారణ కార్యములకు ముహూర్తములు"
+  notes: >-
+    Plan M20 row 'Preparing medicines'. Book issue: the tithi list 1, 4, 6, 8, 9, 11, 14
+    includes rikta tithis that other sections forbid, and 'malefics in lagna and kendras'
+    reads garbled; both await the author. The tithi list is applied as printed; the
+    malefic condition is not applied.
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+  vaara_exclude: [tuesday, saturday]
+  tithi_numbers_both_paksha: [1, 4, 6, 8, 9, 11, 14]
+  nakshatra_allow: [mrigashira, punarvasu, pushya, ashlesha, hasta, chitra, swati, anuradha, mula, shravana, dhanishta, shatabhisha, revati]
+  lagna_types: [chara]
+  house_rules:
+    - house: [7, 8, 12]
+      planets: none
+
+soft_scoring:
+  vaara_weights: {thursday: 2, wednesday: 2}

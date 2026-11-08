@@ -1,0 +1,13 @@
+# New event (Phase 14): inherits the rules of 'well_digging'.
+id: borewell
+category: griha
+extends: well_digging
+tab: griha
+sub_group: land
+title_en: "Borewell"
+title_te: "బోరు వేయుట"
+description_en: "Drilling a borewell"
+description_te: "బోరు వేయుటకు శుభకాలము"
+tab_inputs: [griha_owner]
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

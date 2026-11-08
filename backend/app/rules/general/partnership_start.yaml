@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'business_start'.
+id: partnership_start
+category: general
+extends: business_start
+tab: business
+title_en: "Starting a partnership"
+title_te: "భాగస్వామ్య వ్యాపార ప్రారంభం"
+description_en: "Starting a business with partners"
+description_te: "భాగస్వామ్య వ్యాపార ప్రారంభము"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

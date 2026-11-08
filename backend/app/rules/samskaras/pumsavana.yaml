@@ -1,0 +1,20 @@
+id: pumsavana
+category: samskaras
+tab: garbha
+title_en: "Pumsavana"
+title_te: "పుంసవనము"
+description_en: "In the third month of the first pregnancy, once the pregnancy is evident."
+description_te: "ప్రథమ గర్భంలో మూడవ మాసంలో."
+tab_inputs: [samskara_pregnancy]
+source:
+  part: 4
+  section: "పుంసవనము"
+  notes: "Plan M14 16.3. The book gives no weekday list."
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  age_rule: {reference: conception, unit: months, allowed: [3]}
+  tithi_exclude: [chaturthi, navami, chaturdashi, amavasya]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, rohini, mrigashira, punarvasu, pushya, uttara_phalguni, hasta, chitra, swati, anuradha, mula, uttara_ashadha, shravana, dhanishta, shatabhisha, uttara_bhadrapada, revati]
+  lagna_exclude: [vrishchika, simha]
+soft_scoring: {}

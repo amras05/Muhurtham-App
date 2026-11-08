@@ -5,6 +5,8 @@ drik module (modern astronomical Drik Siddhanta, Lahiri/Chitrapaksha ayanamsa).
 Region-based: pass lat/lon/tz_offset for any location and get accurate,
 location-specific timings for sunrise, sunset, tithi, nakshatra, etc.
 """
+from datetime import date
+
 from jhora.panchanga import drik, drik1
 from jhora import utils, const
 import swisseph as swe
@@ -307,7 +309,7 @@ def get_sun_nakshatra_index(year, month, day, hour, minute, second, lat, lon, tz
     except Exception:
         return None
 
-def compute_special_yogas(vaara, tithi_num, nak_name, nak_idx, sun_nak_idx=None):
+def compute_special_yogas(vaara, tithi_num, nak_name, nak_idx, sun_nak_idx=None, tithi_30=None):
     """
     Evaluates special Vedic Yogas (సిద్ధి, సర్వార్థ సిద్ధి, అమృత సిద్ధి, ద్విపుష్కర, త్రిపుష్కర, మృత్యు, అధ, దగ్ధ, యమఘాత)
     based on Vaara, Tithi, and Nakshatra.
@@ -318,153 +320,20 @@ def compute_special_yogas(vaara, tithi_num, nak_name, nak_idx, sun_nak_idx=None)
     t_num = tithi_num % 15
     if t_num == 0: t_num = 15
     
-    # 1. Siddhi Yogam (సిద్ధి యోగం - Tithi + Vaara)
-    if (v == "Friday" and t_num in [1, 6, 11]) or \
-       (v == "Wednesday" and t_num in [2, 7, 12]) or \
-       (v == "Tuesday" and t_num in [3, 8, 13]) or \
-       (v == "Saturday" and t_num in [4, 9, 14]) or \
-       (v == "Thursday" and t_num in [5, 10, 15]):
+    # 1-9. Vara / tithi / nakshatra yogas from the shared, author-editable tables
+    # (rules/shared/special_yogas.yaml), the same ones the Muhurta Finder uses per window.
+    from app.engines.special_yogas import yoga_tables, yogas_at
+    vaara_idx = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"].index(v.lower())
+    t30 = tithi_30 if tithi_30 else t_num
+    for yid in yogas_at(vaara_idx, int(t30), int(nak_idx or 0)):
+        y = yoga_tables()[yid]
         yogas.append({
-            "name_en": "Siddhi Yogam",
-            "name_te": "సిద్ధి యోగం",
-            "type": "good",
-            "desc_en": "Auspicious Siddhi Yoga formed by Tithi + Weekday combination.",
-            "desc_te": "శుభ సిద్ధి యోగము (తిథి + వార సంయోగం)."
-        })
-        
-    # 2. Sarvartha Siddhi Yogam (సర్వార్థ సిద్ధి యోగం - Nakshatra + Vaara)
-    ss_map = {
-        "Monday": ["Rohini", "Mrigashira", "Pushya", "Anuradha", "Shravana"],
-        "Tuesday": ["Uttara Bhadrapada", "Krittika", "Ashlesha", "Ashwini"],
-        "Wednesday": ["Anuradha", "Hasta", "Krittika", "Mrigashira", "Rohini"],
-        "Thursday": ["Anuradha", "Ashwini", "Pushya", "Revati"],
-        "Friday": ["Anuradha", "Ashwini", "Punarvasu", "Shravana", "Revati"],
-        "Saturday": ["Rohini", "Swati", "Shravana"],
-        "Sunday": ["Mula", "Uttara Ashadha", "Uttara Phalguni", "Uttara Bhadrapada", "Ashwini", "Pushya", "Hasta"]
-    }
-    if nak_name in ss_map.get(v, []):
-        yogas.append({
-            "name_en": "Sarvartha Siddhi Yogam",
-            "name_te": "సర్వార్థ సిద్ధి యోగం",
-            "type": "good",
-            "desc_en": "Highly auspicious Sarvartha Siddhi Yoga for all endeavors.",
-            "desc_te": "సర్వ కార్య సిద్ధిప్రదమైన సర్వార్థ సిద్ధి యోగము."
-        })
-
-    # 3. Amrita Siddhi Yogam (అమృత సిద్ధి యోగం - Nakshatra + Vaara)
-    as_map = {
-        "Sunday": "Hasta",
-        "Monday": "Mrigashira",
-        "Tuesday": "Ashwini",
-        "Wednesday": "Anuradha",
-        "Thursday": "Pushya",
-        "Friday": "Revati",
-        "Saturday": "Rohini"
-    }
-    if as_map.get(v) == nak_name:
-        notes = []
-        if v == "Thursday" and nak_name == "Pushya": notes.append("Avoid for Marriage / వివాహ నిషిద్ధం")
-        if v == "Saturday" and nak_name == "Rohini": notes.append("Avoid for Travel / ప్రయాణ నిషిద్ధం")
-        notes.append("Avoid for Housewarming / గృహప్రవేశ నిషిద్ధం")
-        note_str = " (" + ", ".join(notes) + ")" if notes else ""
-        yogas.append({
-            "name_en": "Amrita Siddhi Yogam",
-            "name_te": f"అమృత సిద్ధి యోగం{note_str}",
-            "type": "good",
-            "desc_en": f"Auspicious Amrita Siddhi Yoga{note_str}.",
-            "desc_te": f"శ్రేష్ఠమైన అమృత సిద్ధి యోగము{note_str}."
-        })
-
-    # 4. Dvipushkara Yogam (ద్విపుష్కర యోగం - Tithi + Vaara + Nakshatra)
-    if (v == "Sunday" and t_num == 2 and nak_name == "Dhanishtha") or \
-       (v == "Tuesday" and t_num == 7 and nak_name == "Chitra") or \
-       (v == "Saturday" and t_num == 12 and nak_name == "Mrigashira"):
-        yogas.append({
-            "name_en": "Dvipushkara Yogam (2x Benefit)",
-            "name_te": "ద్విపుష్కర యోగం (ఫలితాలు 2 సార్లు పునరావృతం)",
-            "type": "good",
-            "desc_en": "Auspicious 2x Multiplier Yoga (Great for buying house/gold).",
-            "desc_te": "శ్రేష్ఠమైన ద్విపుష్కర యోగం (ఇళ్ళు, బంగారం కొనడానికి అత్యంత అనుకూలం)."
-        })
-
-    # 5. Tripushkara Yogam (త్రిపుష్కర యోగం - Tithi + Vaara + Nakshatra)
-    if (v == "Sunday" and t_num == 2 and nak_name in ["Krittika", "Vishakha"]) or \
-       (v == "Tuesday" and t_num == 7 and nak_name in ["Punarvasu", "Uttara Ashadha"]) or \
-       (v == "Saturday" and t_num == 12 and nak_name in ["Uttara Phalguni", "Uttara Bhadrapada"]):
-        yogas.append({
-            "name_en": "Tripushkara Yogam (3x Benefit)",
-            "name_te": "త్రిపుష్కర యోగం (ఫలితాలు 3 సార్లు పునరావృతం)",
-            "type": "good",
-            "desc_en": "Auspicious 3x Multiplier Yoga (Great for buying property/gold).",
-            "desc_te": "శ్రేష్ఠమైన త్రిపుష్కర యోగం (మూడుసార్లు శ్రేష్ఠ ఫలితాల పునరావృతం)."
-        })
-
-    # 6. Mrityu Yogam (మృత్యు యోగం - Tithi + Vaara)
-    if (v in ["Tuesday", "Sunday"] and t_num in [1, 6, 11]) or \
-       (v in ["Monday", "Friday"] and t_num in [7, 12]) or \
-       (v == "Wednesday" and t_num in [3, 8, 13]) or \
-       (v == "Thursday" and t_num in [4, 9, 14]) or \
-       (v == "Saturday" and t_num in [5, 10, 15]):
-        yogas.append({
-            "name_en": "Mrityu Yogam",
-            "name_te": "మృత్యు యోగం",
-            "type": "bad",
-            "desc_en": "Inauspicious Mrityu Yoga - Avoid auspicious activities.",
-            "desc_te": "అశుభకరమైన మృత్యు యోగము - శుభ కార్యములకు వర్జ్యము."
-        })
-
-    # 7. Adha Yogam (అధ యోగం - Tithi + Vaara)
-    if (v == "Sunday" and t_num in [7, 12]) or \
-       (v == "Monday" and t_num == 11) or \
-       (v == "Tuesday" and t_num == 10) or \
-       (v == "Wednesday" and t_num in [1, 9]) or \
-       (v == "Thursday" and t_num == 8) or \
-       (v == "Friday" and t_num == 7) or \
-       (v == "Saturday" and t_num == 6):
-        yogas.append({
-            "name_en": "Adha Yogam",
-            "name_te": "అధ యోగం",
-            "type": "bad",
-            "desc_en": "Inauspicious Adha Yoga per Panchang Shastra.",
-            "desc_te": "అశుభకరమైన అధ యోగము."
-        })
-
-    # 8. Dagdha Yogam (దగ్ధ యోగం - Nakshatra + Vaara)
-    dagdha_map = {
-        "Sunday": "Bharani",
-        "Monday": "Chitra",
-        "Tuesday": "Uttara Ashadha",
-        "Wednesday": "Dhanishtha",
-        "Thursday": "Uttara Phalguni",
-        "Friday": "Jyeshtha",
-        "Saturday": "Revati"
-    }
-    if dagdha_map.get(v) == nak_name:
-        yogas.append({
-            "name_en": "Dagdha Yogam",
-            "name_te": "దగ్ధ యోగం",
-            "type": "bad",
-            "desc_en": "Inauspicious Dagdha Yoga - Should be avoided.",
-            "desc_te": "అశుభకరమైన దగ్ధ యోగము."
-        })
-
-    # 9. Yamaghata Yogam (యమఘాత యోగం - Nakshatra + Vaara)
-    yama_map = {
-        "Sunday": "Magha",
-        "Monday": "Vishakha",
-        "Tuesday": "Ardra",
-        "Wednesday": "Mula",
-        "Thursday": "Krittika",
-        "Friday": "Rohini",
-        "Saturday": "Hasta"
-    }
-    if yama_map.get(v) == nak_name:
-        yogas.append({
-            "name_en": "Yamaghata Yogam",
-            "name_te": "యమఘాత యోగం",
-            "type": "bad",
-            "desc_en": "Highly inauspicious Yamaghata Yoga - Avoid completely.",
-            "desc_te": "అత్యంత అశుభకరమైన యమఘాత యోగము."
+            "id": yid,
+            "name_en": y.get("name_en", yid),
+            "name_te": y.get("name_te", yid),
+            "type": "bad" if y.get("type") == "bad" else "good",
+            "desc_en": f"{y.get('name_en', yid)} ({y.get('type')})",
+            "desc_te": y.get("name_te", yid),
         })
 
     # 10. Yoga Sadhana (చంద్రసంఖ్య + రవి సంఖ్య)
@@ -531,8 +400,10 @@ def compute_day_panchang(year: int, month: int, day: int,
     date_in = drik.Date(year, month, day)
     jd = utils.julian_day_number(date_in, (hour, minute, second))
 
-    # Vaara
-    vaara_idx = drik.vaara(jd, place)
+    # Vaara: the weekday of this calendar date. Its Vedic day runs from this day's sunrise to the
+    # next. (drik.vaara() at the query hour returns the previous weekday whenever the query
+    # time is before sunrise, e.g. the 06:00 default in winter.)
+    vaara_idx = (date(year, month, day).weekday() + 1) % 7   # 0 = Sunday
     vaara_str = VAARA_NAMES[vaara_idx]
 
     # Sunrise / Sunset
@@ -807,7 +678,7 @@ def compute_day_panchang(year: int, month: int, day: int,
 
     # Compute Special Yogas
     sun_nak_idx = get_sun_nakshatra_index(year, month, day, hour, minute, second, lat, lon, tz_offset)
-    special_yogas = compute_special_yogas(vaara_str, tithi_num, nak_name, nak_idx, sun_nak_idx)
+    special_yogas = compute_special_yogas(vaara_str, tithi_num, nak_name, nak_idx, sun_nak_idx, tithi_30=tithi_idx_30)
 
     # Kala Vibhajana (Daytime 5-fold division + Night special times)
     kala_vibhajana = compute_kala_vibhajana(sr_hrs, ss_hrs)

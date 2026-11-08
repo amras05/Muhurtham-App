@@ -1,43 +1,25 @@
 id: aksharabhyasa
 category: samskaras
-title_en: Aksharabhyasa (Vidyarambha)
-title_te: అక్షరాభ్యాసము (విద్యారంభము)
+tab: vidya
+title_en: "Aksharabhyasa"
+title_te: "అక్షరాభ్యాసము"
+description_en: "In the 5th year, daytime, Uttarayana."
+description_te: "5వ సంవత్సరంలో, పగలు, ఉత్తరాయణం."
+tab_inputs: [samskara_child]
 source:
   part: 5
-  section: విద్యారంభ కాల నిర్ణయము
-  page: Part 5, Sec 1
+  section: "అక్షరాభ్యాసము"
+  notes: "Plan M15 17.2. 'In a movable lagna Jupiter and Venus not in the 7th' is not yet applied."
 hard_filters:
-  vaara_allow:
-  - monday
-  - wednesday
-  - thursday
-  - friday
-  tithi_numbers_both_paksha:
-  - 2
-  - 3
-  - 5
-  - 7
-  - 10
-  - 11
-  - 13
-  nakshatra_allow:
-  - ashwini
-  - punarvasu
-  - pushya
-  - hasta
-  - chitta
-  - swati
-  - shravana
-  - dhanishta
-  - shatabhisha
-  - revati
-  lagna_types:
-  - chara
-  - dvisvabhava
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  age_rule: {reference: birth, unit: years, allowed: [5]}
+  time_of_day: daytime
+  tithi_exclude: [pratipada, rikta, ashtami, amavasya]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [anuradha, revati, ashwini, hasta, chitra, swati, punarvasu, pushya, shravana]
+  sun_sign_allow: [makara, kumbha, meena, mesha, vrishabha, mithuna]
+  sun_sign_exclude: [mithuna, kanya, dhanus, meena]
   house_rules:
-  - house: 8
-    planets: none
-soft_scoring:
-  vaara_weights:
-    thursday: 5
-    wednesday: 4
+    - house: 8
+      planets: none
+soft_scoring: {}

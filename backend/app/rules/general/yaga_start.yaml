@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'yajna_start'.
+id: yaga_start
+category: general
+extends: yajna_start
+tab: spiritual
+title_en: "Starting a yaga"
+title_te: "యాగ ప్రారంభం"
+description_en: "Beginning a yaga"
+description_te: "యాగ ప్రారంభము"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

@@ -1,0 +1,11 @@
+# Utpata (omens) calendar — Mahadosha #15 (Book Part 2).
+# Earthquakes, comets, thunderbolts and similar omens cannot be computed, so an
+# admin records them here. Any muhurta window on a listed date fails Mahadosha #15.
+# Edits are picked up without a restart.
+#
+# Entry format:
+#   - from: 2026-11-20          # YYYY-MM-DD
+#     to: 2026-11-22            # optional, defaults to `from`
+#     note_en: "Earthquake reported in the region"
+#     note_te: "భూకంపం"
+utpata: []

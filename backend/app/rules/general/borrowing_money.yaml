@@ -1,24 +1,19 @@
 id: borrowing_money
 category: general
+tab: finance
 title_en: Borrowing Money / Taking Loans
 title_te: రుణం గ్రహించుట (అప్పు చేయుట)
 source:
   part: 7
   section: ఋణ స్వీకార నియమములు
   page: Part 7, Sec 5
+  notes: "Plan M20 row 'Borrowing money'. No tithi stated in the book."
 hard_filters:
-  vaara_exclude:
-  - saturday
-  - tuesday
-  nakshatra_exclude:
-  - krittika
-  - punarvasu
-  - mula
-  - dhanishta
-  house_rules:
-  - house: 8
-    planets: none
+  common: {mahadoshas_21: true, panchaka_rahita: true}
+  vaara_exclude: [saturday]
+  karana_exclude: [bhadra]
+  nakshatra_exclude: [krittika, punarvasu, mula, dhanishta]
+  exclude_janma_nakshatra: true
+  moon_free_of_malefics: true
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    monday: 2
+  vaara_weights: {wednesday: 2, thursday: 2}

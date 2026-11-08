@@ -1,0 +1,19 @@
+id: demolition
+category: griha
+tab: griha
+sub_group: construction
+title_en: "Demolishing a House"
+title_te: "గృహ విధ్వంసము (కూల్చివేత)"
+description_en: "Pulling down an old structure. The book prescribes fierce nakshatras for this act."
+description_te: "పాత నిర్మాణం కూల్చివేత. ఉగ్ర / తీక్ష్ణ నక్షత్రాలు."
+source:
+  part: 6
+  section: "గృహ విధ్వంసము"
+  notes: "Plan M19 21.11 'Demolishing a house'."
+hard_filters:
+  common: {mahadoshas_21: false, panchaka_rahita: false}
+  vaara_exclude: [thursday, friday]
+  tithi_allow: [tritiya, ashtami, navami]
+  nakshatra_allow: [group:ugra, group:teekshna]
+  sun_sign_allow: [mesha, karkataka, tula, makara]
+soft_scoring: {}

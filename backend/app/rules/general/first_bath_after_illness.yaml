@@ -1,44 +1,21 @@
 id: first_bath_after_illness
 category: general
+tab: health
 title_en: First Bath After Illness
 title_te: వ్యాధి తగ్గిన తరువాత మొదటి స్నానము
 source:
   part: 7
   section: స్నాన కాల నిర్ణయము
   page: Part 7, Sec 1
+  notes: "Plan M20 row 'First bath after illness'. The book prescribes rikta tithis for this act."
 hard_filters:
-  vaara_allow:
-  - tuesday
-  - wednesday
-  - thursday
-  - saturday
-  - sunday
-  tithi_allow:
-  - chaturthi
-  - navami
-  - chaturdashi
-  nakshatra_allow:
-  - ashwini
-  - bharani
-  - krittika
-  - mrigashira
-  - ardra
-  - punarvasu
-  - pushya
-  - purva_phalguni
-  - hasta
-  - chitta
-  - vishakha
-  - mula
-  - purva_ashadha
-  - shravana
-  - dhanishta
-  - shatabhisha
-  - purva_bhadrapada
-  lagna_types:
-  - sthira
-  - dvisvabhava
-soft_scoring:
-  vaara_weights:
-    thursday: 3
-    wednesday: 3
+  common: {mahadoshas_21: true, panchaka_rahita: false}
+  vaara_allow: [tuesday, wednesday, thursday, saturday, sunday]
+  tithi_allow: [rikta]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, bharani, krittika, mrigashira, ardra, punarvasu, pushya, purva_phalguni, hasta, chitra, vishakha, mula, purva_ashadha, shravana, dhanishta, shatabhisha, purva_bhadrapada]
+  lagna_types: [sthira, dvisvabhava]
+  house_rules:
+    - house: [1, 4, 5, 7, 9, 10]
+      planets: no_malefics
+soft_scoring: {}

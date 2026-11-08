@@ -1,0 +1,52 @@
+# Pitru calendar tables (category index section 12; Shannavati = the 96 yearly shraddhas).
+# Months are Amanta lunar months 1-12 (1 = Chaitra ... 12 = Phalguna); tithis 1-30
+# (16-30 = Krishna paksha, 30 = Amavasya). Classical lists as commonly printed (Nirnaya Sindhu);
+# `confirmed: false` until Dr. Vamsee Nemani confirms them against the book (D7).
+#
+# day_rule: aparahna = the day whose aparahna (4th fifth of daytime) the tithi covers most;
+#           udaya     = the day whose sunrise falls in the tithi.
+
+confirmed: false
+
+manvadi:          # 14 Manvadi tithis
+  day_rule: udaya
+  days:
+    - {masa: 7, tithi: 9}     # Ashvayuja shukla navami
+    - {masa: 8, tithi: 12}    # Kartika shukla dvadashi
+    - {masa: 1, tithi: 3}     # Chaitra shukla tritiya
+    - {masa: 6, tithi: 3}     # Bhadrapada shukla tritiya
+    - {masa: 12, tithi: 30}   # Phalguna amavasya
+    - {masa: 10, tithi: 11}   # Pushya shukla ekadashi
+    - {masa: 4, tithi: 10}    # Ashadha shukla dashami
+    - {masa: 11, tithi: 7}    # Magha shukla saptami
+    - {masa: 5, tithi: 23}    # Shravana krishna ashtami
+    - {masa: 4, tithi: 15}    # Ashadha purnima
+    - {masa: 8, tithi: 15}    # Kartika purnima
+    - {masa: 12, tithi: 15}   # Phalguna purnima
+    - {masa: 1, tithi: 15}    # Chaitra purnima
+    - {masa: 3, tithi: 15}    # Jyeshtha purnima
+
+yugadi:           # 4 Yugadi tithis
+  day_rule: udaya
+  days:
+    - {masa: 8, tithi: 9}     # Kartika shukla navami (Krita)
+    - {masa: 2, tithi: 3}     # Vaishakha shukla tritiya (Treta)
+    - {masa: 6, tithi: 28}    # Bhadrapada krishna trayodashi (Dvapara)
+    - {masa: 11, tithi: 30}   # Magha amavasya (Kali)
+
+ashtaka:          # 5 Ashtaka (krishna ashtami)
+  day_rule: aparahna
+  tithi: 23
+  masas: [9, 10, 11, 12, 6]
+anvashtaka:       # 5 Anvashtaka (krishna navami, the day after)
+  day_rule: aparahna
+  tithi: 24
+  masas: [9, 10, 11, 12, 6]
+purvedyuh:        # 3 Purvedyuh (krishna saptami, the day before)
+  day_rule: aparahna
+  tithi: 22
+  masas: [9, 10, 11]
+
+mahalaya:         # 15 days of Bhadrapada krishna paksha
+  day_rule: aparahna
+  masa: 6

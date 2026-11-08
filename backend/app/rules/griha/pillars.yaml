@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'sankusthapana'.
+id: pillars
+category: griha
+extends: sankusthapana
+tab: griha
+sub_group: construction
+title_en: "Raising pillars"
+title_te: "స్తంభాలు నిలబెట్టుట"
+description_en: "Setting up the pillars"
+description_te: "స్తంభములు నిలబెట్టుట"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

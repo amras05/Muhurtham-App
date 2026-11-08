@@ -112,7 +112,7 @@ function setLang(lang) {
 let lastPanchang = null;
 
 function setStatus(msg, isError) {
-  const s = el("status") || el("mfStatus") || el("statusCheckpoint");
+  const s = el("status") || el("mfStatus");
   if (!s) return;
   s.textContent = msg || "";
   s.className = "status" + (isError ? " error" : "");

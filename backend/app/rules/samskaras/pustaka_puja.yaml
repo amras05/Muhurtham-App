@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'vidyarambha'.
+id: pustaka_puja
+category: samskaras
+extends: vidyarambha
+tab: vidya
+title_en: "Pustaka puja"
+title_te: "పుస్తక పూజ"
+description_en: "Worship of books"
+description_te: "పుస్తక పూజకు శుభకాలము"
+tab_inputs: []
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

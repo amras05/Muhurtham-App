@@ -1,0 +1,18 @@
+id: asthisanchayana
+category: pitru
+tab: pitru
+title_en: "Asthisanchayana"
+title_te: "అస్థిసంచయనము"
+description_en: "Gathering the remains: the day of cremation, the 2nd day, or an odd day up to the 11th."
+description_te: "దహనం రోజు, 2వ రోజు, లేదా 11వ రోజు వరకు బేసి రోజులలో."
+tab_inputs: [pitru_death]
+depends_on: {days_after: [0, 1, 2, 4, 6, 8, 10]}
+source:
+  part: 5
+  section: "అంత్యేష్టి"
+  notes: "Plan M17 19.3. The day of death counts as day 1. Shubha mahadoshas do not apply to pitru karya."
+hard_filters:
+  common: {mahadoshas_21: false, panchaka_rahita: false}
+  time_of_day: daytime
+  karana_exclude: [bhadra]
+soft_scoring: {}

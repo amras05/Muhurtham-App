@@ -1,36 +1,32 @@
 id: haircut
 category: general
-title_en: Haircut & Shaving (Kshaura Karma)
-title_te: క్షురకర్మ / కేశఖండనము
+tab: personal
+title_en: Haircut & Nail Cutting
+title_te: కేశ / నఖ ఛేదనము
+description_en: "Haircut or nail cutting. The book's stricter kshaurakarma (shaving) list is available as an alternative."
+description_te: "కేశ / నఖ ఛేదనము. క్షురకర్మ కఠిన జాబితా ప్రత్యామ్నాయంగా ఉంది."
 source:
   part: 7
   section: క్షురకర్మ నిషేధములు
   page: Part 7, Sec 5
+  notes: "Plan M20 row 'Nail cutting, haircut'. Eclipses are covered by Mahadosha #14."
 hard_filters:
-  vaara_allow:
-  - monday
-  - wednesday
-  vaara_exclude:
-  - tuesday
-  - friday
-  - saturday
-  tithi_exclude:
-  - amavasya
-  - purnima
-  - rikta
-  nakshatra_allow:
-  - ashwini
-  - mrigashira
-  - punarvasu
-  - pushya
-  - hasta
-  - chitta
-  - swati
-  - jyeshtha
-  - shravana
-  - dhanishta
-  - shatabhisha
-  - revati
+  vaara_exclude: [friday, saturday]
+  tithi_exclude: [amavasya, purnima]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, mrigashira, punarvasu, pushya, hasta, chitta, swati, jyeshtha, shravana, dhanishta, shatabhisha, revati]
+alternatives:
+  kshaurakarma:
+    title_en: "Kshaurakarma (shaving) list"
+    title_te: "క్షురకర్మ జాబితా"
+    hard_filters:
+      vaara_allow: [monday, wednesday]
+      tithi_exclude: [nanda, rikta, parva, ashtami]
+      yoga_exclude: [vyatipata]
+      karana_exclude: [bhadra]
+      nakshatra_allow: [ashwini, mrigashira, punarvasu, pushya, hasta, chitra, swati, vishakha, shravana, dhanishta, shatabhisha]
+      sun_sign_exclude: [karkataka, kanya, kumbha, dhanus]
+      exclude_janma_nakshatra: true
 soft_scoring:
   vaara_weights:
     wednesday: 4

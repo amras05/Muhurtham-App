@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'sankusthapana'.
+id: bhumi_puja
+category: griha
+extends: sankusthapana
+tab: griha
+sub_group: land
+title_en: "Bhumi puja"
+title_te: "భూమిపూజ"
+description_en: "Worship of the site before work"
+description_te: "స్థలంలో పని ప్రారంభానికి ముందు భూమిపూజ"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

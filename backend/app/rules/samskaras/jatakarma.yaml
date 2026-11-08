@@ -1,0 +1,26 @@
+id: jatakarma
+category: samskaras
+tab: shishu
+title_en: "Jatakarma (if missed at birth)"
+title_te: "జాతకర్మ (జననంలో చేయలేకపోతే)"
+description_en: "Done at birth or within the next 10 days. This search is for when that was missed."
+description_te: "జననం లేదా తరువాతి 10 రోజులలో చేయాలి. అది తప్పితే ఈ శోధన."
+tab_inputs: [samskara_child]
+source:
+  part: 4
+  section: "జాతకర్మ"
+  notes: "Plan M14 16.5 'if missed'. 'Purna tithis' preference is not yet scored."
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  age_rule: {reference: birth, unit: days, min_ordinal: 12}
+  time_of_day: forenoon
+  vaara_allow: [monday, wednesday, thursday, friday]
+  tithi_exclude: [chaturthi, navami, purnima, amavasya]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, rohini, punarvasu, pushya, uttara_phalguni, hasta, swati, anuradha, uttara_ashadha, shravana, dhanishta, shatabhisha, uttara_bhadrapada]
+  sun_sign_allow: [makara, kumbha, meena, mesha, vrishabha, mithuna]
+  not_combust: [jupiter, venus]
+  planet_rules:
+    - planet: benefic
+      in_houses: [1]
+soft_scoring: {}

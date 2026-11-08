@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'vidyarambha'.
+id: new_course
+category: samskaras
+extends: vidyarambha
+tab: vidya
+title_en: "Starting a new course"
+title_te: "నూతన విద్యా కోర్సు ప్రారంభం"
+description_en: "Beginning a new course of study"
+description_te: "నూతన విద్యా కోర్సు ప్రారంభము"
+tab_inputs: []
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

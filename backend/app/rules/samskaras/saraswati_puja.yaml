@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'vidyarambha'.
+id: saraswati_puja
+category: samskaras
+extends: vidyarambha
+tab: vidya
+title_en: "Saraswati puja"
+title_te: "సరస్వతీ పూజ"
+description_en: "Worship of Saraswati before study"
+description_te: "విద్యారంభానికి ముందు సరస్వతీ పూజ"
+tab_inputs: []
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

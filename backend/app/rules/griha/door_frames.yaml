@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'door_placement'.
+id: door_frames
+category: griha
+extends: door_placement
+tab: griha
+sub_group: construction
+title_en: "Fixing door frames"
+title_te: "ద్వారబంధాల ఏర్పాటు"
+description_en: "Fixing the door frames"
+description_te: "ద్వారబంధముల ఏర్పాటు"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

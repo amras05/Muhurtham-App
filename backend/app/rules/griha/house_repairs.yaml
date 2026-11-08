@@ -1,0 +1,25 @@
+id: house_repairs
+category: griha
+tab: griha
+sub_group: construction
+title_en: "House Repairs"
+title_te: "గృహ మరమ్మత్తులు"
+description_en: "Starting repairs on an existing house."
+description_te: "ఇంటి మరమ్మత్తుల ప్రారంభము."
+tab_inputs: [griha_owner]
+source:
+  part: 6
+  section: "జీర్ణోద్ధారణ"
+  notes: "Plan M19 21.11 'Repairs'. Good taras apply when the janma nakshatra is given."
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true}
+  vaara_allow: [monday, wednesday, thursday]
+  tithi_exclude: [rikta]
+  yoga_exclude: [doshic]
+  karana_exclude: [inauspicious]
+  nakshatra_exclude: [krittika, pushya, magha, hasta, mula, revati]
+  planet_rules:
+    - planet: benefic
+      in_houses: [1]
+soft_scoring:
+  vaara_weights: {thursday: 2, wednesday: 2}

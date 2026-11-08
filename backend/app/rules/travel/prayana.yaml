@@ -1,56 +1,29 @@
 id: prayana
 category: travel
+tab: travel
 title_en: "Prayana (Travel & Journey)"
 title_te: "ప్రయాణము (దేశాంతర గమనము)"
+description_en: "Starting a journey: checks vara and nakshatra shula, Dhanishta panchaka and Venus facing the traveller."
+description_te: "ప్రయాణారంభం: వార/నక్షత్ర శూల, ధనిష్ఠా పంచకం, శుక్ర సమ్ముఖం పరిశీలన."
+tab_inputs: [travel]
 source:
   part: 5
-  section: "ప్రయాణ ప్రకరణము"
-  page: "Part 5, Section 4"
-  notes: "Rules for long distance travel, foreign trips, and auspicious journeys. Chara lagnas preferred. Varashula and directional rules apply."
-
-inputs:
-  required: [location, date_range]
-  optional: [janma_nakshatra]
-
+  section: "ప్రయాణములకు శుభ కాలము"
+  notes: >-
+    Plan M18. Medium nakshatras (Rohini, Uttara Phalguni, Mula, Uttarashadha, Shatabhisha,
+    Uttarabhadra) score lower. Mithuna departure lagna is excluded (the book: death); the
+    other lagna results are scores. Return-journey rules and household situations are not
+    yet modelled. Shakunas are reading content only.
 hard_filters:
-  common:
-    mahadoshas_21: true
-    panchaka_rahita: true
-    avoid_rahu_kalam: true
-    avoid_yamagandam: true
-    avoid_varjyam: true
-    avoid_durmuhurta: true
-
-  vaara_exclude: [tuesday] # Avoid Tuesday travel (Kuja Shula)
-  tithi_exclude: [rikta, amavasya]
-  karana_exclude: [vishti, bhadra]
-
-  nakshatra_allow:
-    - ashwini
-    - mrigashira
-    - punarvasu
-    - pushya
-    - hasta
-    - anuradha
-    - shravana
-    - dhanishta
-    - revati
-
-  lagna_types: [chara] # Movable signs favored for travel
-
-  house_rules:
-    - house: 8
-      planets: none
-
+  common: {mahadoshas_21: true, panchaka_rahita: true}
+  vaara_exclude: [sunday, tuesday, saturday]
+  tithi_exclude: [rikta, parva, pratipada, ashtami, dwadashi, shashti]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, mrigashira, punarvasu, pushya, hasta, anuradha, shravana, dhanishta, revati,
+                    rohini, uttara_phalguni, mula, uttara_ashadha, shatabhisha, uttara_bhadrapada]
+  lagna_exclude: [mithuna]
+  travel_checks: true
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    friday: 4
-    wednesday: 3
-    monday: 2
-  lagna_weights:
-    mesha: 3
-    karkataka: 3
-    tula: 3
-    makara: 3
-
+  vaara_weights: {thursday: 3, wednesday: 3, friday: 3, monday: 2}
+  nakshatra_weights: {ashwini: 2, mrigashira: 2, punarvasu: 2, pushya: 2, hasta: 2, anuradha: 2, shravana: 2, dhanishtha: 2, revati: 2}
+  lagna_weights: {mesha: 2, vrishabha: 2, karkataka: 2, tula: 2, dhanus: 2, meena: 2, makara: 1, simha: -2, kanya: -2, vrishchika: -2}

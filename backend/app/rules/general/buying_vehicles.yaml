@@ -1,7 +1,9 @@
 id: buying_vehicles
 category: general
+tab: finance
 title_en: Buying Vehicles (Vahana Kraya)
 title_te: నూతన వాహన కొనుగోలు
+tab_inputs: [vehicle]
 source:
   part: 7
   section: వాహన కొనుగోలు కాలము

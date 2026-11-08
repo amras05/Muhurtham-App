@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'sowing_seeds'.
+id: crop_cultivation
+category: general
+extends: sowing_seeds
+tab: agriculture
+title_en: "Starting cultivation"
+title_te: "పంటల సాగు ప్రారంభం"
+description_en: "Starting to cultivate a crop"
+description_te: "పంటల సాగు ప్రారంభము"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

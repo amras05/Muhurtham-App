@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'business_start'.
+id: business_expansion
+category: general
+extends: business_start
+tab: business
+title_en: "Business expansion"
+title_te: "వ్యాపార విస్తరణ"
+description_en: "Expanding a business"
+description_te: "వ్యాపార విస్తరణ"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

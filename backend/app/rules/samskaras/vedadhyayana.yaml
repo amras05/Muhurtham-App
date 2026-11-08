@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'vedavrata'.
+id: vedadhyayana
+category: samskaras
+extends: vedavrata
+tab: vidya
+title_en: "Starting Vedic study"
+title_te: "వేదాధ్యయన ప్రారంభం"
+description_en: "Beginning the study of the Vedas"
+description_te: "వేదాధ్యయన ప్రారంభము"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

@@ -1,0 +1,30 @@
+id: all_deity_pratishtha
+category: general
+tab: spiritual
+title_en: "Pratishtha of All Deities"
+title_te: "సర్వదేవతా ప్రతిష్ఠ"
+description_en: "Consecration of deities in Uttarayana, with Jupiter and Venus not combust."
+description_te: "ఉత్తరాయణంలో, గురు శుక్రులు అస్తంగతులు కానప్పుడు దేవతా ప్రతిష్ఠ."
+source:
+  part: 7
+  section: "సాధారణ కార్యములకు ముహూర్తములు"
+  notes: "Plan M20 row 'All-deity pratishtha'. Tithis: Bhadra; Purna except Amavasya; Jaya except Trayodashi."
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+    masa_shubha: true
+  vaara_allow: [monday, wednesday, thursday, friday]
+  tithi_allow: [bhadra, purna, tritiya, ashtami]
+  tithi_exclude: [amavasya]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [shravana, dhanishta, shatabhisha, uttara_phalguni, uttara_ashadha, uttara_bhadrapada, anuradha, punarvasu, hasta, chitra, revati, mrigashira, ashwini, rohini]
+  sun_sign_allow: [makara, kumbha, meena, mesha, vrishabha, mithuna]
+  not_combust: [jupiter, venus]
+  house_rules:
+    - house: 8
+      planets: none
+
+soft_scoring:
+  vaara_weights: {thursday: 3, monday: 2, wednesday: 2, friday: 2}

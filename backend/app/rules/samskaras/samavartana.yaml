@@ -1,0 +1,21 @@
+id: samavartana
+category: samskaras
+tab: vidya
+title_en: "Samavartana"
+title_te: "సమావర్తనము"
+description_en: "End of formal study, with the guru's permission. Movable lagna, forenoon."
+description_te: "విద్యాసమాప్తి, గురువు అనుమతితో. చర లగ్నం, పూర్వాహ్ణం."
+source:
+  part: 5
+  section: "సమావర్తనము"
+  notes: "Plan M15 17.5. Tri-tithi days are not yet modelled."
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  time_of_day: forenoon
+  vaara_exclude: [tuesday, saturday]
+  tithi_exclude: [pratipada, shashti, ashtami, parva, amavasya]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [chitra, anuradha, revati, mrigashira, ashwini, pushya, hasta, rohini, uttara_phalguni, uttara_ashadha, uttara_bhadrapada]
+  lagna_types: [chara]
+soft_scoring:
+  vaara_weights: {wednesday: 3, thursday: 3, friday: 3}

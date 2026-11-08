@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'business_start'.
+id: new_project
+category: general
+extends: business_start
+tab: business
+title_en: "Starting a new project"
+title_te: "నూతన ప్రాజెక్టు ప్రారంభం"
+description_en: "Starting a new project"
+description_te: "నూతన ప్రాజెక్టు ప్రారంభము"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'griha_pravesha'.
+id: purchased_house_entry
+category: griha
+extends: griha_pravesha
+tab: griha
+sub_group: entry
+title_en: "Entering a bought house"
+title_te: "కొనుగోలు చేసిన ఇంటిలో ప్రవేశం"
+description_en: "First entry into a house you bought"
+description_te: "కొనుగోలు చేసిన ఇంటిలో ప్రవేశ ముహూర్తము"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

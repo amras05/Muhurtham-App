@@ -1,43 +1,29 @@
 id: annaprashana
 category: samskaras
+tab: shishu
 title_en: Annaprashana (First Feeding)
 title_te: అన్నప్రాశన సంస్కారము
+description_en: "Boys in the 6th, 8th or 10th month; girls in the 5th, 7th or 9th."
+description_te: "బాలురకు 6, 8, 10 మాసాలు; బాలికలకు 5, 7, 9 మాసాలు."
+tab_inputs: [samskara_child]
 source:
-  part: 3
-  section: అన్నప్రాశన నిర్ణయము
-  page: Part 3, Sec 3
+  part: 4
+  section: "అన్నప్రాశన"
+  notes: "Plan M14 16.7. Planets in the lagna are scored, not used to reject."
 hard_filters:
-  vaara_allow:
-  - monday
-  - wednesday
-  - thursday
-  - friday
-  tithi_exclude:
-  - rikta
-  - amavasya
-  - nanda
-  nakshatra_allow:
-  - ashwini
-  - rohini
-  - mrigashira
-  - punarvasu
-  - pushya
-  - uttara_phalguni
-  - hasta
-  - chitta
-  - swati
-  - anuradha
-  - shravana
-  - dhanishta
-  - shatabhisha
-  - uttara_bhadrapada
-  - revati
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  age_rule: {reference: birth, unit: months, boy: [6, 8, 10], girl: [5, 7, 9]}
+  vaara_allow: [monday, wednesday, thursday, friday]
+  tithi_exclude: [pratipada, chaturthi, shashti, ashtami, navami, ekadashi, dwadashi, amavasya, purnima]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, rohini, mrigashira, punarvasu, pushya, uttara_phalguni, hasta, chitra, swati, anuradha, uttara_ashadha, shravana, dhanishta, shatabhisha, uttara_bhadrapada, revati]
+  lagna_allow: [vrishabha, mithuna, karkataka, kanya, dhanus, meena]
   house_rules:
-  - house: 8
-    planets: none
-  - house: 1
-    planets: no_malefics
+    - house: 10
+      planets: none
+  planet_rules:
+    - planet: benefic
+      in_houses: [1]
+      soft_points: 3
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    friday: 4
+  vaara_weights: {thursday: 3, friday: 3, wednesday: 2, monday: 2}

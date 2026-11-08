@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'house_repairs'.
+id: house_extension
+category: griha
+extends: house_repairs
+tab: griha
+sub_group: construction
+title_en: "House extension"
+title_te: "గృహ విస్తరణ"
+description_en: "Extending an existing house"
+description_te: "గృహ విస్తరణ పనులు"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

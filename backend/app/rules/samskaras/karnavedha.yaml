@@ -1,0 +1,33 @@
+id: karnavedha
+category: samskaras
+tab: shishu
+title_en: "Karnavedha (Ear Piercing)"
+title_te: "కర్ణవేధ"
+description_en: "In the 6th, 7th or 8th month; the 12th or 16th day is available as the alternative list."
+description_te: "6, 7, 8 మాసాలలో; 12 లేదా 16వ రోజు ప్రత్యామ్నాయం."
+tab_inputs: [samskara_child]
+source:
+  part: 4
+  section: "కర్ణవేధ"
+  notes: "Plan M14 16.9. Sankramana is excluded via Mahadosha #2."
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  age_rule: {reference: birth, unit: months, allowed: [6, 7, 8]}
+  vaara_allow: [monday, wednesday, thursday, friday]
+  tithi_exclude: [chaturthi, navami, chaturdashi, purnima, amavasya, krishna_ashtami, shukla_pratipada]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [mrigashira, ardra, punarvasu, pushya, hasta, chitra, uttara_phalguni, uttara_ashadha, shravana, dhanishta, uttara_bhadrapada, revati]
+  lagna_allow: [vrishabha, mithuna, karkataka, kanya, dhanus, meena]
+  time_of_day: daytime
+alternatives:
+  day_12_or_16:
+    title_en: "12th or 16th day after birth"
+    title_te: "జననం తరువాత 12 లేదా 16వ రోజు"
+    hard_filters:
+      common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+      age_rule: {reference: birth, unit: days, allowed: [12, 16]}
+      time_of_day: daytime
+      house_rules:
+        - house: 8
+          planets: none
+soft_scoring: {}

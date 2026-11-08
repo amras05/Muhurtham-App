@@ -1,33 +1,56 @@
 id: door_placement
 category: griha
+tab: griha
+sub_group: construction
 title_en: Main Door Frame Installation (Dwara Sthapana)
 title_te: సింహద్వార బంధ స్థాపన
+description_en: "Fixing the main door frame, with the griharambha timing rules."
+description_te: "సింహద్వార స్థాపన, గృహారంభ నియమాలతో."
+tab_inputs: [griha_owner]
+kartari: agni
 source:
   part: 6
   section: ద్వారబంధ స్థాపన
   page: Part 6, Sec 4
+  notes: "The book's door rules are about position (planet parts of the wall); timing follows griharambha (plan M19)."
 hard_filters:
-  vaara_exclude:
-  - tuesday
-  - sunday
-  tithi_exclude:
-  - amavasya
-  - rikta
-  nakshatra_allow:
-  - rohini
-  - mrigashira
-  - uttara_phalguni
-  - chitta
-  - anuradha
-  - uttara_ashadha
-  - uttara_bhadrapada
-  - revati
-  lagna_types:
-  - sthira
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  vaara_exclude: [sunday, tuesday]
+  monday_needs_waxing_moon: true
+  masa_exclude: [jyeshtha, ashadha, bhadrapada, ashwina, pushya]
+  tithi_exclude: [rikta, amavasya]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [group:tiryanmukha]
+  lagna_types: [sthira, dvisvabhava]
+  lagna_exclude: [simha, vrishchika]
   house_rules:
-  - house: 8
-    planets: none
+    - house: 8
+      planets: none
+  planet_rules:
+    - planet: moon
+      not_in_nakshatras: [krittika]
+    - planet: mars
+      not_in_nakshatras: [krittika, magha, revati, uttara_phalguni, hasta, mula, pushya]
+      note: "fire and sorrow"
+    - planet: saturn
+      not_in_nakshatras: [anuradha, jyeshtha, swati, purva_bhadrapada, uttara_bhadrapada, bharani]
+    - planet: jupiter
+      not_in_signs: [makara]
+    - planet: venus
+      not_in_signs: [kanya]
+    - planet: mercury
+      in_nakshatras: [chitra, ashwini, uttara_phalguni, hasta, mrigashira, rohini]
+      soft_points: 2
+      note: "prosperity"
+    - planet: jupiter
+      in_nakshatras: [rohini, pushya, mrigashira, ashlesha, shravana, uttara_phalguni, uttara_ashadha, uttara_bhadrapada, purva_ashadha]
+      soft_points: 2
+    - planet: jupiter
+      in_houses: [1]
+      soft_points: 2
+      note: "long life of the house"
+    - planet: venus
+      in_houses: [1]
+      soft_points: 1
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    friday: 3
+  vaara_weights: {thursday: 3, friday: 3, wednesday: 2}

@@ -1,0 +1,21 @@
+id: well_digging
+category: griha
+tab: griha
+sub_group: land
+title_en: "Digging a Well, Tank or Sump"
+title_te: "బావి / చెరువు / సంపు తవ్వకం"
+description_en: "Starting a well, tank or sump: downward-facing (adhomukha) nakshatras. Kartari does not apply."
+description_te: "బావి / చెరువు తవ్వకం: అధోముఖ నక్షత్రాలు. కర్తరి దోషం లేదు."
+source:
+  part: 6
+  section: "జలాశయ నిర్మాణము"
+  notes: "Plan M19 21.4 (adhomukha nakshatras) and M7 (no kartari for wells)."
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true}
+  tithi_exclude: [rikta, amavasya]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [group:adhomukha]
+  house_rules:
+    - house: 8
+      planets: none
+soft_scoring: {}

@@ -1,0 +1,22 @@
+id: ankurarpana
+category: samskaras
+tab: spiritual
+title_en: "Ankurarpana"
+title_te: "అంకురార్పణ"
+description_en: "On the night before the main samskara, or 3, 5 or 7 nights earlier. Needs the main event's date."
+description_te: "ప్రధాన సంస్కారానికి ముందు రాత్రి, లేదా 3, 5, 7 రాత్రుల ముందు."
+tab_inputs: [samskara_main_event]
+depends_on: {nights_before: [1, 3, 5, 7]}
+source:
+  part: 4
+  section: "అంకురార్పణ"
+  notes: "Plan M14 16.11. Pradosha is not yet modelled; sankramana via Mahadosha #2."
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true, avoid_varjyam: true, masa_shubha: true}
+  time_of_day: night
+  vaara_allow: [monday, wednesday, thursday, friday]
+  tithi_exclude: [rikta, purnima, amavasya, krishna_ashtami, saptami, trayodashi]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, pushya, hasta, swati, chitra, revati, mrigashira, anuradha, rohini, uttara_phalguni, uttara_ashadha, uttara_bhadrapada, mula, magha, shravana, dhanishta, shatabhisha]
+  lagna_allow: [vrishabha, mithuna, karkataka, kanya, dhanus, meena]
+soft_scoring: {}

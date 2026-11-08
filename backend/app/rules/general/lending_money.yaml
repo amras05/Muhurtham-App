@@ -1,28 +1,25 @@
 id: lending_money
 category: general
+tab: finance
 title_en: Lending Money
 title_te: రుణం ఇచ్చుట
 source:
   part: 7
   section: ఋణదాన కాలము
   page: Part 7, Sec 5
+  notes: "Plan M20 row 'Lending money'."
 hard_filters:
-  vaara_exclude:
-  - tuesday
-  - friday
-  tithi_exclude:
-  - amavasya
-  nakshatra_exclude:
-  - krittika
-  - punarvasu
-  - magha
-  - mula
-  - shatabhisha
-  - uttara_phalguni
+  common: {mahadoshas_21: true, panchaka_rahita: true}
+  vaara_exclude: [tuesday, friday]
+  tithi_exclude: [amavasya]
+  karana_exclude: [bhadra]
+  nakshatra_exclude: [krittika, punarvasu, magha, mula, shatabhisha, uttara_phalguni]
+  exclude_janma_nakshatra: true
   house_rules:
-  - house: 8
-    planets: none
+    - house: 8
+      planets: none
+  planet_rules:
+    - planet: moon
+      not_in_signs: [vrishchika]
 soft_scoring:
-  vaara_weights:
-    thursday: 3
-    wednesday: 3
+  vaara_weights: {wednesday: 2, thursday: 2}

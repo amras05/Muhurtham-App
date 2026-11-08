@@ -1,40 +1,19 @@
 id: sowing_seeds
 category: general
+tab: agriculture
 title_en: Sowing Seeds & Agriculture
 title_te: విత్తనములు జల్లుట / వ్యవసాయారంభము
 source:
   part: 7
   section: బీజవాపన కాలము
   page: Part 7, Sec 7
+  notes: "Plan M20 row 'Sowing seeds'. Benefic-related varas = Monday, Wednesday, Thursday, Friday. Pradosha is not yet modelled."
 hard_filters:
-  tithi_exclude:
-  - rikta
-  nakshatra_allow:
-  - ashwini
-  - hasta
-  - pushya
-  - chitta
-  - revati
-  - mrigashira
-  - anuradha
-  - rohini
-  - uttara_phalguni
-  - uttara_ashadha
-  - uttara_bhadrapada
-  - swati
-  - mula
-  - magha
-  - shravana
-  - dhanishta
-  - shatabhisha
-  lagna_allow:
-  - vrishabha
-  - karkataka
-  - kanya
-  - vrischika
-  - dhanus
-  - meena
+  common: {mahadoshas_21: true, panchaka_rahita: true, avoid_varjyam: true}
+  vaara_allow: [monday, wednesday, thursday, friday]
+  tithi_exclude: [rikta, parva]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, hasta, pushya, chitra, revati, mrigashira, anuradha, rohini, uttara_phalguni, uttara_ashadha, uttara_bhadrapada, swati, mula, magha, shravana, dhanishta, shatabhisha]
+  lagna_exclude: [mesha, tula, makara, simha, kumbha]
 soft_scoring:
-  vaara_weights:
-    thursday: 3
-    friday: 3
+  lagna_weights: {karkataka: 4, kanya: 3, vrishabha: 3, meena: 3, mithuna: 3, vrishchika: 3, dhanus: 3}

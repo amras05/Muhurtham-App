@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'joining_job'.
+id: transfer_joining
+category: general
+extends: joining_job
+tab: career
+title_en: "Joining after a transfer"
+title_te: "బదిలీ స్థానంలో చేరుట"
+description_en: "Joining the new post after a transfer"
+description_te: "బదిలీ అయిన స్థానములో చేరుట"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

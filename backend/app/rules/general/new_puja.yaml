@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'yajna_start'.
+id: new_puja
+category: general
+extends: yajna_start
+tab: spiritual
+title_en: "Starting a new puja"
+title_te: "నూతన పూజా విధానం"
+description_en: "Beginning a new form of worship"
+description_te: "నూతన పూజా విధాన ప్రారంభము"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

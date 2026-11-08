@@ -1,0 +1,28 @@
+id: contest_lottery
+category: general
+tab: general
+title_en: "Entering a Contest or Lottery"
+title_te: "పోటీ / లాటరీ"
+description_en: "Entering a contest or buying a lottery ticket."
+description_te: "పోటీలో పాల్గొనుట లేదా లాటరీ టికెట్ కొనుట."
+source:
+  part: 7
+  section: "సాధారణ కార్యములకు ముహూర్తములు"
+  notes: "Plan M20 row 'Contest or lottery ticket'. 'Saturn not related to the 2nd house or lord' is not yet applied."
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+  vaara_exclude: [tuesday, saturday]
+  tithi_shukla_numbers: [2, 3, 5, 6, 11, 13]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, bharani, punarvasu, pushya, hasta, chitra, vishakha, purva_ashadha, abhijit, purva_bhadrapada, revati]
+  planet_rules:
+    - planet: benefic
+      in_houses: [1]
+    - planet: mars
+      not_in_houses: [8, 11]
+
+soft_scoring:
+  vaara_weights: {thursday: 2, friday: 2}

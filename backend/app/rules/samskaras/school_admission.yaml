@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'vidyarambha'.
+id: school_admission
+category: samskaras
+extends: vidyarambha
+tab: vidya
+title_en: "School admission"
+title_te: "పాఠశాలలో ప్రవేశం"
+description_en: "Joining a school for the first time"
+description_te: "పాఠశాలలో మొదటిసారి చేరుట"
+tab_inputs: []
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

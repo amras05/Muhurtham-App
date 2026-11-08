@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'mantra_siddhi'.
+id: diksha
+category: general
+extends: mantra_siddhi
+tab: spiritual
+title_en: "Taking diksha"
+title_te: "దీక్ష స్వీకరణ"
+description_en: "Receiving initiation"
+description_te: "దీక్ష స్వీకరణ"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

@@ -1,0 +1,25 @@
+id: godana
+category: samskaras
+tab: vidya
+title_en: "Godana (Keshanta)"
+title_te: "గోదానము (కేశాంతము)"
+description_en: "In the 16th year, using the Chaula nakshatra and lagna rules."
+description_te: "16వ సంవత్సరంలో, చౌల నియమాలతో."
+tab_inputs: [samskara_child]
+source:
+  part: 5
+  section: "గోదానము"
+  notes: "Plan M15 17.5."
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  age_rule: {reference: birth, unit: years, allowed: [16]}
+  vaara_allow: [monday, wednesday, thursday, friday]
+  tithi_exclude: [shukla_pratipada, chaturthi, navami, chaturdashi, ashtami, purnima, amavasya]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, mrigashira, punarvasu, pushya, hasta, chitra, shravana, dhanishta, rohini, uttara_phalguni, swati, anuradha, uttara_ashadha, uttara_bhadrapada]
+  lagna_allow: [vrishabha, mithuna, karkataka, kanya, dhanus, meena]
+  house_rules:
+    - house: 8
+      planets: none
+soft_scoring:
+  nakshatra_weights: {ashwini: 3, mrigashira: 3, punarvasu: 3, pushya: 3, hasta: 3, chitra: 3, shravana: 3, dhanishtha: 3}

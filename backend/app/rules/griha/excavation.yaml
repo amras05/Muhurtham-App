@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'sankusthapana'.
+id: excavation
+category: griha
+extends: sankusthapana
+tab: griha
+sub_group: land
+title_en: "Starting excavation"
+title_te: "భూమి తవ్వకం ప్రారంభం"
+description_en: "First digging on the site"
+description_te: "భూమి తవ్వకము ప్రారంభించుట"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

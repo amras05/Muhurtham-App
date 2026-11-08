@@ -1,38 +1,26 @@
 id: adoption
 category: general
+tab: finance
+also_in: [general]
 title_en: Child Adoption
 title_te: దత్తత స్వీకారము
 source:
   part: 7
   section: దత్తపుత్ర స్వీకారము
   page: Part 7, Sec 4
+  notes: "Plan M20 row 'Adoption'. Strong 5th, 9th and 10th are scored as a bonus."
 hard_filters:
-  vaara_allow:
-  - sunday
-  - thursday
-  - friday
-  tithi_numbers_both_paksha:
-  - 1
-  - 2
-  - 3
-  - 5
-  - 7
-  - 10
-  - 11
-  - 13
-  nakshatra_allow:
-  - ashwini
-  - pushya
-  - hasta
-  - chitta
-  - swati
-  - vishakha
-  - anuradha
-  - dhanishta
+  common: {mahadoshas_21: true, panchaka_rahita: true}
+  vaara_allow: [sunday, thursday, friday]
+  tithi_numbers_both_paksha: [1, 2, 3, 5, 7, 10, 11, 13]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, pushya, hasta, chitra, swati, vishakha, anuradha, dhanishta]
   house_rules:
-  - house: 8
-    planets: none
+    - house: 8
+      planets: none
+  planet_rules:
+    - planet: benefic
+      in_houses: [5, 9, 10]
+      soft_points: 3
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    friday: 3
+  vaara_weights: {thursday: 3, friday: 2, sunday: 1}

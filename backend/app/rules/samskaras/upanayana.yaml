@@ -1,71 +1,55 @@
 id: upanayana
 category: samskaras
+tab: upanayana
 title_en: "Upanayana (Sacred Thread Ceremony)"
 title_te: "ఉపనయనము (వటువు బ్రహ్మోపదేశము)"
+description_en: "Years 5 to 9 (10 and 11 if needed), Uttarayana, forenoon. Tarabala for the vatu, parents and guru."
+description_te: "5 నుండి 9 సంవత్సరాలు (అవసరమైతే 10, 11), ఉత్తరాయణం, పూర్వాహ్ణం."
+tab_inputs: [samskara_child, upanayana_family]
 source:
   part: 5
-  section: "ఉపనయన కాల నిర్ణయము"
-  page: "Part 5, Section 1"
-  notes: "Sacred thread investiture. Uttarayana daytime only. Ashtama Shuddhi strictly required."
-
-inputs:
-  required: [location, date_range]
-  optional: [janma_nakshatra, janma_rashi]
-
+  section: "ఉపనయనము"
+  notes: >-
+    Plan M15 17.1. Kendra afflictions (Sun, Mars, Saturn, Rahu, Ketu in a kendra) reject the
+    window (Strict). Not yet modelled: varna-specific years and seasons, anadhyaya days,
+    Moon-sign preference, varna and Veda-lord planetary strength.
 hard_filters:
-  common:
-    mahadoshas_21: true
-    dashavidha_10: true
-    panchaka_rahita: true
-    avoid_rahu_kalam: true
-    avoid_yamagandam: true
-    avoid_varjyam: true
-    avoid_durmuhurta: true
-
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  age_rule: {reference: birth, unit: years, allowed: [5, 6, 7, 8, 9, 10, 11]}
+  time_of_day: forenoon
+  # Varnesha, vedadhipati and Guru bala for the vatu (classical lords; author to confirm)
+  upanayana_strength: true
   vaara_exclude: [tuesday, saturday]
-  tithi_exclude: [rikta, amavasya, krishna_chaturdashi, shashti, ashtami]
-  karana_exclude: [vishti, bhadra]
-
-  nakshatra_allow:
-    - ashwini
-    - rohini
-    - mrigashira
-    - ardra
-    - punarvasu
-    - pushya
-    - uttara_phalguni
-    - hasta
-    - chitta
-    - swati
-    - anuradha
-    - jyeshtha
-    - mula
-    - uttara_ashadha
-    - shravana
-    - dhanishta
-    - shatabhisha
-    - uttara_bhadrapada
-    - revati
-
-  lagna_types: [chara, sthira, dvisvabhava]
-  lagna_exclude: [karkataka] # Often avoided
-
+  tithi_exclude: [pratipada, chaturthi, shashti, ashtami, navami, ekadashi, dwadashi, chaturdashi, purnima, amavasya]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [anuradha, revati, ashwini, mrigashira, uttara_phalguni, uttara_ashadha, uttara_bhadrapada, punarvasu, pushya, shravana, dhanishta, shatabhisha, hasta, chitra, swati, rohini]
+  exclude_janma_counts: [1, 7, 10, 16, 18, 23, 25]
+  sun_sign_allow: [makara, kumbha, meena, mesha, vrishabha, mithuna]
+  tarabala_for: [father, mother, guru]
   house_rules:
     - house: 8
-      planets: none # 8th house strictly vacant
-    - house: 1
-      planets: no_malefics
-
+      planets: none
+  planet_rules:
+    - planet: moon
+      not_in_houses: [1]
+    - planet: sun
+      not_in_houses: [1, 4, 7, 10]
+      note: "sphujita: danger to the father"
+    - planet: mars
+      not_in_houses: [1, 4, 7, 10]
+      note: "danger to the mother"
+    - planet: saturn
+      not_in_houses: [1, 4, 7, 10]
+      note: "danger to gotra relatives"
+    - planet: rahu
+      not_in_houses: [1, 4, 7, 10]
+      note: "danger to the vatu"
+    - planet: ketu
+      not_in_houses: [1, 4, 7, 10]
+      note: "danger to the father"
+    - planet: sun
+      in_houses: [11]
+      soft_points: 3
+      note: "Sun in the 11th cancels faults"
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    wednesday: 4
-    friday: 3
-    sunday: 2
-  lagna_weights:
-    vrishabha: 3
-    mithuna: 3
-    kanya: 3
-    dhanus: 3
-    meena: 3
-
+  vaara_weights: {wednesday: 3, thursday: 3, friday: 3, sunday: 1, monday: 1}

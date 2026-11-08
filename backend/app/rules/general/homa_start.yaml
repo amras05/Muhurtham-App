@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'yajna_start'.
+id: homa_start
+category: general
+extends: yajna_start
+tab: spiritual
+title_en: "Starting a homa"
+title_te: "హోమ ప్రారంభం"
+description_en: "Beginning a homa"
+description_te: "హోమ ప్రారంభము"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

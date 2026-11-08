@@ -1,40 +1,24 @@
 id: rented_entry
 category: griha
+tab: griha
+sub_group: entry
 title_en: Entering a Rented House
 title_te: అద్దె ఇల్లు ప్రవేశము
+description_en: "Entering a rented house, new or old."
+description_te: "అద్దె ఇంటి ప్రవేశము (కొత్తది లేదా పాతది)."
+tab_inputs: [griha_owner]
 source:
   part: 6
-  section: అద్దె ఇండ్ల ప్రవేశము
-  page: Part 6, Sec 3
+  section: "అద్దె గృహ ప్రవేశము"
+  notes: "Plan M19 21.11. Tara and Chandra bala apply when the janma nakshatra and rashi are given; the 8th from the janma rashi is Lagnashtama (#8)."
 hard_filters:
-  vaara_exclude:
-  - tuesday
-  - sunday
-  tithi_exclude:
-  - amavasya
-  - rikta
-  nakshatra_allow:
-  - ashwini
-  - rohini
-  - mrigashira
-  - punarvasu
-  - pushya
-  - uttara_phalguni
-  - hasta
-  - chitta
-  - swati
-  - anuradha
-  - uttara_ashadha
-  - shravana
-  - dhanishta
-  - shatabhisha
-  - uttara_bhadrapada
-  - revati
-  lagna_types:
-  - chara
-  - dvisvabhava
+  common: {mahadoshas_21: true, panchaka_rahita: true}
+  vaara_allow: [monday, wednesday, thursday, friday]
+  vaara_exclude: [tuesday, saturday, sunday]
+  tithi_exclude: [rikta, amavasya]
+  yoga_exclude: [doshic]
+  karana_exclude: [inauspicious]
+  nakshatra_allow: [rohini, uttara_phalguni, uttara_ashadha, uttara_bhadrapada, mrigashira, chitra, anuradha, revati]
+  lagna_allow: [vrishabha, mithuna, kanya, tula, dhanus, kumbha, meena]
 soft_scoring:
-  vaara_weights:
-    thursday: 3
-    friday: 3
-    monday: 2
+  vaara_weights: {monday: 2, wednesday: 2, friday: 2}

@@ -1,61 +1,41 @@
 id: griha_pravesha
 category: griha
+tab: griha
+sub_group: entry
 title_en: "Griha Pravesha (House Warming - New House)"
 title_te: "నూతన గృహప్రవేశము"
+description_en: "Entering a new house: Uttarayana, fixed lagna, Vaishakha, Jyeshtha, Magha or Phalguna."
+description_te: "నూతన గృహప్రవేశం: ఉత్తరాయణం, స్థిర లగ్నం, వైశాఖ/జ్యేష్ఠ/మాఘ/ఫాల్గుణ మాసాలు."
+tab_inputs: [griha_owner]
 source:
   part: 6
-  section: "గృహప్రవేశమునకు నక్షత్రములు మరియు లగ్న నియమములు"
-  page: "Part 6, Section 1"
-  notes: "Applies to newly constructed houses. Sthira lagnas preferred. Ashtama Shuddhi mandatory."
-
-inputs:
-  required: [location, date_range]
-  optional: [janma_nakshatra, janma_rashi]
-
+  section: "గృహప్రవేశము"
+  notes: >-
+    Plan M19 21.9. Pushya is medium (lower score). Not yet modelled: tri-tithi days, Mars'
+    shadvarga, Venus facing the entrant, the janma rashi direction table, Vrishabha and Kalasha
+    chakras (awaiting the author's confirmation of their order).
 hard_filters:
-  common:
-    mahadoshas_21: true
-    dashavidha_10: false
-    panchaka_rahita: true
-    avoid_rahu_kalam: true
-    avoid_yamagandam: true
-    avoid_gulika: false
-    avoid_varjyam: true
-    avoid_durmuhurta: true
-
-  vaara_exclude: [tuesday, sunday]
-  tithi_exclude: [rikta, amavasya, krishna_chaturdashi]
-  karana_exclude: [vishti, bhadra]
-
-  nakshatra_allow:
-    - rohini
-    - mrigashira
-    - chitta
-    - anuradha
-    - revati
-    - uttara_phalguni
-    - uttara_ashadha
-    - uttara_bhadrapada
-    - dhanishta
-    - shatabhisha
-
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  vaara_exclude: [sunday, tuesday]
+  monday_needs_waxing_moon: true
+  masa_allow: [vaishakha, jyeshtha, magha, phalguna]
+  sun_sign_allow: [makara, kumbha, meena, mesha, vrishabha, mithuna]
+  tithi_exclude: [rikta, shashti, krishna_ashtami, krishna_ekadashi, krishna_dwadashi, krishna_trayodashi, amavasya, shukla_pratipada]
+  exclude_dagdha_tithi: true
+  exclude_periods: [pradosha]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [chitra, anuradha, dhanishta, uttara_phalguni, uttara_ashadha, uttara_bhadrapada, revati, shatabhisha, rohini, mrigashira, pushya]
   lagna_types: [sthira]
-  lagna_exclude: [kumbha] # Kumbha is often avoided for new house entry
-
   house_rules:
     - house: 8
-      planets: none # Ashtama Shuddhi: 8th house must have 0 planets
+      planets: none
+    - house: [1, 4, 5, 7, 9, 10]
+      planets: no_malefics
     - house: [3, 6, 11]
-      planets: papa_allowed # Malefics in Upachaya are auspicious
-
+      planets: papa_allowed
+  planet_rules:
+    - planet: moon
+      not_in_houses: [6, 8, 12]
 soft_scoring:
-  vaara_weights:
-    thursday: 4
-    friday: 4
-    monday: 3
-    wednesday: 3
-  lagna_weights:
-    vrishabha: 3
-    simha: 3
-    vrishchika: 2
-
+  vaara_weights: {thursday: 3, friday: 3, wednesday: 2, monday: 2, saturday: 0}
+  nakshatra_weights: {chitra: 2, anuradha: 2, dhanishtha: 2, uttaraphalguni: 2, uttaraashadha: 2, uttarabhadrapada: 2, revati: 2, shatabhisha: 2, rohini: 2, mrigashira: 2}

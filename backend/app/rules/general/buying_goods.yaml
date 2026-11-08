@@ -1,0 +1,26 @@
+id: buying_goods
+category: general
+tab: business
+title_en: "Buying Goods"
+title_te: "వస్తువుల కొనుగోలు"
+description_en: "Purchasing goods or stock."
+description_te: "వస్తువులు / సరుకులు కొనుట."
+source:
+  part: 7
+  section: "సాధారణ కార్యములకు ముహూర్తములు"
+  notes: "Plan M20 row 'Buying goods'. Lagna shuddhi = 8th house empty."
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+  vaara_exclude: [tuesday, saturday]
+  tithi_shukla_numbers: [2, 3, 5, 7, 10, 11, 13]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, swati, chitra, shravana, shatabhisha, revati]
+  house_rules:
+    - house: 8
+      planets: none
+
+soft_scoring:
+  vaara_weights: {wednesday: 2, thursday: 2, friday: 2}

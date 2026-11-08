@@ -1,0 +1,24 @@
+id: garbhadhana
+category: samskaras
+tab: garbha
+title_en: "Garbhadhana"
+title_te: "గర్భాధానము"
+description_en: "General muhurta for garbhadhana (night). The book's son/daughter timing is not offered."
+description_te: "గర్భాధాన సాధారణ ముహూర్తం (రాత్రి)."
+tab_inputs: [vivaha_couple]
+source:
+  part: 4
+  section: "గర్భాధాన ప్రకరణము"
+  notes: >-
+    Plan M14 16.2. Implemented as a general muhurta only (PCPNDT Act; plan legal note).
+    Not yet modelled: ritu-night counting from the first day of menstruation, the first
+    half of Parigha only (whole yoga excluded here), vrata and shraddha days.
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  time_of_day: night
+  tithi_exclude: [shashti, parva, shukla_chaturdashi, ekadashi]
+  yoga_exclude: [vaidhriti, vyatipata, parigha]
+  karana_exclude: [bhadra]
+  nakshatra_exclude: [ashwini, bharani, ashlesha, magha, jyeshtha, mula, revati]
+  tarabala_for: [groom, bride]
+soft_scoring: {}

@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'new_clothes_jewelry'.
+id: first_use_new_items
+category: general
+extends: new_clothes_jewelry
+tab: personal
+also_in: [general]
+title_en: "First use of new things"
+title_te: "నూతన వస్తువుల వినియోగం"
+description_en: "Starting to use new things"
+description_te: "నూతన వస్తువుల వినియోగము ప్రారంభించుట"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

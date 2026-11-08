@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'idol_consecration'.
+id: kumbhabhishekam
+category: general
+extends: idol_consecration
+tab: spiritual
+title_en: "Kumbhabhishekam"
+title_te: "కుంభాభిషేకం"
+description_en: "Temple consecration bath"
+description_te: "కుంభాభిషేకము"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

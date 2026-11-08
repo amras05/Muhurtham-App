@@ -1,33 +1,34 @@
 id: new_clothes_jewelry
 category: general
+tab: personal
 title_en: Wearing New Clothes & Jewelry
 title_te: నూతన వస్త్ర / ఆభరణ ధారణము
+description_en: "First wearing of new clothes or jewellery. A second list from the book is available."
+description_te: "నూతన వస్త్ర / ఆభరణ ధారణ. గ్రంథంలోని రెండవ జాబితా కూడా ఎంచుకోవచ్చు."
 source:
   part: 7
   section: నూతన వస్త్రాలంకారములు
   page: Part 7, Sec 3
+  notes: >-
+    Plan M20 row 'New clothes or jewellery'. 'Good tara' applies when a janma nakshatra is
+    given. 'Married people not on Sunday in Rohini, Punarvasu, Pushya, Uttara Phalguni,
+    Uttarashadha, Uttarabhadra' is not yet applied (needs a marital-status input).
 hard_filters:
-  vaara_allow:
-  - sunday
-  - monday
-  - thursday
-  - friday
-  tithi_exclude:
-  - amavasya
-  karana_exclude:
-  - vishti
-  - bhadra
-  nakshatra_allow:
-  - ashwini
-  - rohini
-  - punarvasu
-  - pushya
-  - hasta
-  - chitta
-  - swati
-  - vishakha
-  - dhanishta
-  - revati
+  vaara_allow: [sunday, monday, thursday, friday]
+  tithi_exclude: [rikta, amavasya]
+  yoga_exclude: [vyatipata, vaidhriti]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, rohini, punarvasu, pushya, hasta, chitta, swati, vishakha, dhanishta, revati]
+alternatives:
+  part7_second_list:
+    title_en: "Second list (Part 7)"
+    title_te: "రెండవ జాబితా (7వ భాగం)"
+    hard_filters:
+      vaara_exclude: [sunday, tuesday, saturday]
+      tithi_exclude: [ashtami, pratipada, nanda, rikta]
+      yoga_exclude: [parigha, vaidhriti, vyatipata]
+      karana_exclude: [bhadra]
+      nakshatra_allow: [ashwini, rohini, mrigashira, punarvasu, pushya, uttara_phalguni, hasta, chitra, swati, anuradha, mula, uttara_ashadha, shravana, dhanishta, shatabhisha, uttara_bhadrapada, revati]
 soft_scoring:
   vaara_weights:
     friday: 4

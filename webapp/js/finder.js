@@ -24,73 +24,99 @@ const D9_RASI_LABELS = {
   te: ["మేషం", "వృషభం", "మిథునం", "కర్కాటకం", "సింహం", "కన్య", "తుల", "వృశ్చికం", "ధనుస్సు", "మకరం", "కుంభం", "మీనం"]
 };
 
-// ---- Declarative 3-Layer Muhurtha Catalog ----
-let birthVisible = false;
+// ---- Category tabs + event catalog (from /muhurta/catalog) ----
 let progressInterval = null;
+let allMuhurtaRules = [];
+let currentCategory = "vivaha";  // current tab id
 
-const FALLBACK_MUHURTA_RULES = [
-  {"id": "adoption", "category": "general", "title_en": "Child Adoption", "title_te": "దత్తత స్వీకారము"},
-  {"id": "borrowing_money", "category": "general", "title_en": "Borrowing Money / Taking Loans", "title_te": "రుణం గ్రహించుట (అప్పు చేయుట)"},
-  {"id": "business_start", "category": "general", "title_en": "Business Opening & Commercial Start", "title_te": "నూతన వ్యాపారారంభము"},
-  {"id": "buying_vehicles", "category": "general", "title_en": "Buying Vehicles (Vahana Kraya)", "title_te": "నూతన వాహన కొనుగోలు"},
-  {"id": "contracts_agreements", "category": "general", "title_en": "Contracts & Agreements Signing", "title_te": "ఒప్పందములు / దస్తావేజులు"},
-  {"id": "first_bath_after_illness", "category": "general", "title_en": "First Bath After Illness", "title_te": "వ్యాధి తగ్గిన తరువాత మొదటి స్నానము"},
-  {"id": "haircut", "category": "general", "title_en": "Haircut & Shaving (Kshaura Karma)", "title_te": "క్షురకర్మ / కేశఖండనము"},
-  {"id": "idol_consecration", "category": "general", "title_en": "Idol Consecration (Vigraha Pratishtha)", "title_te": "విగ్రహ ప్రతిష్ఠ"},
-  {"id": "inheritance_division", "category": "general", "title_en": "Division of Inherited Property", "title_te": "వారసత్వ ఆస్తుల పంపకము"},
-  {"id": "lending_money", "category": "general", "title_en": "Lending Money", "title_te": "రుణం ఇచ్చుట"},
-  {"id": "mantra_siddhi", "category": "general", "title_en": "Mantra Initiation & Practice", "title_te": "మంత్రోపదేశము / మంత్రసిద్ధి"},
-  {"id": "medicine", "category": "general", "title_en": "Taking Medicine & Treatment", "title_te": "ఔషధ సేవన (చికిత్సారంభము)"},
-  {"id": "new_clothes_jewelry", "category": "general", "title_en": "Wearing New Clothes & Jewelry", "title_te": "నూతన వస్త్ర / ఆభరణ ధారణము"},
-  {"id": "sowing_seeds", "category": "general", "title_en": "Sowing Seeds & Agriculture", "title_te": "విత్తనములు జల్లుట / వ్యవసాయారంభము"},
-  {"id": "surgery", "category": "general", "title_en": "Surgical Operation", "title_te": "శస్త్రచికిత్స (ఆపరేషన్)"},
-  {"id": "will_writing", "category": "general", "title_en": "Writing a Legal Will", "title_te": "వీలునామా రచన"},
-  {"id": "door_placement", "category": "griha", "title_en": "Main Door Frame Installation (Dwara Sthapana)", "title_te": "సింహద్వార బంధ స్థాపన"},
-  {"id": "griha_pravesha", "category": "griha", "title_en": "Griha Pravesha (House Warming - New House)", "title_te": "నూతన గృహప్రవేశము"},
-  {"id": "rented_entry", "category": "griha", "title_en": "Entering a Rented House", "title_te": "అద్దె ఇల్లు ప్రవేశము"},
-  {"id": "sankusthapana", "category": "griha", "title_en": "Sankusthapana (Foundation Stone Laying)", "title_te": "శంకుస్థాపన (గృహారంభము)"},
-  {"id": "aksharabhyasa", "category": "samskaras", "title_en": "Aksharabhyasa (Vidyarambha)", "title_te": "అక్షరాభ్యాసము (విద్యారంభము)"},
-  {"id": "annaprashana", "category": "samskaras", "title_en": "Annaprashana (First Feeding)", "title_te": "అన్నప్రాశన సంస్కారము"},
-  {"id": "namakarana", "category": "samskaras", "title_en": "Namakarana (Naming Ceremony)", "title_te": "నామకరణ మహోత్సవము"},
-  {"id": "upanayana", "category": "samskaras", "title_en": "Upanayana (Sacred Thread Ceremony)", "title_te": "ఉపనయనము (వటువు బ్రహ్మోపదేశము)"},
-  {"id": "prayana", "category": "travel", "title_en": "Prayana (Travel & Journey)", "title_te": "ప్రయాణము (దేశాంతర గమనము)"},
-  {"id": "invitation_printing", "category": "vivaha", "title_en": "Lagna Patrika & Invitation Printing", "title_te": "లగ్నపత్రిక రచన / శుభలేఖల ముద్రణ"},
-  {"id": "nisheka", "category": "vivaha", "title_en": "Nisheka (First Night / Consummation)", "title_te": "నిశేకము (ప్రథమ రాత్రి)"},
-  {"id": "nutana_vadhu_pravesha", "category": "vivaha", "title_en": "Nutana Vadhu Griha Pravesha", "title_te": "నూతన వధూ గృహప్రవేశము"},
-  {"id": "vivaha", "category": "vivaha", "title_en": "Vivaha (Wedding Muhurtham)", "title_te": "వివాహ మహోత్సవము"}
+// Tabs come from /muhurta/catalog (Dr. Nemani's 17 categories); this list is only the
+// fallback order if an older backend sends no `tabs`.
+let CATEGORY_TABS = [
+  { id: "vivaha", en: "Marriage", te: "వివాహ ముహూర్తాలు" },
+  { id: "general", en: "General", te: "సాధారణ ముహూర్తాలు" },
 ];
+let SUB_GROUP_LABELS = {};
 
-let allMuhurtaRules = FALLBACK_MUHURTA_RULES.slice();
+function ruleInTab(r, tabId) {
+  return (r.tab || r.category) === tabId || (r.also_in || []).includes(tabId);
+}
+
+// tab_inputs value in a rule file -> form group shown for that event
+// (vivaha_couple and samskara_child are now asked on the participant cards.)
+const TAB_INPUT_GROUPS = {
+  upanayana_family: "fieldsUpanayana",
+  griha_owner: "fieldsGriha",
+  business: "fieldsBusiness",
+  travel: "fieldsTravel",
+  vehicle: "fieldsVehicle",
+  samskara_pregnancy: "fieldsSamskaraPregnancy",
+  samskara_main_event: "fieldsSamskaraMainEvent",
+  pitru_death: "fieldsPitruDeath",
+};
 
 async function loadMuhurtaCatalog() {
   try {
     const res = await fetch(`${API_BASE}/muhurta/catalog`);
-    if (!res.ok) return;
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    if (data.all_activities && data.all_activities.length > 0) {
-      allMuhurtaRules = data.all_activities;
-      populateActivityDropdown();
+    allMuhurtaRules = data.all_activities || [];
+    if (Array.isArray(data.tabs) && data.tabs.length) CATEGORY_TABS = data.tabs;
+    SUB_GROUP_LABELS = data.sub_groups || {};
+    const firstWithEvents = CATEGORY_TABS.find(t => allMuhurtaRules.some(r => ruleInTab(r, t.id)));
+    if (!allMuhurtaRules.some(r => ruleInTab(r, currentCategory)) && firstWithEvents) {
+      currentCategory = firstWithEvents.id;
     }
+    populateActivityDropdown();
   } catch (e) {
     console.error("Failed to load catalog:", e);
+    setStatus(currentLang === "te"
+      ? "ముహూర్త జాబితా లోడ్ కాలేదు. బ్యాకెండ్ నడుస్తోందో చూడండి."
+      : `Couldn't load the event list (${e.message}). Check that the backend is running.`, true);
   }
 }
 
+function renderCategoryTabs() {
+  const bar = el("mfCategoryTabs");
+  if (!bar) return;
+  bar.innerHTML = "";
+  CATEGORY_TABS.forEach(t => {
+    const count = allMuhurtaRules.filter(r => ruleInTab(r, t.id)).length;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = `mfTab-${t.id}`;
+    btn.className = "tab-item" + (t.id === currentCategory ? " active" : "");
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-selected", t.id === currentCategory ? "true" : "false");
+    btn.disabled = count === 0 && t.id !== "yogas";   // Special Yogas searches without events
+    btn.title = count === 0 ? (currentLang === "te" ? "ఇంకా అందుబాటులో లేదు" : "Not available yet") : "";
+    btn.innerHTML = `${currentLang === "te" ? t.te : t.en} <span class="tab-badge">${count}</span>`;
+    btn.addEventListener("click", () => onCategoryChange(t.id));
+    bar.appendChild(btn);
+  });
+}
+
 function populateActivityDropdown() {
-  const catSelect = el("mfCategorySelect");
+  renderCategoryTabs();
   const actSelect = el("mfActivitySelect");
   if (!actSelect) return;
-  const selectedCat = catSelect ? catSelect.value : "all";
-
   const prevVal = actSelect.value;
-  const filtered = selectedCat === "all"
-    ? allMuhurtaRules
-    : allMuhurtaRules.filter(r => r.category === selectedCat);
+  const filtered = allMuhurtaRules.filter(r => ruleInTab(r, currentCategory));
 
   actSelect.innerHTML = "";
   let hasSelected = false;
+  const groups = {};
   filtered.forEach(r => {
     const opt = document.createElement("option");
+    const g = r.sub_group && SUB_GROUP_LABELS[r.sub_group];
+    let parent = actSelect;
+    if (g) {
+      if (!groups[r.sub_group]) {
+        groups[r.sub_group] = document.createElement("optgroup");
+        groups[r.sub_group].label = currentLang === "te" ? g.te : g.en;
+        actSelect.appendChild(groups[r.sub_group]);
+      }
+      parent = groups[r.sub_group];
+    }
     opt.value = r.id;
     opt.textContent = currentLang === "te" && r.title_te
       ? `${r.title_te} (${r.title_en})`
@@ -99,12 +125,18 @@ function populateActivityDropdown() {
       opt.selected = true;
       hasSelected = true;
     }
-    actSelect.appendChild(opt);
+    parent.appendChild(opt);
   });
   if (!hasSelected && filtered.length > 0) {
     actSelect.selectedIndex = 0;
   }
   updateContextualFields();
+  if (currentCategory === "yogas") renderYogaPanel();   // relabel on language change
+}
+
+function currentRule() {
+  const act = el("mfActivitySelect")?.value;
+  return allMuhurtaRules.find(r => r.id === act) || null;
 }
 
 const NAKSHATRAS_27 = [
@@ -137,139 +169,430 @@ const NAKSHATRAS_27 = [
   { id: 27, en: "Revati", te: "రేవతి" },
 ];
 
-function populateAllNakshatraDropdowns() {
-  const nakSelectIds = [
-    "mfDirectNakSelect",
-    "mfGroomNak", "mfBrideNak",
-    "mfFatherNak", "mfMotherNak",
-    "mfOwnerNak", "mfSpouseNak",
-    "mfPartnerNak"
-  ];
+const RASIS_12 = [
+  { id: 1, en: "Mesha", te: "మేషం" }, { id: 2, en: "Vrishabha", te: "వృషభం" },
+  { id: 3, en: "Mithuna", te: "మిథునం" }, { id: 4, en: "Karkataka", te: "కర్కాటకం" },
+  { id: 5, en: "Simha", te: "సింహం" }, { id: 6, en: "Kanya", te: "కన్య" },
+  { id: 7, en: "Tula", te: "తుల" }, { id: 8, en: "Vrishchika", te: "వృశ్చికం" },
+  { id: 9, en: "Dhanus", te: "ధనుస్సు" }, { id: 10, en: "Makara", te: "మకరం" },
+  { id: 11, en: "Kumbha", te: "కుంభం" }, { id: 12, en: "Meena", te: "మీనం" },
+];
 
-  nakSelectIds.forEach(id => {
-    const sel = el(id);
-    if (!sel) return;
-    const prev = sel.value;
-    sel.innerHTML = `<option value="">${currentLang === "te" ? "— నక్షత్రం ఎంచుకోండి —" : "— Select Nakshatra —"}</option>`;
-    NAKSHATRAS_27.forEach(n => {
-      const opt = document.createElement("option");
-      opt.value = n.id;
-      opt.textContent = currentLang === "te" ? `${n.te} (${n.en})` : `${n.en} · ${n.te}`;
-      if (String(n.id) === String(prev)) opt.selected = true;
-      sel.appendChild(opt);
+// ---- People taking part (Input Data Master) ----
+// One card per participant the event asks for. Janma and nama nakshatra are separate
+// fields; a star can be picked, found from the name (user must confirm), or worked out
+// from birth details on the server. Values survive switching events (kept per role).
+const participantState = {};   // role -> { field: value }
+const namaLookupTimers = {};
+
+const T = (en, te) => (currentLang === "te" ? te : en);
+
+function optionList(items, placeholder, selected) {
+  return `<option value="">${placeholder}</option>` + items.map(i =>
+    `<option value="${i.id}"${String(i.id) === String(selected ?? "") ? " selected" : ""}>${currentLang === "te" ? `${i.te} (${i.en})` : `${i.en} · ${i.te}`}</option>`
+  ).join("");
+}
+const PADAS = [1, 2, 3, 4].map(n => ({ id: n, en: `Pada ${n}`, te: `${n}వ పాదం` }));
+
+function saveParticipantState() {
+  document.querySelectorAll("#mfParticipants .person-card").forEach(card => {
+    const role = card.dataset.role;
+    const st = participantState[role] = participantState[role] || {};
+    card.querySelectorAll("[data-k]").forEach(inp => {
+      st[inp.dataset.k] = inp.type === "checkbox" ? inp.checked : inp.value;
     });
+    st.mode = card.dataset.mode;
   });
 }
 
-// ---- Horoscope & 3-Mode Nama Nakshatra ----
-let horoscopeVisible = false;
-let currentNamaMode = 1;
-let detectedNamaNakIdx = null;
-let detectedNamaPada = null;
-let namaLookupTimer = null;
-
-function toggleHoroscopeSection() {
-  horoscopeVisible = !horoscopeVisible;
-  const sec = el("mfHoroscopeSection");
-  if (sec) sec.style.display = horoscopeVisible ? "block" : "none";
+function birthPlaceOptions(selected) {
+  const regions = (typeof allRegions !== "undefined" ? allRegions : []).filter(r => r.id !== "custom");
+  return `<option value="">${T("Same as the event location", "కార్యక్రమ ప్రాంతమే")}</option>` +
+    regions.map(r => `<option value="${escapeHtml(r.id)}"${r.id === selected ? " selected" : ""}>${escapeHtml(r.label)}</option>`).join("");
 }
 
-function switchNamaMode(mode) {
-  currentNamaMode = mode;
-  [1, 2, 3].forEach(m => {
-    const tab = el(`tabMode${m}`);
-    const content = el(`namaMode${m}Content`);
-    if (tab) tab.className = `nama-tab ${m === mode ? "active" : ""}`;
-    if (content) content.style.display = (m === mode) ? "block" : "none";
-  });
-}
-
-function onNamaNameInput(val) {
-  clearTimeout(namaLookupTimer);
-  const badge = el("mfNamaLookupBadge");
-  if (!val || val.trim().length < 1) {
-    if (badge) { badge.style.display = "none"; badge.innerHTML = ""; }
-    detectedNamaNakIdx = null;
-    detectedNamaPada = null;
-    return;
+function personCardHTML(spec, idx) {
+  const role = spec.role;
+  const st = participantState[role] || {};
+  const mode = st.mode || "star";
+  const label = T(spec.label_en, spec.label_te);
+  const id = k => `mfP_${role}_${k}`;
+  const needsDob = (spec.fields || []).includes("birth_date");
+  const levelNote = spec.level === "L1"
+    ? T("Required", "తప్పనిసరి")
+    : T("Optional: adds this person's tarabala", "ఐచ్ఛికం: వీరి తారాబలం కూడా పరిశీలిస్తుంది");
+  const basisNote = spec.star_basis === "nama"
+    ? T("Rules use the nama nakshatra", "నియమాలు నామ నక్షత్రాన్ని వాడుతాయి")
+    : T("Rules use the janma nakshatra", "నియమాలు జన్మ నక్షత్రాన్ని వాడుతాయి");
+  const extra = [];
+  if ((spec.fields || []).includes("gender")) {
+    extra.push(`<div class="field"><label for="${id("gender")}">${T("Boy / girl", "బాలుడు / బాలిక")}</label>
+      <select id="${id("gender")}" data-k="gender">
+        <option value="">${T("— Not specified —", "— పేర్కొనలేదు —")}</option>
+        <option value="boy"${st.gender === "boy" ? " selected" : ""}>${T("Boy", "బాలుడు")}</option>
+        <option value="girl"${st.gender === "girl" ? " selected" : ""}>${T("Girl", "బాలిక")}</option>
+      </select></div>`);
   }
-  namaLookupTimer = setTimeout(async () => {
+  if ((spec.fields || []).includes("eldest")) {
+    extra.push(`<div class="field field--check"><label><input type="checkbox" id="${id("eldest")}" data-k="eldest"${st.eldest ? " checked" : ""}>
+      ${T("Eldest child (Trijyeshtha check)", "జ్యేష్ఠ సంతానం (త్రిజ్యేష్ఠ పరిశీలన)")}</label></div>`);
+  }
+  const tab = (m, en, te) => `<button type="button" role="tab" class="nama-tab${mode === m ? " active" : ""}" aria-selected="${mode === m}" onclick="switchPersonMode('${role}','${m}')">${T(en, te)}</button>`;
+  return `
+  <details class="person-card" data-role="${role}" data-mode="${mode}" data-needs-dob="${needsDob}" ${spec.level === "L1" || idx === 0 || st.open ? "open" : ""}>
+    <summary class="person-card__head">
+      <strong>${escapeHtml(label)}</strong>
+      <span class="person-card__note">${levelNote} · ${basisNote}</span>
+    </summary>
+    <div class="person-card__body">
+      <div class="context-grid">
+        <div class="field"><label for="${id("name")}">${T("Name", "పేరు")}</label>
+          <input type="text" id="${id("name")}" data-k="name" value="${escapeHtml(st.name || "")}" autocomplete="off"></div>
+        <div class="field"><label for="${id("gotra")}">${T("Gotra (printed only)", "గోత్రం (ముద్రణకు మాత్రమే)")}</label>
+          <input type="text" id="${id("gotra")}" data-k="gotra" value="${escapeHtml(st.gotra || "")}" autocomplete="off"></div>
+        ${extra.join("")}
+      </div>
+      <div class="nama-mode-tabs" role="tablist" aria-label="${T("How to enter the star", "నక్షత్రం నమోదు విధానం")}">
+        ${tab("star", "I know the nakshatra", "నాకు నక్షత్రం తెలుసు")}
+        ${tab("name", "Find it from the name", "పేరు ద్వారా తెలుసుకోవాలి")}
+        ${tab("birth", "Work it out from birth details", "జన్మ వివరాల ద్వారా")}
+      </div>
+      <div class="person-mode" data-for="star" ${mode === "star" ? "" : "hidden"}>
+        <div class="context-grid">
+          <div class="field"><label for="${id("janma")}">${T("Janma nakshatra", "జన్మ నక్షత్రం")}</label>
+            <select id="${id("janma")}" data-k="janma_nak_idx">${optionList(NAKSHATRAS_27, T("— Not known —", "— తెలియదు —"), st.janma_nak_idx)}</select></div>
+          <div class="field"><label for="${id("jpada")}">${T("Janma pada", "జన్మ పాదం")}</label>
+            <select id="${id("jpada")}" data-k="janma_pada">${optionList(PADAS, "—", st.janma_pada)}</select></div>
+          <div class="field"><label for="${id("nama")}">${T("Nama nakshatra", "నామ నక్షత్రం")}</label>
+            <select id="${id("nama")}" data-k="nama_nak_idx">${optionList(NAKSHATRAS_27, T("— Not known —", "— తెలియదు —"), st.nama_nak_idx)}</select></div>
+          <div class="field"><label for="${id("npada")}">${T("Nama pada", "నామ పాదం")}</label>
+            <select id="${id("npada")}" data-k="nama_pada">${optionList(PADAS, "—", st.nama_pada)}</select></div>
+          <div class="field"><label for="${id("rasi")}">${T("Janma rashi (chandrabala)", "జన్మ రాశి (చంద్రబలం)")}</label>
+            <select id="${id("rasi")}" data-k="rasi_idx">${optionList(RASIS_12, T("— Not known —", "— తెలియదు —"), st.rasi_idx)}</select></div>
+          <div class="field"><label for="${id("lagna")}">${T("Janma lagna", "జన్మ లగ్నం")}</label>
+            <select id="${id("lagna")}" data-k="lagna_idx">${optionList(RASIS_12, T("— Not known —", "— తెలియదు —"), st.lagna_idx)}</select></div>
+        </div>
+      </div>
+      <div class="person-mode" data-for="name" ${mode === "name" ? "" : "hidden"}>
+        <div class="context-grid">
+          <div class="field"><label for="${id("lookup")}">${T("Name as given at naming", "నామకరణంలో పెట్టిన పేరు")}</label>
+            <input type="text" id="${id("lookup")}" data-k="lookup" value="${escapeHtml(st.lookup || "")}" autocomplete="off"
+              oninput="onPersonNameLookup('${role}', this.value)"></div>
+        </div>
+        <div class="nama-detected-badge" id="${id("badge")}" aria-live="polite" ${st.nama_nak_idx && mode === "name" ? "" : "hidden"}>${st.nama_nak_idx && mode === "name"
+          ? T(`Nama nakshatra set: ${NAKSHATRAS_27[st.nama_nak_idx - 1].en}, pada ${st.nama_pada || "—"}`, `నామ నక్షత్రం: ${NAKSHATRAS_27[st.nama_nak_idx - 1].te}, ${st.nama_pada || "—"}వ పాదం`) : ""}</div>
+      </div>
+      <div class="person-mode" data-for="birth" ${mode === "birth" || needsDob ? "" : "hidden"}>
+        <div class="context-grid">
+          <div class="field"><label for="${id("dob")}">${T("Birth date", "పుట్టిన తేదీ")}${needsDob ? T(" (needed for the age rule)", " (వయస్సు నియమానికి అవసరం)") : ""}</label>
+            <input type="date" id="${id("dob")}" data-k="birth_date" value="${escapeHtml(st.birth_date || "")}"></div>
+          <div class="field birth-only" ${mode === "birth" ? "" : "hidden"}><label for="${id("tob")}">${T("Birth time", "పుట్టిన సమయం")}</label>
+            <input type="time" id="${id("tob")}" data-k="birth_time" value="${escapeHtml(st.birth_time || "")}"></div>
+          <div class="field field--check birth-only" ${mode === "birth" ? "" : "hidden"}><label><input type="checkbox" id="${id("tunk")}" data-k="birth_time_unknown"${st.birth_time_unknown ? " checked" : ""}>
+            ${T("Birth time not known", "జన్మ సమయం తెలియదు")}</label></div>
+          <div class="field birth-only" ${mode === "birth" ? "" : "hidden"}><label for="${id("bplace")}">${T("Birth place", "జన్మస్థలం")}</label>
+            <select id="${id("bplace")}" data-k="birth_region">${birthPlaceOptions(st.birth_region)}</select></div>
+        </div>
+      </div>
+    </div>
+  </details>`;
+}
+
+function renderParticipants(rule) {
+  const box = el("mfParticipants");
+  if (!box) return;
+  saveParticipantState();
+  const specs = rule?.participants || [];
+  if (!specs.length) { box.innerHTML = ""; box.hidden = true; return; }
+  box.hidden = false;
+  box.innerHTML = `<h4 class="participants__title">${T("People taking part", "పాల్గొనే వ్యక్తులు")}</h4>
+    <p class="participants__hint">${T(
+      "Give a nakshatra for each person you want checked. Leave a card empty to skip that person; the result says what was not checked.",
+      "ఎవరి బలం పరిశీలించాలో వారి నక్షత్రం ఇవ్వండి. ఖాళీగా వదిలితే ఆ వ్యక్తి పరిశీలన జరగదు; ఫలితంలో ఆ విషయం చూపిస్తాం.")}</p>` +
+    specs.map(personCardHTML).join("");
+}
+
+function switchPersonMode(role, mode) {
+  const card = document.querySelector(`#mfParticipants .person-card[data-role="${role}"]`);
+  if (!card) return;
+  card.dataset.mode = mode;
+  const needsDob = card.dataset.needsDob === "true";
+  card.querySelectorAll(".nama-tab").forEach((b, i) => {
+    const on = ["star", "name", "birth"][i] === mode;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-selected", on);
+  });
+  card.querySelectorAll(".person-mode").forEach(div => {
+    div.hidden = !(div.dataset.for === mode || (div.dataset.for === "birth" && needsDob));
+  });
+  card.querySelectorAll(".birth-only").forEach(f => { f.hidden = mode !== "birth"; });
+}
+
+function onPersonNameLookup(role, val) {
+  clearTimeout(namaLookupTimers[role]);
+  const badge = el(`mfP_${role}_badge`);
+  if (!badge) return;
+  if (!val || !val.trim()) { badge.hidden = true; badge.innerHTML = ""; return; }
+  namaLookupTimers[role] = setTimeout(async () => {
     try {
       const res = await fetch(`${API_BASE}/muhurta/nama-nakshatra/lookup?name=${encodeURIComponent(val.trim())}`);
-      if (!res.ok) return;
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      badge.hidden = false;
       if (data.matched && data.result) {
         const r = data.result;
-        detectedNamaNakIdx = r.nakshatra_index;
-        detectedNamaPada = r.pada;
-        if (badge) {
-          badge.style.display = "block";
-          badge.innerHTML = `✨ <strong>${currentLang === "te" ? "గుర్తించిన నామ నక్షత్రం:" : "Detected Nama Nakshatra:"}</strong> ${r.nakshatra_te} (${r.nakshatra_en}) · ${currentLang === "te" ? `${r.pada}వ పాదం` : `Pada ${r.pada}`} · <strong>${currentLang === "te" ? "రాశి:" : "Rasi:"}</strong> ${r.rasi_te} (${r.rasi_en}) (అక్షరం: <code>${r.matched_syllable}</code>)`;
-        }
+        badge.innerHTML = `${T("Suggested nama nakshatra", "సూచించిన నామ నక్షత్రం")}: <strong>${escapeHtml(T(r.nakshatra_en, r.nakshatra_te))}</strong>,
+          ${T(`pada ${r.pada}`, `${r.pada}వ పాదం`)} (${T("syllable", "అక్షరం")} <code>${escapeHtml(r.matched_syllable)}</code>)
+          <button type="button" class="btn btn--sm" onclick="confirmNamaNakshatra('${role}', ${Number(r.nakshatra_index)}, ${Number(r.pada)})">${T("Use this", "ఇదే వాడండి")}</button>`;
       } else {
-        if (badge) {
-          badge.style.display = "block";
-          badge.innerHTML = `<span style="color:#888;">${currentLang === "te" ? "ఈ పేరుకు నామ నక్షత్రం నేరుగా లభించలేదు. దయచేసి '1. నాకు నక్షత్రం తెలుసు' ద్వారా ఎంచుకోండి." : "Exact syllable not matched. Please pick manually in Tab 1."}</span>`;
-        }
+        badge.textContent = T("No nakshatra matches this name's first syllable. Pick the nama nakshatra under 'I know the nakshatra'.",
+          "ఈ పేరు మొదటి అక్షరానికి నక్షత్రం సరిపోలలేదు. 'నాకు నక్షత్రం తెలుసు'లో నామ నక్షత్రం ఎంచుకోండి.");
       }
     } catch (e) {
-      console.error("Nama lookup error:", e);
+      console.error("Nama lookup failed:", e);
+      badge.hidden = false;
+      badge.textContent = T("Name lookup failed. Pick the nakshatra directly.", "పేరు పరిశీలన విఫలమైంది. నక్షత్రం నేరుగా ఎంచుకోండి.");
     }
   }, 250);
 }
 
+function confirmNamaNakshatra(role, nakIdx, pada) {
+  const nama = el(`mfP_${role}_nama`), npada = el(`mfP_${role}_npada`), badge = el(`mfP_${role}_badge`);
+  if (nama) nama.value = String(nakIdx);
+  if (npada) npada.value = String(pada);
+  if (badge) badge.textContent = T(`Nama nakshatra set: ${NAKSHATRAS_27[nakIdx - 1].en}, pada ${pada}`,
+    `నామ నక్షత్రం: ${NAKSHATRAS_27[nakIdx - 1].te}, ${pada}వ పాదం`);
+}
+
+function collectParticipants() {
+  const out = [];
+  document.querySelectorAll("#mfParticipants .person-card").forEach(card => {
+    const v = k => card.querySelector(`[data-k="${k}"]`);
+    const val = k => { const i = v(k); return i ? (i.type === "checkbox" ? i.checked : i.value.trim()) : ""; };
+    const num = k => parseInt(val(k)) || null;
+    const p = { role: card.dataset.role, name: val("name") || null, gotra: val("gotra") || null,
+                gender: val("gender") || null, eldest: !!val("eldest") };
+    if (val("birth_date")) p.birth_date = val("birth_date");
+    // Directly picked values always count; birth details are sent when that mode is used.
+    ["janma_nak_idx", "janma_pada", "nama_nak_idx", "nama_pada", "rasi_idx", "lagna_idx"].forEach(k => { if (num(k)) p[k] = num(k); });
+    if (card.dataset.mode === "birth" && p.birth_date) {
+      p.from_birth = true;
+      p.birth_time_unknown = !!val("birth_time_unknown");
+      if (!p.birth_time_unknown && val("birth_time")) p.birth_time = val("birth_time");
+      const reg = (typeof allRegions !== "undefined" ? allRegions : []).find(r => r.id === val("birth_region"));
+      if (reg) Object.assign(p, { birth_place: reg.label, birth_lat: reg.lat, birth_lon: reg.lon, birth_tz_offset: reg.tz_offset });
+    }
+    const given = p.name || p.birth_date || p.janma_nak_idx || p.nama_nak_idx || p.rasi_idx || p.gender || p.eldest;
+    if (given) out.push(p);
+  });
+  return out;
+}
+
 // ---- Context-Sensitive Level 3 Fields ----
 function updateContextualFields() {
-  const catSelect = el("mfCategorySelect");
-  const actSelect = el("mfActivitySelect");
-  const cat = catSelect ? catSelect.value : "all";
-  const act = actSelect ? actSelect.value : "";
-
-  // Hide all context groups
-  const groups = ["fieldsVivaha", "fieldsUpanayana", "fieldsGriha", "fieldsBusiness", "fieldsTravel", "fieldsVehicle"];
-  groups.forEach(gId => {
+  Object.values(TAB_INPUT_GROUPS).forEach(gId => {
     const g = el(gId);
     if (g) g.style.display = "none";
   });
+  const rule = currentRule();
+  (rule?.tab_inputs || []).forEach(key => {
+    const g = el(TAB_INPUT_GROUPS[key]);
+    if (g) g.style.display = "block";
+  });
 
-  // Determine active category
-  let activeCat = cat;
-  if (cat === "all" && act) {
-    const foundRule = allMuhurtaRules.find(r => r.id === act);
-    if (foundRule) activeCat = foundRule.category;
+  const vField = el("mfVariantField");
+  const vSel = el("mfVariantSelect");
+  if (vField && vSel) {
+    const alts = rule?.alternatives || [];
+    vField.hidden = alts.length === 0;
+    vSel.innerHTML = `<option value="">${currentLang === "te" ? "ప్రధాన జాబితా" : "Main list"}</option>` +
+      alts.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(currentLang === "te" ? (a.title_te || a.title_en) : a.title_en)}</option>`).join("");
   }
 
-  if (activeCat === "vivaha") {
-    el("fieldsVivaha").style.display = "block";
-  } else if (activeCat === "samskaras") {
-    el("fieldsUpanayana").style.display = "block";
-  } else if (activeCat === "griha") {
-    el("fieldsGriha").style.display = "block";
-  } else if (activeCat === "travel") {
-    el("fieldsTravel").style.display = "block";
-  } else if (activeCat === "general") {
-    if (act === "business_start" || act === "contracts_agreements") {
-      el("fieldsBusiness").style.display = "block";
-    } else if (act === "buying_vehicles") {
-      el("fieldsVehicle").style.display = "block";
-    }
+  const desc = el("mfEventDesc");
+  if (desc) {
+    let text = rule ? (currentLang === "te" ? (rule.description_te || "") : (rule.description_en || "")) : "";
+    const base = rule?.extends && allMuhurtaRules.find(r => r.id === rule.extends);
+    if (base) text += T(` · Uses the rules of "${base.title_en}" until the book's own rules are added.`,
+                        ` · గ్రంథంలోని ప్రత్యేక నియమాలు చేర్చేవరకు "${base.title_te || base.title_en}" నియమాలు వర్తిస్తాయి.`);
+    desc.textContent = text;
+  }
+
+  renderParticipants(rule);
+
+  // Disclaimers: reference-only events, and the doctor's rule 10 for health and pregnancy.
+  const banner = el("mfInfoBanner");
+  if (banner) {
+    const tab = rule?.tab || currentCategory;
+    const notes = [];
+    if (rule?.informational) notes.push(T(
+      "Shown for reference from the book only. Follow your doctor's or lawyer's advice for medical or legal decisions.",
+      "ఇది గ్రంథంలోని సమాచారం మాత్రమే. వైద్య/చట్ట నిర్ణయాలకు నిపుణుల సలహా పాటించండి."));
+    if (tab === "health") notes.push(T(
+      "A muhurta never replaces medical advice. Do not delay urgent treatment or surgery for a muhurta.",
+      "ముహూర్తం వైద్యుని సలహాకు ప్రత్యామ్నాయం కాదు. అత్యవసర చికిత్స లేదా శస్త్రచికిత్సను ముహూర్తం కోసం వాయిదా వేయకూడదు."));
+    if (tab === "garbha") notes.push(T(
+      "This is a traditional muhurta only. It does not replace medical advice on pregnancy or conception.",
+      "ఇది సంప్రదాయ ముహూర్త సూచన మాత్రమే; గర్భధారణకు సంబంధించిన వైద్య సలహాకు ప్రత్యామ్నాయం కాదు."));
+    banner.hidden = notes.length === 0;
+    banner.textContent = notes.join(" ");
   }
 }
 
-function onCategoryChange() {
+function onCategoryChange(catId) {
+  currentCategory = catId;
   populateActivityDropdown();
-  updateContextualFields();
+  setYogaMode(catId === "yogas");
+  const pp = el("mfPitruPanel");
+  if (pp) pp.hidden = catId !== "pitru";
+  setPitruMode(catId === "pitru" && pitruCalendarOn);
+}
+
+// ---- Pitru tab: shraddha calendar ----
+let pitruCalendarOn = false;
+function setPitruMode(on) {
+  if (currentCategory === "pitru") pitruCalendarOn = on;
+  el("mfControls")?.classList.toggle("mode-pitrucal", on);
+  const f = el("mfPitruCalFields");
+  if (f) f.hidden = !on;
+  [["mfPitruTabRite", !on], ["mfPitruTabCal", on]].forEach(([id, active]) => {
+    const b = el(id);
+    if (b) { b.classList.toggle("active", active); b.setAttribute("aria-selected", active); }
+  });
+  updatePitruFields();
+}
+
+function updatePitruFields() {
+  const mode = el("mfPitruMode")?.value;
+  document.querySelectorAll("#mfPitruCalFields .pitru-death").forEach(x => { x.hidden = mode === "shannavati"; });
+  document.querySelectorAll("#mfPitruCalFields .pitru-annual").forEach(x => { x.hidden = mode !== "annual"; });
+  document.querySelectorAll("#mfPitruCalFields .pitru-year").forEach(x => { x.hidden = mode !== "shannavati"; });
+  const yr = el("mfPitruYear");
+  if (yr && !yr.value) yr.value = new Date().getFullYear();
+}
+
+async function runPitruCalendar(loc) {
+  const mode = el("mfPitruMode").value;
+  const body = { mode, lat: loc.lat, lon: loc.lon, tz_offset: loc.tz_offset, place_name: loc.place_name,
+                 death_date: el("mfPitruDeathDate").value || null, death_time: el("mfPitruDeathTime").value || null,
+                 years: parseInt(el("mfPitruYears").value) || 3, year: parseInt(el("mfPitruYear").value) || null };
+  if (mode !== "shannavati" && !body.death_date) {
+    setStatus(T("Enter the date of death.", "మరణ తేదీ నమోదు చేయండి."), true);
+    return;
+  }
+  el("findBtn").disabled = true;
+  setStatus(T("Working out the dates…", "తేదీలు లెక్కిస్తున్నాం…"));
+  try {
+    const res = await fetch(`${API_BASE}/muhurta/pitru-calendar`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
+    renderPitruCalendar(mode, await res.json());
+  } catch (e) {
+    console.error("Pitru calendar failed:", e);
+    setStatus(T(`Couldn't work out the dates: ${e.message}`, `తేదీలు లెక్కించలేకపోయాం: ${e.message}`), true);
+  } finally {
+    el("findBtn").disabled = false;
+  }
+}
+
+function renderPitruCalendar(mode, data) {
+  const dd = data.death;
+  const head = dd ? T(`Death tithi: ${dd.tithi_label}, ${dd.masa_en}${dd.adhika ? " (adhika)" : ""} masa.`,
+                      `మరణ తిథి: ${dd.masa_te}${dd.adhika ? " (అధిక)" : ""} మాసం, ${dd.tithi_label}.`) : "";
+  const notes = [...(data.warnings || []), ...(data.notes || [])];
+  setStatus([head, ...notes].filter(Boolean).join(" "));
+  let rows = [];
+  if (mode === "annual") rows = data.shraddha.map(r => [r.date, T(`Year ${r.year_no} shraddha`, `${r.year_no}వ సంవత్సర శ్రాద్ధం`),
+    `${VAARA_NAMES[currentLang]?.[r.weekday] || r.weekday}${r.aparahna_minutes ? T(` · tithi covers ${r.aparahna_minutes} min of aparahna`, ` · అపరాహ్ణంలో ${r.aparahna_minutes} ని.`) : ""}${r.note ? " · " + r.note : ""}`]);
+  else if (mode === "after_death") rows = data.rites.map(r => [r.date, T(r.rite_en, r.rite_te), T(`Day ${r.day}`, `${r.day}వ రోజు`) + (r.note ? " · " + r.note : "")]);
+  else rows = data.days.map(r => [r.date, T(r.kind_en, r.kind_te), `${VAARA_NAMES[currentLang]?.[r.weekday] || r.weekday} · ${r.detail || ""}`]);
+  const counts = mode === "shannavati" ? `<div class="verdict-strip">${T(`${data.total} days`, `${data.total} దినాలు`)}: ${
+    Object.entries(data.counts).map(([k, v]) => `${escapeHtml(k)} ${v}`).join(" · ")}</div>` : "";
+  el("summaryBar").innerHTML = counts;
+  el("dayGrid").innerHTML = rows.map(([d, what, more]) => `
+    <div class="yoga-row"><div class="yoga-row__when">${escapeHtml(d)}</div>
+      <div><strong>${escapeHtml(what)}</strong><br><small>${escapeHtml(more)}</small></div></div>`).join("");
+  el("mfResults").style.display = "block";
+}
+
+// ---- Special Yogas tab ----
+let yogaCatalog = null;
+function setYogaMode(on) {
+  el("mfControls")?.classList.toggle("mode-yogas", on);
+  const panel = el("mfYogaPanel");
+  if (panel) panel.hidden = !on;
+  if (on) renderYogaPanel();
+}
+
+async function renderYogaPanel() {
+  if (!yogaCatalog) {
+    try {
+      const res = await fetch(`${API_BASE}/muhurta/yogas/catalog`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      yogaCatalog = await res.json();
+    } catch (e) {
+      console.error("Yoga catalog failed:", e);
+      setStatus(T(`Couldn't load the yoga list (${e.message}).`, "యోగాల జాబితా లోడ్ కాలేదు."), true);
+      return;
+    }
+  }
+  const keep = id => el(id)?.checked;
+  const box = (list, prefix, defaults) => list.map(y => {
+    const id = `${prefix}${y.id}`;
+    const checked = el(id) ? keep(id) : defaults.includes(y.id);
+    return `<label><input type="checkbox" id="${id}" value="${escapeHtml(y.id)}"${checked ? " checked" : ""}> ${escapeHtml(T(y.name_en, y.name_te))}</label>`;
+  }).join("");
+  el("mfYogaList").innerHTML = box(yogaCatalog.yogas, "mfYg_", ["amrita_siddhi", "sarvartha_siddhi"]);
+  el("mfCondList").innerHTML = box(yogaCatalog.conditions, "mfYc_", ["bad_times_free", "varjyam_free"]);
+  const nak = el("mfYogaNak"), rasi = el("mfYogaRasi");
+  if (nak) nak.innerHTML = optionList(NAKSHATRAS_27, T("— Not given —", "— ఇవ్వలేదు —"), nak.value);
+  if (rasi) rasi.innerHTML = optionList(RASIS_12, T("— Not given —", "— ఇవ్వలేదు —"), rasi.value);
+}
+
+async function runYogaSearch(loc) {
+  const picked = sel => [...document.querySelectorAll(`${sel} input:checked`)].map(i => i.value);
+  const body = {
+    start_date: loc.startDate, days_to_scan: Math.min(loc.days, 60), lat: loc.lat, lon: loc.lon,
+    tz_offset: loc.tz_offset, place_name: loc.place_name,
+    yogas: picked("#mfYogaList"), conditions: picked("#mfCondList"),
+    janma_nak_idx: parseInt(el("mfYogaNak")?.value) || null, janma_rasi_idx: parseInt(el("mfYogaRasi")?.value) || null,
+  };
+  if (!body.yogas.length && !body.conditions.length) {
+    setStatus(T("Tick at least one yoga or condition.", "కనీసం ఒక యోగం లేదా నియమం ఎంచుకోండి."), true);
+    return;
+  }
+  el("findBtn").disabled = true;
+  setStatus(T("Searching…", "శోధిస్తున్నాం…"));
+  try {
+    const res = await fetch(`${API_BASE}/muhurta/yogas`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
+    renderYogaResults(await res.json());
+  } catch (e) {
+    console.error("Yoga search failed:", e);
+    setStatus(T(`Search failed: ${e.message}`, `శోధన విఫలమైంది: ${e.message}`), true);
+  } finally {
+    el("findBtn").disabled = false;
+  }
+}
+
+function renderYogaResults(data) {
+  const warn = (data.warnings || []).length ? ` ${T("Note:", "గమనిక:")} ${data.warnings.join("; ")}` : "";
+  setStatus(T(`${data.total} window(s) in ${data.days_scanned} days.`, `${data.days_scanned} రోజుల్లో ${data.total} సమయాలు.`) + warn);
+  el("summaryBar").innerHTML = "";
+  el("dayGrid").innerHTML = data.windows.length ? data.windows.map(w => `
+    <div class="yoga-row">
+      <div class="yoga-row__when">${escapeHtml(w.date)} · ${escapeHtml(w.start)}–${escapeHtml(w.end)}<br><small>${escapeHtml(VAARA_NAMES[currentLang]?.[w.vaara] || w.vaara)} · ${w.duration_minutes} ${T("min", "ని.")}</small></div>
+      <div>${escapeHtml(te(w.nakshatra, NAKSHATRA_NAMES_TE))} · ${escapeHtml(w.tithi)}${w.lagna ? ` · ${escapeHtml(te(w.lagna, RASI_NAMES_TE))} ${T("lagna", "లగ్నం")}` : ""}${w.tara ? ` · ${escapeHtml(w.tara)} ${T("tara", "తార")}` : ""}
+        <div class="yoga-row__chips">${w.yogas.map(y => `<span class="pill pill--pass">${escapeHtml(T(y.name_en, y.name_te))}</span>`).join("")}</div></div>
+    </div>`).join("") : `<div class="empty-state"><p>${T("No window matches every condition. Untick a condition or scan more days.", "అన్ని నియమాలు సరిపోయే సమయం లేదు. ఒక నియమం తీసివేయండి లేదా ఎక్కువ రోజులు వెతకండి.")}</p></div>`;
+  el("mfResults").style.display = "block";
 }
 
 function onActivityChange() {
   updateContextualFields();
 }
 
-
-// ---- Birth details toggle ----
-function toggleBirth() {
-  toggleHoroscopeSection();
-}
 
 // (allRegions already declared in js/regions.js)
 
@@ -340,14 +663,11 @@ async function findMuhurtas() {
     lat = r.lat; lon = r.lon; tz_offset = r.tz_offset; place_name = r.label;
   }
 
-  // Birth details
-  let birthParams = "";
-  if (birthVisible) {
-    const bDob = el("mfBirthDob").value;
-    const bTob = el("mfBirthTob").value;
-    if (bDob && bTob) {
-      birthParams = `&birth_dob=${bDob}&birth_tob=${bTob}`;
-    }
+  if (currentCategory === "yogas") {
+    return runYogaSearch({ lat, lon, tz_offset, place_name, startDate, days });
+  }
+  if (currentCategory === "pitru" && pitruCalendarOn) {
+    return runPitruCalendar({ lat, lon, tz_offset, place_name });
   }
 
   el("findBtn").disabled = true;
@@ -359,9 +679,7 @@ async function findMuhurtas() {
 
   try {
     const actSelect = el("mfActivitySelect");
-    const catSelect = el("mfCategorySelect");
     const activityId = actSelect ? actSelect.value : null;
-    const cat = catSelect ? catSelect.value : "all";
 
     const payload = {
       activity_id: activityId,
@@ -372,70 +690,44 @@ async function findMuhurtas() {
       tz_offset: tz_offset,
       place_name: place_name,
       panchaka_method: "standard",
-      person_name: el("mfPersonName")?.value?.trim() || null,
-      gotra: el("mfGotra")?.value?.trim() || null
+      strictness: el("mfStrictness")?.value || "strict",
+      rule_variant: el("mfVariantSelect")?.value || null,
+      time_preference: el("mfTimePref")?.value || "any",
+      participants: collectParticipants(),
     };
 
-    // Level 2 — Astrological & Nama Nakshatra
-    if (currentNamaMode === 1 && el("mfDirectNakSelect")) {
-      const nakVal = parseInt(el("mfDirectNakSelect").value);
-      if (nakVal) payload.janma_nak_idx = nakVal;
-      payload.janma_pada = parseInt(el("mfDirectPadaSelect")?.value) || 1;
-    } else if (currentNamaMode === 2 && detectedNamaNakIdx) {
-      payload.nama_nak_idx = detectedNamaNakIdx;
-      payload.nama_pada = detectedNamaPada || 1;
-    } else if (currentNamaMode === 3) {
-      payload.birth_dob = el("mfBirthDob")?.value || null;
-      payload.birth_tob = el("mfBirthTob")?.value || null;
+    // Event details (form groups the rule lists in tab_inputs). People come from the cards above.
+    const tabInputs = currentRule()?.tab_inputs || [];
+    const val = id => el(id)?.value?.trim() || null;
+    if (tabInputs.includes("samskara_pregnancy")) payload.conception_date = val("mfConceptionDate");
+    if (tabInputs.includes("samskara_main_event")) payload.main_event_date = val("mfMainEventDate");
+    if (tabInputs.includes("pitru_death")) payload.main_event_date = val("mfDeathDate");
+    if (tabInputs.includes("upanayana_family")) {
+      payload.veda_shakha = val("mfVedaShakha");
+      payload.sutra = val("mfSutra");
+      payload.varna = val("mfVarna");
     }
-
-    // Level 3 — Category & Activity Specific Parameters
-    let activeCat = cat;
-    if (cat === "all" && activityId) {
-      const fr = allMuhurtaRules.find(r => r.id === activityId);
-      if (fr) activeCat = fr.category;
+    if (tabInputs.includes("griha_owner")) {
+      payload.door_facing = val("mfDoorFacing");
+      payload.plot_facing = val("mfPlotFacing");
+      payload.house_type = val("mfHouseType");
     }
-
-    if (activeCat === "vivaha") {
-      payload.groom_name = el("mfGroomName")?.value?.trim() || null;
-      payload.groom_nak_idx = parseInt(el("mfGroomNak")?.value) || null;
-      payload.groom_gotra = el("mfGroomGotra")?.value?.trim() || null;
-      payload.bride_name = el("mfBrideName")?.value?.trim() || null;
-      payload.bride_nak_idx = parseInt(el("mfBrideNak")?.value) || null;
-      payload.bride_gotra = el("mfBrideGotra")?.value?.trim() || null;
-      payload.time_preference = el("mfTimePref")?.value || "any";
-    } else if (activeCat === "samskaras") {
-      payload.vatu_name = el("mfVatuName")?.value?.trim() || null;
-      payload.father_name = el("mfFatherName")?.value?.trim() || null;
-      payload.father_nak_idx = parseInt(el("mfFatherNak")?.value) || null;
-      payload.mother_nak_idx = parseInt(el("mfMotherNak")?.value) || null;
-      payload.veda_shakha = el("mfVedaShakha")?.value || null;
-      payload.sutra = el("mfSutra")?.value || null;
-    } else if (activeCat === "griha") {
-      payload.owner_name = el("mfOwnerName")?.value?.trim() || null;
-      payload.owner_nama_nak_idx = parseInt(el("mfOwnerNak")?.value) || null;
-      payload.spouse_name = el("mfSpouseName")?.value?.trim() || null;
-      payload.spouse_nama_nak_idx = parseInt(el("mfSpouseNak")?.value) || null;
-      payload.door_facing = el("mfDoorFacing")?.value || null;
-      payload.plot_facing = el("mfPlotFacing")?.value || null;
-      payload.house_type = el("mfHouseType")?.value || null;
-    } else if (activeCat === "travel") {
-      payload.person_name = el("mfTravelerName")?.value?.trim() || payload.person_name;
-      payload.origin = el("mfTravelOrigin")?.value?.trim() || null;
-      payload.destination = el("mfTravelDest")?.value?.trim() || null;
-      payload.travel_direction = el("mfTravelDir")?.value || null;
-      payload.travel_mode = el("mfTravelMode")?.value || null;
-    } else if (activeCat === "general") {
-      if (activityId === "business_start" || activityId === "contracts_agreements") {
-        payload.business_name = el("mfBusinessName")?.value?.trim() || null;
-        payload.business_type = el("mfBusinessType")?.value || null;
-        payload.partner_name = el("mfPartnerName")?.value?.trim() || null;
-        payload.partner_nama_nak_idx = parseInt(el("mfPartnerNak")?.value) || null;
-        payload.entrance_facing = el("mfEntranceFacing")?.value || null;
-      } else if (activityId === "buying_vehicles") {
-        payload.vehicle_type = el("mfVehicleType")?.value || null;
-        payload.vehicle_muhurta_type = el("mfVehicleMuhurtaType")?.value || null;
-      }
+    if (tabInputs.includes("travel")) {
+      payload.origin = val("mfTravelOrigin");
+      payload.destination = val("mfTravelDest");
+      payload.travel_direction = val("mfTravelDir");
+      payload.travel_mode = val("mfTravelMode");
+      payload.travel_purpose = val("mfTravelPurpose");
+      payload.travel_exemption = val("mfTravelExemption");
+    }
+    if (tabInputs.includes("business")) {
+      payload.business_name = val("mfBusinessName");
+      payload.business_type = val("mfBusinessType");
+      payload.entrance_facing = val("mfEntranceFacing");
+    }
+    if (tabInputs.includes("vehicle")) {
+      payload.vehicle_type = val("mfVehicleType");
+      payload.vehicle_muhurta_type = val("mfVehicleMuhurtaType");
     }
 
     const res = await fetch(`${API_BASE}/muhurta/find`, {
@@ -461,7 +753,7 @@ async function findMuhurtas() {
     setTimeout(() => {
       el("progressSection").style.display = "none";
       renderResults(data);
-      setStatus("");
+      setStatus((data.warnings || []).join(" · "));
     }, 400);
 
   } catch (e) {
@@ -470,6 +762,152 @@ async function findMuhurtas() {
   } finally {
     el("findBtn").disabled = false;
   }
+}
+
+// ---- Month names: Amanta (as the rules use) or Purnimanta (display only) ----
+const LUNAR_MONTHS = [
+  { en: "Chaitra", te: "చైత్ర మాసం" }, { en: "Vaishakha", te: "వైశాఖ మాసం" }, { en: "Jyeshtha", te: "జ్యేష్ఠ మాసం" },
+  { en: "Ashadha", te: "ఆషాఢ మాసం" }, { en: "Shravana", te: "శ్రావణ మాసం" }, { en: "Bhadrapada", te: "భాద్రపద మాసం" },
+  { en: "Ashwina", te: "ఆశ్వయుజ మాసం" }, { en: "Kartika", te: "కార్తీక మాసం" }, { en: "Margashira", te: "మార్గశిర మాసం" },
+  { en: "Pushya", te: "పుష్య మాసం" }, { en: "Magha", te: "మాఘ మాసం" }, { en: "Phalguna", te: "ఫాల్గుణ మాసం" },
+];
+
+function displayMasa(cm) {
+  const amanta = currentLang === "te" ? (cm.month_telugu || cm.month_name) : `${cm.month_name} Masam`;
+  const n = Number(cm.month_number);
+  const krishna = String(cm.paksha_en || "").toLowerCase().startsWith("krishna");
+  if (el("mfMasaSystem")?.value !== "purnimanta" || !krishna || !(n >= 1 && n <= 12)) return amanta;
+  // Purnimanta months end at the full moon, so Krishna paksha belongs to the next month.
+  const m = LUNAR_MONTHS[n % 12];
+  return currentLang === "te" ? `${m.te} (పూర్ణిమాంత)` : `${m.en} Masam (Purnimanta)`;
+}
+
+// ---- Result detail (Phase 12: what each result must show) ----
+function roleLabel(role) {
+  const spec = (currentRule()?.participants || []).find(p => p.role === role);
+  return spec ? T(spec.label_en, spec.label_te) : role;
+}
+
+function limbWithTimes(lt, fallback) {
+  if (!lt) return escapeHtml(fallback);
+  const pada = lt.pada ? T(`, pada ${lt.pada}`, `, ${lt.pada}వ పాదం`) : "";
+  return `${escapeHtml(lt.name)}${pada}<br><small class="limb-time">${escapeHtml(lt.start)} – ${escapeHtml(lt.end)}</small>`;
+}
+
+function peopleStrengthHTML(people) {
+  const rows = people.filter(p => p.tara || p.chandrabala).map(p => {
+    const tara = p.tara
+      ? `<span class="pill ${p.tara.is_pass ? "pill--pass" : "pill--fail"}">${escapeHtml(T(p.tara.name, p.tara.name_te || p.tara.name))}</span>`
+      : `<span class="pill pill--muted">${T("Not given", "ఇవ్వలేదు")}</span>`;
+    const cb = p.chandrabala
+      ? `<span class="pill ${p.chandrabala.is_pass ? "pill--pass" : "pill--fail"}">${T(`House ${p.chandrabala.house}`, `${p.chandrabala.house}వ ఇల్లు`)}</span>`
+      : `<span class="pill pill--muted">${T("Not given", "ఇవ్వలేదు")}</span>`;
+    const basis = p.star_basis_used ? (p.star_basis_used === "nama" ? T("nama star", "నామ నక్షత్రం") : T("janma star", "జన్మ నక్షత్రం")) : "";
+    return `<tr><th scope="row">${escapeHtml(roleLabel(p.role))}${p.name ? `<br><small>${escapeHtml(p.name)}</small>` : ""}</th>
+      <td>${tara}${basis ? `<br><small>${basis}</small>` : ""}</td><td>${cb}</td></tr>`;
+  });
+  if (!rows.length) return "";
+  return `<div class="detail-card">
+    <h4 class="detail-card__title">👥 ${T("Strength for each person", "ప్రతి వ్యక్తికి బలం")}</h4>
+    <div class="table-scroll"><table class="people-table">
+      <thead><tr><th>${T("Person", "వ్యక్తి")}</th><th>${T("Tarabala", "తారాబలం")}</th><th>${T("Chandrabala", "చంద్రబలం")}</th></tr></thead>
+      <tbody>${rows.join("")}</tbody></table></div></div>`;
+}
+
+const PLANET_LABEL = { jupiter: ["Jupiter (Guru)", "గురువు"], venus: ["Venus (Shukra)", "శుక్రుడు"], moon: ["Moon", "చంద్రుడు"] };
+function lagnaStrengthHTML(det) {
+  const lg = det.lagna || {};
+  const strength = (det.planet_strength || []).map(s => {
+    const [en, te] = PLANET_LABEL[s.planet] || [s.planet, s.planet];
+    const bad = s.state === "combust" || s.state === "bala" || s.state === "vriddha";
+    const extra = s.planet === "moon" ? ` · ${s.illumination}%` : (s.days ? T(` · ${s.days} days`, ` · ${s.days} రోజులు`) : "");
+    const stateEn = { clear: "Strong", combust: "Combust", bala: "Child (bala)", vriddha: "Old (vriddha)", waxing: "Waxing", waning: "Waning" }[s.state] || s.state;
+    return `<span class="pill ${bad ? "pill--fail" : "pill--pass"}">${T(en, te)}: ${escapeHtml(T(stateEn, s.state_te || stateEn))}${extra}</span>`;
+  }).join(" ");
+  const deg = lg.degree_dms ? T(` · ${lg.degree_dms} at ${lg.degree_at}`, ` · ${lg.degree_at}కు ${lg.degree_dms}`) : "";
+  return `<div class="detail-card">
+    <h4 class="detail-card__title">🏛️ ${T("Lagna and planet strength", "లగ్నం · గ్రహ బలం")}</h4>
+    <div class="detail-card__grid">
+      <div><strong>${T("Lagna:", "లగ్నం:")}</strong> ${escapeHtml(T(lg.name || "—", lg.name_te || lg.name || "—"))}${escapeHtml(deg)}</div>
+      <div><strong>${T("Navamsa:", "నవాంశ:")}</strong> ${escapeHtml(te(lg.navamsa || "—", RASI_NAMES_TE))}${lg.is_pushkara_navamsa ? T(" (pushkara)", " (పుష్కర)") : ""}</div>
+    </div>
+    <div class="strength-row">${strength}</div>
+  </div>`;
+}
+
+// Printed header: event, place and the record-only details (names, gotra, shakha...).
+const RECORD_FIELDS = [
+  ["veda_shakha", "Veda shakha", "వేద శాఖ"], ["sutra", "Sutra", "సూత్రం"], ["varna", "Varna", "వర్ణం"],
+  ["business_name", "Business", "సంస్థ"], ["business_type", "Business type", "వ్యాపార రకం"],
+  ["origin", "From", "ప్రారంభ స్థలం"], ["destination", "To", "గమ్యస్థానం"], ["travel_mode", "Mode", "ప్రయాణ విధానం"],
+  ["house_type", "House", "ఇల్లు"], ["vehicle_type", "Vehicle", "వాహనం"],
+];
+function eventHeaderHTML(r) {
+  const rule = currentRule();
+  const people = (lastData?.participants || []).filter(p => p.name || p.gotra).map(p =>
+    `${escapeHtml(roleLabel(p.role))}: ${escapeHtml(p.name || "—")}${p.gotra ? ` (${T("gotra", "గోత్రం")} ${escapeHtml(p.gotra)})` : ""}`);
+  const ap = lastData?.activity_params || {};
+  const rec = RECORD_FIELDS.filter(([k]) => ap[k]).map(([k, en, te]) => `${T(en, te)}: ${escapeHtml(ap[k])}`);
+  const place = lastData?.birth_details?.place || lastData?.place_name || "";
+  const lines = [
+    `<strong>${escapeHtml(T(rule?.title_en || lastData?.title_en || "", rule?.title_te || lastData?.title_te || ""))}</strong>` +
+      (place ? ` · ${escapeHtml(place)}` : "") + ` · ${escapeHtml(r.window_start || "")}–${escapeHtml(r.window_end || "")}`,
+  ];
+  if (people.length) lines.push(people.join(" · "));
+  if (rec.length) lines.push(rec.join(" · "));
+  return `<div class="event-header">${lines.map(l => `<div>${l}</div>`).join("")}</div>`;
+}
+
+// ---- Dosha rows ----
+function escapeHtml(str) {
+  return String(str ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+const DOSHA_STATUS_LABEL = {
+  pass: { en: "Clear", te: "శుద్ధం" },
+  fail: { en: "Dosha", te: "దోషం" },
+  not_evaluated: { en: "Not evaluated", te: "పరిశీలించలేదు" },
+  not_applicable: { en: "N/A", te: "వర్తించదు" },
+};
+
+function doshaStatus(m) {
+  if (m.status) return m.status;
+  if (m.is_pass === null || m.is_pass === undefined) return "not_evaluated";
+  return m.is_pass ? "pass" : "fail";
+}
+
+// Panchang limbs arrive as a string ("Saptami (Shukla)") or an object ({name, paksha}).
+function limbName(x) {
+  if (x === null || x === undefined || x === "") return "—";
+  if (typeof x !== "object") return String(x);
+  const name = x.name || x.name_en || "—";
+  return x.paksha ? `${name} (${x.paksha})` : name;
+}
+
+function doshaTally(list) {
+  const n = s => list.filter(m => doshaStatus(m) === s).length;
+  return currentLang === "te"
+    ? `${n("pass")} శుద్ధం · ${n("fail")} దోషం · ${n("not_evaluated")} పరిశీలించలేదు`
+    : `${n("pass")} clear · ${n("fail")} dosha · ${n("not_evaluated")} not evaluated`;
+}
+
+function doshaItemHTML(m, title, desc, kind) {
+  const status = doshaStatus(m);
+  const itemCls = status === "fail" ? `dosha-item--fail-${kind}` : status === "pass" ? "dosha-item--pass" : "dosha-item--muted";
+  const badgeCls = status === "fail" ? "dosha-item__badge--fail" : status === "pass" ? "dosha-item__badge--pass" : "dosha-item__badge--muted";
+  const descCls = status === "fail" ? "dosha-item__desc--fail" : status === "pass" ? "dosha-item__desc--pass" : "dosha-item__desc--muted";
+  const label = (DOSHA_STATUS_LABEL[status] || DOSHA_STATUS_LABEL.pass)[currentLang === "te" ? "te" : "en"];
+  const sev = status === "fail" && m.severity && m.severity !== "info" ? ` · ${m.severity}` : "";
+  const ref = m.book_ref ? `<div class="dosha-item__ref">${escapeHtml(m.book_ref)}</div>` : "";
+  return `
+        <div class="dosha-item ${itemCls}">
+          <div class="dosha-item__header">
+            <strong class="dosha-item__name">${escapeHtml(title)}</strong>
+            <span class="dosha-item__badge ${badgeCls}">${label}${sev}</span>
+          </div>
+          <div class="${descCls}">${escapeHtml(desc)}</div>
+          ${ref}
+        </div>`;
 }
 
 // ---- Render Results ----
@@ -508,23 +946,31 @@ function renderResults(data) {
   grid.innerHTML = "";
 
   if (results.length === 0) {
+    const reasons = (data.rejection_summary || []).slice(0, 5)
+      .map(x => `<li>${escapeHtml(x.reason)} <span class="reject-count">× ${x.count}</span></li>`).join("");
+    const strictNote = data.strictness === "strict"
+      ? (currentLang === "te"
+        ? "కఠిన నియమంలో మహాదోషం ఉన్న సమయాలు తొలగించబడ్డాయి. 'సడలింపు' ఎంచుకుంటే అవి హెచ్చరికతో కనిపిస్తాయి."
+        : "Strict mode drops windows with a fatal mahadosha. Choose Lenient to see them with warnings.")
+      : "";
     grid.innerHTML = `
-      <div class="empty-state" style="padding: 40px 20px; text-align: center; color: #888; background: #fff; border-radius: 8px; border: 1px dashed #ddd; width: 100%;">
-        <p style="font-size: 16px; margin: 0;">
-          ${currentLang === "te"
-            ? `ఎంచుకున్న ${data.days_scanned || 30} రోజులలో ఈ కార్యమునకు శాస్త్రోక్తమైన శుభ ముహూర్తములు లభించలేదు. దయచేసి శోధన రోజులు పెంచి లేదా ఇతర తేదీలను ఎంచుకోండి.`
-            : `No auspicious muhurtas found in the ${data.days_scanned || 30} days scanned. Try expanding the date range.`}
-        </p>
+      <div class="empty-state">
+        <p>${currentLang === "te"
+          ? `ఎంచుకున్న ${data.days_scanned || 30} రోజులలో ఈ కార్యానికి శాస్త్రోక్త ముహూర్తం లభించలేదు. రోజుల సంఖ్య పెంచి మళ్ళీ ప్రయత్నించండి.`
+          : `No muhurta passed the book's rules in the ${data.days_scanned || 30} days scanned. Try a longer range.`}</p>
+        ${reasons ? `<p class="empty-state__label">${currentLang === "te" ? "ఎక్కువగా తిరస్కరించిన కారణాలు:" : "Most common reasons windows were rejected:"}</p><ul class="empty-state__reasons">${reasons}</ul>` : ""}
+        ${strictNote ? `<p class="empty-state__note">${strictNote}</p>` : ""}
       </div>`;
     return;
   }
 
   results.forEach((r, idx) => {
     const vaaraTe = VAARA_NAMES[currentLang][r.panchang?.vaara] || r.panchang?.vaara || "—";
-    const nakTe = te(r.panchang?.nakshatra || "", NAKSHATRA_NAMES_TE) || r.panchang?.nakshatra || "—";
-    const tithiRaw = r.panchang?.tithi || "—";
-    const tName = tithiRaw.split(" ")[0];
-    const pName = tithiRaw.includes("Shukla") ? "Shukla" : "Krishna";
+    const nakRaw = typeof r.panchang?.nakshatra === 'object' ? r.panchang.nakshatra.name : (r.panchang?.nakshatra || "");
+    const nakTe = te(nakRaw, NAKSHATRA_NAMES_TE) || nakRaw || "—";
+    const tithiRaw = typeof r.panchang?.tithi === 'object' ? `${r.panchang.tithi.name || ''} (${r.panchang.tithi.paksha || ''})` : (r.panchang?.tithi || "—");
+    const tName = typeof tithiRaw === 'string' ? tithiRaw.split(" ")[0] : "";
+    const pName = typeof tithiRaw === 'string' && tithiRaw.toLowerCase().includes("shukla") ? "Shukla" : "Krishna";
     const tithiTe = currentLang === "te" ? `${te(tName, TITHI_NAMES_TE) || tName} (${PAKSHA_NAMES.te[pName] || pName})` : tithiRaw;
 
     const pct = r.percentage || 70;
@@ -627,7 +1073,8 @@ function openDayModal(idx) {
   const d = r.detailed_eval;
 
   const vaaraTe = VAARA_NAMES[currentLang][r.panchang?.vaara] || r.panchang?.vaara;
-  const nakTe = te(r.panchang?.nakshatra || "", NAKSHATRA_NAMES_TE);
+  const rawNak = typeof r.panchang?.nakshatra === 'object' ? r.panchang.nakshatra.name : (r.panchang?.nakshatra || "");
+  const nakTe = te(rawNak, NAKSHATRA_NAMES_TE) || rawNak;
 
   el("mfModalTitle").innerHTML = `${r.date} · ${vaaraTe}`;
 
@@ -664,10 +1111,18 @@ function openDayModal(idx) {
       </div>`;
   }
 
-  // 2. Native Profile & Transit Strength (Janma Nakshatra, Janma Rasi, Tarabalam, Chandrabalam)
+  const det = r.detail;
+  bodyHtml += eventHeaderHTML(r);
+  if (det) {
+    bodyHtml += `<div class="verdict-strip" role="note">${escapeHtml(T(det.verdict_en, det.verdict_te))}</div>`;
+  }
+
+  // 2. Each person's strength (falls back to the single-person box for older results)
   const bd = lastData.birth_details;
   const cb = d?.chandrabalam || r.panchang?.chandrabalam;
-  if (bd || cb) {
+  const peopleHtml = det?.people?.length ? peopleStrengthHTML(det.people) : "";
+  bodyHtml += peopleHtml;
+  if (!peopleHtml && (bd || cb)) {
     const bNakTe = bd ? te(bd.janma_nakshatra || "", NAKSHATRA_NAMES_TE) : "";
     const bRasiTe = bd?.birth_moon_rasi ? (te(bd.birth_moon_rasi, RASI_NAMES_TE) || bd.birth_moon_rasi) : "";
     const cbDesc = cb ? (currentLang === "te" ? cb.desc_te : cb.desc_en) : "";
@@ -679,7 +1134,7 @@ function openDayModal(idx) {
           ${cb ? `<span class="native-profile-box__badge ${cbBadgeClass}">🌙 ${currentLang === "te" ? "చంద్రబలం:" : "Chandrabalam:"} ${cb.house ? cb.house + 'వ ఇల్లు' : 'అనుకూలం'}</span>` : ''}
         </div>
         <div class="native-profile-box__grid">
-          ${bd ? `<span><strong>${currentLang === "te" ? "జన్మ నక్షత్రం:" : "Janma Nakshatra:"}</strong> ${bNakTe || bd.janma_nakshatra} (${bd.janma_nakshatra_pada} పాదం)</span>` : ''}
+          ${bd?.janma_nakshatra ? `<span><strong>${currentLang === "te" ? "జన్మ నక్షత్రం:" : "Janma Nakshatra:"}</strong> ${bNakTe || bd.janma_nakshatra} ${bd.janma_nakshatra_pada ? `(${bd.janma_nakshatra_pada} ${currentLang === "te" ? "పాదం" : "pada"})` : ""}</span>` : ''}
           ${bd?.birth_moon_rasi ? `<span><strong>${currentLang === "te" ? "జన్మ రాశి:" : "Janma Rasi:"}</strong> ${bRasiTe}</span>` : ''}
           ${d?.tara ? `<span><strong>${currentLang === "te" ? "తారాబలం:" : "Tarabalam:"}</strong> ${te(d.tara.name, TARA_NAMES_TE) || d.tara.name}</span>` : ''}
         </div>
@@ -694,7 +1149,7 @@ function openDayModal(idx) {
     const samName = currentLang === "te" ? `${cm.samvatsara_name} (${cm.samvatsara_telugu}) నామ సంవత్సరం` : `${cm.samvatsara_name} Samvatsara`;
     const ayanam = currentLang === "te" ? (cm.ayanam_te || cm.ayanam_en) : cm.ayanam_en;
     const ruthu = currentLang === "te" ? (cm.ruthu_te || cm.ruthu_en) : cm.ruthu_en;
-    const maasa = currentLang === "te" ? (cm.month_telugu || cm.month_name) : `${cm.month_name} Masam`;
+    const maasa = displayMasa(cm);
     const paksha = currentLang === "te" ? (cm.paksha_te || cm.paksha_en) : `${cm.paksha_en} Paksham`;
     cmBanner = `
       <div class="cm-banner">
@@ -718,10 +1173,10 @@ function openDayModal(idx) {
       ${cmBanner}
       <div class="detail-card__grid">
         <div><strong>${currentLang === "te" ? "వారం:" : "Weekday:"}</strong> ${vaaraTe}</div>
-        <div><strong>${currentLang === "te" ? "తిథి:" : "Tithi:"}</strong> ${r.panchang?.tithi}</div>
-        <div><strong>${currentLang === "te" ? "నక్షత్రం:" : "Nakshatra:"}</strong> ${nakTe}</div>
-        <div><strong>${currentLang === "te" ? "యోగం:" : "Yoga:"}</strong> ${r.panchang?.yoga}</div>
-        <div><strong>${currentLang === "te" ? "కరణం:" : "Karana:"}</strong> ${r.panchang?.karana}</div>
+        <div><strong>${currentLang === "te" ? "తిథి:" : "Tithi:"}</strong> ${limbWithTimes(r.detail?.limb_times?.tithi, limbName(r.panchang?.tithi))}</div>
+        <div><strong>${currentLang === "te" ? "నక్షత్రం:" : "Nakshatra:"}</strong> ${limbWithTimes(r.detail?.limb_times?.nakshatra && { ...r.detail.limb_times.nakshatra, name: nakTe }, nakTe)}</div>
+        <div><strong>${currentLang === "te" ? "యోగం:" : "Yoga:"}</strong> ${limbWithTimes(r.detail?.limb_times?.yoga, limbName(r.panchang?.yoga))}</div>
+        <div><strong>${currentLang === "te" ? "కరణం:" : "Karana:"}</strong> ${limbWithTimes(r.detail?.limb_times?.karana, limbName(r.panchang?.karana))}</div>
         <div><strong>${currentLang === "te" ? "సూర్యోదయం:" : "Sunrise:"}</strong> ${r.panchang?.sunrise || "—"}</div>
         <div><strong>${currentLang === "te" ? "సూర్యాస్తమయం:" : "Sunset:"}</strong> ${r.panchang?.sunset || "—"}</div>
         <div><strong>${currentLang === "te" ? "అభిజిత్ ముహూర్తం:" : "Abhijit:"}</strong> ${r.panchang?.abhijit_muhurta ? (r.panchang.abhijit_muhurta.start + ' – ' + r.panchang.abhijit_muhurta.end) : '—'}</div>
@@ -737,6 +1192,8 @@ function openDayModal(idx) {
         </div>
       </div>
     </div>`;
+
+  if (det) bodyHtml += lagnaStrengthHTML(det);
 
   // 4. Panchaka Rahitam Card
   const pan = r.panchang?.panchaka_rahitam || d?.panchaka;
@@ -841,7 +1298,7 @@ function openDayModal(idx) {
   }
 
   // 7. Inauspicious timings + Explanation Note
-  const ip = r.panchang?.inauspicious_periods || {};
+  const ip = r.panchang?.inauspicious_periods || r.panchang || {};
   function fmtP(p) {
     if (!p) return "—";
     if (typeof p === 'string') return p.trim() || "—";
@@ -859,6 +1316,8 @@ function openDayModal(idx) {
         <div><strong>${currentLang === "te" ? "దుర్ముహూర్తం:" : "Dur:"}</strong> ${fmtP(ip.durmuhurtam)}</div>
         <div><strong>${currentLang === "te" ? "వర్జ్యం:" : "Varjyam:"}</strong> ${fmtP(ip.varjyam)}</div>
       </div>
+      ${det?.cut_by?.length ? `<div class="inauspicious-card__cut"><strong>${T("Cut from this lagna:", "ఈ లగ్నం నుండి తొలగించినవి:")}</strong> ${
+        det.cut_by.map(c => `${escapeHtml(c.label)} ${escapeHtml(c.start)}–${escapeHtml(c.end)}`).join(" · ")}</div>` : ""}
       <div class="inauspicious-card__note">
         ℹ️ <strong>${currentLang === "te" ? "పంచాంగ సమయాల వివరణ:" : "Note on Astrological Timings Across Apps:"}</strong> 
         ${currentLang === "te" ? 
@@ -887,7 +1346,7 @@ function openDayModal(idx) {
 
     // Tithi
     bodyHtml += buildRuleCard(currentLang === "te" ? "2. తిథి శుద్ధి" : "2. Tithi", d.tithi?.is_pass,
-      `${r.panchang?.tithi} — ${d.tithi?.is_pass ? (currentLang === "te" ? "అనుకూలమైన తిథి." : "Favorable.") : (currentLang === "te" ? "నిషిద్ధ / రిక్త తిథి (చతుర్థి, అష్టమి, నవమి, చతుర్దశి, పౌర్ణమి, అమావాస్య నిషిద్ధం)." : "Avoided Tithi (Chaturthi, Ashtami, Navami, Chaturdashi, Purnima, Amavasya avoided).")}`);
+      `${limbName(r.panchang?.tithi)} — ${d.tithi?.is_pass ? (currentLang === "te" ? "అనుకూలమైన తిథి." : "Favorable.") : (currentLang === "te" ? "నిషిద్ధ / రిక్త తిథి (చతుర్థి, అష్టమి, నవమి, చతుర్దశి, పౌర్ణమి, అమావాస్య నిషిద్ధం)." : "Avoided Tithi (Chaturthi, Ashtami, Navami, Chaturdashi, Purnima, Amavasya avoided).")}`);
 
     // Nakshatra
     bodyHtml += buildRuleCard(currentLang === "te" ? "3. నక్షత్ర శుద్ధి" : "3. Nakshatra", d.nakshatra?.is_pass,
@@ -895,25 +1354,26 @@ function openDayModal(idx) {
 
     // Yoga
     bodyHtml += buildRuleCard(currentLang === "te" ? "4. యోగం" : "4. Yoga", d.yoga?.is_pass,
-      `${r.panchang?.yoga} — ${d.yoga?.is_pass ? (currentLang === "te" ? "అనుకూల యోగం." : "Favorable.") : (currentLang === "te" ? "అశుభ యోగం." : "Inauspicious Yoga.")}`);
+      `${limbName(r.panchang?.yoga)} — ${d.yoga?.is_pass ? (currentLang === "te" ? "అనుకూల యోగం." : "Favorable.") : (currentLang === "te" ? "అశుభ యోగం." : "Inauspicious Yoga.")}`);
 
     // Karana
     bodyHtml += buildRuleCard(currentLang === "te" ? "5. కరణం" : "5. Karana", d.karana?.is_pass,
-      `${r.panchang?.karana} — ${d.karana?.is_pass ? (currentLang === "te" ? "అనుకూల కరణం." : "Favorable.") : (currentLang === "te" ? "అశుభ కరణం." : "Inauspicious.")}`);
+      `${limbName(r.panchang?.karana)} — ${d.karana?.is_pass ? (currentLang === "te" ? "అనుకూల కరణం." : "Favorable.") : (currentLang === "te" ? "అశుభ కరణం." : "Inauspicious.")}`);
 
     // Ashtama Shuddhi
     const as = d.ashtama_shuddhi;
+    const aRasi = as?.ashtama_rasi ? ` (${te(as.ashtama_rasi, RASI_NAMES_TE)})` : "";
     bodyHtml += buildRuleCard(currentLang === "te" ? "6. అష్టమ శుద్ధి" : "6. 8th House", as?.has_shuddhi,
       as?.has_shuddhi ?
-        (currentLang === "te" ? `8వ ఇల్లు (${te(as.ashtama_rasi, RASI_NAMES_TE) || as.ashtama_rasi}) ఖాళీగా ఉంది.` : `8th house (${as?.ashtama_rasi}) is vacant.`) :
-        (currentLang === "te" ? `8వ ఇంట్లో (${te(as.ashtama_rasi, RASI_NAMES_TE) || as.ashtama_rasi}) గ్రహాలు ఉన్నాయి (${as?.planets_in_8th?.join(", ")}).` : `Planets in 8th (${as?.ashtama_rasi}): ${as?.planets_in_8th?.join(", ")}.`));
+        (currentLang === "te" ? `8వ ఇల్లు${aRasi} ఖాళీగా ఉంది.` : `8th house${aRasi} is vacant.`) :
+        (currentLang === "te" ? `8వ ఇంట్లో${aRasi} గ్రహాలు ఉన్నాయి (${(as?.planets_in_8th || []).join(", ")}).` : `Planets in 8th${aRasi}: ${(as?.planets_in_8th || []).join(", ")}.`));
 
     // Lagna Shuddhi
     const ls = d.lagna_shuddhi;
     bodyHtml += buildRuleCard(currentLang === "te" ? "7. లగ్న శుద్ధి" : "7. Lagna", ls?.has_shuddhi,
       ls?.has_shuddhi ?
         (currentLang === "te" ? `లగ్నం (${te(ls.muhurta_lagna, RASI_NAMES_TE) || ls.muhurta_lagna}) ఖాళీగా ఉంది.` : `Lagna (${ls?.muhurta_lagna}) is vacant.`) :
-        (currentLang === "te" ? `లగ్నంలో గ్రహాలు ఉన్నాయి (${ls?.planets_in_lagna?.join(", ")}).` : `Planets in Lagna: ${ls?.planets_in_lagna?.join(", ")}.`));
+        (currentLang === "te" ? `లగ్నంలో గ్రహాలు ఉన్నాయి (${(ls?.planets_in_lagna || []).join(", ")}).` : `Planets in Lagna: ${(ls?.planets_in_lagna || []).join(", ")}.`));
 
     // Tarabalam
     if (d.tara) {
@@ -949,52 +1409,36 @@ function openDayModal(idx) {
 
   // 10. 21 Maha Doshas Evaluation
   if (d && d.maha_doshas && d.maha_doshas.length > 0) {
-    const mahaPass = d.maha_doshas.filter(m => m.is_pass).length;
-    const mahaScore = mahaPass * 10;
+    const mahaScore = doshaTally(d.maha_doshas);
     bodyHtml += `
       <div class="dosha-panel dosha-panel--maha">
         <div class="dosha-panel__header dosha-panel__header--maha">
           <span>🔥 ${currentLang === "te" ? "ఏకవింశతి మహాదోషముల విశ్లేషణ (21 Maha Doshas)" : "21 Maha Doshas Evaluation"}</span>
-          <span class="dosha-panel__score dosha-panel__score--maha">${mahaScore} / 210</span>
+          <span class="dosha-panel__score dosha-panel__score--maha">${mahaScore}</span>
         </div>
         <div class="dosha-panel__body dosha-panel__body--maha">`;
     d.maha_doshas.forEach(m => {
       const mTitle = currentLang === "te" ? m.name_te : m.name_en;
       const mDesc = currentLang === "te" ? m.desc_te : m.desc_en;
-      bodyHtml += `
-        <div class="dosha-item ${m.is_pass ? 'dosha-item--pass' : 'dosha-item--fail-maha'}">
-          <div class="dosha-item__header">
-            <strong class="dosha-item__name">${mTitle}</strong>
-            <span class="dosha-item__badge ${m.is_pass ? 'dosha-item__badge--pass' : 'dosha-item__badge--fail'}">${m.score}/10</span>
-          </div>
-          <div class="${m.is_pass ? 'dosha-item__desc--pass' : 'dosha-item__desc--fail'}">${mDesc}</div>
-        </div>`;
+      bodyHtml += doshaItemHTML(m, mTitle, mDesc, "maha");
     });
     bodyHtml += `</div></div>`;
   }
 
   // 11. 10 Dashavidha Doshas Evaluation
   if (d && d.dashavidha_doshas && d.dashavidha_doshas.length > 0) {
-    const dashaPass = d.dashavidha_doshas.filter(m => m.is_pass).length;
-    const dashaScore = dashaPass * 10;
+    const dashaScore = doshaTally(d.dashavidha_doshas);
     bodyHtml += `
       <div class="dosha-panel dosha-panel--dasha">
         <div class="dosha-panel__header dosha-panel__header--dasha">
           <span>⚡ ${currentLang === "te" ? "దశవిధ దోషముల విశ్లేషణ (10 Dashavidha Doshas)" : "10 Dashavidha Doshas Evaluation"}</span>
-          <span class="dosha-panel__score dosha-panel__score--dasha">${dashaScore} / 100</span>
+          <span class="dosha-panel__score dosha-panel__score--dasha">${dashaScore}</span>
         </div>
         <div class="dosha-panel__body dosha-panel__body--dasha">`;
     d.dashavidha_doshas.forEach(m => {
       const mTitle = currentLang === "te" ? m.name_te : m.name_en;
       const mDesc = currentLang === "te" ? m.desc_te : m.desc_en;
-      bodyHtml += `
-        <div class="dosha-item ${m.is_pass ? 'dosha-item--pass' : 'dosha-item--fail-dasha'}">
-          <div class="dosha-item__header">
-            <strong class="dosha-item__name">${mTitle}</strong>
-            <span class="dosha-item__badge ${m.is_pass ? 'dosha-item__badge--pass' : 'dosha-item__badge--fail'}">${m.score}/10</span>
-          </div>
-          <div class="${m.is_pass ? 'dosha-item__desc--pass' : 'dosha-item__desc--fail'}">${mDesc}</div>
-        </div>`;
+      bodyHtml += doshaItemHTML(m, mTitle, mDesc, "dasha");
     });
     bodyHtml += `</div></div>`;
   }
@@ -1062,8 +1506,8 @@ el("mfSearchPlaceBtn").addEventListener("click", findMuhurtas);
 attachRegionToggle("mfRegionSelect", "mfCustomPlaceField", "mfCustomPlaceInput");
 attachPlaceAutocomplete("mfCustomPlaceInput", "mfSuggestionsList", findMuhurtas);
 
-populateAllNakshatraDropdowns();
 populateActivityDropdown();
-updateContextualFields();
-loadRegions();
-loadMuhurtaCatalog();
+el("mfPitruMode")?.addEventListener("change", updatePitruFields);
+
+// Birth-place lists on the cards need the regions; redraw the cards once both have loaded.
+Promise.all([loadRegions(), loadMuhurtaCatalog()]).then(() => updateContextualFields());

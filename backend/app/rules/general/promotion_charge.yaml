@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'taking_charge'.
+id: promotion_charge
+category: general
+extends: taking_charge
+tab: career
+title_en: "Taking up a promotion"
+title_te: "ప్రమోషన్ బాధ్యతలు"
+description_en: "Taking charge after a promotion"
+description_te: "ఉద్యోగ ప్రమోషన్ బాధ్యతలు స్వీకరించుట"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

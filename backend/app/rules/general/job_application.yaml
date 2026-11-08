@@ -1,0 +1,26 @@
+id: job_application
+category: general
+tab: career
+title_en: "Applying for a Job or Election"
+title_te: "ఉద్యోగ / ఎన్నికల దరఖాస్తు"
+description_en: "Sending a job application or filing an election nomination."
+description_te: "ఉద్యోగ దరఖాస్తు లేదా ఎన్నికల నామినేషన్ వేయుట."
+source:
+  part: 7
+  section: "సాధారణ కార్యములకు ముహూర్తములు"
+  notes: "Plan M20 row 'Applying for a job or election'."
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+  vaara_allow: [sunday, monday, thursday, friday]
+  tithi_numbers_both_paksha: [2, 3, 5, 6, 7, 10, 11, 13]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, rohini, mrigashira, pushya, uttara_phalguni, hasta, chitra, anuradha, uttara_ashadha, abhijit, uttara_bhadrapada, revati]
+  planet_rules:
+    - planet: mars
+      not_in_houses: [8]
+
+soft_scoring:
+  vaara_weights: {thursday: 3, monday: 2, friday: 2, sunday: 2}

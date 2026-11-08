@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'sankusthapana'.
+id: foundation
+category: griha
+extends: sankusthapana
+tab: griha
+sub_group: construction
+title_en: "Laying the foundation"
+title_te: "పునాది నిర్మాణం"
+description_en: "Starting the foundation"
+description_te: "పునాది నిర్మాణము"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

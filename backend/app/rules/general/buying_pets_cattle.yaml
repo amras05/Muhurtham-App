@@ -1,0 +1,22 @@
+id: buying_pets_cattle
+category: general
+tab: personal
+title_en: "Buying Pets or Cattle"
+title_te: "పశువులు / పెంపుడు జంతువుల కొనుగోలు"
+description_en: "Buying cattle or a pet. Mesha lagna with Pushya is the best combination."
+description_te: "పశువులు లేదా పెంపుడు జంతువులు కొనుట. పుష్యమితో మేష లగ్నం శ్రేష్ఠం."
+source:
+  part: 7
+  section: "సాధారణ కార్యములకు ముహూర్తములు"
+  notes: "Plan M20 row 'Buying pets or cattle'. No tithi is stated; panchanga shuddhi via the mahadoshas."
+
+hard_filters:
+  common:
+    mahadoshas_21: true
+    panchaka_rahita: true
+  vaara_allow: [monday, tuesday, wednesday, saturday]
+  karana_exclude: [bhadra]
+
+soft_scoring:
+  lagna_weights: {mesha: 3}
+  nakshatra_weights: {pushya: 3}

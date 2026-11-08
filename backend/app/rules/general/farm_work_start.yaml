@@ -1,0 +1,11 @@
+# New event (Phase 14): inherits the rules of 'sowing_seeds'.
+id: farm_work_start
+category: general
+extends: sowing_seeds
+tab: agriculture
+title_en: "Starting farm work"
+title_te: "వ్యవసాయ పనుల ప్రారంభం"
+description_en: "Beginning the season's farm work"
+description_te: "వ్యవసాయ పనుల ప్రారంభము"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

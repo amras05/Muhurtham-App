@@ -1,0 +1,123 @@
+# Vara / tithi / nakshatra yogas (category index, part 2 D; Special Yogas tab).
+#
+# Tables follow the classical Muhurta texts as commonly printed. Texts differ, so each table
+# is marked `confirmed: false` until Dr. Vamsee Nemani confirms it against the book (D7).
+# Weekdays: sunday..saturday. Tithis: 1-15 in each paksha (15 = purnima, and amavasya
+# counts as 15 of krishna paksha here only where `amavasya_as_15` is true).
+# Nakshatra names use the app's canonical spelling (engines/vocab.py).
+
+yogas:
+  siddhi:
+    name_en: Siddhi yoga
+    name_te: సిద్ధి యోగం
+    type: good
+    basis: vara_tithi
+    confirmed: false
+    source: "Nanda/Bhadra/Jaya/Rikta/Purna tithi on its lord's weekday"
+    table:
+      friday: [1, 6, 11]
+      wednesday: [2, 7, 12]
+      tuesday: [3, 8, 13]
+      saturday: [4, 9, 14]
+      thursday: [5, 10, 15]
+
+  amrita_siddhi:
+    name_en: Amrita siddhi yoga
+    name_te: అమృత సిద్ధి యోగం
+    type: good
+    basis: vara_nakshatra
+    confirmed: false
+    table:
+      sunday: [Hasta]
+      monday: [Mrigashira]
+      tuesday: [Ashwini]
+      wednesday: [Anuradha]
+      thursday: [Pushya]
+      friday: [Revati]
+      saturday: [Rohini]
+    # Traditional exceptions: not for these events even when the yoga forms.
+    not_for:
+      thursday_pushya: [vivaha]
+      saturday_rohini: [prayana]
+
+  sarvartha_siddhi:
+    name_en: Sarvartha siddhi yoga
+    name_te: సర్వార్థ సిద్ధి యోగం
+    type: good
+    basis: vara_nakshatra
+    confirmed: false
+    table:
+      sunday: [Hasta, Mula, Uttara Ashadha, Uttara Phalguni, Uttara Bhadrapada, Ashwini, Pushya]
+      monday: [Shravana, Rohini, Mrigashira, Pushya, Anuradha]
+      tuesday: [Ashwini, Uttara Bhadrapada, Krittika, Ashlesha]
+      wednesday: [Rohini, Anuradha, Hasta, Krittika, Mrigashira]
+      thursday: [Revati, Anuradha, Ashwini, Punarvasu, Pushya]
+      friday: [Revati, Anuradha, Ashwini, Punarvasu, Shravana]
+      saturday: [Shravana, Rohini, Swati]
+
+  dvipushkara:
+    name_en: Dvipushkara yoga
+    name_te: ద్విపుష్కర యోగం
+    type: twofold
+    basis: vara_tithi_nakshatra
+    confirmed: false
+    source: "Bhadra tithi (2, 7, 12) + Sunday, Tuesday or Saturday + a dvipada nakshatra"
+    varas: [sunday, tuesday, saturday]
+    tithis: [2, 7, 12]
+    nakshatras: [Mrigashira, Chitra, Dhanishtha]
+
+  tripushkara:
+    name_en: Tripushkara yoga
+    name_te: త్రిపుష్కర యోగం
+    type: twofold
+    basis: vara_tithi_nakshatra
+    confirmed: false
+    source: "Bhadra tithi (2, 7, 12) + Sunday, Tuesday or Saturday + a tripada nakshatra"
+    varas: [sunday, tuesday, saturday]
+    tithis: [2, 7, 12]
+    nakshatras: [Krittika, Punarvasu, Uttara Phalguni, Vishakha, Uttara Ashadha, Purva Bhadrapada]
+
+  mrityu:
+    name_en: Mrityu yoga
+    name_te: మృత్యు యోగం
+    type: bad
+    basis: vara_tithi
+    confirmed: false
+    table:
+      sunday: [1, 6, 11]
+      tuesday: [1, 6, 11]
+      monday: [2, 7, 12]
+      friday: [2, 7, 12]
+      wednesday: [3, 8, 13]
+      thursday: [4, 9, 14]
+      saturday: [5, 10, 15]
+
+  dagdha:
+    name_en: Dagdha yoga
+    name_te: దగ్ధ యోగం
+    type: bad
+    basis: vara_tithi
+    confirmed: false
+    table:
+      sunday: [12]
+      monday: [11]
+      tuesday: [5]
+      wednesday: [3]
+      thursday: [6]
+      friday: [8]
+      saturday: [9]
+
+  yamaghanta:
+    name_en: Yamaghanta yoga
+    name_te: యమఘంట యోగం
+    type: bad
+    basis: vara_nakshatra
+    confirmed: false
+    table:
+      sunday: [Magha]
+      monday: [Vishakha]
+      tuesday: [Ardra]
+      wednesday: [Mula]
+      thursday: [Krittika]
+      friday: [Rohini]
+      saturday: [Hasta]

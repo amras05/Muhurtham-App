@@ -1,0 +1,12 @@
+# New event (Phase 14): inherits the rules of 'business_start'.
+id: office_opening
+category: general
+extends: business_start
+tab: business
+also_in: [career]
+title_en: "Opening an office"
+title_te: "కార్యాలయ ప్రారంభం"
+description_en: "Opening a new office"
+description_te: "నూతన కార్యాలయం ప్రారంభించుట"
+source:
+  notes: "Listed in Dr. Nemani's category index. Rules are inherited; the author to confirm or supply event-specific rules."

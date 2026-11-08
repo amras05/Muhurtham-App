@@ -1,0 +1,22 @@
+id: vidyarambha
+category: samskaras
+tab: vidya
+title_en: "Vidyarambha"
+title_te: "విద్యారంభము"
+description_en: "Beginning formal study: daytime, movable lagna."
+description_te: "విద్యారంభము: పగలు, చర లగ్నం."
+tab_inputs: [samskara_child]
+source:
+  part: 5
+  section: "విద్యారంభము"
+  notes: "Plan M15 17.3. For study of the shastras the book also allows Tuesday and Sunday. Anadhyaya days are not yet modelled."
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  time_of_day: daytime
+  vaara_allow: [thursday, friday, wednesday, monday, sunday]
+  tithi_exclude: [rikta, pratipada, ashtami, chaturdashi, purnima, amavasya]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, hasta, chitra, swati, mrigashira, ardra, punarvasu, pushya, ashlesha, shravana, mula, purva_phalguni, purva_ashadha, purva_bhadrapada]
+  lagna_types: [chara]
+soft_scoring:
+  vaara_weights: {thursday: 3, friday: 2, wednesday: 2}

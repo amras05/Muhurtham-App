@@ -67,27 +67,6 @@ PUSHKARA_BHAGA_DEGS: Dict[int, float] = {
 }
 
 
-# ── Auspicious / Avoid Lists (Muhurta Evaluation) ────────────
-# Previously duplicated within muhurta_finder.py (lines 171-175 and 370-374)
-AUSPICIOUS_NAKSHATRAS: List[str] = [
-    "Ashwini", "Rohini", "Mrigashira", "Punarvasu", "Pushya", "Uttara Phalguni",
-    "Hasta", "Chitra", "Swati", "Anuradha", "Uttara Ashadha", "Shravana",
-    "Dhanishtha", "Shatabhisha", "Uttara Bhadrapada", "Revati",
-]
-
-AVOID_TITHIS: List[str] = [
-    "Chaturthi", "Ashtami", "Navami", "Chaturdashi", "Purnima", "Amavasya",
-]
-
-AVOID_YOGAS: List[str] = ["Vaidhriti", "Ganda", "Vyatipata", "Parigha"]
-
-AVOID_KARANAS: List[str] = [
-    "Vishti (Bhadra)", "Shakuni", "Chatushpada", "Naga", "Kimstughna",
-]
-
-FAVORABLE_VAARAS: List[str] = ["Monday", "Wednesday", "Thursday", "Friday"]
-
-
 # ── Rasi Names (Telugu) ──────────────────────────────────────
 # Used in pushkara window computation and lagna display
 RASI_NAMES_TE: List[str] = [
@@ -97,5 +76,4 @@ RASI_NAMES_TE: List[str] = [
 
 # Aliases for backwards compatibility and readable naming
 TELUGU_RASI_NAMES = RASI_NAMES_TE
-AUSPICIOUS_VAARAS = FAVORABLE_VAARAS
 

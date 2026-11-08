@@ -12,22 +12,20 @@ from typing import Any, Dict, List, Optional, Tuple
 from app.engines.doshas import evaluate_21_maha_doshas, evaluate_10_dashavidha_doshas
 from app.engines.time_windows import TimeWindow
 
-# Canonical Dhruvaka constants for 12 Rashis (Restoring missing Mithuna = 8 from treatise)
-# 1: Mesha, 2: Vrishabha, 3: Mithuna, 4: Karkataka, 5: Simha, 6: Kanya,
-# 7: Tula, 8: Vrishchika, 9: Dhanus, 10: Makara, 11: Kumbha, 12: Meena
+# Dhruvaka constants per lagna, as printed in the book (Part 1, "Dhruvaka").
+# The book omits Mithuna; that lagna falls back to the standard method and says so.
 DHRUVAKA_CONSTANTS = {
-    1: 5,   # Mesha
-    2: 7,   # Vrishabha
-    3: 8,   # Mithuna (canonical restoration)
+    1: 4,   # Mesha
+    2: 6,   # Vrishabha
     4: 5,   # Karkataka
-    5: 3,   # Simha
-    6: 1,   # Kanya
+    5: 4,   # Simha
+    6: 3,   # Kanya
     7: 2,   # Tula
-    8: 4,   # Vrishchika
-    9: 6,   # Dhanus
-    10: 8,  # Makara
-    11: 9,  # Kumbha
-    12: 3   # Meena
+    8: 1,   # Vrishchika
+    9: 0,   # Dhanus
+    10: 1,  # Makara
+    11: 2,  # Kumbha
+    12: 3,  # Meena
 }
 
 PANCHAKA_CLASSIFICATIONS = {
@@ -122,30 +120,42 @@ def evaluate_panchaka(
     vaara_idx: int,
     nak_idx: int,
     lagna_rasi: int,
-    method: str = "standard"
+    method: str = "standard",
+    tithi_30: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
-    Evaluates Panchaka using three recognized traditions:
-    1. 'standard': (Tithi + Vaara + Nakshatra + Lagna) % 9
-    2. 'dhruvaka': (Tithi + Vaara + Nakshatra + Dhruvaka[Lagna]) % 9
-    3. 'matantara': Paksha / Masadi adjusted tradition
+    Panchaka rahita (Book Part 1; plan M8).
+      'standard'  : tithi (1-15 of the paksha) + vara (Sunday=1) + nakshatra (Ashwini=1) + lagna (Mesha=1), mod 9
+      'matantara' : Method 2 — elapsed tithis of the paksha + lagna, mod 9
+      'masadiga'  : Method 3 — tithi counted 1-30 from Shukla Pratipada + vara + nakshatra + lagna, mod 9
+      'dhruvaka'  : standard sum + the book's lagna constant, mod 9 (Mithuna constant missing in the book)
+    Remainders 1 Mrityu, 2 Agni, 4 Raja, 6 Chora, 8 Roga fail; 0, 3, 5, 7 are panchaka-free.
     """
     t_val = int(tithi_num or 1)
     v_val = (int(vaara_idx or 0) % 7) + 1  # 1=Sunday .. 7=Saturday
     n_val = int(nak_idx or 1)
     l_val = int(lagna_rasi or 1)
+    note = ""
 
-    method_key = method.lower().strip()
+    method_key = (method or "standard").lower().strip()
+    if method_key == "dhruvaka" and l_val not in DHRUVAKA_CONSTANTS:
+        method_key = "standard"
+        note = "Book gives no dhruvaka constant for Mithuna; standard method used."
     if method_key == "dhruvaka":
-        dhruvaka_val = DHRUVAKA_CONSTANTS.get(l_val, l_val)
-        total = t_val + v_val + n_val + dhruvaka_val
-        formula = f"({t_val}[తిథి] + {v_val}[వారం] + {n_val}[నక్షత్రం] + {dhruvaka_val}[ధ్రువకం]) % 9"
+        dh = DHRUVAKA_CONSTANTS[l_val]
+        total = t_val + v_val + n_val + l_val + dh
+        formula = f"({t_val}[తిథి] + {v_val}[వారం] + {n_val}[నక్షత్రం] + {l_val}[లగ్నం] + {dh}[ధ్రువకం]) % 9"
+        note = "Dhruvaka method: the book's five-constant procedure is awaiting the author's explanation."
     elif method_key == "matantara":
-        # In Matantara: Krishna paksha uses reverse offset
-        offset = 0 if t_val <= 15 else 1
-        total = t_val + v_val + n_val + l_val + offset
-        formula = f"({t_val} + {v_val} + {n_val} + {l_val} + {offset}[మతాంతరం]) % 9"
-    else:  # standard
+        elapsed = t_val - 1
+        total = elapsed + l_val
+        formula = f"({elapsed}[గత తిథి] + {l_val}[లగ్నం]) % 9"
+    elif method_key == "masadiga":
+        t30 = int(tithi_30 or t_val)
+        total = t30 + v_val + n_val + l_val
+        formula = f"({t30}[మాసాది తిథి] + {v_val}[వారం] + {n_val}[నక్షత్రం] + {l_val}[లగ్నం]) % 9"
+    else:
+        method_key = "standard"
         total = t_val + v_val + n_val + l_val
         formula = f"({t_val}[తిథి] + {v_val}[వారం] + {n_val}[నక్షత్రం] + {l_val}[లగ్నం]) % 9"
 
@@ -164,7 +174,8 @@ def evaluate_panchaka(
         "effect_en": info["effect_en"],
         "effect_te": info["effect_te"],
         "pariharam_en": info["pariharam_en"],
-        "pariharam_te": info["pariharam_te"]
+        "pariharam_te": info["pariharam_te"],
+        "note": note,
     }
 
 
@@ -174,20 +185,30 @@ def evaluate_panchaka(
 
 def evaluate_tarabala(transit_nak_idx: int, janma_nak_idx: int) -> Dict[str, Any]:
     """
-    Computes 9-fold Tarabala: count from Janma Nakshatra to Transit Nakshatra.
-    Auspicious Taras: 2 (Sampat), 4 (Kshema), 6 (Sadhana), 8 (Mitra), 9 (Parama Mitra).
+    9-fold Tarabala (Book Part 1; plan M9 11.1): count from the janma nakshatra to the
+    muhurta nakshatra inclusive. Navaka rule ("Prathamam prathamam tyajyam"):
+    Janma is avoided only in the first navaka (count 1-9), Vipat only in the second
+    (10-18), Pratyak only in the third (19-27); Naidhana in all three.
     """
     if not janma_nak_idx or janma_nak_idx < 1:
         return {"is_pass": True, "tara_num": 0, "name_en": "Not specified", "name_te": "వర్తించదు"}
 
     count = ((int(transit_nak_idx) - int(janma_nak_idx)) % 27) + 1
     tara_num = ((count - 1) % 9) + 1  # 1 to 9
-    name_en, name_te, is_pass = TARA_NAMES[tara_num]
+    navaka = (count - 1) // 9 + 1     # 1 to 3
+    name_en, name_te, _ = TARA_NAMES[tara_num]
+    is_pass = not (
+        tara_num == 7
+        or (tara_num == 1 and navaka == 1)
+        or (tara_num == 3 and navaka == 2)
+        or (tara_num == 5 and navaka == 3)
+    )
 
     return {
         "janma_nak_idx": janma_nak_idx,
         "transit_nak_idx": transit_nak_idx,
         "count": count,
+        "navaka": navaka,
         "tara_num": tara_num,
         "name_en": name_en,
         "name_te": name_te,
@@ -225,65 +246,52 @@ def evaluate_chandrabala(transit_moon_rasi_idx: int, janma_moon_rasi_idx: int) -
 # Inauspicious Kala Window Extractor
 # ==============================================================================
 
-def extract_inauspicious_windows(panchang_data: Dict[str, Any], base_date: datetime) -> List[TimeWindow]:
+def extract_inauspicious_windows(
+    panchang_data: Dict[str, Any],
+    base_date: datetime,
+    include: Optional[Dict[str, bool]] = None,
+) -> List[TimeWindow]:
     """
-    Extracts Rahu Kaalam, Yamagandam, Gulika Kaalam, Durmuhurtham, and Varjyam
-    as TimeWindows for interval subtraction.
+    Rahu kalam, Yamagandam, Gulika kalam and Durmuhurta as TimeWindows (plan M10).
+    `include` switches each type on or off: keys 'rahu', 'yama', 'gulika', 'durmuhurta'
+    (all on by default). Varjyam is computed from the book's ghati table in
+    engines/limb_timeline.varjyam_windows, not here.
     """
+    inc = {"rahu": True, "yama": True, "gulika": True, "durmuhurta": True}
+    inc.update(include or {})
     blocked_windows: List[TimeWindow] = []
 
-    def parse_hms_time(time_str: str) -> Optional[datetime]:
-        if not time_str or time_str == "None":
+    def parse_hms_time(value: Any) -> Optional[datetime]:
+        if value is None or value == "None":
             return None
         try:
-            parts = [float(p) for p in time_str.split(":")]
-            h = int(parts[0])
-            m = int(parts[1]) if len(parts) > 1 else 0
-            s = int(parts[2]) if len(parts) > 2 else 0
-            # Handle next-day overflow if hours >= 24
-            day_offset = h // 24
-            h = h % 24
-            return base_date.replace(hour=h, minute=m, second=s) + timedelta(days=day_offset)
-        except Exception:
+            if isinstance(value, (int, float)):
+                hours = float(value)
+            else:
+                parts = [float(p) for p in str(value).split(":")]
+                hours = parts[0] + (parts[1] / 60.0 if len(parts) > 1 else 0.0) + (parts[2] / 3600.0 if len(parts) > 2 else 0.0)
+            return base_date + timedelta(seconds=round(hours * 3600.0))
+        except (TypeError, ValueError):
             return None
 
-    # 1. Rahu Kaalam
-    rahu = panchang_data.get("rahu_kaalam", {})
-    r_start, r_end = parse_hms_time(rahu.get("start")), parse_hms_time(rahu.get("end"))
-    if r_start and r_end and r_start < r_end:
-        blocked_windows.append(TimeWindow(start=r_start, end=r_end, label="Rahu Kaalam", metadata={"type": "rahu"}))
+    def add(span: Any, label: str, kind: str) -> None:
+        if not isinstance(span, dict):
+            return
+        s, e = parse_hms_time(span.get("start")), parse_hms_time(span.get("end"))
+        if s and e and s < e:
+            blocked_windows.append(TimeWindow(start=s, end=e, label=label, metadata={"type": kind}))
 
-    # 2. Yamagandam
-    yama = panchang_data.get("yamagandam", {})
-    y_start, y_end = parse_hms_time(yama.get("start")), parse_hms_time(yama.get("end"))
-    if y_start and y_end and y_start < y_end:
-        blocked_windows.append(TimeWindow(start=y_start, end=y_end, label="Yamagandam", metadata={"type": "yama"}))
-
-    # 3. Gulika Kaalam
-    gulika = panchang_data.get("gulika_kaalam", {})
-    g_start, g_end = parse_hms_time(gulika.get("start")), parse_hms_time(gulika.get("end"))
-    if g_start and g_end and g_start < g_end:
-        blocked_windows.append(TimeWindow(start=g_start, end=g_end, label="Gulika Kaalam", metadata={"type": "gulika"}))
-
-    # 4. Durmuhurtham intervals (can be 1 or 2 periods per day)
-    durmuhurtas = panchang_data.get("durmuhurtham", [])
-    if isinstance(durmuhurtas, list):
-        for idx, dm in enumerate(durmuhurtas):
-            dm_start, dm_end = parse_hms_time(dm.get("start")), parse_hms_time(dm.get("end"))
-            if dm_start and dm_end and dm_start < dm_end:
-                blocked_windows.append(
-                    TimeWindow(start=dm_start, end=dm_end, label=f"Durmuhurtham #{idx+1}", metadata={"type": "durmuhurta"})
-                )
-
-    # 5. Varjyam (Visha Ghatikas)
-    varjyams = panchang_data.get("varjyam", [])
-    if isinstance(varjyams, list):
-        for idx, vj in enumerate(varjyams):
-            v_start, v_end = parse_hms_time(vj.get("start")), parse_hms_time(vj.get("end"))
-            if v_start and v_end and v_start < v_end:
-                blocked_windows.append(
-                    TimeWindow(start=v_start, end=v_end, label=f"Varjyam #{idx+1}", metadata={"type": "varjyam"})
-                )
+    if inc["rahu"]:
+        add(panchang_data.get("rahu_kalam"), "Rahu Kalam", "rahu")
+    if inc["yama"]:
+        add(panchang_data.get("yamagandam"), "Yamagandam", "yama")
+    if inc["gulika"]:
+        add(panchang_data.get("gulika_kalam"), "Gulika Kalam", "gulika")
+    if inc["durmuhurta"]:
+        dms = panchang_data.get("durmuhurtam") or []
+        if isinstance(dms, dict):
+            dms = [dms]
+        for idx, dm in enumerate(dms):
+            add(dm, f"Durmuhurta #{idx + 1}", "durmuhurta")
 
     return blocked_windows
-

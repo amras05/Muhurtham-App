@@ -1,0 +1,23 @@
+id: vedavrata
+category: samskaras
+tab: vidya
+title_en: "Vedavratas (Prajapatya, Saumya, Agneya, Vaishvadeva)"
+title_te: "వేదవ్రతములు"
+description_en: "After Upanayana and before Godana, using the Chaula nakshatra and lagna rules."
+description_te: "ఉపనయనం తరువాత, గోదానానికి ముందు; చౌల నక్షత్ర లగ్న నియమాలు."
+source:
+  part: 5
+  section: "వేదవ్రతములు"
+  notes: "Plan M15 17.5."
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
+  vaara_allow: [monday, wednesday, thursday, friday]
+  tithi_exclude: [shukla_pratipada, chaturthi, navami, chaturdashi, ashtami, purnima, amavasya]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, mrigashira, punarvasu, pushya, hasta, chitra, shravana, dhanishta, rohini, uttara_phalguni, swati, anuradha, uttara_ashadha, uttara_bhadrapada]
+  lagna_allow: [vrishabha, mithuna, karkataka, kanya, dhanus, meena]
+  house_rules:
+    - house: 8
+      planets: none
+soft_scoring:
+  nakshatra_weights: {ashwini: 3, mrigashira: 3, punarvasu: 3, pushya: 3, hasta: 3, chitra: 3, shravana: 3, dhanishtha: 3}

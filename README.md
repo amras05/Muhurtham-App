@@ -9,31 +9,22 @@ Shastra book, using live panchang data instead of a printed table:
 ## How it works
 
 ```
-mobile/ (React Native / Expo)  →  backend/ (FastAPI)  →  PyJHora (panchang engine)
-                                        ↓
-                                   rules.json (digitized book rules)
+webapp/ (HTML/JS, served by FastAPI)  →  backend/ (FastAPI)  →  PyJHora (panchang engine)
+                                               ↓
+                     backend/app/rules/**/*.yaml (one rule file per muhurtam)
 ```
 
-- `backend/app/panchang.py` — wraps PyJHora's `drik` module to compute vaara,
+- `backend/app/engines/panchang.py` — wraps PyJHora's `drik` module to compute vaara,
   tithi, nakshatra, yoga, karana, lagna, sunrise/sunset, rahu kaalam,
   durmuhurtam, varjyam for any date/place.
-- `backend/app/names.py` — PyJHora spells names in Tamil-inflected
-  transliteration (e.g. "Karthigai", "Chathurthi"). This maps them to the
-  standard spelling the book/rules use ("Krittika", "Chaturthi").
-- `backend/app/rules.json` — the book's rules, digitized per activity as
-  favorable/avoid conditions on vaara, tithi, nakshatra, yoga, karana, lagna.
-  **This currently covers ~15 activities** (medicine, surgery, idol
-  consecration, contracts, adoption, haircut, lending money, sowing seeds,
-  etc.) — extend this file as you transcribe more of the book.
-- `backend/app/rules_engine.py` — matches a computed panchang against an
-  activity's rules and scores it favorable / mixed / avoid / neutral, with
-  the specific reasons shown (never a black-box verdict).
-- `backend/app/main.py` — FastAPI endpoints:
-  - `GET /activities` — list of digitized activities
-  - `GET /panchang` — raw panchang for a date/place
-  - `GET /panchang/day-summary` — panchang + verdict for every activity that day
-  - `GET /muhurta/check` — is `date` good for `activity_id`?
-  - `GET /muhurta/next` — next favorable date for `activity_id` (walks forward day by day)
+- `backend/app/models/names.py` — maps PyJHora's Tamil-inflected spellings
+  (e.g. "Karthigai") to the standard spelling the rules use ("Krittika").
+- `backend/app/engines/rule_interpreter.py` + `backend/app/rules/` — the
+  declarative YAML rule engine (catalog, hard filters, mahadoshas, soft scoring).
+- `backend/app/engines/rules.py` + `rules.json` — legacy flat rules, still used
+  only for the per-activity verdicts in `/panchang/day-summary`.
+- `backend/app/engines/samskaras.py` — samskara finder used by the samskara page.
+- See `API.md` for the full endpoint list.
 
 ## Running the backend
 
@@ -62,24 +53,8 @@ if the files are already there and skips.
 
 Test it:
 ```bash
-curl "http://localhost:8000/muhurta/next?activity_id=haircut&lat=16.5062&lon=80.648&tz_offset=5.5&place_name=Vijayawada"
+curl "http://localhost:8000/panchang/day-summary?date=2026-11-08&lat=16.5062&lon=80.648&tz_offset=5.5&place_name=Vijayawada"
 ```
-
-## Running the mobile app
-
-```bash
-cd mobile
-npm install
-```
-
-Before running, edit `mobile/api/client.js` and set `API_BASE_URL` to your
-machine's LAN IP (not `localhost` — a phone/emulator can't reach your
-laptop's localhost), e.g. `http://192.168.1.20:8000`.
-
-```bash
-npx expo start
-```
-Scan the QR code with Expo Go (Android/iOS) or press `a`/`i` for an emulator.
 
 ## What's already verified working
 
@@ -87,7 +62,7 @@ I ran the panchang computation and rule engine end-to-end during scaffolding
 (not just written blind):
 - PyJHora's `drik` module correctly computes vaara/tithi/nakshatra/yoga/karana/lagna for a given date+lat/lon+tz.
 - The name-normalization layer correctly maps PyJHora's spelling to canonical spelling.
-- `evaluate()` correctly returns "neutral" when no rule matches, "favorable" when good conditions are met, and walks forward correctly in `find_next_favorable()` (e.g. haircut correctly skipped Sat/Fri per the avoid rule and landed on Monday+Mrigashira).
+- `evaluate()` correctly returns "neutral" when no rule matches, "favorable" when good conditions are met.
 - The FastAPI endpoints were tested via `TestClient` and return correct JSON.
 
 ## Known gaps / next steps
@@ -148,4 +123,4 @@ API, with timezone (including DST) resolved via `timezonefinder`. This
 could not be live-tested in the development sandbox (no network access to
 nominatim.openstreetmap.org there) — please verify it works before relying
 on it, and consider replacing the placeholder `User-Agent` in
-`app/regions.py` with your own app name/contact per Nominatim's usage policy.
+`app/geo/regions.py` with your own app name/contact per Nominatim's usage policy.
