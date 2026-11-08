@@ -238,6 +238,58 @@ Tithi-locked karya windows (not lagna-based).
 
 ---
 
+## Accounts (`/auth`, `/user`, `/me`, `/admin`)
+
+Stored in PostgreSQL (schema `app`). Existing request and response shapes are unchanged (fields
+were only added).
+
+### Sessions
+Login and `/auth/verify-otp` return `token` (= `access_token`, valid 30 minutes),
+`refresh_token` and `expires_in` (seconds). Each login is a session (one per device).
+
+| Endpoint | Auth | Body | Result |
+|---|---|---|---|
+| `POST /auth/refresh` | — | `{refresh_token}` | New `token` and `refresh_token`; the old refresh token stops working. 401 if the session ended |
+| `POST /auth/logout` | Bearer | `{everywhere: false}` | Ends this device's session, or every session with `true` |
+| `GET /me/sessions` | Bearer | — | Signed-in devices: `id`, `device_label`, `ip_address`, `created_at`, `last_used_at`, `expires_at`, `current` |
+| `DELETE /me/sessions/{id}` | Bearer | — | Signs that device out |
+
+A token whose session has ended gets 401 on every endpoint.
+
+### Password reset and changing the mobile
+| Endpoint | Auth | Body | Result |
+|---|---|---|---|
+| `POST /auth/otp/send` | — | `{phone, purpose: "reset_password"}` | Always "If this number has an account, a code has been sent…" |
+| `POST /auth/otp/send` | Bearer | `{phone: <new number>, purpose: "change_mobile"}` | Code to the new number; 400 if it already has an account |
+| `POST /auth/password/reset` | — | `{phone, otp, new_password, confirm_password}` | New password; every device signed out; login lock cleared |
+| `POST /me/mobile` | Bearer | `{new_phone, otp, password}` | Mobile changed (needs the current password); other devices signed out |
+
+### Limits (HTTP 429, with `Retry-After`)
+- A new code: 30 s after the last one; 3 per number in 15 minutes, 10 per day; 20 per network per hour.
+- 5 wrong passwords lock that account for 15 minutes (a password reset clears it).
+- 30 login attempts per network in 15 minutes.
+
+### Sign-up
+`POST /auth/signup` also accepts optional `name` (2–80 characters) and `consent_version`.
+`/auth/resend-otp` only works for numbers that are not yet verified.
+
+### Behaviour notes
+
+- **Mobile numbers** are normalised to E.164 (`+919848012345`). Spaces, dashes, a leading 0 or
+  a missing +91 are accepted; an invalid number returns 400. Responses still return `phone`
+  as 10 digits for Indian numbers.
+- **Sign-up** always creates a normal `user`. The first super admin is created on the server
+  with `python -m app.auth.bootstrap`; signing up first no longer grants it.
+- **Sign-up without a name** gets the placeholder `User 1234` (last four digits) until
+  `PUT /user/profile` sets one.
+- **OTP codes** are stored hashed, valid 5 minutes, used once. After 5 wrong codes
+  `/auth/verify-otp` returns "Too many wrong codes. Please request a new one." Sending a new
+  code cancels the previous one.
+- **`/admin/logs`** now reads `app.audit_logs`; `user_name` is the account name (it used to be
+  the phone number).
+
+---
+
 ## Dev utilities
 
 ### `POST /dev/save-pdf`

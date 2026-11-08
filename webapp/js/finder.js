@@ -1510,4 +1510,23 @@ populateActivityDropdown();
 el("mfPitruMode")?.addEventListener("change", updatePitruFields);
 
 // Birth-place lists on the cards need the regions; redraw the cards once both have loaded.
-Promise.all([loadRegions(), loadMuhurtaCatalog()]).then(() => updateContextualFields());
+Promise.all([loadRegions(), loadMuhurtaCatalog()]).then(() => { updateContextualFields(); applyUrlPrefill(); });
+
+// Links from the home page: ?activity=<id>&start=YYYY-MM-DD, or #yogas / #pitru for those tools.
+function applyUrlPrefill() {
+  const q = new URLSearchParams(window.location.search);
+  const start = q.get("start");
+  if (start && /^\d{4}-\d{2}-\d{2}$/.test(start)) el("startDate").value = start;
+  const act = q.get("activity");
+  const rule = act && allMuhurtaRules.find(r => r.id === act);
+  if (rule) {
+    onCategoryChange(rule.tab || rule.category);
+    el("mfActivitySelect").value = rule.id;
+    updateContextualFields();
+  } else if (window.location.hash === "#yogas") {
+    onCategoryChange("yogas");
+  } else if (window.location.hash === "#pitru") {
+    onCategoryChange("pitru");
+    setPitruMode(true);
+  }
+}

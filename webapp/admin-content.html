@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css?v=20261108">
+  <link rel="stylesheet" href="css/portal.css">
+  <title>Content · Muhurtham</title>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Skip to main content</a>
+  <nav class="app-shell__nav portal-nav" aria-label="Primary navigation">
+    <a class="app-shell__brand" href="/">ముహూర్తం</a>
+    <div class="app-shell__links"></div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="langTe" onclick="setLang('te')">తెలుగు</button>
+    </div>
+    <div class="account-slot" id="accountSlot"></div>
+  </nav>
+  <main id="mainContent" class="portal">
+    <h1 class="portal__title" data-en="Content" data-te="విషయాలు">Content</h1>
+    <div id="contentMsg" class="auth-alert auth-alert--info" role="status" hidden></div>
+
+    <section class="portal-card" aria-labelledby="oTitle">
+      <h2 id="oTitle" data-en="Omen calendar (utpata)" data-te="ఉత్పాతాల జాబితా">Omen calendar (utpata)</h2>
+      <p class="portal-hint" data-en="Earthquakes, comets, thunderbolts and similar events can't be calculated. Every muhurta on a date listed here fails Mahadosha #15." data-te="భూకంపాలు, తోకచుక్కలు, పిడుగులు వంటివి లెక్కించలేము. ఇక్కడ ఉన్న తేదీలలో ప్రతి ముహూర్తం మహాదోషం #15 వల్ల తిరస్కరించబడుతుంది.">Earthquakes, comets, thunderbolts and similar events can't be calculated. Every muhurta on a date listed here fails Mahadosha #15.</p>
+      <ul class="portal-list" id="omens"><li>…</li></ul>
+      <form id="omenForm" class="portal-form">
+        <h3 data-en="Add an omen" data-te="ఉత్పాతం జోడించండి">Add an omen</h3>
+        <div class="row-form">
+          <div class="field"><label for="omFrom" data-en="Date" data-te="తేదీ">Date</label><input type="date" id="omFrom" required></div>
+          <div class="field"><label for="omTo" data-en="Until (optional)" data-te="వరకు (ఐచ్ఛికం)">Until (optional)</label><input type="date" id="omTo"></div>
+          <div class="field"><label for="omKind" data-en="What" data-te="ఏమిటి">What</label><select id="omKind" required></select></div>
+        </div>
+        <div class="field"><label for="omEn" data-en="What happened (English)" data-te="ఏమి జరిగింది (ఇంగ్లీష్)">What happened (English)</label><input type="text" id="omEn" maxlength="300"></div>
+        <div class="field"><label for="omTe" data-en="What happened (Telugu)" data-te="ఏమి జరిగింది (తెలుగు)">What happened (Telugu)</label><input type="text" id="omTe" maxlength="300"></div>
+        <div class="row-form">
+          <div class="field"><label for="omRegion" data-en="Region (optional)" data-te="ప్రాంతం (ఐచ్ఛికం)">Region (optional)</label><input type="text" id="omRegion" maxlength="120"></div>
+          <div class="field"><label for="omSource" data-en="Where this was reported" data-te="ఎక్కడ నివేదించబడింది">Where this was reported</label><input type="text" id="omSource" maxlength="200" required></div>
+        </div>
+        <button type="submit" class="btn" data-en="Add omen" data-te="ఉత్పాతం జోడించండి">Add omen</button>
+      </form>
+    </section>
+
+    <section class="portal-card" aria-labelledby="nTitle">
+      <h2 id="nTitle" data-en="Announcements" data-te="ప్రకటనలు">Announcements</h2>
+      <p class="portal-hint" data-en="A short notice shown at the top of the home page." data-te="హోమ్ పేజీ పైభాగంలో చూపే చిన్న ప్రకటన.">A short notice shown at the top of the home page.</p>
+      <ul class="portal-list" id="anns"><li>…</li></ul>
+      <form id="annForm" class="portal-form">
+        <h3 data-en="New announcement" data-te="కొత్త ప్రకటన">New announcement</h3>
+        <div class="field"><label for="anTitleEn" data-en="Title (English)" data-te="శీర్షిక (ఇంగ్లీష్)">Title (English)</label><input type="text" id="anTitleEn" maxlength="120"></div>
+        <div class="field"><label for="anTitleTe" data-en="Title (Telugu)" data-te="శీర్షిక (తెలుగు)">Title (Telugu)</label><input type="text" id="anTitleTe" maxlength="120"></div>
+        <div class="field"><label for="anBodyEn" data-en="Message (English)" data-te="సందేశం (ఇంగ్లీష్)">Message (English)</label><textarea id="anBodyEn" rows="2" maxlength="1000"></textarea></div>
+        <div class="field"><label for="anBodyTe" data-en="Message (Telugu)" data-te="సందేశం (తెలుగు)">Message (Telugu)</label><textarea id="anBodyTe" rows="2" maxlength="1000"></textarea></div>
+        <div class="row-form">
+          <div class="field"><label for="anAudience" data-en="Show to" data-te="ఎవరికి">Show to</label>
+            <select id="anAudience"><option value="all" data-en="Everyone" data-te="అందరికీ">Everyone</option><option value="users" data-en="Users" data-te="వినియోగదారులకు">Users</option><option value="admins" data-en="Admins" data-te="నిర్వాహకులకు">Admins</option></select></div>
+          <div class="field"><label for="anEnds" data-en="Stop showing on (optional)" data-te="చూపడం ఆపే తేదీ (ఐచ్ఛికం)">Stop showing on (optional)</label><input type="date" id="anEnds"></div>
+        </div>
+        <button type="submit" class="btn" data-en="Publish announcement" data-te="ప్రకటన ప్రచురించండి">Publish announcement</button>
+      </form>
+    </section>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/app-shell.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/admin-content.js"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css?v=20261108">
+  <link rel="stylesheet" href="css/portal.css">
+  <title>My account · Muhurtham</title>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Skip to main content</a>
+  <nav class="app-shell__nav portal-nav" aria-label="Primary navigation">
+    <a class="app-shell__brand" href="/">ముహూర్తం</a>
+    <div class="app-shell__links"></div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="langTe" onclick="setLang('te')">తెలుగు</button>
+    </div>
+    <div class="account-slot" id="accountSlot"></div>
+  </nav>
+  <main id="mainContent" class="portal portal--narrow">
+    <h1 class="portal__title" data-en="My account" data-te="నా ఖాతా">My account</h1>
+    <div id="acctMsg" class="auth-alert auth-alert--info" role="status" hidden></div>
+
+    <section class="portal-card" aria-labelledby="pTitle">
+      <h2 id="pTitle" data-en="Profile" data-te="వివరాలు">Profile</h2>
+      <form id="profileForm" class="portal-form">
+        <div class="field"><label for="acName" data-en="Name" data-te="పేరు">Name</label><input id="acName" minlength="2" maxlength="80" required autocomplete="name"></div>
+        <div class="field"><label data-en="Mobile" data-te="మొబైల్">Mobile</label><p id="acPhone" class="portal-static"></p></div>
+        <div class="field"><label for="acLang" data-en="Language" data-te="భాష">Language</label>
+          <select id="acLang"><option value="te">తెలుగు</option><option value="en">English</option></select></div>
+        <button type="submit" class="btn" data-en="Save" data-te="భద్రపరచండి">Save</button>
+      </form>
+    </section>
+
+    <section class="portal-card" id="home" aria-labelledby="hTitle">
+      <h2 id="hTitle" data-en="Home place" data-te="ఇంటి ప్రదేశం">Home place</h2>
+      <p class="portal-hint" data-en="Used for the Today card on your home page." data-te="హోమ్ పేజీలో నేటి పంచాంగానికి వాడతాము.">Used for the Today card on your home page.</p>
+      <form id="homeForm" class="portal-form">
+        <div class="field"><label for="acPlace" data-en="Place" data-te="ప్రదేశం">Place</label><select id="acPlace" required></select></div>
+        <button type="submit" class="btn" data-en="Save home place" data-te="ఇంటి ప్రదేశం భద్రపరచండి">Save home place</button>
+      </form>
+    </section>
+
+    <section class="portal-card" aria-labelledby="dTitle">
+      <h2 id="dTitle" data-en="Signed-in devices" data-te="లాగిన్ అయిన పరికరాలు">Signed-in devices</h2>
+      <ul id="devices" class="portal-list"><li data-en="Loading…" data-te="లోడ్ అవుతోంది…">Loading…</li></ul>
+    </section>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/app-shell.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/account.js"></script>
+</body>
+</html>

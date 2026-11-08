@@ -10,17 +10,14 @@ Also provides:
   - book varjyam windows (plan M4 6.4: ghati offset scaled to the real nakshatra length)
   - sankranti proximity (plan M11 #2)
   - eclipse windows (plan M11 #14)
-  - the manual utpata calendar (plan M11 #15)
+  - the omen (utpata) calendar admins keep in app.utpata_events (plan M11 #15)
 """
-import os
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from functools import lru_cache
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import swisseph as swe
-import yaml
 
 from app.core.logging import logger
 from app.engines.vocab import (
@@ -327,25 +324,48 @@ def eclipse_status(jd: float, moon_nakshatra: int) -> Dict[str, Any]:
 
 
 # ── Utpata calendar (M11 #15) ────────────────────────────────────────────────
-_UTPATA_PATH = Path(__file__).resolve().parent.parent / "rules" / "shared" / "utpata.yaml"
-_utpata_cache: Dict[str, Any] = {"mtime": None, "rows": []}
+# Admins record omens on the Content page (table app.utpata_events). Read through a
+# 60-second cache; adding or removing an entry clears it in that process at once.
+_UTPATA_TTL = 60.0
+_utpata_cache: Dict[str, Any] = {"at": None, "rows": None}
+
+
+class UtpataUnavailable(RuntimeError):
+    """The omen calendar could not be read and nothing was cached: #15 can't be judged."""
+
+
+def clear_utpata_cache() -> None:
+    _utpata_cache["at"] = None
+
+
+def _utpata_rows() -> List[Dict[str, Any]]:
+    import time
+    from sqlalchemy import text
+    from app.db.engine import app_engine
+    at = _utpata_cache["at"]
+    if at is not None and time.monotonic() - at < _UTPATA_TTL:
+        return _utpata_cache["rows"]
+    try:
+        with app_engine().connect() as c:
+            rows = [{"from": r.event_date, "to": r.end_date or r.event_date, "kind": r.kind,
+                     "note_en": r.description_en or r.description_te or r.kind,
+                     "note_te": r.description_te or r.description_en or r.kind, "region": r.region}
+                    for r in c.execute(text("""SELECT event_date, end_date, kind, description_en, description_te, region
+                                               FROM app.utpata_events WHERE deleted_at IS NULL"""))]
+    except Exception as ex:
+        if _utpata_cache["rows"] is not None:      # keep judging with the last list we read
+            logger.warning(f"Omen calendar unavailable, using the last copy: {type(ex).__name__}")
+            return _utpata_cache["rows"]
+        logger.error(f"Omen calendar unavailable: {type(ex).__name__}")
+        raise UtpataUnavailable() from ex
+    _utpata_cache["rows"], _utpata_cache["at"] = rows, time.monotonic()
+    return rows
 
 
 def utpata_on(day: date) -> Optional[Dict[str, Any]]:
-    """Returns the admin-recorded utpata entry covering `day`, if any."""
-    try:
-        mtime = os.path.getmtime(_UTPATA_PATH)
-    except OSError:
-        return None
-    if _utpata_cache["mtime"] != mtime:
-        with open(_UTPATA_PATH, encoding="utf-8") as f:
-            data = yaml.safe_load(f) or {}
-        _utpata_cache["rows"] = data.get("utpata") or []
-        _utpata_cache["mtime"] = mtime
-    for row in _utpata_cache["rows"]:
-        frm = datetime.strptime(str(row["from"]), "%Y-%m-%d").date()
-        to = datetime.strptime(str(row.get("to", row["from"])), "%Y-%m-%d").date()
-        if frm <= day <= to:
+    """The admin-recorded omen covering `day`, if any. Raises UtpataUnavailable if it can't be read."""
+    for row in _utpata_rows():
+        if row["from"] <= day <= row["to"]:
             return row
     return None
 

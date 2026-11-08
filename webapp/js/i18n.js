@@ -107,6 +107,8 @@ function setLang(lang) {
   if (typeof populateActivityDropdown === "function") {
     populateActivityDropdown();
   }
+  if (window.Auth) Auth.renderMenu();
+  if (typeof window.onLangChange === "function") window.onLangChange();
 }
 
 let lastPanchang = null;

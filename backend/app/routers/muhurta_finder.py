@@ -4,7 +4,9 @@ Exposes the catalog of all ~80 events and the continuous window calculation engi
 """
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
+
+from app.core.logging import logger
 from pydantic import BaseModel, Field
 
 from app.engines.muhurta_tabs import SUB_GROUPS, tabs_with_events
@@ -278,8 +280,20 @@ def get_nakshatra_padas_table():
     return {"total_padas": len(table), "padas": table}
 
 
+def _count_search(request: Request, activity_id: str) -> None:
+    """D3 (A): one activity-log row per search, for the admin dashboard. Never blocks a search."""
+    try:
+        from app.auth.guard import session_user
+        from app.auth.database import write_activity_log
+        user = session_user(request)
+        write_activity_log(user_id=user["id"] if user else None, action="search.muhurta",
+                           details=activity_id, ip_address=request.client.host if request.client else None)
+    except Exception as ex:  # logging must never break the finder
+        logger.warning(f"Could not record a search: {type(ex).__name__}")
+
+
 @router.post("/find")
-def search_muhurta_windows(req: MuhurtaFindRequest):
+def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None):
     """
     Searches for auspicious continuous time windows using the 3-Layer engine:
     1. Intersects valid Angas (Tithi ∩ Nakshatra ∩ Shubha Lagna)
@@ -408,6 +422,8 @@ def search_muhurta_windows(req: MuhurtaFindRequest):
         status = 500 if err.startswith("Rule file") and "variant" not in err else (400 if "variant" in err else 404)
         raise HTTPException(status_code=status, detail=result["error"])
 
+    if request is not None:
+        _count_search(request, req.activity_id)
     result["participants"] = resolved_people
     result["warnings"] = people_warnings + (result.get("warnings") or [])
 

@@ -1,3 +1,6 @@
+# NO LONGER READ (web portal C5): omens now live in the database table app.utpata_events
+# and are managed on the Content page (/admin-content.html). This file can be removed.
+#
 # Utpata (omens) calendar — Mahadosha #15 (Book Part 2).
 # Earthquakes, comets, thunderbolts and similar omens cannot be computed, so an
 # admin records them here. Any muhurta window on a listed date fails Mahadosha #15.

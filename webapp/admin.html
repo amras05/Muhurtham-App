@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css?v=20261108">
+  <link rel="stylesheet" href="css/portal.css">
+  <title>Dashboard · Muhurtham</title>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Skip to main content</a>
+  <nav class="app-shell__nav portal-nav" aria-label="Primary navigation">
+    <a class="app-shell__brand" href="/">ముహూర్తం</a>
+    <div class="app-shell__links"></div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="langTe" onclick="setLang('te')">తెలుగు</button>
+    </div>
+    <div class="account-slot" id="accountSlot"></div>
+  </nav>
+  <main id="mainContent" class="portal">
+    <h1 class="portal__title"><span data-en="Dashboard" data-te="డాష్‌బోర్డ్">Dashboard</span> <span id="roleBadge" class="role-badge"></span></h1>
+
+    <div id="announcements" class="announcements" aria-live="polite"></div>
+
+    <section class="today" id="todayCard" aria-label="Today's panchang"><p class="today__loading" data-en="Loading today's panchang…" data-te="నేటి పంచాంగం లోడ్ అవుతోంది…">Loading today's panchang…</p></section>
+
+    <section aria-labelledby="cTitle" class="portal-section">
+      <h2 id="cTitle" class="portal-h2" data-en="People and use" data-te="వినియోగదారులు · వినియోగం">People and use</h2>
+      <div class="stat-grid" id="stats"><p class="portal-hint" data-en="Loading…" data-te="లోడ్ అవుతోంది…">Loading…</p></div>
+    </section>
+
+    <div class="portal-two">
+      <section class="portal-card" aria-labelledby="aTitle">
+        <h2 id="aTitle" data-en="Needs attention" data-te="గమనించవలసినవి">Needs attention</h2>
+        <ul class="attention" id="attention"><li class="portal-hint">…</li></ul>
+      </section>
+      <section class="portal-card" aria-labelledby="rTitle">
+        <h2 id="rTitle"><span data-en="Recent activity" data-te="ఇటీవలి కార్యకలాపాలు">Recent activity</span> <small id="scopeNote" class="portal-hint"></small></h2>
+        <ul class="activity" id="activity"><li class="portal-hint">…</li></ul>
+      </section>
+    </div>
+
+    <section class="portal-grid" aria-label="Admin tools">
+      <a class="portal-tile" href="admin-users.html"><strong data-en="Users" data-te="వినియోగదారులు">Users</strong><span data-en="Search, disable or enable accounts" data-te="వెతకండి, ఖాతాలను నిలిపివేయండి లేదా ప్రారంభించండి">Search, disable or enable accounts</span></a>
+      <a class="portal-tile" href="muhurta-finder.html"><strong data-en="Muhurta Finder" data-te="ముహూర్త శోధన">Muhurta Finder</strong><span data-en="106 events in 17 categories" data-te="17 విభాగాల్లో 106 కార్యాలు">106 events in 17 categories</span></a>
+      <a class="portal-tile" href="panchang-lookup.html"><strong data-en="Panchang" data-te="పంచాంగం">Panchang</strong><span data-en="Any date, any place" data-te="ఏ తేదీ, ఏ ప్రదేశమైనా">Any date, any place</span></a>
+    </section>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/app-shell.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/today.js"></script>
+  <script src="js/announcements.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

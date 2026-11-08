@@ -35,6 +35,22 @@ bash install_ephemeris.sh   # IMPORTANT — see note below
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+### Database (accounts)
+
+Accounts live in PostgreSQL: one shared Supabase project for development, native PostgreSQL
+on the server in production. Settings come from `backend/.env` (git-ignored; copy
+`backend/.env.example`). Once per database:
+
+```bash
+cd backend
+python3 scripts/pg_roles.py        # paste the output into the Supabase SQL editor
+alembic upgrade head               # creates the tables (migration owner only)
+python -m app.auth.bootstrap --mobile +91XXXXXXXXXX --name "Your Name"   # first super admin
+```
+
+Optional, one time: `python -m app.db.import_sqlite muhurtham.db` (dry run) then `--apply`
+copies accounts from the old SQLite file.
+
 ### ⚠️ Important: install the real ephemeris data files
 
 PyJHora's PyPI package does **not** include its Swiss Ephemeris `.se1` data

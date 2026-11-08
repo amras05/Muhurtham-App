@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in · Muhurtham</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css?v=20261108">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body data-no-account-menu>
+  <a class="skip-link" href="#mainContent">Skip to main content</a>
+  <nav class="app-shell__nav auth-nav" aria-label="Primary navigation">
+    <a class="app-shell__brand" href="panchang-lookup.html">ముహూర్తం</a>
+    <div class="app-shell__links">
+      <a class="app-shell__link" href="panchang-lookup.html">Panchang</a>
+      <a class="app-shell__link" href="muhurta-finder.html">Muhurta Finder</a>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="langTe" onclick="setLang('te')">తెలుగు</button>
+    </div>
+  </nav>
+
+  <main id="mainContent" class="auth-page">
+    <section class="auth-card" aria-labelledby="authTitle">
+      <h1 id="authTitle" class="auth-card__title">Sign in</h1>
+      <p id="authLede" class="auth-card__lede">Use the mobile number you signed up with.</p>
+
+      <div class="auth-tabs" role="tablist" aria-label="Sign in or create an account">
+        <button type="button" role="tab" id="tabLogin" class="auth-tab active" aria-selected="true" onclick="showView('login')" data-en="Log in" data-te="లాగిన్">Log in</button>
+        <button type="button" role="tab" id="tabSignup" class="auth-tab" aria-selected="false" onclick="showView('signup')" data-en="Create account" data-te="కొత్త ఖాతా">Create account</button>
+      </div>
+
+      <div id="authError" class="auth-alert auth-alert--error" role="alert" hidden></div>
+      <div id="authInfo" class="auth-alert auth-alert--info" role="status" hidden></div>
+
+      <!-- Log in -->
+      <form id="viewLogin" class="auth-form" novalidate>
+        <div class="field"><label for="loginPhone" data-en="Mobile number" data-te="మొబైల్ నంబర్">Mobile number</label>
+          <div class="auth-mobile"><span class="auth-mobile__code">+91</span>
+            <input id="loginPhone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="98480 12345" required></div></div>
+        <div class="field"><label for="loginPassword" data-en="Password" data-te="పాస్‌వర్డ్">Password</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" required></div>
+        <button type="submit" class="btn auth-submit" data-en="Log in" data-te="లాగిన్">Log in</button>
+        <button type="button" class="auth-link" onclick="showView('forgot')" data-en="Forgot password?" data-te="పాస్‌వర్డ్ మర్చిపోయారా?">Forgot password?</button>
+      </form>
+
+      <!-- Create account -->
+      <form id="viewSignup" class="auth-form" novalidate hidden>
+        <div class="field"><label for="signupName" data-en="Your name" data-te="మీ పేరు">Your name</label>
+          <input id="signupName" type="text" autocomplete="name" minlength="2" maxlength="80" required></div>
+        <div class="field"><label for="signupPhone" data-en="Mobile number (WhatsApp)" data-te="మొబైల్ నంబర్ (వాట్సాప్)">Mobile number (WhatsApp)</label>
+          <div class="auth-mobile"><span class="auth-mobile__code">+91</span>
+            <input id="signupPhone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="98480 12345" required></div></div>
+        <div class="field"><label for="signupPassword" data-en="Password (at least 8 characters)" data-te="పాస్‌వర్డ్ (కనీసం 8 అక్షరాలు)">Password (at least 8 characters)</label>
+          <input id="signupPassword" type="password" autocomplete="new-password" minlength="8" required></div>
+        <div class="field"><label for="signupConfirm" data-en="Type the password again" data-te="పాస్‌వర్డ్ మళ్లీ టైప్ చేయండి">Type the password again</label>
+          <input id="signupConfirm" type="password" autocomplete="new-password" minlength="8" required></div>
+        <label class="auth-consent"><input id="signupConsent" type="checkbox" required>
+          <span data-en="I agree that Muhurtham stores my name and mobile number, and the birth details I add for my family, only to find muhurtas for me. I can delete my account at any time."
+            data-te="ముహూర్తాలు కనుగొనడానికి మాత్రమే నా పేరు, మొబైల్ నంబర్, నేను నమోదు చేసే కుటుంబ జనన వివరాలు భద్రపరచడానికి అంగీకరిస్తున్నాను. నా ఖాతాను ఎప్పుడైనా తొలగించవచ్చు.">I agree that Muhurtham stores my name and mobile number, and the birth details I add for my family, only to find muhurtas for me. I can delete my account at any time.</span></label>
+        <button type="submit" class="btn auth-submit" data-en="Send code on WhatsApp" data-te="వాట్సాప్‌లో కోడ్ పంపండి">Send code on WhatsApp</button>
+      </form>
+
+      <!-- Enter the code (sign-up) -->
+      <form id="viewOtp" class="auth-form" novalidate hidden>
+        <p class="auth-hint" id="otpHint"></p>
+        <div class="field"><label for="otpCode" data-en="6-digit code" data-te="6 అంకెల కోడ్">6-digit code</label>
+          <input id="otpCode" class="auth-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required></div>
+        <button type="submit" class="btn auth-submit" data-en="Verify and continue" data-te="ధృవీకరించి కొనసాగండి">Verify and continue</button>
+        <button type="button" class="auth-link" id="resendBtn" onclick="resendCode()" data-en="Send the code again" data-te="కోడ్ మళ్లీ పంపండి">Send the code again</button>
+      </form>
+
+      <!-- Forgot password -->
+      <form id="viewForgot" class="auth-form" novalidate hidden>
+        <div class="field"><label for="forgotPhone" data-en="Mobile number" data-te="మొబైల్ నంబర్">Mobile number</label>
+          <div class="auth-mobile"><span class="auth-mobile__code">+91</span>
+            <input id="forgotPhone" type="tel" inputmode="tel" autocomplete="tel-national" required></div></div>
+        <button type="submit" class="btn auth-submit" data-en="Send reset code" data-te="రీసెట్ కోడ్ పంపండి">Send reset code</button>
+        <button type="button" class="auth-link" onclick="showView('login')" data-en="Back to log in" data-te="లాగిన్‌కు తిరిగి">Back to log in</button>
+      </form>
+
+      <!-- New password -->
+      <form id="viewReset" class="auth-form" novalidate hidden>
+        <div class="field"><label for="resetCode" data-en="Code from WhatsApp" data-te="వాట్సాప్ కోడ్">Code from WhatsApp</label>
+          <input id="resetCode" class="auth-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required></div>
+        <div class="field"><label for="resetPassword" data-en="New password (at least 8 characters)" data-te="కొత్త పాస్‌వర్డ్ (కనీసం 8 అక్షరాలు)">New password (at least 8 characters)</label>
+          <input id="resetPassword" type="password" autocomplete="new-password" minlength="8" required></div>
+        <div class="field"><label for="resetConfirm" data-en="Type it again" data-te="మళ్లీ టైప్ చేయండి">Type it again</label>
+          <input id="resetConfirm" type="password" autocomplete="new-password" minlength="8" required></div>
+        <button type="submit" class="btn auth-submit" data-en="Set new password" data-te="కొత్త పాస్‌వర్డ్ సెట్ చేయండి">Set new password</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/app-shell.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/login.js"></script>
+</body>
+
+</html>

@@ -297,12 +297,21 @@ def evaluate_21_maha_doshas(
             out.append(_row(14, "grahanamulu", "Grahana", "గ్రహణములు", "pass", "fatal",
                             "No eclipse block and not an eclipse nakshatra.", "గ్రహణ దోషం లేదు.", f"{ref} #14"))
 
-    # 15. Utpata (manual calendar)
+    # 15. Utpata (omen calendar kept by admins)
+    u = None
+    if ctx.get("day") is not None:
+        from app.engines.limb_timeline import UtpataUnavailable, utpata_on
+        try:
+            u = utpata_on(ctx["day"])
+        except UtpataUnavailable:
+            u = "unavailable"
     if ctx.get("day") is None:
         out.append(_row(15, "utpatamulu", "Utpata", "ఉత్పాతములు", "not_evaluated", "fatal", _NE_EN, _NE_TE, f"{ref} #15"))
+    elif u == "unavailable":
+        out.append(_row(15, "utpatamulu", "Utpata", "ఉత్పాతములు", "not_evaluated", "fatal",
+                        "The omen calendar could not be read just now, so this check was not made.",
+                        "ఉత్పాతాల జాబితా ఇప్పుడు చదవలేకపోయాము, కాబట్టి ఈ పరిశీలన జరగలేదు.", f"{ref} #15"))
     else:
-        from app.engines.limb_timeline import utpata_on
-        u = utpata_on(ctx["day"])
         out.append(_row(15, "utpatamulu", "Utpata", "ఉత్పాతములు", "fail" if u else "pass", "fatal",
                         (f"Utpata recorded for this date: {u.get('note_en', '')}" if u
                          else "No utpata recorded for this date."),

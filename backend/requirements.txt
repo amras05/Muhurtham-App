@@ -11,3 +11,8 @@ geopy
 python-dateutil
 certifi
 pyyaml
+# Database (PostgreSQL: Supabase in development, native in production)
+SQLAlchemy==2.0.57
+psycopg[binary]==3.3.8
+alembic==1.20.1
+cryptography==50.0.2

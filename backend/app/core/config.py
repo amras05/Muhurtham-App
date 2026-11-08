@@ -5,8 +5,15 @@ All settings are loaded from environment variables with safe defaults
 for local development.  Production deployments should set the env vars
 explicitly (via Docker env, .env file, or cloud config).
 """
+import logging
 import os
+import secrets
 from pathlib import Path
+
+from app.core.env import load_env_file
+
+# backend/.env (git-ignored) for local development; real environment variables win.
+load_env_file()
 
 # ── Paths ──────────────────────────────────────────────────────
 _CURRENT_FILE = Path(__file__).resolve()
@@ -25,11 +32,20 @@ _CORS_ENV = os.environ.get("MUHURTHAM_CORS_ORIGINS", "*")
 CORS_ORIGINS: list[str] = [o.strip() for o in _CORS_ENV.split(",") if o.strip()]
 
 # ── Auth / Security ───────────────────────────────────────────
-# JWT signing key — MUST be overridden in production.
-SECRET_KEY: str = os.environ.get(
-    "MUHURTHAM_SECRET_KEY",
-    "muhurtham_super_secret_signing_key_change_in_production",
-)
+# development | production
+APP_ENV: str = os.environ.get("MUHURTHAM_ENV", "development").strip().lower()
+
+# Signs login tokens. There is no default in the code: production refuses to start
+# without it; development falls back to a random key per start (everyone is logged
+# out on restart) and says so.
+SECRET_KEY: str = os.environ.get("MUHURTHAM_SECRET_KEY", "").strip()
+if len(SECRET_KEY) < 32:
+    if APP_ENV == "production":
+        raise RuntimeError("MUHURTHAM_SECRET_KEY must be set (at least 32 characters) in production.")
+    SECRET_KEY = secrets.token_hex(32)
+    logging.getLogger("muhurtham.config").warning(
+        "MUHURTHAM_SECRET_KEY is not set; using a temporary key. Logins end when the server restarts."
+    )
 
 # ── Feature Flags ─────────────────────────────────────────────
 # Dev-only PDF save endpoint: enabled explicitly, disabled in deployments.
@@ -47,6 +63,7 @@ class Settings:
     APP_STATIC_DIR = APP_STATIC_DIR
     CORS_ORIGINS = CORS_ORIGINS
     SECRET_KEY = SECRET_KEY
+    APP_ENV = APP_ENV
     ENABLE_DEV_PDF = ENABLE_DEV_PDF
     APP_TITLE = APP_TITLE
     APP_VERSION = APP_VERSION

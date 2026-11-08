@@ -1,13 +1,19 @@
 import logging
 import requests
 
+import os
+
+import app.core.config  # noqa: F401  (loads backend/.env)
+from app.auth.mobile import mask_mobile
+
 # ─── WhatsApp Business API Settings ────────────────────────
-# PASTE YOUR META WHATSAPP BUSINESS API KEY AND ID HERE
-# Get your API key from Meta Developer Portal:
-# https://developers.facebook.com/docs/whatsapp/cloud-api
-WHATSAPP_API_KEY = "PASTE_YOUR_WHATSAPP_BUSINESS_API_KEY_HERE"
-WHATSAPP_PHONE_NUMBER_ID = "PASTE_YOUR_WHATSAPP_PHONE_NUMBER_ID_HERE"
-WHATSAPP_TEMPLATE_NAME = "otp_verification"  # Approved template name in Meta portal
+# From the environment only (backend/.env locally, the server's env in production).
+# Meta Developer Portal: https://developers.facebook.com/docs/whatsapp/cloud-api
+WHATSAPP_API_KEY = os.environ.get("MUHURTHAM_WHATSAPP_TOKEN", "").strip()
+WHATSAPP_PHONE_NUMBER_ID = os.environ.get("MUHURTHAM_WHATSAPP_PHONE_NUMBER_ID", "").strip()
+WHATSAPP_TEMPLATE_NAME = os.environ.get("MUHURTHAM_WHATSAPP_TEMPLATE", "otp_verification").strip()
+# Print codes to the console only when explicitly asked (development without WhatsApp).
+OTP_DEV_ECHO = os.environ.get("MUHURTHAM_OTP_DEV_ECHO", "0").strip() == "1"
 
 logger = logging.getLogger("auth.whatsapp")
 
@@ -26,20 +32,16 @@ def send_whatsapp_otp(phone: str, otp: str) -> bool:
     if not clean_phone.startswith("91") and len(clean_phone) == 10:
         clean_phone = "91" + clean_phone
 
-    # Check if API keys are still placeholders
-    is_configured = (
-        WHATSAPP_API_KEY and 
-        "PASTE_YOUR" not in WHATSAPP_API_KEY and 
-        WHATSAPP_PHONE_NUMBER_ID and 
-        "PASTE_YOUR" not in WHATSAPP_PHONE_NUMBER_ID
-    )
+    is_configured = bool(WHATSAPP_API_KEY and WHATSAPP_PHONE_NUMBER_ID)
+    shown = mask_mobile("+" + clean_phone)
 
     if not is_configured:
-        print("\n" + "="*50)
-        print(f"💬 [DEV FALLBACK] WHATSAPP OTP FOR +{clean_phone}: {otp}")
-        print("="*50 + "\n")
-        logger.info(f"Dev Fallback: OTP for +{clean_phone} is {otp}")
-        return True
+        if OTP_DEV_ECHO:
+            # Development only: printed to the terminal, never written to the log.
+            print(f"\n[DEV OTP] code for {shown}: {otp}\n", flush=True)
+            return True
+        logger.error("WhatsApp is not configured (MUHURTHAM_WHATSAPP_TOKEN / _PHONE_NUMBER_ID); OTP not sent to %s", shown)
+        return False
 
     url = f"https://graph.facebook.com/v18.0/{WHATSAPP_PHONE_NUMBER_ID}/messages"
     headers = {
@@ -85,16 +87,16 @@ def send_whatsapp_otp(phone: str, otp: str) -> bool:
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=10)
         if response.status_code in (200, 201):
-            logger.info(f"Successfully sent WhatsApp OTP template to +{clean_phone}")
+            logger.info("WhatsApp OTP sent to %s", shown)
             return True
         else:
-            logger.error(
-                f"WhatsApp API error: status={response.status_code}, response={response.text}"
-            )
-            # Fall back to console print so developers don't get blocked by Meta rejection/API errors
-            print(f"⚠️ [WhatsApp Failed - Dev Fallback] OTP for +{clean_phone}: {otp}")
+            logger.error("WhatsApp API error for %s: status=%s, response=%s",
+                         shown, response.status_code, response.text[:300])
+            if OTP_DEV_ECHO:
+                print(f"\n[DEV OTP] WhatsApp failed; code for {shown}: {otp}\n", flush=True)
             return False
     except Exception as e:
-        logger.error(f"Failed to connect to WhatsApp API: {e}")
-        print(f"⚠️ [WhatsApp Connection Error - Dev Fallback] OTP for +{clean_phone}: {otp}")
+        logger.error("Could not reach the WhatsApp API for %s: %s", shown, e)
+        if OTP_DEV_ECHO:
+            print(f"\n[DEV OTP] WhatsApp unreachable; code for {shown}: {otp}\n", flush=True)
         return False

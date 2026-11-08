@@ -1,13 +1,7 @@
 /// API endpoint constants for the Muhurtham backend.
 ///
-/// ┌──────────────────────────────────────────────────────────────────┐
-/// │  IMPORTANT: WhatsApp Business API Configuration                  │
-/// │                                                                  │
-/// │  Paste your WhatsApp Business API key in [whatsAppApiKey] below. │
-/// │  The OTP is actually sent by the BACKEND — the frontend only     │
-/// │  triggers the flow. You also need to configure the WhatsApp      │
-/// │  credentials on your FastAPI backend server.                     │
-/// └──────────────────────────────────────────────────────────────────┘
+/// WhatsApp OTPs are sent by the backend. Its WhatsApp credentials live only in the
+/// server's environment (MUHURTHAM_WHATSAPP_*); never put them in the app.
 class ApiConstants {
   ApiConstants._();
 
@@ -16,18 +10,6 @@ class ApiConstants {
   // For local development, use your machine's LAN IP (not localhost)
   // so that mobile devices on the same network can reach it.
   static const String baseUrl = 'http://192.168.1.20:8000';
-
-  // ─── WhatsApp Business API ────────────────────────────────
-  // Paste your WhatsApp Business API key here.
-  // This is used by the backend to send OTP messages.
-  // Get your key from: https://business.whatsapp.com/
-  static const String whatsAppApiKey = 'YOUR_WHATSAPP_BUSINESS_API_KEY_HERE';
-  
-  // WhatsApp Business API base URL (Meta Cloud API)
-  static const String whatsAppApiUrl = 'https://graph.facebook.com/v18.0';
-  
-  // Your WhatsApp Business phone number ID
-  static const String whatsAppPhoneNumberId = 'YOUR_PHONE_NUMBER_ID_HERE';
 
   // ─── Auth Endpoints ───────────────────────────────────────
   static const String login = '/auth/login';

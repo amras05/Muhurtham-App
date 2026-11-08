@@ -103,6 +103,10 @@ class OtpViewModel extends ChangeNotifier {
         if (token != null) {
           await _storage.saveToken(token);
         }
+        final refreshToken = data['refresh_token'] as String?;
+        if (refreshToken != null) {
+          await _storage.saveRefreshToken(refreshToken);
+        }
 
         // Save user data
         final userData = data['user'] as Map<String, dynamic>?;

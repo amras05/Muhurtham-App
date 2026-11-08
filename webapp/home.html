@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css?v=20261108">
+  <link rel="stylesheet" href="css/portal.css">
+  <title>Home · Muhurtham</title>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Skip to main content</a>
+  <nav class="app-shell__nav portal-nav" aria-label="Primary navigation">
+    <a class="app-shell__brand" href="/">ముహూర్తం</a>
+    <div class="app-shell__links"></div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="langTe" onclick="setLang('te')">తెలుగు</button>
+    </div>
+    <div class="account-slot" id="accountSlot"></div>
+  </nav>
+  <main id="mainContent" class="portal">
+    <h1 class="portal__title"><span data-en="Namaste" data-te="నమస్కారం">Namaste</span><span id="helloName"></span></h1>
+
+    <div id="announcements" class="announcements" aria-live="polite"></div>
+
+    <section class="today" id="todayCard" aria-label="Today's panchang"><p class="today__loading" data-en="Loading today's panchang…" data-te="నేటి పంచాంగం లోడ్ అవుతోంది…">Loading today's panchang…</p></section>
+
+    <section class="portal-card" aria-labelledby="qsTitle">
+      <h2 id="qsTitle" data-en="Find a muhurta" data-te="ముహూర్తం కనుగొనండి">Find a muhurta</h2>
+      <form id="quickSearch" class="quick-search">
+        <div class="field"><label for="qsEvent" data-en="Event" data-te="కార్యం">Event</label><select id="qsEvent" required><option value="">…</option></select></div>
+        <div class="field"><label for="qsStart" data-en="From" data-te="నుండి">From</label><input type="date" id="qsStart" required></div>
+        <button type="submit" class="btn" data-en="Find dates" data-te="తేదీలు చూడండి">Find dates</button>
+      </form>
+    </section>
+
+    <section class="portal-grid" aria-label="Shortcuts">
+      <a class="portal-tile" href="muhurta-finder.html"><strong data-en="Muhurta Finder" data-te="ముహూర్త శోధన">Muhurta Finder</strong><span data-en="106 events in 17 categories" data-te="17 విభాగాల్లో 106 కార్యాలు">106 events in 17 categories</span></a>
+      <a class="portal-tile" href="panchang-lookup.html"><strong data-en="Panchang" data-te="పంచాంగం">Panchang</strong><span data-en="Any date, any place" data-te="ఏ తేదీ, ఏ ప్రదేశమైనా">Any date, any place</span></a>
+      <a class="portal-tile" href="muhurta-finder.html#yogas"><strong data-en="Special yogas" data-te="ప్రత్యేక యోగాలు">Special yogas</strong><span data-en="Amrita siddhi, Sarvartha siddhi, Pushkara" data-te="అమృత సిద్ధి, సర్వార్థ సిద్ధి, పుష్కర">Amrita siddhi, Sarvartha siddhi, Pushkara</span></a>
+      <a class="portal-tile" href="muhurta-finder.html#pitru"><strong data-en="Shraddha calendar" data-te="శ్రాద్ధ తిథి">Shraddha calendar</strong><span data-en="Yearly dates, the 96 days" data-te="వార్షిక తేదీలు, 96 దినాలు">Yearly dates, the 96 days</span></a>
+    </section>
+
+    <section class="portal-card portal-card--quiet" aria-labelledby="soonTitle">
+      <h2 id="soonTitle" data-en="My family and saved muhurtas" data-te="నా కుటుంబం · భద్రపరచిన ముహూర్తాలు">My family and saved muhurtas</h2>
+      <p data-en="Coming next: save family members once and keep the muhurtas you choose. Until then, the finder works as before." data-te="త్వరలో: కుటుంబ సభ్యులను ఒక్కసారి నమోదు చేసి, ఎంచుకున్న ముహూర్తాలను భద్రపరచుకోవచ్చు.">Coming next: save family members once and keep the muhurtas you choose. Until then, the finder works as before.</p>
+    </section>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/app-shell.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/today.js"></script>
+  <script src="js/announcements.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

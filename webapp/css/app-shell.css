@@ -80,3 +80,47 @@
   .app-shell__links { width: 100%; overflow-x: auto; flex-wrap: nowrap; }
   .app-shell__link { white-space: nowrap; }
 }
+
+/* Account menu (js/auth.js fills #accountSlot on every page) */
+.account-slot { margin-left: auto; position: relative; }
+.account-login {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-primary-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-primary-strong);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.account-login:hover { background: var(--color-surface-muted); }
+.account-menu { position: relative; }
+.account-menu__button {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border); border-radius: 999px;
+  background: var(--color-surface); color: var(--color-text);
+  font: inherit; font-size: var(--text-sm); font-weight: 600; cursor: pointer;
+}
+.account-menu__button:focus-visible { outline: 2px solid var(--color-primary-strong); outline-offset: 2px; }
+.account-menu__avatar {
+  display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%;
+  background: var(--color-primary-strong); color: #fff; font-size: 0.8rem; font-weight: 800;
+}
+.account-menu__name { max-width: 10rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-menu__panel {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 1000; min-width: 15rem;
+  display: grid; padding: var(--space-2);
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+}
+.account-menu__panel[hidden] { display: none; }
+.account-menu__who { display: grid; gap: 2px; padding: var(--space-2); border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-1); font-size: var(--text-sm); }
+.account-menu__who span { color: var(--color-text-muted); font-size: var(--text-xs, 0.8rem); }
+.account-menu__role { color: var(--color-primary-strong) !important; font-weight: 700; }
+.account-menu__item {
+  padding: var(--space-2); border: 0; border-radius: var(--radius-sm); background: none;
+  color: var(--color-text); font: inherit; font-size: var(--text-sm); text-align: left; cursor: pointer;
+}
+.account-menu__item:hover, .account-menu__item:focus-visible { background: var(--color-surface-muted); outline: none; }
+@media (max-width: 640px) { .account-slot { margin-left: 0; } .account-menu__panel { right: auto; left: 0; } }

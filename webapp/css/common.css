@@ -8,3 +8,7 @@
 @import url("panchang.css");
 @import url("app-shell.css");
 @import url("dashboard.css");
+
+/* Elements with the `hidden` attribute stay hidden even when a class gives them
+   display: grid / flex (e.g. the finder's Shraddha and Special Yogas panels). */
+[hidden] { display: none !important; }

@@ -9,3 +9,5 @@ frontend
 docs
 .turbo
 node_modules
+.env
+.env.*

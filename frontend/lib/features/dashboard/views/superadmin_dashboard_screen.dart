@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/enums/user_role.dart';
-import '../../../core/storage/local_storage.dart';
+import '../../../core/network/api_client.dart';
 import '../viewmodels/superadmin_dashboard_viewmodel.dart';
 import 'widgets/dashboard_drawer.dart';
 import 'widgets/log_tile.dart';
@@ -397,7 +397,7 @@ class _SuperAdminDashboardContent extends StatelessWidget {
   }
 
   Future<void> _logout(BuildContext context) async {
-    await LocalStorage().clearAll();
+    await ApiClient().logout();
     if (context.mounted) {
       Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
     }

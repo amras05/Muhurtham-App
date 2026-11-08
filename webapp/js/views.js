@@ -152,6 +152,7 @@ var Views = (function () {
         '<a class="app-shell__link" href="panchang-lookup.html#namakarana">Samskaras</a>' +
         '<a class="app-shell__link" href="muhurta-finder.html">Muhurta Finder</a>' +
       '</div>' +
+      '<div class="account-slot" id="accountSlot"></div>' +
     '</nav>';
 
   // ---- Panchang panel -------------------------------------------------------

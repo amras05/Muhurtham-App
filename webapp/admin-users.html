@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css?v=20261108">
+  <link rel="stylesheet" href="css/portal.css">
+  <title>Users · Muhurtham</title>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Skip to main content</a>
+  <nav class="app-shell__nav portal-nav" aria-label="Primary navigation">
+    <a class="app-shell__brand" href="/">ముహూర్తం</a>
+    <div class="app-shell__links"></div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="langTe" onclick="setLang('te')">తెలుగు</button>
+    </div>
+    <div class="account-slot" id="accountSlot"></div>
+  </nav>
+  <main id="mainContent" class="portal">
+    <h1 class="portal__title" data-en="Users" data-te="వినియోగదారులు">Users</h1>
+    <div id="usersMsg" class="auth-alert auth-alert--info" role="status" hidden></div>
+    <form id="filters" class="quick-search" role="search">
+      <div class="field"><label for="fQ" data-en="Name or last digits of the mobile" data-te="పేరు లేదా మొబైల్ చివరి అంకెలు">Name or last digits of the mobile</label><input id="fQ" type="search" autocomplete="off"></div>
+      <div class="field"><label for="fRole" data-en="Role" data-te="పాత్ర">Role</label>
+        <select id="fRole"><option value="" data-en="All" data-te="అన్నీ">All</option><option value="user" data-en="User" data-te="వినియోగదారు">User</option><option value="admin" data-en="Admin" data-te="నిర్వాహకులు">Admin</option><option value="super_admin" data-en="Super admin" data-te="ప్రధాన నిర్వాహకులు">Super admin</option></select></div>
+      <div class="field"><label for="fStatus" data-en="Status" data-te="స్థితి">Status</label>
+        <select id="fStatus"><option value="" data-en="All" data-te="అన్నీ">All</option><option value="active" data-en="Active" data-te="సక్రియం">Active</option><option value="disabled" data-en="Disabled" data-te="నిలిపివేయబడింది">Disabled</option><option value="pending" data-en="Sign-up not finished" data-te="నమోదు పూర్తి కాలేదు">Sign-up not finished</option><option value="locked" data-en="Locked out" data-te="లాక్ అయ్యారు">Locked out</option></select></div>
+      <button type="submit" class="btn" data-en="Search" data-te="వెతకండి">Search</button>
+    </form>
+    <p class="portal-hint" id="usersCount"></p>
+    <div class="table-scroll"><table class="people-table" id="peopleTable">
+      <thead><tr><th data-en="Name" data-te="పేరు">Name</th><th data-en="Mobile" data-te="మొబైల్">Mobile</th><th data-en="Role" data-te="పాత్ర">Role</th><th data-en="Status" data-te="స్థితి">Status</th><th data-en="Last login" data-te="చివరి లాగిన్">Last login</th><th data-en="Actions" data-te="చర్యలు">Actions</th></tr></thead>
+      <tbody id="peopleBody"><tr><td colspan="6" class="portal-hint">…</td></tr></tbody>
+    </table></div>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/app-shell.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/admin-users.js"></script>
+</body>
+</html>

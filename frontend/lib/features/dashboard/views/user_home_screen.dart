@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/network/api_client.dart';
 import '../../../core/storage/local_storage.dart';
 
 /// User Home Screen — landing page for regular (non-admin) users.
@@ -34,7 +35,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   }
 
   Future<void> _logout() async {
-    await _storage.clearAll();
+    await ApiClient().logout();
     if (mounted) {
       Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
     }
