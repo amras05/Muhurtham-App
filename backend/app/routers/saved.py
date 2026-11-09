@@ -3,7 +3,7 @@ Saved muhurtas, "download my data" and "delete my account" (plan R3, step E).
 
   GET    /me/saved            your saved searches, favourites first
   GET    /me/saved/{id}       one, with the request to run it again
-  POST   /me/saved            save a search (and the window you chose)
+  POST   /me/saved            save a search (and the window you chose); kind muhurta, yogas or pitru
   PUT    /me/saved/{id}       rename / favourite
   DELETE /me/saved/{id}
   GET    /me/export           everything stored about you, as one JSON file
@@ -40,6 +40,12 @@ _REQUEST_KEYS = {"activity_id", "start_date", "days_to_scan", "lat", "lon", "tz_
                  "travel_direction", "travel_mode", "travel_purpose", "travel_exemption", "business_name", "business_type",
                  "entrance_facing", "vehicle_type", "vehicle_muhurta_type"}
 _WINDOW_KEYS = {"date", "window_start", "window_end", "start_time", "end_time", "verdict", "percentage", "score", "lagna_en", "lagna_te"}
+# Special Yogas and Shraddha calendar searches (plan F2). A death date is kept only when the person
+# chose to save it; the finder asks first and leaves it out otherwise.
+_YOGA_KEYS = {"start_date", "days_to_scan", "lat", "lon", "tz_offset", "place_name", "yogas", "conditions",
+              "janma_nak_idx", "janma_rasi_idx"}
+_PITRU_KEYS = {"mode", "lat", "lon", "tz_offset", "place_name", "death_date", "death_time", "years", "year"}
+_PITRU_MODES = ("annual", "after_death", "shannavati")
 
 
 def _ip(req: Request) -> Optional[str]:
@@ -57,8 +63,28 @@ def _clean_request(raw: Dict[str, Any]) -> Dict[str, Any]:
     return out
 
 
+def _clean_tool_request(kind: str, raw: Dict[str, Any]) -> Dict[str, Any]:
+    """Special Yogas or Shraddha calendar: only that tool's fields, checked enough to run again."""
+    if kind == "yogas":
+        out = {k: v for k, v in raw.items() if k in _YOGA_KEYS}
+        for k in ("yogas", "conditions"):
+            vals = out.get(k) or []
+            if not isinstance(vals, list) or len(vals) > 40 or not all(isinstance(v, str) and len(v) <= 60 for v in vals):
+                raise HTTPException(status_code=400, detail="This search can't be saved: the yoga list is not valid.")
+            out[k] = vals
+        if not out.get("start_date") or not (out["yogas"] or out["conditions"]):
+            raise HTTPException(status_code=400, detail="This search can't be saved: the start date or the yogas are missing.")
+        return out
+    out = {k: v for k, v in raw.items() if k in _PITRU_KEYS}
+    if out.get("mode") not in _PITRU_MODES:
+        raise HTTPException(status_code=400, detail="This search can't be saved: choose what to find first.")
+    if out["mode"] == "shannavati" and not out.get("year"):
+        raise HTTPException(status_code=400, detail="This search can't be saved: the year is missing.")
+    return out
+
+
 class SaveIn(BaseModel):
-    kind: str = Field("muhurta", pattern="^(muhurta)$")
+    kind: str = Field("muhurta", pattern="^(muhurta|yogas|pitru)$")
     label: str = Field(..., min_length=1, max_length=120)
     request: Dict[str, Any]
     chosen_window: Optional[Dict[str, Any]] = None
@@ -75,7 +101,7 @@ def _row_out(r, with_request: bool = False) -> Dict[str, Any]:
            "chosen_window": r.chosen_window_json, "engine_version": r.engine_version,
            "engine_changed": r.engine_version != APP_VERSION,
            "created_at": r.created_at.isoformat(), "updated_at": r.updated_at.isoformat() if r.updated_at else None,
-           "summary": {k: (r.request_json or {}).get(k) for k in ("start_date", "days_to_scan", "place_name")}}
+           "summary": {k: (r.request_json or {}).get(k) for k in ("start_date", "days_to_scan", "place_name", "mode", "year")}}
     if with_request:
         out["request"] = r.request_json
     return out
@@ -113,10 +139,14 @@ def get_saved(saved_id: str, me: dict = Depends(require("self.edit"))) -> Dict[s
 
 @router.post("/me/saved", status_code=201)
 def save(body: SaveIn, req: Request, me: dict = Depends(require("self.edit"))) -> Dict[str, Any]:
-    request = _clean_request(body.request)
-    if not request.get("activity_id") or not request.get("start_date"):
-        raise HTTPException(status_code=400, detail="This search can't be saved: the muhurta or start date is missing.")
-    window = {k: v for k, v in (body.chosen_window or {}).items() if k in _WINDOW_KEYS} or None
+    if body.kind == "muhurta":
+        request = _clean_request(body.request)
+        if not request.get("activity_id") or not request.get("start_date"):
+            raise HTTPException(status_code=400, detail="This search can't be saved: the muhurta or start date is missing.")
+        window = {k: v for k, v in (body.chosen_window or {}).items() if k in _WINDOW_KEYS} or None
+    else:
+        request, window = _clean_tool_request(body.kind, body.request), None
+    activity = request.get("activity_id") if body.kind == "muhurta" else None
     if len(json.dumps(request)) > 20_000:
         raise HTTPException(status_code=400, detail="This search is too large to save.")
     with app_engine().begin() as c:
@@ -126,9 +156,9 @@ def save(body: SaveIn, req: Request, me: dict = Depends(require("self.edit"))) -
         r = c.execute(text(f"""
             INSERT INTO app.saved_searches (owner_id, kind, activity_id, label, request_json, chosen_window_json, engine_version, is_favourite)
             VALUES (CAST(:o AS uuid), :k, :a, :l, CAST(:rq AS jsonb), CAST(:w AS jsonb), :v, :f) RETURNING {_COLS}"""),
-            {"o": me["id"], "k": body.kind, "a": request["activity_id"], "l": body.label.strip(), "rq": json.dumps(request),
+            {"o": me["id"], "k": body.kind, "a": activity, "l": body.label.strip(), "rq": json.dumps(request),
              "w": json.dumps(window) if window else None, "v": APP_VERSION, "f": body.is_favourite}).first()
-    write_activity_log(user_id=me["id"], action="saved.add", details=request["activity_id"], ip_address=_ip(req),
+    write_activity_log(user_id=me["id"], action="saved.add", details=activity or body.kind, ip_address=_ip(req),
                        target_type="saved", target_id=r.id)
     return _row_out(r)
 
@@ -153,11 +183,11 @@ def edit_saved(saved_id: str, body: SaveEdit, me: dict = Depends(require("self.e
 @router.delete("/me/saved/{saved_id}")
 def delete_saved(saved_id: str, req: Request, me: dict = Depends(require("self.edit"))) -> Dict[str, Any]:
     with app_engine().begin() as c:
-        r = c.execute(text("DELETE FROM app.saved_searches WHERE id = CAST(:i AS uuid) AND owner_id = CAST(:o AS uuid) RETURNING activity_id"),
+        r = c.execute(text("DELETE FROM app.saved_searches WHERE id = CAST(:i AS uuid) AND owner_id = CAST(:o AS uuid) RETURNING activity_id, kind"),
                       {"i": _uuid(saved_id), "o": me["id"]}).first()
     if not r:
         raise HTTPException(status_code=404, detail="That saved muhurta was not found.")
-    write_activity_log(user_id=me["id"], action="saved.remove", details=r.activity_id, ip_address=_ip(req),
+    write_activity_log(user_id=me["id"], action="saved.remove", details=r.activity_id or r.kind, ip_address=_ip(req),
                        target_type="saved", target_id=saved_id)
     return {"id": saved_id, "removed": True}
 

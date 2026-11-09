@@ -98,12 +98,6 @@ function setLang(lang) {
 
   // Re-render if we have data (panels are page-optional)
   if (typeof lastPanchang !== "undefined" && lastPanchang && typeof render === "function") render(lastPanchang);
-  if (typeof setupSamskaraView === "function" && typeof currentActiveSamskara !== "undefined") {
-    setupSamskaraView(currentActiveSamskara);
-  }
-  if (typeof currentNamakaranaData !== "undefined" && currentNamakaranaData && typeof renderNamakarana === "function") {
-    renderNamakarana(currentNamakaranaData);
-  }
   if (typeof populateActivityDropdown === "function") {
     populateActivityDropdown();
   }

@@ -12,7 +12,7 @@
   }
   var KIND_TE = { earthquake: "భూకంపం", comet: "తోకచుక్క", meteor: "ఉల్కాపాతం", thunderbolt: "పిడుగు", flood: "వరద", fire: "అగ్ని ప్రమాదం", other: "ఇతర" };
   var KIND_EN = { earthquake: "Earthquake", comet: "Comet", meteor: "Meteor shower", thunderbolt: "Thunderbolt", flood: "Flood", fire: "Fire", other: "Other" };
-  var omens = [], kinds = [], anns = [];
+  var omens = [], kinds = [], states = [], anns = [];
   function day(iso) { return new Date(iso + "T12:00:00").toLocaleDateString(currentLang === "te" ? "te-IN" : "en-IN", { day: "numeric", month: "short", year: "numeric" }); }
   function when(iso) { return iso ? new Date(iso).toLocaleString(currentLang === "te" ? "te-IN" : "en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : ""; }
 
@@ -22,16 +22,21 @@
       var past = (o.end_date || o.event_date) < today;
       return "<li><div><strong>" + esc(day(o.event_date)) + (o.end_date ? " – " + esc(day(o.end_date)) : "") + ' · <span class="omen-kind">' +
         esc(tr(KIND_EN[o.kind] || o.kind, KIND_TE[o.kind] || o.kind)) + "</span>" + (past ? ' <span class="status-chip status-chip--disabled">' + tr("past", "గతం") + "</span>" : "") +
-        "</strong><small>" + esc(tr(o.description_en || o.description_te, o.description_te || o.description_en)) + (o.region ? " · " + esc(o.region) : "") +
+        "</strong><small>" + esc(tr(o.description_en || o.description_te, o.description_te || o.description_en)) + " · " + (o.region ? esc(tr("only in " + o.region, o.region + "లో మాత్రమే")) : tr("everywhere", "అన్ని ప్రాంతాలు")) +
         "</small><small>" + tr("Source: ", "ఆధారం: ") + esc(o.source) + " · " + tr("added by ", "జోడించినవారు ") + esc(o.added_by) + "</small></div>" +
         '<button type="button" class="btn btn--sm btn--ghost" data-omen="' + o.id + '">' + tr("Remove", "తొలగించండి") + "</button></li>";
     }).join("") || "<li>" + tr("No omens recorded for the last 90 days or ahead.", "గత 90 రోజులు లేదా రాబోయే రోజులకు ఉత్పాతాలు నమోదు కాలేదు.") + "</li>";
     var sel = $("omKind"), cur = sel.value;
     sel.innerHTML = kinds.map(function (k) { return '<option value="' + k + '">' + esc(tr(KIND_EN[k] || k, KIND_TE[k] || k)) + "</option>"; }).join("");
     if (cur) sel.value = cur;
+    // Omens by state (plan F2, G2): a state's omen applies only to searches in that state.
+    var rs = $("omRegion"), rcur = rs.value;
+    rs.innerHTML = '<option value="">' + esc(tr("Everywhere", "అన్ని ప్రాంతాలు")) + "</option>" +
+      states.map(function (st) { return '<option value="' + esc(st) + '">' + esc(st) + "</option>"; }).join("");
+    rs.value = rcur;
   }
   async function loadOmens() {
-    try { var r = await api("GET", "/admin/omens"); omens = r.omens; kinds = r.kinds; renderOmens(); }
+    try { var r = await api("GET", "/admin/omens"); omens = r.omens; kinds = r.kinds; states = r.states || []; renderOmens(); }
     catch (e) { $("omens").innerHTML = "<li>" + esc(e.message) + "</li>"; }
   }
   $("omens").addEventListener("click", async function (e) {
@@ -46,10 +51,13 @@
       await api("POST", "/admin/omens", {
         event_date: $("omFrom").value, end_date: $("omTo").value || null, kind: $("omKind").value,
         description_en: $("omEn").value.trim() || null, description_te: $("omTe").value.trim() || null,
-        region: $("omRegion").value.trim() || null, source: $("omSource").value.trim(),
+        region: $("omRegion").value || null, source: $("omSource").value.trim(),
       });
+      var where = $("omRegion").value;
       e.target.reset();
-      say("info", tr("Omen added. Muhurta searches on these dates now fail Mahadosha #15.", "ఉత్పాతం జోడించాము. ఈ తేదీల ముహూర్తాలు ఇప్పుడు మహాదోషం #15 వల్ల తిరస్కరించబడతాయి."));
+      say("info", where
+        ? tr("Omen added. Muhurta searches in " + where + " on these dates now fail Mahadosha #15.", "ఉత్పాతం జోడించాము. ఈ తేదీలలో " + where + "లోని ముహూర్తాలు ఇప్పుడు మహాదోషం #15 వల్ల తిరస్కరించబడతాయి.")
+        : tr("Omen added. Muhurta searches on these dates now fail Mahadosha #15.", "ఉత్పాతం జోడించాము. ఈ తేదీల ముహూర్తాలు ఇప్పుడు మహాదోషం #15 వల్ల తిరస్కరించబడతాయి."));
       loadOmens();
     } catch (err) { say("error", err.message); }
   });

@@ -25,6 +25,7 @@ import re
 import yaml
 
 from app.core.logging import logger
+from app.engines.dosha_registry import link_rows
 from app.engines.lagna_scanner import RASI_NAMES_EN, LagnaWindow, evaluate_house_rules, scan_day_lagnas
 from app.engines.participants import participants_for
 from app.engines.special_yogas import apply_dosha_profile, evaluate_yogas, extra_checks
@@ -1248,6 +1249,7 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     ctx = {
         "jd": local_to_jd(mid_dt, tz_offset),
         "day": cur_date,
+        "lat": place_obj.latitude, "lon": place_obj.longitude,     # omens by state (plan F2 / G2)
         "window": (cw.start, cw.end),
         "lagna_window": (lagna.start, lagna.end),
         "varjyam": varjyam_spans,
@@ -1279,6 +1281,8 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     extra = extra_checks(tab, rule.id, limbs.tithi, tithi_bounds(jd_mid), local_to_jd(cw.start, tz_offset),
                          [sr_jd - 1.0, sr_jd, sr_jd + 1.0, sr_jd + 2.0], lagna.house_planets)
     score += yoga_points
+    link_rows(maha_doshas)          # book_id and rule status from rules/shared/dosha_registry.yaml (plan B2)
+    link_rows(dashavidha)
 
     checked = []
     if common.mahadoshas_21:

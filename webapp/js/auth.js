@@ -55,9 +55,14 @@ window.Auth = (function () {
     return { ok: res.ok, status: res.status, data: data };
   }
 
+  // Renew once per tab. 409 = another tab renewed a moment ago and the browser already holds its new
+  // cookies (plan F2): wait a little so they land, then the caller retries its request.
   function refreshOnce() {
     if (!refreshing) {
-      refreshing = raw("POST", "/auth/web/refresh").finally(function () { refreshing = null; });
+      refreshing = raw("POST", "/auth/web/refresh").then(function (r) {
+        if (r.status !== 409) return r;
+        return new Promise(function (done) { setTimeout(function () { done({ ok: true, status: 200, data: null }); }, 400); });
+      }).finally(function () { refreshing = null; });
     }
     return refreshing;
   }
@@ -132,33 +137,39 @@ window.Auth = (function () {
     if (brand) brand.setAttribute("href", "/");
   }
 
-  // ── Super admin alert bell (plan R11): /admin/alerts, unread = newer than last opened (this browser) ──
+  // ── Super admin alert bell (plan R11): /admin/alerts, unread = newer than when this account last
+  // opened it (users.alerts_seen_at, plan F2 / M4), so every browser shows the same count ──
   var Bell = (function () {
-    var items = [], open = false, timer = null, KEY = "mh_alerts_seen";
-    function seen() { try { return localStorage.getItem(KEY) || ""; } catch (e) { return ""; } }
-    function markSeen() { try { localStorage.setItem(KEY, new Date().toISOString()); } catch (e) { /* private mode: the count just stays */ } }
+    var items = [], open = false, timer = null, seenAt = 0;
+    function isNew(x) { return Date.parse(x.at) > seenAt; }     // compare times: items carry different UTC offsets
+    async function markSeen() {
+      seenAt = Date.now();                        // clear the count at once; the server keeps the real time
+      var r = await call("POST", "/admin/alerts/seen");
+      if (r.ok && r.data && r.data.seen_at) seenAt = Date.parse(r.data.seen_at);
+    }
     function when(iso) { return new Date(iso).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); }
     function draw() {
       var box = document.getElementById("alertBell");
       if (!box) return;
-      var last = seen(), unread = items.filter(function (x) { return x.at > last; }).length;
+      var unread = items.filter(isNew).length;
       box.innerHTML = '<button type="button" class="alert-bell__btn" id="alertBellBtn" aria-haspopup="true" aria-expanded="' + open + '" aria-label="' +
         esc(tr("Alerts", "హెచ్చరికలు") + (unread ? " (" + unread + ")" : "")) + '"><span aria-hidden="true">🔔</span>' +
         (unread ? '<span class="alert-bell__count">' + (unread > 9 ? "9+" : unread) + "</span>" : "") + "</button>" +
         '<div class="alert-bell__panel" ' + (open ? "" : "hidden") + "><ul>" +
         (items.length ? items.map(function (x) {
-          return '<li class="' + (x.at > last ? "is-new" : "") + '"><span>' + esc(tr(x.en, x.te)) + "</span><small>" + esc(when(x.at)) + "</small></li>";
+          return '<li class="' + (isNew(x) ? "is-new" : "") + '"><span>' + esc(tr(x.en, x.te)) + "</span><small>" + esc(when(x.at)) + "</small></li>";
         }).join("") : "<li>" + tr("Nothing in the last 7 days.", "గత 7 రోజుల్లో ఏమీ లేదు.") + "</li>") +
         '</ul><a class="account-menu__item" href="admin-settings.html">' + tr("Choose alerts", "హెచ్చరికలు ఎంచుకోండి") + "</a></div>";
       document.getElementById("alertBellBtn").addEventListener("click", function () {
         open = !open;
-        if (open) { draw(); markSeen(); } else draw();
+        draw();
+        if (open) markSeen();
       });
     }
     async function load() {
       try {
         var r = await call("GET", "/admin/alerts");
-        if (r.ok) { items = r.data.items || []; draw(); }
+        if (r.ok) { items = r.data.items || []; seenAt = r.data.seen_at ? Date.parse(r.data.seen_at) : 0; draw(); }
       } catch (e) { /* the bell is optional; the page works without it */ }
     }
     function mount() {

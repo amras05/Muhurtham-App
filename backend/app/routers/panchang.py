@@ -7,6 +7,7 @@ from app.services.panchang_service import (
     get_panchang_data,
     get_day_summary_data,
     get_simple_panchang_data,
+    get_month_panchang_data,
 )
 
 router = APIRouter(prefix="/panchang", tags=["Panchang"])
@@ -61,6 +62,19 @@ def day_summary(
         )
     except ValueError as e:
         raise HTTPException(400, "date must be in YYYY-MM-DD format") from e
+
+
+@router.get("/month")
+def month_panchang(
+    year: int = Query(..., ge=1900, le=2100),
+    month: int = Query(..., ge=1, le=12),
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+    tz_offset: float = Query(..., ge=-14, le=14),
+    place_name: str = Query("Location"),
+):
+    """Every day of one month — powers the 'Month' calendar tab on the Panchang page."""
+    return get_month_panchang_data(year, month, lat, lon, tz_offset, place_name)
 
 
 @router.get("/simple")

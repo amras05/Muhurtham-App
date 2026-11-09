@@ -181,3 +181,49 @@ def reverse_geocode(lat: float, lon: float) -> dict:
     """The town or suburb at a point (e.g. Gajuwaka). Coordinates are rounded to about 1 km first,
     so the exact position is never sent to OpenStreetMap or kept."""
     return _reverse_cached(round(lat, 2), round(lon, 2))
+
+
+# ── Omens by state (plan F2, approved as G2) ───────────────────────────────────────
+# An omen recorded for a state applies only to searches whose place is in that state. Names match
+# OpenStreetMap's English state names, so the place's state can be compared directly.
+INDIA_STATES = (
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
+    "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+    "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
+    "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
+    "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi",
+    "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry",
+)
+
+
+@functools.lru_cache(maxsize=1024)
+def _state_cached(lat: float, lon: float) -> str:
+    resp = requests.get(NOMINATIM_REVERSE_URL, params={"lat": lat, "lon": lon, "format": "json", "zoom": 5, "addressdetails": 1},
+                        headers={**NOMINATIM_HEADERS, "Accept-Language": "en"}, timeout=6)
+    resp.raise_for_status()
+    item = resp.json()
+    if not item or "error" in item:
+        raise ValueError("No state found at these coordinates")
+    a = item.get("address") or {}
+    return (a.get("state") or a.get("territory") or a.get("region") or "").strip()
+
+
+_state_failed: dict = {}          # (lat, lon) -> time of the last failed lookup
+_STATE_RETRY_SECONDS = 300
+
+
+def state_at(lat: float, lon: float) -> str:
+    """English state name at a point ("" when the place has none, e.g. at sea). Coordinates are
+    rounded to about 1 km first, like reverse_geocode. Raises when OpenStreetMap can't be reached;
+    after a failure the same point is not asked again for 5 minutes, so one search doesn't wait
+    on every window."""
+    import time
+    key = (round(lat, 2), round(lon, 2))
+    failed = _state_failed.get(key)
+    if failed is not None and time.monotonic() - failed < _STATE_RETRY_SECONDS:
+        raise ConnectionError("State lookup failed recently; not retried yet")
+    try:
+        return _state_cached(*key)
+    except Exception:
+        _state_failed[key] = time.monotonic()
+        raise

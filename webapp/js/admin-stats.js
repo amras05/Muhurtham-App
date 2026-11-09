@@ -1,4 +1,4 @@
-// Super admin statistics (plan R10): day-by-day charts from /admin/stats, each with a CSV download.
+// Super admin statistics (plan R10): day-by-day charts from /admin/statistics, each with a CSV download.
 (function () {
   function tr(en, te) { return currentLang === "te" ? te : en; }
   function $(id) { return document.getElementById(id); }

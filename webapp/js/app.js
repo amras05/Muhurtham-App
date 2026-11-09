@@ -10,15 +10,16 @@ el("apiBaseLabel").textContent = API_BASE || "same-origin";
 
 el("dateInput").valueAsDate = new Date();
 
-// Buttons
-el("goButton").addEventListener("click", getPanchang);
-el("searchPlaceButton").addEventListener("click", getPanchang);
+// Buttons (refreshPanchang loads the Day or Month tab, whichever is open)
+el("goButton").addEventListener("click", refreshPanchang);
+el("searchPlaceButton").addEventListener("click", refreshPanchang);
+initMonthTab();
 
 // Region dropdown toggles (shared helper)
 attachRegionToggle("regionSelect", "customPlaceField", "customPlaceInput");
 
 // Place autocomplete (shared helper — no duplicated logic)
-attachPlaceAutocomplete("customPlaceInput", "suggestionsList", getPanchang);
+attachPlaceAutocomplete("customPlaceInput", "suggestionsList", refreshPanchang);
 
 // Old links to the retired samskara mode (#namakarana, #vivaha, …) go to the Muhurta Finder (plan R4).
 (function () {

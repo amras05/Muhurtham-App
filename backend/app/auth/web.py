@@ -23,7 +23,7 @@ from .database import get_user_by_id, write_activity_log
 from .dependencies import ACCESS_COOKIE, REFRESH_COOKIE, WEB_CLIENT_HEADER, get_current_user
 from .routes import _user_response, login, verify_otp
 from .schemas import LoginRequest, LoginResponse, LogoutRequest, MessageResponse, UserResponse, VerifyOtpRequest
-from .sessions import SESSION_DAYS, revoke_all_sessions, revoke_session, rotate_refresh
+from .sessions import SESSION_DAYS, refresh_just_swapped, revoke_all_sessions, revoke_session, rotate_refresh
 
 router = APIRouter(prefix="/auth/web", tags=["Web sign-in"])
 
@@ -75,7 +75,12 @@ async def web_verify_otp(request: VerifyOtpRequest, req: Request, resp: Response
 @router.post("/refresh")
 async def web_refresh(req: Request, resp: Response):
     _require_web_header(req)
-    rotated = rotate_refresh(req.cookies.get(REFRESH_COOKIE, ""))
+    token = req.cookies.get(REFRESH_COOKIE, "")
+    rotated = rotate_refresh(token)
+    if not rotated and refresh_just_swapped(token):
+        # Another tab renewed a moment ago; its new cookies are already in the browser. Keep them
+        # and let this tab retry its request (auth.js waits briefly and tries again).
+        return JSONResponse({"detail": "Renewed in another tab. Try again.", "retry": True}, status_code=409)
     if not rotated:
         expired = JSONResponse({"detail": "Session expired. Please log in again."}, status_code=401)
         _clear_cookies(expired)        # the cookie removal must ride on the 401 itself
@@ -120,7 +125,10 @@ async def web_resume(req: Request, next: str = ""):
     Only a bare page name (e.g. "muhurta-finder.html", or "" for home) is accepted as `next`.
     """
     target = "/" + next if next and _SAFE_NEXT.match(next) else "/"
-    rotated = rotate_refresh(req.cookies.get(REFRESH_COOKIE, ""))
+    token = req.cookies.get(REFRESH_COOKIE, "")
+    rotated = rotate_refresh(token)
+    if not rotated and refresh_just_swapped(token):
+        return RedirectResponse(target, status_code=303)     # another tab renewed; its cookies open the page
     if not rotated:
         resp = RedirectResponse("/login.html" + (f"?next={quote(next)}" if target != "/" else ""), status_code=303)
         _clear_cookies(resp)

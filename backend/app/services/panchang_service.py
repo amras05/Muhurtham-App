@@ -2,6 +2,7 @@
 Muhurtham App — Panchang service layer.
 Wraps engine calculations and day-summary assembly.
 """
+import calendar
 from typing import Dict, Any, List
 from app.engines.panchang import compute_day_panchang as compute_drik_panchang
 from app.engines.rules import evaluate, list_activities
@@ -59,6 +60,56 @@ def get_day_summary_data(
         "avoid_activities": avoid,
         "mixed_activities": mixed,
     }
+
+
+def _month_day_entry(p: Dict[str, Any]) -> Dict[str, Any]:
+    """The parts of one day's panchang that the month calendar and its day panel show."""
+    cm = p.get("chandramana") or {}
+    return {
+        "date": p["date"],
+        "vaara": p["vaara"],
+        "sunrise": p["sunrise"],
+        "sunset": p["sunset"],
+        "tithi": {k: p["tithi"][k] for k in ("name", "number", "paksha", "end_time")},
+        "nakshatra": {k: p["nakshatra"][k] for k in ("name", "pada", "end_time")},
+        "yoga": {k: p["yoga"][k] for k in ("name", "end_time")},
+        "karana": {k: p["karana"][k] for k in ("name", "end_time")},
+        "rahu_kalam": p.get("rahu_kalam"),
+        "yamagandam": p.get("yamagandam"),
+        "gulika_kalam": p.get("gulika_kalam"),
+        "durmuhurtam": p.get("durmuhurtam") or [],
+        "varjyam": p.get("varjyam"),
+        "abhijit_muhurta": p.get("abhijit_muhurta"),
+        "amrit_kalam": p.get("amrit_kalam") or [],
+        "special_yogas": [
+            {"name_en": y.get("name_en"), "name_te": y.get("name_te"), "type": y.get("type")}
+            for y in (p.get("special_yogas") or [])
+        ],
+        "chandramana": {
+            "month_name": cm.get("month_name"),
+            "is_adhika_masa": cm.get("is_adhika_masa", False),
+            "samvatsara_name": cm.get("samvatsara_name"),
+            "samvatsara_telugu": cm.get("samvatsara_telugu"),
+        },
+    }
+
+
+def get_month_panchang_data(
+    year: int,
+    month: int,
+    lat: float,
+    lon: float,
+    tz_offset: float,
+    place_name: str = "Location",
+) -> Dict[str, Any]:
+    """Panchang for every day of a calendar month (Drik), trimmed for the month calendar."""
+    days_in_month = calendar.monthrange(year, month)[1]
+    calculator = get_panchang_calculator()
+    days = [
+        _month_day_entry(calculator(year, month, d, lat, lon, tz_offset, place_name))
+        for d in range(1, days_in_month + 1)
+    ]
+    return {"year": year, "month": month, "place": place_name, "days": days}
 
 
 def get_simple_panchang_data(

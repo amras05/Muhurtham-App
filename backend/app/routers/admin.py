@@ -660,5 +660,15 @@ def alerts(boss: dict = Depends(require("system.view"))) -> Dict[str, Any]:
             items.append({"id": f"summary-{y.isoformat()}", "kind": "summary", "at": at.isoformat(),
                           "en": f"Yesterday: {n.accounts} new accounts, {n.searches} searches, {n.logins} logins, {n.pdfs} PDFs",
                           "te": f"నిన్న: {n.accounts} కొత్త ఖాతాలు, {n.searches} శోధనలు, {n.logins} లాగిన్లు, {n.pdfs} PDFలు"})
+        seen = c.execute(text("SELECT alerts_seen_at FROM app.users WHERE id = CAST(:u AS uuid)"), {"u": boss["id"]}).scalar()
     items.sort(key=lambda x: x["at"], reverse=True)
-    return {"items": items}
+    return {"items": items, "seen_at": _iso(seen)}
+
+
+@router.post("/admin/alerts/seen")
+def alerts_seen(boss: dict = Depends(require("system.view"))) -> Dict[str, Any]:
+    """The bell was opened: remember it on the account, so every browser shows the same unread count (M4)."""
+    with app_engine().begin() as c:
+        seen = c.execute(text("UPDATE app.users SET alerts_seen_at = now() WHERE id = CAST(:u AS uuid) RETURNING alerts_seen_at"),
+                         {"u": boss["id"]}).scalar()
+    return {"seen_at": _iso(seen)}

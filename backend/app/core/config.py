@@ -49,7 +49,6 @@ if len(SECRET_KEY) < 32:
 
 # ── Feature Flags ─────────────────────────────────────────────
 # Dev-only PDF save endpoint: enabled explicitly, disabled in deployments.
-ENABLE_DEV_PDF: bool = os.environ.get("MUHURTHAM_ENABLE_DEV_PDF", "0") == "1"
 
 # ── App Metadata ──────────────────────────────────────────────
 APP_TITLE = "Muhurta Finder API"
@@ -64,7 +63,6 @@ class Settings:
     CORS_ORIGINS = CORS_ORIGINS
     SECRET_KEY = SECRET_KEY
     APP_ENV = APP_ENV
-    ENABLE_DEV_PDF = ENABLE_DEV_PDF
     APP_TITLE = APP_TITLE
     APP_VERSION = APP_VERSION
 

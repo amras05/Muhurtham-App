@@ -30,7 +30,7 @@ KIND_CSS: Dict[str, List[str]] = {
     "results": _BASE_CSS + ["muhurta-finder.css"],
     "pitru": _BASE_CSS + ["muhurta-finder.css"],
     "yogas": _BASE_CSS + ["muhurta-finder.css"],
-    "panchang": _BASE_CSS + ["panchang.css", "dashboard.css"],
+    "panchang": _BASE_CSS + ["panchang.css", "dashboard.css", "panchang-month.css"],
 }
 KINDS = tuple(KIND_CSS)
 

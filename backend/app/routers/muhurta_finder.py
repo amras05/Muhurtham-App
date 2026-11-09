@@ -185,6 +185,14 @@ def get_yoga_catalog():
     return yoga_catalog()
 
 
+@router.get("/doshas")
+def get_dosha_registry():
+    """The 21 mahadoshas and 10 dashavidha doshas: one record each with scope, severity, inputs,
+    status and book id (plan B2). Rule information only, like the yoga catalog."""
+    from app.engines.dosha_registry import registry
+    return registry()
+
+
 @router.post("/yogas")
 def search_yoga_windows(req: YogaSearchRequest, current_user: dict = Depends(get_current_user)):
     """Windows where the chosen special yogas form and the chosen conditions hold (no event needed)."""

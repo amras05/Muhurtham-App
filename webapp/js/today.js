@@ -55,8 +55,19 @@ window.Today = (function () {
       "</div>" +
       '<div class="today__avoid"><span class="today__label">' + tr("Avoid today", "ఈ రోజు నివారించవలసినవి") + "</span><ul>" + periods + "</ul></div>" +
       (yogas ? '<div class="today__yogas">' + yogas + "</div>" : "") +
+      (canShare() ? panchangShareBar() : "") +
       '<div class="today__foot"><span>' + tr("Updated ", "నవీకరణ ") + esc(d.now) + '</span><a href="panchang-lookup.html">' + tr("Full panchang →", "పూర్తి పంచాంగం →") + "</a></div>";
+    if (canShare()) {
+      // Shared copies use today's panchang only (no live "Now" line or struck-out past periods).
+      bindPanchangShare(box, {
+        getSections: function () { return panchangTodaySections(data); },
+        date: d.date, place: d.place.name,
+      });
+    }
   }
+
+  // The Share row needs js/pdf-download.js and js/panchang-share.js on the page.
+  function canShare() { return typeof bindPanchangShare === "function" && typeof PdfDownload !== "undefined"; }
 
   async function load() {
     var box = document.getElementById(mountId);

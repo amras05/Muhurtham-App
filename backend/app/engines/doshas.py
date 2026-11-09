@@ -213,9 +213,12 @@ def evaluate_21_maha_doshas(
     else:
         nav = int(ch.lagna_lon * 9.0 / 30.0) % 12 + 1
         bad = SIGN_LORD[nav] in (0, 2, 6) or nav == 4
+        lord = SIGN_LORD[nav]
+        # Plan B2: name the navamsa lord, or Karkataka, so the reason is concrete.
+        why_en = ("is Karkataka." if nav == 4 else f"is ruled by {PLANET_NAME[lord]}, a malefic.") if bad else f"is ruled by {PLANET_NAME[lord]}, so it is a benefic navamsa."
+        why_te = ("కర్కాటక నవాంశ." if nav == 4 else f"అధిపతి {PLANET_NAME_TE[lord]} (పాపగ్రహం).") if bad else f"అధిపతి {PLANET_NAME_TE[lord]}; శుభ నవాంశ."
         out.append(_row(4, "kunavamshamu", "Kunavamsa", "కునవాంశము", "fail" if bad else "pass", "serious",
-                        f"Lagna navamsa {RASI_CANONICAL[nav]} " + ("belongs to a malefic or is Karkataka." if bad else "is a benefic navamsa."),
-                        f"లగ్న నవాంశ {RASI_CANONICAL[nav]} " + ("పాప/కర్కాటక నవాంశ." if bad else "శుభ నవాంశ."), f"{ref} #4"))
+                        f"Lagna navamsa {RASI_CANONICAL[nav]} {why_en}", f"లగ్న నవాంశ {RASI_CANONICAL[nav]} {why_te}", f"{ref} #4"))
 
     # 5. Kujashtama
     out.append(_house_check(ch, 5, "kujashtamamu", "Kujashtama", "కుజాష్టమము", 2, 8,
@@ -300,13 +303,21 @@ def evaluate_21_maha_doshas(
     # 15. Utpata (omen calendar kept by admins)
     u = None
     if ctx.get("day") is not None:
-        from app.engines.limb_timeline import UtpataUnavailable, utpata_on
+        from app.engines.limb_timeline import UtpataPlaceUnknown, UtpataUnavailable, utpata_on
         try:
-            u = utpata_on(ctx["day"])
+            u = utpata_on(ctx["day"], ctx.get("lat"), ctx.get("lon"))
         except UtpataUnavailable:
             u = "unavailable"
+        except UtpataPlaceUnknown as ex:
+            u = ex
     if ctx.get("day") is None:
         out.append(_row(15, "utpatamulu", "Utpata", "ఉత్పాతములు", "not_evaluated", "fatal", _NE_EN, _NE_TE, f"{ref} #15"))
+    elif isinstance(u, UtpataPlaceUnknown):
+        out.append(_row(15, "utpatamulu", "Utpata", "ఉత్పాతములు", "not_evaluated", "fatal",
+                        f"An utpata is recorded for {u.region} on this date, but the state of this place could not be "
+                        "found just now, so this check was not made.",
+                        f"ఈ తేదీకి {u.region}లో ఉత్పాతం నమోదైంది, కానీ ఈ ప్రాంతం ఏ రాష్ట్రంలో ఉందో ఇప్పుడు "
+                        "తెలుసుకోలేకపోయాము, కాబట్టి ఈ పరిశీలన జరగలేదు.", f"{ref} #15"))
     elif u == "unavailable":
         out.append(_row(15, "utpatamulu", "Utpata", "ఉత్పాతములు", "not_evaluated", "fatal",
                         "The omen calendar could not be read just now, so this check was not made.",
@@ -694,9 +705,14 @@ def evaluate_10_dashavidha_doshas(
     from_lagna = [p for p in ch.in_house(7)]
     from_moon = [p for p in ch.lon if p != 1 and (ch.sign(p) - ch.sign(1)) % 12 + 1 == 7]
     jam = sorted(set(from_lagna) | set(from_moon))
+    # Plan B2: say which 7th each planet occupies (from the lagna, from the Moon, or both).
+    where_en = "; ".join(p for p in (f"7th from the lagna: {_names(sorted(from_lagna))[0]}" if from_lagna else "",
+                                     f"7th from the Moon: {_names(sorted(from_moon))[0]}" if from_moon else "") if p)
+    where_te = "; ".join(p for p in (f"లగ్నం నుండి 7వ స్థానంలో: {_names(sorted(from_lagna))[1]}" if from_lagna else "",
+                                     f"చంద్రుని నుండి 7వ స్థానంలో: {_names(sorted(from_moon))[1]}" if from_moon else "") if p)
     out.append(row(5, "jamitra_dosham", "Jamitra", "జామిత్ర దోషము", "fail" if jam else "pass",
-                   f"Planets in the 7th from the lagna or Moon: {_names(jam)[0]}." if jam else "The 7th from the lagna and the Moon is empty.",
-                   f"లగ్నం/చంద్రుని నుండి 7వ స్థానంలో: {_names(jam)[1]}." if jam else "7వ స్థానం శుద్ధం."))
+                   f"{where_en}." if jam else "The 7th from the lagna and the Moon is empty.",
+                   f"{where_te}." if jam else "7వ స్థానం శుద్ధం."))
 
     # 6. Mrita panchaka: Sun at the 1st, 10th, 19th or 28th degree of a sign
     sdeg = int(ch.lon[0] % 30.0) + 1

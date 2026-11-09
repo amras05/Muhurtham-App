@@ -362,11 +362,38 @@ def _utpata_rows() -> List[Dict[str, Any]]:
     return rows
 
 
-def utpata_on(day: date) -> Optional[Dict[str, Any]]:
-    """The admin-recorded omen covering `day`, if any. Raises UtpataUnavailable if it can't be read."""
-    for row in _utpata_rows():
-        if row["from"] <= day <= row["to"]:
+class UtpataPlaceUnknown(RuntimeError):
+    """An omen recorded for a state covers this date, but the place's state could not be found (G2)."""
+    def __init__(self, region: str):
+        super().__init__(region)
+        self.region = region
+
+
+def utpata_on(day: date, lat: Optional[float] = None, lon: Optional[float] = None) -> Optional[Dict[str, Any]]:
+    """The admin-recorded omen covering `day` at this place, if any (plan F2 / G2: an omen with a
+    state applies only to places in that state; one without applies everywhere). The state is
+    looked up only when such an omen covers the day. Raises UtpataUnavailable if the calendar can't
+    be read, UtpataPlaceUnknown if a state omen covers the day but the place's state is unknown."""
+    covering = [r for r in _utpata_rows() if r["from"] <= day <= r["to"]]
+    for row in covering:
+        if not row.get("region"):
             return row
+    unknown = None
+    for row in covering:
+        if lat is None or lon is None:
+            unknown = unknown or row["region"]
+            continue
+        from app.geo.regions import state_at
+        try:
+            state = state_at(lat, lon)
+        except Exception as ex:
+            logger.warning(f"State lookup for an omen failed: {type(ex).__name__}")
+            unknown = unknown or row["region"]
+            continue
+        if state.casefold() == row["region"].strip().casefold():
+            return row
+    if unknown:
+        raise UtpataPlaceUnknown(unknown)
     return None
 
 

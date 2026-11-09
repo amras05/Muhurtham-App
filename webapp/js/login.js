@@ -134,4 +134,19 @@
   // Already signed in: go straight on.
   Auth.me().then(function (user) { if (user) window.location.replace(nextUrl()); });
   if (window.location.hash === "#signup") showView("signup");
+
+  // After "Delete my account" (account.js sends ?deleted=1, plan F2). Shown once: the flag is taken
+  // out of the address so a reload doesn't show it again; a language switch shows it in the new language.
+  if (new URLSearchParams(window.location.search).get("deleted") === "1") {
+    var DELETED = ["Your account and everything saved in it have been deleted.", "మీ ఖాతా మరియు అందులో భద్రపరిచినవన్నీ తొలగించబడ్డాయి."];
+    message("info", tr(DELETED[0], DELETED[1]));
+    window.onLangChange = function () {
+      applyTitles();
+      var box = $("authInfo");
+      if (!box.hidden && DELETED.indexOf(box.textContent) !== -1) box.textContent = tr(DELETED[0], DELETED[1]);
+    };
+    var q = new URLSearchParams(window.location.search);
+    q.delete("deleted");
+    history.replaceState(null, "", window.location.pathname + (q.toString() ? "?" + q.toString() : "") + window.location.hash);
+  }
 })();

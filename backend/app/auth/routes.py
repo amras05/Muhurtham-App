@@ -16,9 +16,6 @@ from .database import (
     INVITED,
     check_otp,
     create_user,
-    fetch_activity_logs,
-    fetch_all_users,
-    fetch_system_statistics,
     get_user_by_id,
     get_user_by_phone,
     log_login_event,
@@ -27,7 +24,7 @@ from .database import (
     update_user_profile,
     write_activity_log,
 )
-from .dependencies import get_current_user, require_admin, require_superadmin
+from .dependencies import get_current_user
 from .mobile import mask_mobile, normalize_mobile
 from .schemas import (
     ActivityLogResponse,
@@ -353,35 +350,5 @@ async def change_mobile(request: ChangeMobileRequest, req: Request, current_user
                        ip_address=_ip(req))
     return _user_response(get_user_by_id(current_user["id"]))
 
-
-# ─── User profile ─────────────────────────────────────────
-
-@router.get("/user/profile", response_model=UserResponse)
-async def get_profile(current_user: dict = Depends(get_current_user)):
-    return _user_response(current_user)
-
-
-@router.put("/user/profile", response_model=UserResponse)
-async def update_profile(request: UpdateProfileRequest, req: Request, current_user: dict = Depends(get_current_user)):
-    update_user_profile(current_user["id"], {"name": request.name.strip()})
-    write_activity_log(user_id=current_user["id"], action="profile_update", details="Updated profile name",
-                       ip_address=_ip(req))
-    return _user_response(get_user_by_id(current_user["id"]))
-
-
-# ─── Admin ────────────────────────────────────────────────
-
-@router.get("/admin/users", response_model=List[UserInfoResponse])
-async def list_users(search: Optional[str] = Query(None), role: Optional[str] = Query(None),
-                     admin_user: dict = Depends(require_admin)):
-    return [UserInfoResponse(**_user_response(u).model_dump()) for u in fetch_all_users(search=search, role=role)]
-
-
-@router.get("/admin/stats", response_model=DashboardStatsResponse)
-async def get_stats(admin_user: dict = Depends(require_admin)):
-    return DashboardStatsResponse(**fetch_system_statistics())
-
-
-@router.get("/admin/logs", response_model=List[ActivityLogResponse])
-async def get_logs(user_id: Optional[str] = Query(None), superadmin_user: dict = Depends(require_superadmin)):
-    return [ActivityLogResponse(**log) for log in fetch_activity_logs(user_id=user_id)]
+# The first auth version's /user/profile, /admin/users, /admin/stats and /admin/logs were removed
+# on 9 Nov 2026 (plan F1): the web portal uses /me, /admin/people, /admin/statistics and /admin/audit.

@@ -85,13 +85,12 @@ app.include_router(content_router)
 app.include_router(pdf_router)
 app.include_router(family_router)
 app.include_router(saved_router)
-# /dev/save-pdf is no longer mounted (it wrote uploaded files to disk with no sign-in); PDFs come from /pdf/render.
 
 
 # Root endpoints
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": app.version, "dev_pdf": settings.ENABLE_DEV_PDF}
+    return {"status": "ok", "version": app.version}
 
 
 @app.get("/", include_in_schema=False)

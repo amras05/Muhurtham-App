@@ -3,6 +3,7 @@ Content the admins keep (web portal plan, C5).
 
   Omen calendar (app.utpata_events) — feeds Mahadosha #15. Earthquakes, comets and the like
   can't be computed, so an admin records them; every muhurta window on a listed date fails #15.
+  An entry may name a state (plan F2, G2): it then applies only to searches whose place is in that state.
     GET    /admin/omens              recent and upcoming entries
     POST   /admin/omens              add one
     DELETE /admin/omens/{id}         remove (kept in the table with deleted_at, for the record)
@@ -25,6 +26,7 @@ from app.auth.dependencies import get_current_user
 from app.auth.permissions import require
 from app.db.engine import app_engine
 from app.engines.limb_timeline import clear_utpata_cache
+from app.geo.regions import INDIA_STATES
 
 router = APIRouter(tags=["Content"])
 
@@ -55,11 +57,14 @@ class OmenCreate(BaseModel):
     kind: str = Field(..., pattern="^(" + "|".join(OMEN_KINDS) + ")$")
     description_en: Optional[str] = Field(None, min_length=3, max_length=300)
     description_te: Optional[str] = Field(None, min_length=2, max_length=300)
-    region: Optional[str] = Field(None, max_length=120)
+    region: Optional[str] = Field(None, max_length=120)      # a state from INDIA_STATES, or None = everywhere (G2)
     source: str = Field(..., min_length=2, max_length=200)
 
     @model_validator(mode="after")
     def _check(self):
+        self.region = (self.region or "").strip() or None
+        if self.region and self.region not in INDIA_STATES:
+            raise ValueError("Choose the state from the list, or Everywhere.")
         if self.end_date and self.end_date < self.event_date:
             raise ValueError("The end date can't be before the start date.")
         if (self.end_date or self.event_date) - self.event_date > timedelta(days=60):
@@ -85,7 +90,7 @@ def list_omens(admin: dict = Depends(require("content.edit"))) -> Dict[str, Any]
             LEFT JOIN app.users u ON u.id = o.created_by
             WHERE o.deleted_at IS NULL AND COALESCE(o.end_date, o.event_date) >= CURRENT_DATE - 90
             ORDER BY o.event_date, o.created_at""")).all()
-    return {"omens": [_omen(r) for r in rows], "kinds": list(OMEN_KINDS)}
+    return {"omens": [_omen(r) for r in rows], "kinds": list(OMEN_KINDS), "states": list(INDIA_STATES)}
 
 
 @router.post("/admin/omens", status_code=201)

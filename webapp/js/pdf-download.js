@@ -34,9 +34,15 @@ window.PdfDownload = (function () {
       var blob = await res.blob();
       var cd = res.headers.get("Content-Disposition") || "";
       var m = /filename="([^"]+)"/.exec(cd);
+      var name = m ? m[1] : "muhurtham.pdf";
+      // opts.share: open the phone's share sheet when it can take a file (js/panchang-share.js).
+      if (opts.share && typeof shareOrDownload === "function") {
+        await shareOrDownload(blob, name, opts.title);
+        return;
+      }
       var url = URL.createObjectURL(blob);
       var a = document.createElement("a");
-      a.href = url; a.download = m ? m[1] : "muhurtham.pdf";
+      a.href = url; a.download = name;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
     } catch (e) {

@@ -455,6 +455,7 @@ async function runPitruCalendar(loc) {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
     renderPitruCalendar(mode, await res.json());
+    lastToolSearch = { kind: "pitru", request: body };
   } catch (e) {
     console.error("Pitru calendar failed:", e);
     setStatus(T(`Couldn't work out the dates: ${e.message}`, `తేదీలు లెక్కించలేకపోయాం: ${e.message}`), true);
@@ -536,6 +537,7 @@ async function runYogaSearch(loc) {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
     renderYogaResults(await res.json());
+    lastToolSearch = { kind: "yogas", request: body };
   } catch (e) {
     console.error("Yoga search failed:", e);
     setStatus(T(`Search failed: ${e.message}`, `శోధన విఫలమైంది: ${e.message}`), true);
@@ -598,6 +600,7 @@ function buildD1ChartHTML(d1Array, centerLabel) {
 // ---- Main Search ----
 let lastData = null;
 let lastRequest = null;   // the payload of the last search, for "Save" (plan R3)
+let lastToolSearch = null; // { kind: "yogas" | "pitru", request } when those results are on screen (plan F2)
 
 async function findMuhurtas() {
   const startDate = el("startDate").value;
@@ -608,6 +611,7 @@ async function findMuhurtas() {
   }
   const lat = chosenPlace.lat, lon = chosenPlace.lon, tz_offset = chosenPlace.tz_offset, place_name = chosenPlace.label;
 
+  lastToolSearch = null;    // set again once a yoga or shraddha search succeeds
   if (currentCategory === "yogas") {
     return runYogaSearch({ lat, lon, tz_offset, place_name, startDate, days });
   }
@@ -1620,16 +1624,42 @@ function requestForSaving() {
   return req;
 }
 
+const PITRU_MODE_NAMES = { annual: ["Yearly shraddha", "వార్షిక శ్రాద్ధం"], after_death: ["Rites after a death", "మరణానంతర కర్మలు"],
+                           shannavati: ["96 shraddha days", "96 శ్రాద్ధ దినాలు"] };
+
+// Special Yogas / Shraddha calendar results on screen (plan F2): what to save, and its name.
+// A death date is personal, so it is saved only when the person says yes.
+function toolSearchForSaving() {
+  const req = JSON.parse(JSON.stringify(lastToolSearch.request));
+  if (lastToolSearch.kind === "yogas") {
+    return { kind: "yogas", request: req,
+             label: [T("Special yogas", "విశేష యోగాలు"), T(`from ${req.start_date}`, `${req.start_date} నుండి`), req.place_name].filter(Boolean).join(" · ") };
+  }
+  const m = PITRU_MODE_NAMES[req.mode] || [req.mode, req.mode];
+  if (req.death_date && !confirm(T("Also save the date and time of death? If you choose Cancel, it is not saved and you enter it again when you run this search.",
+                                   "మరణ తేదీ, సమయం కూడా భద్రపరచాలా? రద్దు చేస్తే అవి భద్రపరచబడవు; మళ్లీ శోధించినప్పుడు మళ్లీ నమోదు చేయాలి."))) {
+    delete req.death_date;
+    delete req.death_time;
+  }
+  return { kind: "pitru", request: req,
+           label: [T(m[0], m[1]), req.mode === "shannavati" ? String(req.year) : "", req.place_name].filter(Boolean).join(" · ") };
+}
+
 async function saveSearch(btn, withWindow) {
-  const req = requestForSaving();
-  if (!req) { alert(T("Run a search first.", "ముందు శోధించండి.")); return; }
-  const r = withWindow ? lastData?.results?.[openDayIdx] : null;
-  const label = [eventTitle(), r ? r.date + (r.window_start ? " " + String(r.window_start).slice(0, 5) : "") : T(`from ${req.start_date}`, `${req.start_date} నుండి`),
-                 req.place_name].filter(Boolean).join(" · ");
+  let kind = "muhurta", req, label, r = null;
+  if (lastToolSearch && !withWindow) {
+    ({ kind, request: req, label } = toolSearchForSaving());
+  } else {
+    req = requestForSaving();
+    if (!req) { alert(T("Run a search first.", "ముందు శోధించండి.")); return; }
+    r = withWindow ? lastData?.results?.[openDayIdx] : null;
+    label = [eventTitle(), r ? r.date + (r.window_start ? " " + String(r.window_start).slice(0, 5) : "") : T(`from ${req.start_date}`, `${req.start_date} నుండి`),
+             req.place_name].filter(Boolean).join(" · ");
+  }
   btn.disabled = true;
   try {
     const res = await fetch(`${API_BASE}/me/saved`, { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kind: "muhurta", label: label.slice(0, 120), request: req, chosen_window: r || null }) });
+      body: JSON.stringify({ kind, label: label.slice(0, 120), request: req, chosen_window: r || null }) });
     const d = await res.json().catch(() => null);
     if (!res.ok) throw new Error((d && typeof d.detail === "string" && d.detail) || `HTTP ${res.status}`);
     alert(T(`Saved as "${d.label}". Find it under My muhurtas.`, `"${d.label}" గా భద్రపరిచాము. 'నా ముహూర్తాలు'లో చూడండి.`));
@@ -1649,6 +1679,7 @@ async function openSavedSearch(id) {
     const d = await res.json().catch(() => null);
     if (!res.ok) throw new Error((d && typeof d.detail === "string" && d.detail) || `HTTP ${res.status}`);
     const req = d.request || {};
+    if (d.kind === "yogas" || d.kind === "pitru") return await openSavedToolSearch(d);
     const rule = allMuhurtaRules.find(x => x.id === req.activity_id);
     if (!rule) throw new Error(T("This muhurta is not available now.", "ఈ ముహూర్తం ఇప్పుడు అందుబాటులో లేదు."));
     (req.participants || []).forEach(p => {
@@ -1668,6 +1699,43 @@ async function openSavedSearch(id) {
     setStatus(T(`Opened "${d.label}".`, `"${d.label}" తెరిచాము.`) + (d.engine_changed ? " " + T("The app has been updated since you saved this, so results may differ.", "భద్రపరిచిన తర్వాత యాప్ నవీకరించబడింది; ఫలితాలు మారవచ్చు.") : ""));
     findMuhurtas();
   } catch (e) { setStatus(T("Couldn't open the saved muhurta: ", "భద్రపరిచిన ముహూర్తం తెరవలేకపోయాము: ") + e.message, true); }
+}
+
+// A saved Special Yogas or Shraddha calendar search (plan F2): fill its tab and run it again.
+async function openSavedToolSearch(d) {
+  const req = d.request || {};
+  const opened = T(`Opened "${d.label}".`, `"${d.label}" తెరిచాము.`) +
+    (d.engine_changed ? " " + T("The app has been updated since you saved this, so results may differ.", "భద్రపరిచిన తర్వాత యాప్ నవీకరించబడింది; ఫలితాలు మారవచ్చు.") : "");
+  if (req.lat != null && req.lon != null) setPlace({ label: req.place_name || "", lat: req.lat, lon: req.lon, tz_offset: req.tz_offset }, false);
+  if (d.kind === "yogas") {
+    onCategoryChange("yogas");
+    await renderYogaPanel();
+    const tick = (box, ids) => document.querySelectorAll(`${box} input[type=checkbox]`).forEach(i => { i.checked = (ids || []).includes(i.value); });
+    tick("#mfYogaList", req.yogas);
+    tick("#mfCondList", req.conditions);
+    if (el("mfYogaNak")) el("mfYogaNak").value = req.janma_nak_idx || "";
+    if (el("mfYogaRasi")) el("mfYogaRasi").value = req.janma_rasi_idx || "";
+    if (req.start_date) el("startDate").value = req.start_date;
+    if (req.days_to_scan) el("daysInput").value = req.days_to_scan;
+    setStatus(opened);
+    return findMuhurtas();
+  }
+  onCategoryChange("pitru");
+  if (el("mfPitruTabCal")?.hidden) throw new Error(T("The shraddha calendar is not available now.", "శ్రాద్ధ పంచాంగం ఇప్పుడు అందుబాటులో లేదు."));
+  setPitruMode(true);
+  el("mfPitruMode").value = req.mode;
+  updatePitruFields();
+  el("mfPitruDeathDate").value = req.death_date || "";
+  el("mfPitruDeathTime").value = req.death_time || "";
+  if (req.years) el("mfPitruYears").value = req.years;
+  if (req.year) el("mfPitruYear").value = req.year;
+  if (req.mode !== "shannavati" && !req.death_date) {
+    setStatus(opened + " " + T("The date of death was not saved: enter it and press Search.", "మరణ తేదీ భద్రపరచలేదు: నమోదు చేసి శోధించండి."));
+    el("mfPitruDeathDate").focus();
+    return;
+  }
+  setStatus(opened);
+  return findMuhurtas();
 }
 
 // ---- Dosha audit banner (plan B1): "0 of 21 mahadoshas · 0 of 10 dashavidha doshas" ----

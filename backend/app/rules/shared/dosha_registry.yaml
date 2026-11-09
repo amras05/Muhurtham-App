@@ -1,0 +1,118 @@
+# One rule record per dosha (plan B2): the 21 mahadoshas and the 10 dashavidha doshas the
+# audit checks for every muhurta window. The engine (engines/doshas.py) does the judging; this
+# file says what each check is, where it applies, what it needs, and where the book gives it.
+#
+#   id        the engine's dosha id (each audit row carries it; the loader warns on a mismatch)
+#   scope     where it applies
+#   severity  fatal = never allowed (Dr. Nemani, 9 Nov 2026: all 21 mahadoshas, every event);
+#             dashavidha = blocks marriage, shown as information elsewhere, and is excepted when
+#             Jupiter is in the muhurta lagna
+#   inputs    what the check reads
+#   book_id   stable id for the book passage; provisional until B3 maps main.docx
+#   status    evaluated | needs_person (needs a person's janma details) | to_confirm (shown, does
+#             not block, until the author confirms) | awaiting_author (the book's data is missing)
+#   question  the question number in the questionnaire for Dr. Nemani, where one is open
+#
+# Events that switch the 21 off entirely (mahadoshas_21: false in their rule file): asthisanchayana,
+# abhyanga, sapindikarana, nutana_vadhu_pravesha, demolition.
+
+mahadoshas:
+  - {number: 1, id: panchanga_shuddhi_heenamu, name_en: Panchanga Shuddhi-hina, name_te: పంచాంగ శుద్ధిహీనము,
+     scope: all events, severity: fatal, status: evaluated, book_id: P2-MD-01,
+     inputs: "the event's tithi, vara, nakshatra, yoga and karana rules; the day's panchang"}
+  - {number: 2, id: sankranti_ahassu, name_en: Sankranti Ahas, name_te: సంక్రాంతి అహస్సు,
+     scope: all events, severity: fatal, status: evaluated, book_id: P2-MD-02,
+     inputs: "the time of the Sun's entry into a sign, and the ghati limit around it"}
+  - {number: 3, id: papa_shadvargamu, name_en: Papa Shadvarga, name_te: పాప షడ్వర్గము,
+     scope: all events, severity: fatal, status: to_confirm, question: "3", book_id: P2-MD-03,
+     inputs: "the lagna degree and the lords of its six vargas (rashi, hora, drekkana, navamsa, dwadashamsa, trimshamsa)"}
+  - {number: 4, id: kunavamshamu, name_en: Kunavamsa, name_te: కునవాంశము,
+     scope: marriage only, severity: fatal, status: evaluated, book_id: P2-MD-04,
+     inputs: "the lagna navamsa and its lord"}
+  - {number: 5, id: kujashtamamu, name_en: Kujashtama, name_te: కుజాష్టమము,
+     scope: all events, severity: fatal, status: evaluated, book_id: P2-MD-05,
+     inputs: "Mars's house from the muhurta lagna (8th)"}
+  - {number: 6, id: bhrigu_shashtamu, name_en: Bhrigu Shashta, name_te: భృగుషష్టము,
+     scope: all events, severity: fatal, status: evaluated, book_id: P2-MD-06,
+     inputs: "Venus's house from the muhurta lagna (6th)"}
+  - {number: 7, id: kartari_dosham, name_en: Kartari, name_te: కర్తరి దోషము,
+     scope: "gala kartari for all events; Agni and Surya kartari only where the event's rule asks", severity: fatal,
+     status: evaluated, book_id: P2-MD-07,
+     inputs: "planets in the 12th and 2nd and whether they are retrograde; the Sun's nakshatra"}
+  - {number: 8, id: lagnashtamamu, name_en: Lagnashtama, name_te: లగ్నాష్టమము,
+     scope: all events, severity: fatal, status: needs_person, book_id: P2-MD-08,
+     inputs: "the muhurta lagna and each person's janma lagna or janma rashi; lord friendship for the exception"}
+  - {number: 9, id: ashtama_chandrudu, name_en: Chandrashtama, name_te: చంద్రాష్టమము,
+     scope: all events, severity: fatal, status: needs_person, book_id: P2-MD-09,
+     inputs: "the Moon's sign and each person's janma rashi"}
+  - {number: 10, id: shashtashta_rihpha_chandra, name_en: "Shashtashtarishpha Chandra", name_te: "షష్టాష్టరిఃఫ చంద్రుడు",
+     scope: all events, severity: fatal, status: evaluated, book_id: P2-MD-10,
+     inputs: "the Moon's house from the muhurta lagna (6th, 8th or 12th)"}
+  - {number: 11, id: sagraha_chandrudu, name_en: Sagraha Chandra, name_te: సగ్రహ చంద్రుడు,
+     scope: "all events; for marriage the Moon must also not be in the 7th", severity: fatal, status: evaluated,
+     question: "3a", book_id: P2-MD-11,
+     inputs: "planets in the Moon's sign; the Moon's house for marriage"}
+  - {number: 12, id: vaara_durmuhurtam, name_en: "Vara-janita Durmuhurta", name_te: "వారజనిత దుర్ముహూర్తము",
+     scope: all events, severity: fatal, status: evaluated, book_id: P2-MD-12,
+     inputs: "the weekday's durmuhurta times and the lagna window"}
+  - {number: 13, id: kharjurika_ekargala, name_en: "Kharjurika (Ekargala)", name_te: "ఖార్జూరిక (ఏకార్గళ)",
+     scope: all events, severity: fatal, status: evaluated, book_id: P2-MD-13,
+     inputs: "the running yoga (one of the nine doshic yogas) and the count from the Sun's nakshatra to the Moon's; Method A only, Method B figure awaited"}
+  - {number: 14, id: grahanamulu, name_en: Grahana, name_te: గ్రహణములు,
+     scope: all events, severity: fatal, status: evaluated, book_id: P2-MD-14,
+     inputs: "eclipses near the date and the eclipse nakshatra (6 months)"}
+  - {number: 15, id: utpatamulu, name_en: Utpata, name_te: ఉత్పాతములు,
+     scope: "all events; an omen recorded for a state applies only to places in that state", severity: fatal,
+     status: evaluated, book_id: P2-MD-15,
+     inputs: "the omen calendar admins keep; the place's state (OpenStreetMap)"}
+  - {number: 16, id: krura_yurdhishnyamu, name_en: Krura Yugdhishnya, name_te: క్రూర యుగ్ధిష్ణ్యము,
+     scope: all events, severity: fatal, status: evaluated, question: "3a", book_id: P2-MD-16,
+     inputs: "the Moon's nakshatra and malefics in, just behind or just ahead of it (dhumita and the rest)"}
+  - {number: 17, id: ashubha_vedha, name_en: Ashubha Viddha (Vedha), name_te: అశుభవిద్ధము,
+     scope: all events, severity: fatal, status: awaiting_author, question: "16", book_id: P2-MD-17,
+     inputs: "the shalaka (vedha) chakra, which the book does not give"}
+  - {number: 18, id: vishayuta_lagnamu, name_en: Vishayuta Lagna, name_te: విషయుత లగ్నము,
+     scope: all events, severity: fatal, status: evaluated, book_id: P2-MD-18,
+     inputs: "varjyam times and the lagna window"}
+  - {number: 19, id: lagnastra_dosham, name_en: Lagnasta (Astamsa), name_te: లగ్నాస్త దోషము,
+     scope: marriage only, severity: fatal, status: evaluated, book_id: P2-MD-19,
+     inputs: "the astamsa (7th from the lagna navamsa), malefics there, and the lagna lord"}
+  - {number: 20, id: gandantam, name_en: Gandanta, name_te: గండాంతము,
+     scope: all events, severity: fatal, status: evaluated, question: "3a", book_id: P2-MD-20,
+     inputs: "lagna, nakshatra and tithi junctions"}
+  - {number: 21, id: vyatipata_vaidhriti, name_en: Vyatipata and Vaidhriti, name_te: వ్యతీపాత వైధృతి యోగములు,
+     scope: "all events; all nine doshic yogas for marriage and samskaras", severity: fatal, status: evaluated,
+     book_id: P2-MD-21,
+     inputs: "the yoga running at the time"}
+
+dashavidha:
+  - {number: 1, id: latta_dosham, name_en: "Latta", name_te: "లత్తా దోషము",
+     scope: all events, severity: dashavidha, status: evaluated, book_id: P2-DV-01,
+     inputs: "planets kicking the Moon's nakshatra"}
+  - {number: 2, id: pata_dosham, name_en: "Pata (Chandayudha)", name_te: "పాత దోషము",
+     scope: all events, severity: dashavidha, status: evaluated, book_id: P2-DV-02,
+     inputs: "the Sun's nakshatra and the pata-afflicted nakshatras it gives (Narada / Vasishtha)"}
+  - {number: 3, id: yuti_dosham, name_en: "Yuti", name_te: "యుతి దోషము",
+     scope: all events, severity: dashavidha, status: evaluated, book_id: P2-DV-03,
+     inputs: "planets in the Moon's sign (same as Mahadosha 11)"}
+  - {number: 4, id: vedha_dosham, name_en: "Vedha", name_te: "వేధ దోషము",
+     scope: all events, severity: dashavidha, status: awaiting_author, question: "16", book_id: P2-DV-04,
+     inputs: "the shalaka (vedha) chakra (same as Mahadosha 17)"}
+  - {number: 5, id: jamitra_dosham, name_en: "Jamitra", name_te: "జామిత్ర దోషము",
+     scope: all events, severity: dashavidha, status: evaluated, book_id: P2-DV-05,
+     inputs: "planets in the 7th from the lagna and from the Moon"}
+  - {number: 6, id: mritya_panchaka_dosham, name_en: "Mrita Panchaka", name_te: "మృత పంచక దోషము",
+     scope: all events, severity: dashavidha, status: evaluated, book_id: P2-DV-06,
+     inputs: "the Sun's degree in its sign (1st, 10th, 19th or 28th)"}
+  - {number: 7, id: ekargala_dosham, name_en: "Ekargala", name_te: "ఏకార్గళ దోషము",
+     scope: all events, severity: dashavidha, status: evaluated, book_id: P2-DV-07,
+     inputs: "same as Mahadosha 13"}
+  - {number: 8, id: upagraha_dosham, name_en: "Upagraha", name_te: "ఉపగ్రహ దోషము",
+     scope: all events, severity: dashavidha, status: evaluated, book_id: P2-DV-08,
+     inputs: "the count from the Sun's nakshatra to the Moon's"}
+  - {number: 9, id: kranti_samya_dosham, name_en: "Kranti Samya", name_te: "క్రాంతి సామ్య దోషము",
+     scope: all events, severity: dashavidha, status: evaluated, book_id: P2-DV-09,
+     inputs: "the signs of the Sun and the Moon"}
+  - {number: 10, id: dagdha_tithi_dosham, name_en: "Dagdha Tithi", name_te: "దగ్ధ తిథి దోషము",
+     scope: all events, severity: dashavidha, status: evaluated, book_id: P2-DV-10,
+     inputs: "the Sun's sign and the tithi it makes dagdha"}

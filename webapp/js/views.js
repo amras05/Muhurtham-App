@@ -96,6 +96,25 @@ var Views = (function () {
       KS("నిషిద్ధ సమయాలు / పనులు", "Activities to Avoid", '<div id="vAvoidActivities" class="list-body"></div>') +
     "</div>";
 
+  // ---- Day / Month tabs (the place and date form above is shared) -----------
+  var viewTabs =
+    '<div class="pview-tabs tab-container" role="tablist" aria-label="Panchang view">' +
+      '<button type="button" class="pview-tab active" id="tabDayBtn" role="tab" aria-selected="true" aria-controls="dayView" data-en="Day" data-te="రోజు">Day</button>' +
+      '<button type="button" class="pview-tab" id="tabMonthBtn" role="tab" aria-selected="false" aria-controls="monthView" data-en="Month" data-te="నెల">Month</button>' +
+    "</div>";
+
+  var monthView =
+    '<div id="monthView" role="tabpanel" aria-labelledby="tabMonthBtn" hidden>' +
+      '<div class="month-head">' +
+        '<button type="button" class="month-nav" id="monthPrev" aria-label="Previous month">‹</button>' +
+        '<div class="month-head__title"><h2 id="monthTitle">—</h2><div class="month-head__sub" id="monthSub"></div></div>' +
+        '<button type="button" class="month-nav" id="monthNext" aria-label="Next month">›</button>' +
+      "</div>" +
+      '<div class="month-cal" id="monthCal"></div>' +
+      '<p class="month-hint" data-en="Tap a date to see its panchang. Tithi and nakshatra are the ones at sunrise." data-te="పంచాంగం చూడటానికి తేదీని నొక్కండి. తిథి, నక్షత్రం సూర్యోదయం నాటివి.">Tap a date to see its panchang. Tithi and nakshatra are the ones at sunrise.</p>' +
+      '<section id="monthDayDetail" class="month-detail" aria-live="polite" hidden></section>' +
+    "</div>";
+
   var taskLauncher =
     '<section class="task-launcher" aria-label="Choose a task">' +
       '<p class="task-launcher__intro">Choose the task you want to complete.</p>' +
@@ -116,7 +135,9 @@ var Views = (function () {
       '<div class="app-shell"><div class="wrap">' +
         shellNav +
         '<header id="appHeader">' + header + "</header>" +
-        '<section id="tabPanchangContent">' + panchangForm + panchangResults + taskLauncher + "</section>" +
+        '<section id="tabPanchangContent">' + panchangForm + viewTabs +
+          '<div id="dayView" role="tabpanel" aria-labelledby="tabDayBtn">' + panchangResults + "</div>" +
+          monthView + taskLauncher + "</section>" +
         footer +
       "</div></div>"
     );

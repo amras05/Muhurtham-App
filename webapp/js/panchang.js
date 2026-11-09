@@ -2,23 +2,20 @@
 // Muhurtham App · component: panchang lookup panel
 // ============================================================
 
-async function getPanchang() {
+// The place chosen on the Panchang page (a region, or a searched place), shared by the
+// Day and Month tabs. Returns { lat, lon, tz_offset, place_name }, or null after showing why.
+async function resolvePanchangPlace() {
   const regionId = el("regionSelect").value;
-  const date = el("dateInput").value;
-  if (!regionId || !date) {
-    setStatus("Pick a region and a date first.", true);
-    return;
+  if (!regionId) {
+    setStatus("Pick a region first.", true);
+    return null;
   }
-
-  let lat, lon, tz_offset, place_name;
-
   if (regionId === "custom") {
     const query = el("customPlaceInput").value.trim();
     if (!query) {
       setStatus("Please enter a place name to search.", true);
-      return;
+      return null;
     }
-    el("goButton").disabled = true;
     setStatus("Geocoding custom location...");
     try {
       const geoRes = await fetch(`${API_BASE}/geocode?place=${encodeURIComponent(query)}`);
@@ -27,28 +24,34 @@ async function getPanchang() {
         throw new Error(text || `Geocoding failed with HTTP ${geoRes.status}`);
       }
       const geo = await geoRes.json();
-      lat = geo.lat;
-      lon = geo.lon;
-      tz_offset = geo.tz_offset;
-      place_name = geo.label;
+      return { lat: geo.lat, lon: geo.lon, tz_offset: geo.tz_offset, place_name: geo.label };
     } catch (e) {
       setStatus(`Geocoding error: ${e.message}`, true);
-      el("goButton").disabled = false;
-      return;
+      return null;
     }
-  } else {
-    const r = allRegions.find(x => x.id === regionId);
-    if (!r) {
-      setStatus("Selected region not found.", true);
-      return;
-    }
-    lat = r.lat;
-    lon = r.lon;
-    tz_offset = r.tz_offset;
-    place_name = r.label;
+  }
+  const r = allRegions.find(x => x.id === regionId);
+  if (!r) {
+    setStatus("Selected region not found.", true);
+    return null;
+  }
+  return { lat: r.lat, lon: r.lon, tz_offset: r.tz_offset, place_name: r.label };
+}
+
+async function getPanchang() {
+  const date = el("dateInput").value;
+  if (!el("regionSelect").value || !date) {
+    setStatus("Pick a region and a date first.", true);
+    return;
   }
 
   el("goButton").disabled = true;
+  const place = await resolvePanchangPlace();
+  if (!place) {
+    el("goButton").disabled = false;
+    return;
+  }
+  const { lat, lon, tz_offset, place_name } = place;
   setStatus("Fetching panchang & activities…");
   el("results").style.display = "none";
 

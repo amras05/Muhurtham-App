@@ -11,12 +11,23 @@
     return data;
   }
   var items = [], catalog = {};
+  // Special Yogas and Shraddha calendar searches (plan F2) have no event; name them by tool.
+  var PITRU = { annual: ["Shraddha calendar: yearly shraddha", "శ్రాద్ధ పంచాంగం: వార్షిక శ్రాద్ధం"],
+                after_death: ["Shraddha calendar: rites after a death", "శ్రాద్ధ పంచాంగం: మరణానంతర కర్మలు"],
+                shannavati: ["Shraddha calendar: 96 shraddha days", "శ్రాద్ధ పంచాంగం: 96 శ్రాద్ధ దినాలు"] };
+  function whatOf(s) {
+    if (s.kind === "yogas") return tr("Special yogas", "విశేష యోగాలు");
+    if (s.kind === "pitru") { var p = PITRU[(s.summary || {}).mode]; return p ? tr(p[0], p[1]) : tr("Shraddha calendar", "శ్రాద్ధ పంచాంగం"); }
+    var r = catalog[s.activity_id];
+    return r ? tr(r.title_en, r.title_te || r.title_en) : s.activity_id;
+  }
 
   function render() {
     $("svList").innerHTML = items.length ? items.map(function (s) {
-      var r = catalog[s.activity_id], sum = s.summary || {}, w = s.chosen_window;
-      var what = r ? tr(r.title_en, r.title_te || r.title_en) : s.activity_id;
-      var line = [sum.place_name, sum.start_date ? tr("from ", "") + sum.start_date + tr("", " నుండి") : "", sum.days_to_scan ? sum.days_to_scan + tr(" days", " రోజులు") : ""].filter(Boolean).join(" · ");
+      var sum = s.summary || {}, w = s.chosen_window;
+      var what = whatOf(s);
+      var line = [sum.place_name, sum.start_date ? tr("from ", "") + sum.start_date + tr("", " నుండి") : "", sum.days_to_scan ? sum.days_to_scan + tr(" days", " రోజులు") : "",
+                  s.kind === "pitru" && sum.mode === "shannavati" && sum.year ? String(sum.year) : ""].filter(Boolean).join(" · ");
       var win = w ? tr("Chosen: ", "ఎంచుకున్నది: ") + [w.date, (w.window_start || w.start_time || "") + ((w.window_end || w.end_time) ? "–" + (w.window_end || w.end_time) : ""),
                     w.percentage != null ? w.percentage + "%" : ""].filter(Boolean).join(" · ") : "";
       return '<li data-id="' + esc(s.id) + '"><div><span><button type="button" class="sv-star" data-star="' + esc(s.id) + '" aria-pressed="' + s.is_favourite + '" aria-label="' +
@@ -27,8 +38,8 @@
         '<div class="acts"><a class="btn btn--sm" href="muhurta-finder.html?saved=' + encodeURIComponent(s.id) + '">' + tr("Run again", "మళ్లీ శోధించండి") + "</a>" +
         '<button type="button" class="btn btn--sm btn--ghost" data-rename="' + esc(s.id) + '">' + tr("Rename", "పేరు మార్చండి") + "</button>" +
         '<button type="button" class="btn btn--sm btn--ghost" data-del="' + esc(s.id) + '">' + tr("Delete", "తొలగించండి") + "</button></div></li>";
-    }).join("") : '<li class="portal-hint">' + tr("Nothing saved yet. In the Muhurta Finder, use \"Save this search\" or \"Save this muhurta\".",
-                                                    "ఇంకా ఏమీ భద్రపరచలేదు. ముహూర్త శోధనలో 'ఈ శోధన భద్రపరచండి' లేదా 'ఈ ముహూర్తం భద్రపరచండి' వాడండి.") + "</li>";
+    }).join("") : '<li class="portal-hint">' + tr("Nothing saved yet. In the Muhurta Finder (also Special Yogas and the Shraddha calendar), use \"Save this search\" or \"Save this muhurta\".",
+                                                    "ఇంకా ఏమీ భద్రపరచలేదు. ముహూర్త శోధనలో (విశేష యోగాలు, శ్రాద్ధ పంచాంగం కూడా) 'ఈ శోధన భద్రపరచండి' లేదా 'ఈ ముహూర్తం భద్రపరచండి' వాడండి.") + "</li>";
   }
 
   async function load() {

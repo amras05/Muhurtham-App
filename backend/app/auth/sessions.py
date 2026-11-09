@@ -108,6 +108,17 @@ def rotate_refresh(refresh_token: str) -> Optional[Tuple[str, str, str]]:
     return row.uid, row.sid, new_refresh
 
 
+def refresh_just_swapped(refresh_token: str) -> bool:
+    """After rotate_refresh refused a token: True when another tab swapped it in the last 60 seconds.
+    The browser already holds that tab's new cookies, so they must not be cleared (plan F2)."""
+    if not refresh_token:
+        return False
+    with app_engine().connect() as c:
+        return c.execute(text("""SELECT 1 FROM app.sessions WHERE previous_refresh_hash = :h AND revoked_at IS NULL
+                                 AND last_used_at > now() - interval '60 seconds'"""),
+                         {"h": _hash(refresh_token)}).first() is not None
+
+
 def session_is_active(session_id: Any, user_id: str) -> bool:
     if not _is_uuid(session_id):
         return False
