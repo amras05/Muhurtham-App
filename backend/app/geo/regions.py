@@ -102,26 +102,82 @@ def geocode_place_name(place_name: str, for_date=None) -> dict:
     }
 
 
+# ── OpenStreetMap search and "my current town" (plan: location from OSM, 9 Nov 2026) ────────────
+import functools
+import logging
+
+_log = logging.getLogger("muhurtham.geo")
+NOMINATIM_REVERSE_URL = NOMINATIM_URL.replace("/search", "/reverse")
+
+
+def _tz_for(lat: float, lon: float) -> dict:
+    """IANA zone and today's UTC offset for a point (daylight saving included)."""
+    import datetime as dt
+    from timezonefinder import TimezoneFinder
+    from zoneinfo import ZoneInfo
+    name = TimezoneFinder().timezone_at(lat=lat, lng=lon) or "UTC"
+    off = dt.datetime.now(ZoneInfo(name)).utcoffset().total_seconds() / 3600.0
+    return {"tz_name": name, "tz_offset": off}
+
+
+def _short_label(item: dict) -> str:
+    """'Gajuwaka, Visakhapatnam, Andhra Pradesh' instead of the full OSM display name."""
+    a = item.get("address") or {}
+    clean = lambda v: (v or "").replace(" District", "").replace(" Mandal", "").strip() or None   # noqa: E731
+    local = clean(a.get("suburb") or a.get("town") or a.get("village") or a.get("city") or a.get("hamlet"))
+    area = clean(a.get("state_district") or a.get("city") or a.get("county"))
+    abroad = a.get("country_code") not in (None, "in")
+    parts = []
+    for p in (local, area, a.get("state"), a.get("country") if abroad else None):
+        if p and p not in parts:
+            parts.append(p)
+    return ", ".join(parts) or item.get("display_name", "")
+
+
+@functools.lru_cache(maxsize=512)
+def _search_cached(query: str) -> tuple:
+    resp = requests.get(NOMINATIM_URL, params={"q": query, "format": "json", "limit": 10, "addressdetails": 1},
+                        headers=NOMINATIM_HEADERS, timeout=6)
+    resp.raise_for_status()
+    # Only real places (towns, cities, suburbs, districts), most important first: a shop or a
+    # university with the same words in its name is not an event location.
+    places = [i for i in resp.json() if i.get("class") in ("place", "boundary")]
+    places.sort(key=lambda i: -float(i.get("importance") or 0))
+    out, seen = [], set()
+    for item in places[:8]:
+        lat, lon = float(item["lat"]), float(item["lon"])
+        label = _short_label(item)
+        if label in seen:
+            continue
+        seen.add(label)
+        out.append({"label": label, "full_label": item.get("display_name", ""), "lat": lat, "lon": lon, **_tz_for(lat, lon)})
+    return tuple(out[:6])
+
+
 def get_geocode_suggestions(query: str) -> list:
-    """Get geocoding suggestions from Nominatim."""
-    if len(query) < 3:
+    """OpenStreetMap places matching the text, each with its time zone. Empty list if OSM can't be reached."""
+    q = (query or "").strip()
+    if len(q) < 3:
         return []
     try:
-        resp = requests.get(
-            NOMINATIM_URL,
-            params={"q": query, "format": "json", "limit": 5},
-            headers=NOMINATIM_HEADERS,
-            timeout=5,
-        )
-        resp.raise_for_status()
-        results = resp.json()
-        return [
-            {
-                "label": item.get("display_name", ""),
-                "lat": float(item["lat"]),
-                "lon": float(item["lon"]),
-            }
-            for item in results
-        ]
-    except Exception:
+        return list(_search_cached(q.lower()))
+    except Exception as ex:
+        _log.warning("Place search failed (%s): OpenStreetMap unreachable or refused", type(ex).__name__)
         return []
+
+
+@functools.lru_cache(maxsize=1024)
+def _reverse_cached(lat: float, lon: float) -> dict:
+    resp = requests.get(NOMINATIM_REVERSE_URL, params={"lat": lat, "lon": lon, "format": "json", "zoom": 14, "addressdetails": 1},
+                        headers=NOMINATIM_HEADERS, timeout=6)
+    resp.raise_for_status()
+    item = resp.json()
+    if not item or "error" in item:
+        raise ValueError("No place found at these coordinates")
+    return {"label": _short_label(item), "full_label": item.get("display_name", ""), "lat": lat, "lon": lon, **_tz_for(lat, lon)}
+
+
+def reverse_geocode(lat: float, lon: float) -> dict:
+    """The town or suburb at a point (e.g. Gajuwaka). Coordinates are rounded to about 1 km first,
+    so the exact position is never sent to OpenStreetMap or kept."""
+    return _reverse_cached(round(lat, 2), round(lon, 2))

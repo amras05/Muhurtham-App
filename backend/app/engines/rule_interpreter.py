@@ -424,6 +424,70 @@ def _planet_rule_check(key, in_h, not_in_h, not_signs, planets, moon_waxing,
 RITU_NIGHTS = set(range(4, 17)) - {11, 13}      # classical garbhadhana nights (plan R6b; to be confirmed)
 
 
+# ── Dr. Nemani's rulings (plan B1, 9 Nov 2026) ─────────────────────────────────────
+# 1. The 21 mahadoshas are never allowed, for any event: a failed one is always fatal and no
+#    category exemption softens it (Strict drops the window; Lenient shows it only as "why not").
+# 2. Other doshas are allowed when Jupiter is in the muhurta lagna: a failed dashavidha dosha is
+#    then "excepted". Whether this also covers the extra checks and doshic yogas, and whether a
+#    combust or debilitated Jupiter still counts, is still to be confirmed by him.
+AUTHOR_NOTE_EN = "Excepted: Jupiter is in the muhurta lagna (Dr. Nemani's ruling)."
+# Option A (9 Nov 2026): checks whose coded reading may be broader than the book. They are shown as
+# "To be confirmed" but do not block a window or count as a mahadosha until Dr. Nemani confirms.
+TO_CONFIRM = {"papa_shadvargamu": ("To be confirmed by Dr. Nemani: our reading fails if any one of the six varga lords is weak.",
+                                   "డా. నేమాని గారు నిర్ధారించాలి: ఆరు వర్గాధిపతుల్లో ఒక్కరు బలహీనంగా ఉన్నా దోషంగా తీసుకున్నాము.")}
+AUTHOR_NOTE_TE = "మినహాయింపు: ముహూర్త లగ్నంలో గురుడు ఉన్నాడు (డా. నేమాని గారి నిర్ణయం)."
+
+
+def apply_author_severity(maha: List[Dict[str, Any]], dashavidha: List[Dict[str, Any]], lagna: LagnaWindow):
+    jupiter = any(p.name_en == "Jupiter" for p in (lagna.house_planets or {}).get(1, []))
+    maha_out = []
+    for r in maha:
+        r = dict(r)
+        if r.get("status") == "fail" and r.get("id") in TO_CONFIRM:
+            r["status"], r["severity"] = "to_confirm", "info"
+            en, te = TO_CONFIRM[r["id"]]
+            r["desc_en"] = f"{r.get('desc_en') or ''} {en}".strip()
+            r["desc_te"] = f"{r.get('desc_te') or ''} {te}".strip()
+        elif r.get("status") == "fail":
+            r["severity"] = "fatal"
+            r.pop("exemption", None)          # no exemption for a mahadosha
+        maha_out.append(r)
+    dash_out = []
+    for r in dashavidha:
+        r = dict(r)
+        if r.get("status") == "fail" and jupiter:
+            r["status"] = "excepted"
+            r["severity"] = "info"
+            r["excepted_by"] = "jupiter_in_lagna"
+            for k, note in (("desc_en", AUTHOR_NOTE_EN), ("desc_te", AUTHOR_NOTE_TE)):
+                r[k] = f"{r.get(k) or ''} {note}".strip()
+        dash_out.append(r)
+    return maha_out, dash_out, jupiter
+
+
+def dosha_audit(maha: List[Dict[str, Any]], dashavidha: List[Dict[str, Any]], others: List[Dict[str, Any]],
+                jupiter_in_lagna: bool) -> Dict[str, Any]:
+    """The banner and colour: red = a mahadosha fails; amber = something excepted or a lesser dosha;
+    green = nothing failed."""
+    def count(rows, status):
+        return sum(1 for r in rows if r.get("status") == status)
+    maha_fail, dash_fail = count(maha, "fail"), count(dashavidha, "fail")
+    excepted = [r.get("name_en") for r in dashavidha if r.get("status") == "excepted"]
+    other_fail = count(others, "fail")
+    to_confirm = [r.get("name_en") for r in maha if r.get("status") == "to_confirm"]
+    colour = "red" if maha_fail else ("amber" if (dash_fail or excepted or other_fail or to_confirm) else "green")
+    return {
+        "colour": colour,
+        "mahadosha": {"total": 21, "failed": maha_fail, "not_evaluated": count(maha, "not_evaluated"), "checked": bool(maha)},
+        "dashavidha": {"total": 10, "failed": dash_fail, "excepted": len(excepted), "not_evaluated": count(dashavidha, "not_evaluated"),
+                       "checked": bool(dashavidha)},
+        "other_failed": other_fail,
+        "excepted": excepted,
+        "to_confirm": to_confirm,
+        "jupiter_in_lagna": jupiter_in_lagna,
+    }
+
+
 def lagna_for_window(lagna: LagnaWindow, start: datetime, end: datetime) -> LagnaWindow:
     """This lagna as seen by one window: pushkara navamsa only if the window overlaps an exact span (plan R6a)."""
     spans = [(max(a, start), min(b, end), nav) for a, b, nav in (lagna.pushkara_spans or []) if min(b, end) > max(a, start)]
@@ -1206,6 +1270,7 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     active_pids = [pr.get("id") for pr in pariharas if pr.get("id")]
     maha_doshas = apply_dosha_profile(maha_doshas, tab, rule.id, active_pids, not strict)
     dashavidha = apply_dosha_profile(dashavidha, tab, rule.id, active_pids, not strict)
+    maha_doshas, dashavidha, jupiter_in_lagna = apply_author_severity(maha_doshas, dashavidha, lagna)
     good_yogas, yoga_doshas, yoga_points = evaluate_yogas(vaara_idx, limbs.tithi, limbs.nakshatra, tab, rule.id)
     jd_mid = local_to_jd(mid_dt, tz_offset)
     day_sunrise = datetime(cur_date.year, cur_date.month, cur_date.day) + timedelta(
@@ -1223,6 +1288,8 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     checked += yoga_doshas + extra
     failed = [d for d in checked if d["status"] == "fail"]
     fatal = [d for d in failed if d["severity"] == "fatal"]
+    audit = dosha_audit(maha_doshas if common.mahadoshas_21 else [], dashavidha if common.dashavidha_10 else [],
+                        yoga_doshas + extra, jupiter_in_lagna)
     if strict and fatal:
         rejections[f"Fatal dosha: {fatal[0]['name_en'].split('. ', 1)[-1]}"] += 1
         return None
@@ -1334,7 +1401,8 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
         "panchang": cand_panchang,
         "d1_chart": d1_positions,
         "detailed_eval": detailed_eval,
-        "detail": detail,
+        "detail": {**detail, "audit": audit},
+        "audit": audit,
         "source": rule.source.model_dump(),
     }
 

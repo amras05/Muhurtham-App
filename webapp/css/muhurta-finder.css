@@ -993,3 +993,20 @@ button#findBtn:disabled {
 .results-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-bottom: 8px; }
 .tab-hidden-mark { font-size: 0.7rem; font-weight: 700; color: var(--color-danger, #a8322f); margin-left: 4px; }
 .field--family { margin-bottom: 8px; max-width: 26rem; }
+/* Dosha audit banner and "Excepted" lines (plan B1) */
+.audit-banner { padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; border: 1px solid; }
+.audit-banner--compact { padding: 4px 10px; font-size: 12px; margin-bottom: 8px; }
+.audit-banner--green { background: #e8f5e9; color: #1b5e20; border-color: #a5d6a7; }
+.audit-banner--amber { background: #fff8e1; color: #7a4f00; border-color: #ffe082; }
+.audit-banner--red   { background: #fdecea; color: #8e1b14; border-color: #f5c2bd; }
+.audit-banner__note { margin-top: 4px; font-size: 12px; }
+.dosha-item--excepted { border: 1px solid #ffe082; background: #fffdf5; }
+.dosha-item__badge--excepted { background: #fff8e1; color: #7a4f00; border: 1px solid #ffe082; }
+/* Location search (OpenStreetMap) */
+.place-search { display: flex; gap: 6px; }
+.place-search input { flex: 1; min-width: 0; }
+.place-search__list { position: absolute; z-index: 30; max-width: 26rem; }
+.place-search__note { display: block; color: #666; font-size: 12px; margin-top: 4px; }
+.field--location { position: relative; }
+.suggestion-item--empty { color: #777; cursor: default; }
+

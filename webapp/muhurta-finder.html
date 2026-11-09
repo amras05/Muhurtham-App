@@ -63,12 +63,18 @@
         <input type="date" id="startDate">
       </div>
       <div class="field field--location">
-        <label for="mfRegionSelect" data-en="Location" data-te="ప్రాంతం">Location</label>
-        <select id="mfRegionSelect"></select>
+        <label for="mfPlaceInput" data-en="Location" data-te="ప్రాంతం">Location</label>
+        <div class="place-search">
+          <input type="search" id="mfPlaceInput" autocomplete="off" placeholder="Search a town or city" aria-describedby="mfPlaceNote">
+          <button type="button" id="mfUseMyLocation" class="btn btn--sm btn--ghost" title="Use my current location" aria-label="Use my current location">📍</button>
+        </div>
+        <div id="mfPlaceList" class="suggestions-container place-search__list" role="listbox" hidden></div>
+        <small id="mfPlaceNote" class="place-search__note"></small>
+        <select id="mfRegionSelect" hidden aria-hidden="true"></select>
       </div>
       <div class="field field--days">
         <label for="daysInput" data-en="Days to Scan" data-te="శోధన రోజులు">Days to Scan</label>
-        <input type="number" id="daysInput" value="30" min="1" max="60">
+        <input type="number" id="daysInput" value="30" min="1" max="366" title="Up to one year (366 days)">
       </div>
       <div class="field field--strictness">
         <label for="mfStrictness" data-en="Strictness" data-te="నియమ కఠినత">Strictness</label>

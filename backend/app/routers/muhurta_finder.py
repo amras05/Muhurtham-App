@@ -53,7 +53,7 @@ class ParticipantIn(BaseModel):
 class MuhurtaFindRequest(BaseModel):
     activity_id: str = Field(..., description="Unique event identifier from catalog (e.g. 'griha_pravesha', 'business_start')")
     start_date: str = Field(..., description="Start date YYYY-MM-DD")
-    days_to_scan: int = Field(15, ge=1, le=60, description="Number of days to search forward (1-60)")
+    days_to_scan: int = Field(15, ge=1, le=366, description="Number of days to search forward (1-366)")
     lat: float = Field(..., description="Geographic latitude")
     lon: float = Field(..., description="Geographic longitude")
     tz_offset: float = Field(..., description="Timezone offset in hours (e.g. 5.5 for IST)")
@@ -168,7 +168,7 @@ def get_muhurta_catalog(current_user: dict = Depends(get_current_user)):
 
 class YogaSearchRequest(BaseModel):
     start_date: str = Field(..., description="YYYY-MM-DD")
-    days_to_scan: int = Field(30, ge=1, le=60)
+    days_to_scan: int = Field(30, ge=1, le=366)
     lat: float
     lon: float
     tz_offset: float
