@@ -27,13 +27,34 @@
       <div class="field"><label for="fRole" data-en="Role" data-te="పాత్ర">Role</label>
         <select id="fRole"><option value="" data-en="All" data-te="అన్నీ">All</option><option value="user" data-en="User" data-te="వినియోగదారు">User</option><option value="admin" data-en="Admin" data-te="నిర్వాహకులు">Admin</option><option value="super_admin" data-en="Super admin" data-te="ప్రధాన నిర్వాహకులు">Super admin</option></select></div>
       <div class="field"><label for="fStatus" data-en="Status" data-te="స్థితి">Status</label>
-        <select id="fStatus"><option value="" data-en="All" data-te="అన్నీ">All</option><option value="active" data-en="Active" data-te="సక్రియం">Active</option><option value="disabled" data-en="Disabled" data-te="నిలిపివేయబడింది">Disabled</option><option value="pending" data-en="Sign-up not finished" data-te="నమోదు పూర్తి కాలేదు">Sign-up not finished</option><option value="locked" data-en="Locked out" data-te="లాక్ అయ్యారు">Locked out</option></select></div>
+        <select id="fStatus"><option value="" data-en="All" data-te="అన్నీ">All</option><option value="active" data-en="Active" data-te="సక్రియం">Active</option><option value="disabled" data-en="Disabled" data-te="నిలిపివేయబడింది">Disabled</option><option value="pending" data-en="Sign-up not finished" data-te="నమోదు పూర్తి కాలేదు">Sign-up not finished</option><option value="invited" data-en="Invited" data-te="ఆహ్వానించబడినవారు">Invited</option><option value="locked" data-en="Locked out" data-te="లాక్ అయ్యారు">Locked out</option></select></div>
       <button type="submit" class="btn" data-en="Search" data-te="వెతకండి">Search</button>
     </form>
-    <p class="portal-hint" id="usersCount"></p>
+    <div class="users-bar">
+      <p class="portal-hint" id="usersCount"></p>
+      <button type="button" class="btn btn--sm" id="addPersonBtn" hidden data-en="Add a person" data-te="వ్యక్తిని జోడించండి">Add a person</button>
+    </div>
+    <form id="addPersonForm" class="portal-card portal-form" hidden>
+      <h2 data-en="Add a person" data-te="వ్యక్తిని జోడించండి">Add a person</h2>
+      <p class="portal-hint" data-en="They get no password. They open the login page, choose &quot;Forgot password&quot;, confirm the code sent to this number on WhatsApp and set their own password." data-te="వీరికి పాస్‌వర్డ్ ఉండదు. లాగిన్ పేజీలో 'పాస్‌వర్డ్ మర్చిపోయారా' ఎంచుకుని, ఈ నంబర్ వాట్సాప్‌కు వచ్చిన కోడ్‌తో తమ పాస్‌వర్డ్ పెట్టుకుంటారు.">They get no password. They open the login page, choose "Forgot password", confirm the code sent to this number on WhatsApp and set their own password.</p>
+      <div class="row-form">
+        <div class="field"><label for="apName" data-en="Name" data-te="పేరు">Name</label><input id="apName" required minlength="2" maxlength="80" autocomplete="off"></div>
+        <div class="field"><label for="apPhone" data-en="Mobile" data-te="మొబైల్">Mobile</label><input id="apPhone" required inputmode="tel" maxlength="20" autocomplete="off" placeholder="98480 12345"></div>
+        <div class="field"><label for="apRole" data-en="Role" data-te="పాత్ర">Role</label><select id="apRole"><option value="user" data-en="User" data-te="వినియోగదారు">User</option><option value="admin" data-en="Admin" data-te="నిర్వాహకులు">Admin</option></select></div>
+        <div class="field"><label for="apLang" data-en="Language" data-te="భాష">Language</label><select id="apLang"><option value="te">తెలుగు</option><option value="en">English</option></select></div>
+      </div>
+      <div class="row-form"><button type="submit" class="btn" data-en="Add" data-te="జోడించండి">Add</button><button type="button" class="btn btn--ghost" id="apCancel" data-en="Cancel" data-te="రద్దు">Cancel</button></div>
+    </form>
+    <form id="bulkBar" class="bulk-bar" hidden>
+      <strong id="bulkCount"></strong>
+      <input id="bulkReason" maxlength="200" placeholder="Reason for disabling" aria-label="Reason for disabling">
+      <button type="button" class="btn btn--sm" data-bulk="disable" data-en="Disable selected" data-te="ఎంచుకున్నవారిని నిలిపివేయండి">Disable selected</button>
+      <button type="button" class="btn btn--sm btn--ghost" data-bulk="enable" data-en="Enable selected" data-te="ఎంచుకున్నవారిని ప్రారంభించండి">Enable selected</button>
+      <button type="button" class="linkish" data-bulk="clear" data-en="Clear" data-te="తీసివేయండి">Clear</button>
+    </form>
     <div class="table-scroll"><table class="people-table" id="peopleTable">
-      <thead><tr><th data-en="Name" data-te="పేరు">Name</th><th data-en="Mobile" data-te="మొబైల్">Mobile</th><th data-en="Role" data-te="పాత్ర">Role</th><th data-en="Status" data-te="స్థితి">Status</th><th data-en="Last login" data-te="చివరి లాగిన్">Last login</th><th data-en="Actions" data-te="చర్యలు">Actions</th></tr></thead>
-      <tbody id="peopleBody"><tr><td colspan="6" class="portal-hint">…</td></tr></tbody>
+      <thead><tr><th><input type="checkbox" id="selAll" aria-label="Select everyone shown"></th><th data-en="Name" data-te="పేరు">Name</th><th data-en="Mobile" data-te="మొబైల్">Mobile</th><th data-en="Role" data-te="పాత్ర">Role</th><th data-en="Status" data-te="స్థితి">Status</th><th data-en="Last login" data-te="చివరి లాగిన్">Last login</th><th data-en="Actions" data-te="చర్యలు">Actions</th></tr></thead>
+      <tbody id="peopleBody"><tr><td colspan="7" class="portal-hint">…</td></tr></tbody>
     </table></div>
   </main>
   <script src="js/config.js"></script>

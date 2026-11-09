@@ -14,7 +14,11 @@ apt update && apt install -y \
     sudo \
     debian-keyring \
     debian-archive-keyring \
-    apt-transport-https
+    apt-transport-https \
+    rsync \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz-subset0
 
 # Install Caddy web server (for automatic SSL & reverse proxy)
 if ! command -v caddy &> /dev/null; then
@@ -81,6 +85,13 @@ if [ -f "deploy/muhurtham.service" ]; then
     echo "==> muhurtham.service started and enabled!"
 fi
 
+echo "==> 6b. Nightly backup and clean-up timers (plan R7)..."
+for unit in muhurtham-backup.service muhurtham-backup.timer muhurtham-cleanup.service muhurtham-cleanup.timer; do
+    [ -f "deploy/$unit" ] && cp "deploy/$unit" "/etc/systemd/system/$unit"
+done
+systemctl daemon-reload
+systemctl enable --now muhurtham-backup.timer muhurtham-cleanup.timer || echo "   (timers start once /etc/muhurtham.env exists)"
+
 echo "==> 7. Setting up Caddy reverse proxy..."
 if [ -f "deploy/Caddyfile" ]; then
     cp deploy/Caddyfile /etc/caddy/Caddyfile
@@ -93,4 +104,6 @@ echo " IMPORTANT for Team CI/CD:"
 echo " 1. Copy your GitHub Actions deploy SSH public key to: /home/deploy/.ssh/authorized_keys"
 echo " 2. Verify service with: systemctl status muhurtham"
 echo " 3. Verify health with:  curl http://127.0.0.1:8000/health"
+echo " 4. Database: fill in /etc/muhurtham.env, then run: sudo bash deploy/setup_database.sh"
+echo "    (full steps: deploy/RUNBOOK.md)"
 echo "=============================================================================="

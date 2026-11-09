@@ -17,6 +17,16 @@ OTP_DEV_ECHO = os.environ.get("MUHURTHAM_OTP_DEV_ECHO", "0").strip() == "1"
 
 logger = logging.getLogger("auth.whatsapp")
 
+
+def _template_language() -> str:
+    """Language set by the super admin (plan R11). The template must be approved in it on Meta."""
+    try:
+        from app.auth.app_settings import get_setting
+        return "te" if get_setting("otp_language") == "te" else "en_US"
+    except Exception as ex:   # settings unreadable: English, which the template always has
+        logger.warning("Code language setting unavailable: %s", type(ex).__name__)
+        return "en_US"
+
 def send_whatsapp_otp(phone: str, otp: str) -> bool:
     """
     Send verification OTP code via WhatsApp Cloud API.
@@ -57,7 +67,7 @@ def send_whatsapp_otp(phone: str, otp: str) -> bool:
         "template": {
             "name": WHATSAPP_TEMPLATE_NAME,
             "language": {
-                "code": "en_US"
+                "code": _template_language()
             },
             "components": [
                 {

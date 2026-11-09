@@ -19,13 +19,14 @@ from app.auth import auth_router, web_auth_router
 from app.auth.dependencies import get_current_user
 from app.auth.guard import PageGuard
 from app.routers.panchang import router as panchang_router
-from app.routers.samskara import router as samskara_router
 from app.routers.geo import router as geo_router
 from app.routers.muhurta_finder import router as muhurta_finder_router
-from app.routers.dev import router as dev_router
 from app.routers.portal import router as portal_router
 from app.routers.admin import router as admin_router
 from app.routers.content import router as content_router
+from app.routers.pdf import router as pdf_router
+from app.routers.family import router as family_router
+from app.routers.saved import router as saved_router
 
 settings = get_settings()
 
@@ -76,14 +77,15 @@ SIGNED_IN = [Depends(get_current_user)]
 app.include_router(auth_router)
 app.include_router(web_auth_router)
 app.include_router(panchang_router, dependencies=SIGNED_IN)
-app.include_router(samskara_router, dependencies=SIGNED_IN)
 app.include_router(geo_router, dependencies=SIGNED_IN)
 app.include_router(muhurta_finder_router, dependencies=SIGNED_IN)
 app.include_router(portal_router)
 app.include_router(admin_router)
 app.include_router(content_router)
-if settings.ENABLE_DEV_PDF:
-    app.include_router(dev_router)
+app.include_router(pdf_router)
+app.include_router(family_router)
+app.include_router(saved_router)
+# /dev/save-pdf is no longer mounted (it wrote uploaded files to disk with no sign-in); PDFs come from /pdf/render.
 
 
 # Root endpoints

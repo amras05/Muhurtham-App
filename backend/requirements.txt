@@ -16,3 +16,5 @@ SQLAlchemy==2.0.57
 psycopg[binary]==3.3.8
 alembic==1.20.1
 cryptography==50.0.2
+# PDF downloads (plan R8); needs the Pango library: brew install pango / apt install libpango-1.0-0 libpangoft2-1.0-0
+weasyprint==70.0

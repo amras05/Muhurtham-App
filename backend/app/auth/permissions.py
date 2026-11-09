@@ -18,6 +18,7 @@ _ADMIN = _USER | {
 }
 _SUPER = _ADMIN | {
     "users.role", "users.disable_admins", "settings.edit", "system.view", "audit.view_all",
+    "users.create", "users.edit", "users.delete",
 }
 
 ROLE_PERMISSIONS: Dict[str, FrozenSet[str]] = {"user": _USER, "admin": frozenset(_ADMIN), "super_admin": frozenset(_SUPER)}
@@ -31,6 +32,8 @@ PAGE_PERMISSIONS = {
     "/admin-users.html": "users.view",
     "/admin-content.html": "content.edit",
     "/admin-settings.html": "settings.edit",
+    "/admin-muhurtas.html": "settings.edit",
+    "/admin-stats.html": "system.view",
 }
 
 

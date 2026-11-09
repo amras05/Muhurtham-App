@@ -11,6 +11,8 @@ involved); only the steps that start a session are here.
 """
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse
+import logging
+import os
 import re
 from urllib.parse import quote
 
@@ -25,7 +27,14 @@ from .sessions import SESSION_DAYS, revoke_all_sessions, revoke_session, rotate_
 
 router = APIRouter(prefix="/auth/web", tags=["Web sign-in"])
 
-SECURE = APP_ENV == "production"
+# Cookies go only over HTTPS in production. A server reached by plain IP address (no domain, so
+# no certificate) must set MUHURTHAM_COOKIE_SECURE=0, or nobody can log in. That sends the login
+# cookies, and passwords, unencrypted over the network: a known risk until the site has HTTPS.
+_COOKIE_SECURE = os.environ.get("MUHURTHAM_COOKIE_SECURE", "").strip()
+SECURE = (APP_ENV == "production") if _COOKIE_SECURE == "" else _COOKIE_SECURE == "1"
+if APP_ENV == "production" and not SECURE:
+    logging.getLogger("muhurtham.web").warning(
+        "MUHURTHAM_COOKIE_SECURE=0: login cookies and passwords travel without HTTPS. Add a domain and HTTPS when you can.")
 REFRESH_PATH = "/auth/web"
 
 

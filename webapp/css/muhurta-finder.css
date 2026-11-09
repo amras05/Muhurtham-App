@@ -990,3 +990,6 @@ button#findBtn:disabled {
 .inauspicious-card__cut { margin-top: 10px; font-size: 13px; color: #9b2c22; }
 .event-header { display: grid; gap: 3px; margin: 0 0 12px; font-size: 13.5px; color: #3b2f22; }
 .event-header strong { color: var(--maroon); font-size: 15px; }
+.results-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-bottom: 8px; }
+.tab-hidden-mark { font-size: 0.7rem; font-weight: 700; color: var(--color-danger, #a8322f); margin-left: 4px; }
+.field--family { margin-bottom: 8px; max-width: 26rem; }

@@ -2,9 +2,11 @@
 Unified Declarative Muhurtha Finder Router (Layer 3 API).
 Exposes the catalog of all ~80 events and the continuous window calculation engine.
 """
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from app.auth import visibility
+from app.auth.dependencies import get_current_user
 
 from app.core.logging import logger
 from pydantic import BaseModel, Field
@@ -45,6 +47,7 @@ class ParticipantIn(BaseModel):
     birth_tz_offset: Optional[float] = None
     gender: Optional[str] = Field(None, description="boy / girl (child samskaras)")
     eldest: bool = Field(False, description="Eldest child (Trijyeshtha)")
+    profile_id: Optional[str] = Field(None, max_length=40, description="A saved family member (plan R1); fills the empty fields")
 
 
 class MuhurtaFindRequest(BaseModel):
@@ -95,6 +98,8 @@ class MuhurtaFindRequest(BaseModel):
     child_gender: Optional[str] = Field(None, pattern="^(boy|girl)$")
     conception_date: Optional[str] = Field(None, description="Conception date YYYY-MM-DD (pregnancy-month windows)")
     main_event_date: Optional[str] = Field(None, description="Main samskara date YYYY-MM-DD (dependent muhurtas)")
+    period_start_date: Optional[str] = Field(None, pattern=r"^\d{4}-\d{2}-\d{2}$",
+                                             description="Garbhadhana only: first day of the last period. Used for this search, never stored")
     guru_nak_idx: Optional[int] = Field(None, ge=1, le=27)
     # Upanayana
     vatu_name: Optional[str] = None
@@ -134,12 +139,14 @@ class MuhurtaFindRequest(BaseModel):
 
 
 @router.get("/catalog")
-def get_muhurta_catalog():
+def get_muhurta_catalog(current_user: dict = Depends(get_current_user)):
     """
     Returns the comprehensive catalog of all digitized Muhurtam event types,
     grouped by domain category with English and Telugu titles.
+    Hidden muhurtas (plan R12) are left out for users and marked `hidden` for admins.
     """
-    rules = list_all_rules()
+    shown = visibility.apply_to_catalog(list_all_rules(), tabs_with_events(list_all_rules()), current_user)
+    rules = shown["rules"]
     categories: Dict[str, List[Dict[str, Any]]] = {}
 
     for r in rules:
@@ -150,7 +157,9 @@ def get_muhurta_catalog():
 
     return {
         "total_activities": len(rules),
-        "tabs": tabs_with_events(rules),
+        "tabs": shown["tabs"],
+        "hidden_tools": shown["hidden_tools"],
+        "hidden_tools_marked": shown["hidden_tools_marked"],
         "sub_groups": SUB_GROUPS,
         "categories": categories,
         "all_activities": rules
@@ -177,8 +186,10 @@ def get_yoga_catalog():
 
 
 @router.post("/yogas")
-def search_yoga_windows(req: YogaSearchRequest):
+def search_yoga_windows(req: YogaSearchRequest, current_user: dict = Depends(get_current_user)):
     """Windows where the chosen special yogas form and the chosen conditions hold (no event needed)."""
+    if not visibility.is_tool_allowed("yogas", current_user):
+        raise HTTPException(status_code=404, detail=visibility.NOT_AVAILABLE)
     try:
         s_date = datetime.strptime(req.start_date, "%Y-%m-%d").date()
     except ValueError:
@@ -202,8 +213,10 @@ class PitruCalendarRequest(BaseModel):
 
 
 @router.post("/pitru-calendar")
-def pitru_calendar(req: PitruCalendarRequest):
+def pitru_calendar(req: PitruCalendarRequest, current_user: dict = Depends(get_current_user)):
     """Annual shraddha dates, after-death day counts, or the 96 shraddha days of a year."""
+    if not visibility.is_tool_allowed("pitru_calendar", current_user):
+        raise HTTPException(status_code=404, detail=visibility.NOT_AVAILABLE)
     warnings: List[str] = []
     if req.mode == "shannavati":
         if not req.year:
@@ -237,10 +250,12 @@ def pitru_calendar(req: PitruCalendarRequest):
 
 
 @router.get("/rule/{activity_id}")
-def get_rule_details(activity_id: str):
+def get_rule_details(activity_id: str, current_user: dict = Depends(get_current_user)):
     """
     Inspects the exact declarative rule specification and book citations for an event.
     """
+    if not visibility.is_event_allowed(activity_id, list_all_rules(), current_user):
+        raise HTTPException(status_code=404, detail=visibility.NOT_AVAILABLE)
     rule = load_rule(activity_id)
     if not rule:
         raise HTTPException(status_code=404, detail=f"Activity rule '{activity_id}' not found.")
@@ -293,7 +308,8 @@ def _count_search(request: Request, activity_id: str) -> None:
 
 
 @router.post("/find")
-def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None):
+def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None,
+                           current_user: dict = Depends(get_current_user)):
     """
     Searches for auspicious continuous time windows using the 3-Layer engine:
     1. Intersects valid Angas (Tithi ∩ Nakshatra ∩ Shubha Lagna)
@@ -302,10 +318,19 @@ def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None):
     4. Evaluates participant Balas (Tarabalam, Chandrabalam, Directional Sula)
     5. Returns both candidates (for detailed inspection modal) and ranked continuous windows.
     """
+    if not visibility.is_event_allowed(req.activity_id, list_all_rules(), current_user):
+        raise HTTPException(status_code=404, detail=visibility.NOT_AVAILABLE)
     try:
         s_date = datetime.strptime(req.start_date, "%Y-%m-%d").date()
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid start_date format. Expected YYYY-MM-DD.")
+    if req.period_start_date:
+        try:
+            p_date = datetime.strptime(req.period_start_date, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="The period start date is not a real date.")
+        if p_date > s_date + timedelta(days=req.days_to_scan):
+            raise HTTPException(status_code=400, detail="The period start date is after the dates being searched.")
 
     # Level 2 Astrological bundle
     birth_details: Dict[str, Any] = {}
@@ -344,6 +369,7 @@ def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None):
         "child_gender": req.child_gender,
         "conception_date": req.conception_date,
         "main_event_date": req.main_event_date,
+        "period_start_date": req.period_start_date if req.activity_id == "garbhadhana" else None,
         "guru_nak_idx": req.guru_nak_idx,
         "vatu_name": req.vatu_name,
         "father_name": req.father_name,
@@ -387,6 +413,15 @@ def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None):
                   "from_birth": bool(req.birth_dob),
                   "birth_time": req.birth_tob, "janma_nak_idx": req.janma_nak_idx,
                   "nama_nak_idx": req.nama_nak_idx, "rasi_idx": req.janma_moon_rasi_idx}]
+    # Saved family members (plan R1): fill what the card left empty, only from the signed-in person's family.
+    if isinstance(current_user, dict):
+        from app.routers.family import profile_for_search
+        for p in given:
+            if p.get("profile_id"):
+                for k, v in profile_for_search(p["profile_id"], current_user["id"]).items():
+                    if p.get(k) in (None, "", False) and v not in (None, ""):
+                        p[k] = v
+                p["from_birth"] = False          # the saved star was worked out when the person was saved
     resolved_people: List[Dict[str, Any]] = []
     people_warnings: List[str] = []
     if given and rule:
@@ -426,6 +461,20 @@ def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None):
         _count_search(request, req.activity_id)
     result["participants"] = resolved_people
     result["warnings"] = people_warnings + (result.get("warnings") or [])
+    if isinstance(result.get("activity_params"), dict):
+        result["activity_params"].pop("period_start_date", None)     # health data: not echoed back (plan R6b)
+    # Sibling marriage (plan R2, decision E2): warn only, from the signed-in person's family events.
+    if isinstance(current_user, dict) and req.activity_id in ("vivaha",):
+        pids = [p.get("profile_id") for p in given if p.get("profile_id")]
+        if pids:
+            from app.routers.family import sibling_marriage_warnings
+            try:
+                result["warnings"] = sibling_marriage_warnings(current_user["id"], pids, s_date,
+                                                               s_date + timedelta(days=req.days_to_scan)) + result["warnings"]
+            except HTTPException:
+                raise
+            except Exception as ex:   # the warning is a courtesy; the search result still stands
+                logger.warning(f"Sibling-marriage check failed: {type(ex).__name__}")
 
     # Clean decimal places for API output
     for w in result.get("windows", []):

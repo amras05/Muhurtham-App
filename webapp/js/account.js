@@ -81,4 +81,26 @@
     loadDevices();
   })();
   window.onLangChange = loadDevices;
+
+  // ── Your data (plan R3) ──
+  $("exportBtn").addEventListener("click", async function () {
+    var b = this; b.disabled = true;
+    try {
+      var res = await fetch(API_BASE + "/me/export");
+      if (!res.ok) { var d = await res.json().catch(function () { return null; }); throw new Error(Auth.errorText({ status: res.status, data: d })); }
+      var blob = await res.blob(), m = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") || "");
+      var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = m ? m[1] : "muhurtham_my_data.json";
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 10000);
+      say("info", tr("Your data was downloaded. It includes birth details: keep the file safe.", "మీ సమాచారం డౌన్‌లోడ్ అయింది. జన్మ వివరాలు ఉన్నాయి: ఫైల్‌ను జాగ్రత్తగా ఉంచండి."));
+    } catch (err) { say("error", err.message); }
+    finally { b.disabled = false; }
+  });
+  $("deleteForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    if (!$("delSure").checked) return;
+    try {
+      await api("POST", "/me/delete", { password: $("delPassword").value });
+      window.location.replace("/login.html?deleted=1");
+    } catch (err) { say("error", err.message); }
+  });
 })();

@@ -82,7 +82,7 @@
 }
 
 /* Account menu (js/auth.js fills #accountSlot on every page) */
-.account-slot { margin-left: auto; position: relative; }
+.account-slot { margin-left: auto; position: relative; display: flex; align-items: center; gap: var(--space-2); }
 .account-login {
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-primary-strong);
@@ -124,3 +124,18 @@
 }
 .account-menu__item:hover, .account-menu__item:focus-visible { background: var(--color-surface-muted); outline: none; }
 @media (max-width: 640px) { .account-slot { margin-left: 0; } .account-menu__panel { right: auto; left: 0; } }
+
+/* Super admin alert bell (plan R11; js/auth.js) */
+.alert-bell { position: relative; }
+.alert-bell__btn { position: relative; display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: 50%; border: 1px solid var(--color-border);
+  background: var(--color-surface); color: var(--color-text); cursor: pointer; }
+.alert-bell__btn:focus-visible { outline: 2px solid var(--color-primary-strong); outline-offset: 2px; }
+.alert-bell__count { position: absolute; top: -4px; right: -4px; min-width: 1.1rem; height: 1.1rem; padding: 0 3px; border-radius: 999px;
+  background: var(--color-danger); color: #fff; font-size: 0.7rem; font-weight: 800; display: grid; place-items: center; }
+.alert-bell__panel { position: absolute; right: 0; top: calc(100% + 6px); z-index: 1000; width: min(22rem, 90vw); max-height: 60vh; overflow: auto;
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: var(--space-2); }
+.alert-bell__panel ul { list-style: none; margin: 0; padding: 0; display: grid; }
+.alert-bell__panel li { padding: var(--space-2); border-bottom: 1px solid var(--color-border); font-size: var(--text-sm); display: grid; gap: 2px; }
+.alert-bell__panel li.is-new { background: var(--color-surface-muted); }
+.alert-bell__panel small { color: var(--color-text-muted); }
+

@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from .crypto import ACCESS_TOKEN_MINUTES, create_access_token, hash_password, needs_rehash, verify_password
 from .database import (
+    INVITED,
     check_otp,
     create_user,
     fetch_activity_logs,
@@ -112,6 +113,10 @@ def _issue_session(user_id: str, req: Request) -> LoginResponse:
 
 def _send_code(mobile: str, purpose: str, req: Request) -> bool:
     """Rate-limited OTP: raises 429 if blocked, else stores and sends a new code."""
+    from .app_settings import get_setting
+    if not get_setting("otp_sending"):
+        raise HTTPException(status_code=503, detail="Sending login codes is paused by the administrator. "
+                                                    "Please try again later.")
     blocked = otp_send_block(mobile, _ip(req))
     if blocked:
         why, wait = blocked
@@ -211,6 +216,9 @@ async def login(request: LoginRequest, req: Request):
     mobile = normalize_mobile(request.phone)
     user = get_user_by_phone(mobile) if mobile else None
 
+    if user and user.get("disabled_reason") == INVITED and user.get("status") == "disabled":
+        raise HTTPException(status_code=400, detail="Your account has been created for you. Choose \"Forgot password\" "
+                                                    "to get a code on WhatsApp and set your password.")
     if user and login_locked_until(user):
         raise HTTPException(status_code=429,
                             detail=f"Too many wrong passwords. Please try again in {lock_minutes()} minutes "
@@ -220,6 +228,10 @@ async def login(request: LoginRequest, req: Request):
             record_failed_login(user["id"])
             write_activity_log(user_id=user["id"], action="login_failed", details="Wrong password",
                                ip_address=_ip(req))
+            if login_locked_until(get_user_by_id(user["id"]) or {}):     # this attempt locked the account
+                write_activity_log(user_id=user["id"], action="account.locked",
+                                   details=f"Locked for {lock_minutes()} minutes after repeated wrong passwords",
+                                   ip_address=_ip(req))
         raise HTTPException(status_code=400, detail="Incorrect mobile number or password.")
 
     if not user.get("is_verified"):
@@ -285,7 +297,7 @@ async def send_otp(request: OtpSendRequest, req: Request):
     mobile = _mobile_or_400(request.phone)
     if request.purpose == "reset_password":
         user = get_user_by_phone(mobile)
-        if user and user.get("is_verified") and user.get("status") != "deleted":
+        if user and user.get("status") != "deleted" and (user.get("is_verified") or user.get("disabled_reason") == INVITED):
             _send_code(mobile, "reset_password", req)
             write_activity_log(user_id=user["id"], action="password_reset_requested", ip_address=_ip(req))
         return MessageResponse(message=RESET_SENT)
@@ -310,8 +322,16 @@ async def reset_password(request: PasswordResetRequest, req: Request):
     if not user:
         raise HTTPException(status_code=400, detail="No verification request active for this phone number.")
     _otp_or_400(mobile, request.otp, "reset_password")
-    update_user_profile(user["id"], {"password_hash": hash_password(request.new_password), "unlock": True})
+    fields = {"password_hash": hash_password(request.new_password), "unlock": True}
+    invited = user.get("disabled_reason") == INVITED
+    if invited:
+        fields["is_verified"] = 1          # the code proves the number: the invitation is accepted
+    update_user_profile(user["id"], fields)
     n = revoke_all_sessions(user["id"])
+    if invited:
+        write_activity_log(user_id=user["id"], action="invite.accepted", details="Set a password and confirmed the mobile",
+                           ip_address=_ip(req))
+        return MessageResponse(message="Your account is ready. Please log in with your new password.")
     write_activity_log(user_id=user["id"], action="password_reset",
                        details=f"Password reset by OTP; {n} device(s) signed out", ip_address=_ip(req))
     return MessageResponse(message="Password changed. Please log in with the new password.")

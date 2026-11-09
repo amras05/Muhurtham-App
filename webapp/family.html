@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css?v=20261108">
+  <link rel="stylesheet" href="css/portal.css">
+  <title>My family · Muhurtham</title>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Skip to main content</a>
+  <nav class="app-shell__nav portal-nav" aria-label="Primary navigation">
+    <a class="app-shell__brand" href="/">ముహూర్తం</a>
+    <div class="app-shell__links"></div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="langTe" onclick="setLang('te')">తెలుగు</button>
+    </div>
+    <div class="account-slot" id="accountSlot"></div>
+  </nav>
+  <main id="mainContent" class="portal">
+    <div class="users-bar">
+      <h1 class="portal__title" data-en="My family" data-te="నా కుటుంబం">My family</h1>
+      <button type="button" class="btn" id="famAdd" data-en="Add a person" data-te="వ్యక్తిని జోడించండి">Add a person</button>
+    </div>
+    <p class="portal-hint" data-en="Enter each person once, then pick them on any Muhurta Finder card. Birth details are encrypted and only you can see them." data-te="ప్రతి వ్యక్తిని ఒకసారి నమోదు చేయండి; తర్వాత ముహూర్త శోధనలో ఎంచుకోండి. జన్మ వివరాలు గుప్తీకరించబడతాయి; మీకు మాత్రమే కనిపిస్తాయి.">Enter each person once, then pick them on any Muhurta Finder card. Birth details are encrypted and only you can see them.</p>
+    <div id="famMsg" class="auth-alert auth-alert--info" role="status" hidden></div>
+
+    <form id="famForm" class="portal-card portal-form" hidden novalidate>
+      <h2 id="famFormTitle" data-en="Add a person" data-te="వ్యక్తిని జోడించండి">Add a person</h2>
+      <div class="row-form">
+        <div class="field"><label for="fName" data-en="Name" data-te="పేరు">Name</label><input id="fName" required maxlength="80" autocomplete="off"></div>
+        <div class="field"><label for="fRel" data-en="Relation to you" data-te="మీకు బంధుత్వం">Relation to you</label><select id="fRel"><option value="self" data-en="Me" data-te="నేను">Me</option><option value="spouse" data-en="Spouse" data-te="భార్య / భర్త">Spouse</option><option value="son" data-en="Son" data-te="కుమారుడు">Son</option><option value="daughter" data-en="Daughter" data-te="కుమార్తె">Daughter</option><option value="father" data-en="Father" data-te="తండ్రి">Father</option><option value="mother" data-en="Mother" data-te="తల్లి">Mother</option><option value="brother" data-en="Brother" data-te="సోదరుడు">Brother</option><option value="sister" data-en="Sister" data-te="సోదరి">Sister</option><option value="grandchild" data-en="Grandchild" data-te="మనవడు / మనవరాలు">Grandchild</option><option value="other" data-en="Other" data-te="ఇతరులు">Other</option></select></div>
+        <div class="field"><label for="fGender" data-en="Gender" data-te="లింగం">Gender</label><select id="fGender"><option value="" data-en="— Not given —" data-te="— ఇవ్వలేదు —">— Not given —</option><option value="male" data-en="Male" data-te="పురుషుడు">Male</option><option value="female" data-en="Female" data-te="స్త్రీ">Female</option></select></div>
+        <div class="field"><label for="fGotra" data-en="Gotra (optional)" data-te="గోత్రం (ఐచ్ఛికం)">Gotra (optional)</label><input id="fGotra" maxlength="60" autocomplete="off"></div>
+      </div>
+      <label class="switch"><input type="checkbox" id="fEldest"> <span data-en="Eldest child (Trijyeshtha check)" data-te="జ్యేష్ఠ సంతానం (త్రిజ్యేష్ఠ పరిశీలన)">Eldest child (Trijyeshtha check)</span></label>
+
+      <div class="fam-modes" role="tablist" aria-label="How to give the star">
+        <button type="button" role="tab" class="btn btn--sm" data-mode="birth" data-en="From birth details" data-te="జన్మ వివరాల ద్వారా">From birth details</button>
+        <button type="button" role="tab" class="btn btn--sm btn--ghost" data-mode="picked" data-en="I know the nakshatra" data-te="నాకు నక్షత్రం తెలుసు">I know the nakshatra</button>
+      </div>
+      <div class="row-form fam-birth">
+        <div class="field"><label for="fDob" data-en="Birth date" data-te="పుట్టిన తేదీ">Birth date</label><input type="date" id="fDob"></div>
+        <div class="field"><label for="fTob" data-en="Birth time" data-te="పుట్టిన సమయం">Birth time</label><input type="time" id="fTob"></div>
+        <div class="field"><label for="fPlace" data-en="Birth place" data-te="జన్మస్థలం">Birth place</label><select id="fPlace"></select></div>
+      </div>
+      <label class="switch fam-birth"><input type="checkbox" id="fTunk"> <span data-en="Birth time not known" data-te="జన్మ సమయం తెలియదు">Birth time not known</span></label>
+      <div class="row-form fam-picked" hidden>
+        <div class="field"><label for="fJanma" data-en="Janma nakshatra" data-te="జన్మ నక్షత్రం">Janma nakshatra</label><select id="fJanma"></select></div>
+        <div class="field"><label for="fJpada" data-en="Pada" data-te="పాదం">Pada</label><select id="fJpada"></select></div>
+        <div class="field"><label for="fRasi" data-en="Janma rashi" data-te="జన్మ రాశి">Janma rashi</label><select id="fRasi"></select></div>
+        <div class="field"><label for="fLagna" data-en="Janma lagna" data-te="జన్మ లగ్నం">Janma lagna</label><select id="fLagna"></select></div>
+      </div>
+      <fieldset class="nf-alerts"><legend data-en="Nama nakshatra (from the name given at naming)" data-te="నామ నక్షత్రం (నామకరణ పేరు నుండి)">Nama nakshatra (from the name given at naming)</legend>
+        <div class="row-form">
+          <div class="field"><label for="fNamaName" data-en="Find from a name" data-te="పేరు నుండి కనుగొనండి">Find from a name</label><input id="fNamaName" maxlength="80" autocomplete="off"></div>
+          <div class="field"><label for="fNama" data-en="Nama nakshatra" data-te="నామ నక్షత్రం">Nama nakshatra</label><select id="fNama"></select></div>
+          <div class="field"><label for="fNpada" data-en="Pada" data-te="పాదం">Pada</label><select id="fNpada"></select></div>
+        </div>
+        <p class="portal-hint" id="fNamaHint" aria-live="polite"></p>
+      </fieldset>
+      <div class="row-form"><button type="submit" class="btn" data-en="Save" data-te="భద్రపరచండి">Save</button><button type="button" class="btn btn--ghost" id="famCancel" data-en="Cancel" data-te="రద్దు">Cancel</button></div>
+    </form>
+
+    <ul class="fam-list" id="famList"><li class="portal-hint">…</li></ul>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/app-shell.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/regions.js"></script>
+  <script src="js/stars.js"></script>
+  <script src="js/family.js"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css?v=20261108">
+  <link rel="stylesheet" href="css/portal.css">
+  <title>Muhurtas · Muhurtham</title>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Skip to main content</a>
+  <nav class="app-shell__nav portal-nav" aria-label="Primary navigation">
+    <a class="app-shell__brand" href="/">ముహూర్తం</a>
+    <div class="app-shell__links"></div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="langTe" onclick="setLang('te')">తెలుగు</button>
+    </div>
+    <div class="account-slot" id="accountSlot"></div>
+  </nav>
+  <main id="mainContent" class="portal">
+    <h1 class="portal__title" data-en="Which muhurtas are shown" data-te="ఏ ముహూర్తాలు చూపించాలి">Which muhurtas are shown</h1>
+    <p class="portal-hint" data-en="Hidden tabs and muhurtas disappear for users, and their searches are refused. Admins and you still see them, marked Hidden, so you can check them first. A muhurta listed in two tabs is hidden everywhere when you hide it." data-te="దాచిన ట్యాబ్‌లు, ముహూర్తాలు వినియోగదారులకు కనిపించవు; వాటి శోధనలు నిరాకరించబడతాయి. నిర్వాహకులు, మీరు వాటిని 'దాచబడింది' గుర్తుతో చూడగలరు. రెండు ట్యాబ్‌లలో ఉన్న ముహూర్తాన్ని దాచితే అన్నిచోట్లా దాగుతుంది.">Hidden tabs and muhurtas disappear for users, and their searches are refused. Admins and you still see them, marked Hidden, so you can check them first. A muhurta listed in two tabs is hidden everywhere when you hide it.</p>
+    <div id="visMsg" class="auth-alert auth-alert--info" role="status" hidden></div>
+    <div class="vis-bar">
+      <span id="visCounts" class="portal-hint"></span>
+      <span class="vis-bar__actions">
+        <button type="button" class="btn btn--ghost btn--sm" id="visShowAll" data-en="Show everything" data-te="అన్నీ చూపించు">Show everything</button>
+        <button type="button" class="btn" id="visSave" disabled data-en="Save changes" data-te="మార్పులు భద్రపరచండి">Save changes</button>
+      </span>
+    </div>
+    <section class="portal-card" aria-labelledby="toolTitle">
+      <h2 id="toolTitle" data-en="Tools" data-te="సాధనాలు">Tools</h2>
+      <ul class="vis-list" id="visTools"><li>…</li></ul>
+    </section>
+    <div id="visTabs" class="vis-tabs"><p class="portal-hint">…</p></div>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/app-shell.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/admin-muhurtas.js"></script>
+</body>
+</html>

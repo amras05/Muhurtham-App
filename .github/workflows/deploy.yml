@@ -43,6 +43,16 @@ jobs:
             sudo cp deploy/muhurtham.service /etc/systemd/system/muhurtham.service
             sudo systemctl daemon-reload
             
+            # 4b. Back up the database, then apply migrations (plan R7). script_stop stops the
+            #     deploy (and the restart) if either fails, so the old app keeps running.
+            if [ -f /etc/muhurtham.env ]; then
+              bash deploy/backup.sh
+              set -a; . /etc/muhurtham.env; set +a
+              (cd backend && ../.venv/bin/alembic upgrade head)
+            else
+              echo "==> /etc/muhurtham.env missing: skipping backup and migrations (see deploy/RUNBOOK.md)"
+            fi
+
             # 5. Reload reverse proxy config if changed
             if [ -f "deploy/Caddyfile" ]; then
               sudo cp deploy/Caddyfile /etc/caddy/Caddyfile

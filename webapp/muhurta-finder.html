@@ -21,7 +21,6 @@
     <a class="app-shell__brand" href="panchang-lookup.html">ముహూర్తం</a>
     <div class="app-shell__links">
       <a class="app-shell__link" href="panchang-lookup.html">Panchang</a>
-      <a class="app-shell__link" href="panchang-lookup.html#namakarana">Samskaras</a>
       <a class="app-shell__link" href="muhurta-finder.html" aria-current="page">Muhurta Finder</a>
     </div>
     <div class="account-slot" id="accountSlot"></div>
@@ -178,6 +177,18 @@
               <input type="date" id="mfConceptionDate">
             </div>
           </div>
+        </div>
+
+        <!-- Garbhadhana: night count from the period (plan R6b) -->
+        <div id="fieldsGarbhadhanaPeriod" class="context-group" style="display: none;">
+          <h4 class="context-group__title"><span data-en="Night count (optional)" data-te="రాత్రుల లెక్క (ఐచ్ఛికం)">Night count (optional)</span></h4>
+          <div class="context-grid">
+            <div class="field">
+              <label for="mfPeriodStart" data-en="First day of the last period" data-te="చివరి ఋతుస్రావం మొదటి రోజు">First day of the last period</label>
+              <input type="date" id="mfPeriodStart">
+            </div>
+          </div>
+          <p class="participants__hint" data-en="Used only for this search: it is not saved, logged or printed. Nights 4 to 16 are used, except the 11th and 13th (classical rule, to be confirmed by Dr. Nemani). Son or daughter timing is not offered. A muhurta never replaces medical advice." data-te="ఈ శోధనకు మాత్రమే వాడతాం: భద్రపరచము, లాగ్ చేయము, ముద్రించము. 4 నుండి 16 రాత్రులు (11, 13 కాకుండా) వాడతాం (సంప్రదాయ నియమం, డా. నేమాని గారు నిర్ధారించాలి). కుమారుడు/కుమార్తె సమయం ఇవ్వము. ముహూర్తం వైద్య సలహాకు ప్రత్యామ్నాయం కాదు.">Used only for this search: it is not saved, logged or printed. Nights 4 to 16 are used, except the 11th and 13th (classical rule, to be confirmed by Dr. Nemani). Son or daughter timing is not offered. A muhurta never replaces medical advice.</p>
         </div>
 
         <!-- Samskara: depends on the main event -->
@@ -373,6 +384,10 @@
 
     <!-- Results -->
     <div id="mfResults" style="display: none;">
+      <div class="results-actions no-print">
+        <button type="button" class="btn btn--sm btn--ghost" onclick="saveSearch(this, false)"><span data-en="Save this search" data-te="ఈ శోధన భద్రపరచండి">Save this search</span></button>
+        <button type="button" class="btn btn--sm btn--ghost" onclick="downloadListPdf(this)"><span data-en="Download PDF" data-te="PDF డౌన్‌లోడ్">Download PDF</span></button>
+      </div>
       <!-- Summary Bar -->
       <div class="summary-bar" id="summaryBar"></div>
 
@@ -388,7 +403,9 @@
       <div class="modal-header">
         <div id="mfModalTitle" class="modal-title"></div>
         <div class="modal-header__actions">
-          <button class="btn btn--sm btn--ghost no-print" onclick="window.print()">🖨️ <span data-en="Print PDF" data-te="ప్రింట్ PDF">Print PDF</span></button>
+          <button type="button" class="btn btn--sm btn--ghost no-print" onclick="saveSearch(this, true)"><span data-en="Save this muhurta" data-te="ఈ ముహూర్తం భద్రపరచండి">Save this muhurta</span></button>
+          <button type="button" class="btn btn--sm btn--ghost no-print" onclick="addWindowToFamily(this)"><span data-en="Add to family events" data-te="కుటుంబ కార్యక్రమాల్లో చేర్చండి">Add to family events</span></button>
+          <button type="button" class="btn btn--sm btn--ghost no-print" onclick="downloadDetailPdf(this)"><span data-en="Download PDF" data-te="PDF డౌన్‌లోడ్">Download PDF</span></button>
           <button class="modal-close no-print" onclick="closeModal()">&times;</button>
         </div>
       </div>
@@ -402,6 +419,8 @@
   <script src="js/i18n.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/regions.js"></script>
+  <script src="js/pdf-download.js"></script>
+  <script src="js/stars.js"></script>
   <script src="js/finder.js"></script>
 </body>
 

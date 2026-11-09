@@ -21,6 +21,11 @@ DEFAULTS: Dict[str, Any] = {
     "signup_open": True,
     "maintenance_mode": False,
     "maintenance_message": "Muhurtham is being updated. Please try again in a little while.",
+    "catalog_visibility": {"hidden_tabs": [], "hidden_events": [], "hidden_tools": []},   # plan R12
+    # Notifications (plan R11)
+    "otp_sending": True,          # False pauses every login code (sign-up, forgot password, new mobile)
+    "otp_language": "en",         # language of the WhatsApp code template; Meta must have approved it
+    "admin_alerts": {"signup": True, "locked": True, "disabled": True, "daily_summary": True},
 }
 _TTL = 15.0
 _cache: Dict[str, Any] = {}

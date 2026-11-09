@@ -109,11 +109,15 @@ window.Auth = (function () {
     { href: "admin.html", en: "Dashboard", te: "డాష్‌బోర్డ్", roles: ["admin", "super_admin"] },
     { href: "panchang-lookup.html", en: "Panchang", te: "పంచాంగం" },
     { href: "muhurta-finder.html", en: "Muhurta Finder", te: "ముహూర్త శోధన" },
+    { href: "family.html", en: "My family", te: "నా కుటుంబం" },
+    { href: "saved.html", en: "My muhurtas", te: "నా ముహూర్తాలు" },
     { href: "admin-users.html", en: "Users", te: "వినియోగదారులు", roles: ["admin", "super_admin"] },
     { href: "admin-content.html", en: "Content", te: "విషయాలు", roles: ["admin", "super_admin"] },
+    { href: "admin-muhurtas.html", en: "Muhurtas", te: "ముహూర్తాలు", roles: ["super_admin"] },
+    { href: "admin-stats.html", en: "Statistics", te: "గణాంకాలు", roles: ["super_admin"] },
     { href: "admin-settings.html", en: "Settings", te: "సెట్టింగులు", roles: ["super_admin"] },
   ];
-  var BUILT = ["home.html", "admin.html", "panchang-lookup.html", "muhurta-finder.html", "admin-users.html", "admin-content.html", "admin-settings.html"];   // add admin pages as they are built
+  var BUILT = ["saved.html", "family.html", "home.html", "admin.html", "panchang-lookup.html", "muhurta-finder.html", "admin-users.html", "admin-content.html", "admin-muhurtas.html", "admin-stats.html", "admin-settings.html"];   // add admin pages as they are built
 
   function renderNav() {
     var links = document.querySelector(".app-shell__nav .app-shell__links");
@@ -128,6 +132,44 @@ window.Auth = (function () {
     if (brand) brand.setAttribute("href", "/");
   }
 
+  // ── Super admin alert bell (plan R11): /admin/alerts, unread = newer than last opened (this browser) ──
+  var Bell = (function () {
+    var items = [], open = false, timer = null, KEY = "mh_alerts_seen";
+    function seen() { try { return localStorage.getItem(KEY) || ""; } catch (e) { return ""; } }
+    function markSeen() { try { localStorage.setItem(KEY, new Date().toISOString()); } catch (e) { /* private mode: the count just stays */ } }
+    function when(iso) { return new Date(iso).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); }
+    function draw() {
+      var box = document.getElementById("alertBell");
+      if (!box) return;
+      var last = seen(), unread = items.filter(function (x) { return x.at > last; }).length;
+      box.innerHTML = '<button type="button" class="alert-bell__btn" id="alertBellBtn" aria-haspopup="true" aria-expanded="' + open + '" aria-label="' +
+        esc(tr("Alerts", "హెచ్చరికలు") + (unread ? " (" + unread + ")" : "")) + '"><span aria-hidden="true">🔔</span>' +
+        (unread ? '<span class="alert-bell__count">' + (unread > 9 ? "9+" : unread) + "</span>" : "") + "</button>" +
+        '<div class="alert-bell__panel" ' + (open ? "" : "hidden") + "><ul>" +
+        (items.length ? items.map(function (x) {
+          return '<li class="' + (x.at > last ? "is-new" : "") + '"><span>' + esc(tr(x.en, x.te)) + "</span><small>" + esc(when(x.at)) + "</small></li>";
+        }).join("") : "<li>" + tr("Nothing in the last 7 days.", "గత 7 రోజుల్లో ఏమీ లేదు.") + "</li>") +
+        '</ul><a class="account-menu__item" href="admin-settings.html">' + tr("Choose alerts", "హెచ్చరికలు ఎంచుకోండి") + "</a></div>";
+      document.getElementById("alertBellBtn").addEventListener("click", function () {
+        open = !open;
+        if (open) { draw(); markSeen(); } else draw();
+      });
+    }
+    async function load() {
+      try {
+        var r = await call("GET", "/admin/alerts");
+        if (r.ok) { items = r.data.items || []; draw(); }
+      } catch (e) { /* the bell is optional; the page works without it */ }
+    }
+    function mount() {
+      draw(); load();
+      if (timer) return;                       // renderMenu runs again on language change
+      timer = setInterval(load, 5 * 60 * 1000);
+      document.addEventListener("click", function (e) { if (open && !e.target.closest("#alertBell")) { open = false; draw(); } });
+    }
+    return { mount: mount };
+  })();
+
   function renderMenu() {
     renderNav();
     var slot = document.getElementById("accountSlot");
@@ -138,6 +180,7 @@ window.Auth = (function () {
     }
     var roleLabel = { super_admin: tr("Super admin", "ప్రధాన నిర్వాహకులు"), admin: tr("Admin", "నిర్వాహకులు") }[currentUser.role];
     slot.innerHTML =
+      (currentUser.role === "super_admin" ? '<div class="alert-bell" id="alertBell"></div>' : "") +
       '<div class="account-menu">' +
         '<button type="button" class="account-menu__button" id="accountMenuBtn" aria-haspopup="true" aria-expanded="false">' +
           '<span class="account-menu__avatar" aria-hidden="true">' + esc((currentUser.name || "?").trim().charAt(0).toUpperCase()) + "</span>" +
@@ -153,6 +196,7 @@ window.Auth = (function () {
           '<button type="button" class="account-menu__item" data-action="logout-all">' + tr("Sign out on all devices", "అన్ని పరికరాల నుండి సైన్ అవుట్") + "</button>" +
         "</div>" +
       "</div>";
+    if (currentUser.role === "super_admin") Bell.mount();
     var btn = document.getElementById("accountMenuBtn");
     var panel = document.getElementById("accountMenuPanel");
     btn.addEventListener("click", function () {

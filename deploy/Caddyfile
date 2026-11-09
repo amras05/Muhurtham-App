@@ -1,7 +1,11 @@
 # Caddyfile for Muhurtham App on Hetzner
 # Caddy automatically provisions and renews Let's Encrypt HTTPS certificates.
 
-# Option A: If you have a domain pointing to this server's IP, uncomment and use this:
+# The site is reached by IP address for now (no domain), so plain HTTP on port 80 (Option B).
+# Logins over plain HTTP need MUHURTHAM_COOKIE_SECURE=0 in /etc/muhurtham.env: a known risk.
+#
+# Option A: If you have a domain pointing to this server's IP, uncomment and use this
+# (Caddy then gets HTTPS by itself; also set MUHURTHAM_COOKIE_SECURE=1):
 # your-domain.com {
 #     reverse_proxy 127.0.0.1:8000
 # }

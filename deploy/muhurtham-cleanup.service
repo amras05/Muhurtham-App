@@ -1,0 +1,11 @@
+[Unit]
+Description=Muhurtham clean-up: old login codes, rate counters, ended sessions, year-old log rows (plan R5)
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+WorkingDirectory=/var/www/muhurtham/backend
+EnvironmentFile=/etc/muhurtham.env
+ExecStart=/var/www/muhurtham/.venv/bin/python -m app.db.cleanup

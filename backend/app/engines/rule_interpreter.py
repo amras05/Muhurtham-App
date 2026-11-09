@@ -15,6 +15,7 @@ against the muhurta timeline (plan M21 pipeline):
   5. Score, attach the reason trail, rank.
 """
 from collections import Counter
+import dataclasses
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -420,6 +421,21 @@ def _planet_rule_check(key, in_h, not_in_h, not_signs, planets, moon_waxing,
 # ─────────────────────────────────────────────────────────────────────────────
 # Hard filters for one segment
 # ─────────────────────────────────────────────────────────────────────────────
+RITU_NIGHTS = set(range(4, 17)) - {11, 13}      # classical garbhadhana nights (plan R6b; to be confirmed)
+
+
+def lagna_for_window(lagna: LagnaWindow, start: datetime, end: datetime) -> LagnaWindow:
+    """This lagna as seen by one window: pushkara navamsa only if the window overlaps an exact span (plan R6a)."""
+    spans = [(max(a, start), min(b, end), nav) for a, b, nav in (lagna.pushkara_spans or []) if min(b, end) > max(a, start)]
+    return dataclasses.replace(lagna, is_pushkara_navamsa=bool(spans), pushkara_spans=spans)
+
+
+def pushkara_text(lagna: LagnaWindow, with_sign: bool = True) -> str:
+    """'10:42–10:55 (Tula navamsa)' for the pushkara minutes inside a window ('' if none)."""
+    return ", ".join(f"{a.strftime('%H:%M')}–{b.strftime('%H:%M')}" + (f" ({nav} navamsa)" if with_sign else "")
+                     for a, b, nav in (lagna.pushkara_spans or []))
+
+
 def evaluate_window_for_rule(
     cr: CompiledRule,
     lagna: LagnaWindow,
@@ -590,7 +606,7 @@ def evaluate_window_for_rule(
     score += sc.nakshatra_weights.get(norm_key(limbs.nakshatra_name), 0)
     if lagna.is_pushkara_navamsa:
         score += 5
-        passed.append(f"Pushkara navamsa: {lagna.navamsa_name_en} (+5)")
+        passed.append(f"Pushkara navamsa: {pushkara_text(lagna)} (+5)")
 
     return True, score, passed, []
 
@@ -894,8 +910,25 @@ def find_muhurta_windows(
     if hf.guru_bala_couple and not (ap.get("bride_rasi_idx") or ap.get("groom_rasi_idx")):
         warnings.append("Guru bala not checked: bride's and groom's janma rashi not given")
 
+    # Garbhadhana night count (plan R6b, decision G1): nights counted from the first day of the period.
+    # Classical rule until Dr. Nemani confirms the book's: nights 4-16, not 11 or 13. Son/daughter
+    # (even/odd night) timing is never offered (PCPNDT Act). The date is used for this search only.
+    ritu_start = None
+    if rule.id == "garbhadhana":
+        if ap.get("period_start_date"):
+            ritu_start = datetime.strptime(ap["period_start_date"], "%Y-%m-%d").date()
+            warnings.append("Nights counted from the first day of the period: nights 4 to 16 are used, except the 11th "
+                            "and 13th (classical rule, to be confirmed by Dr. Nemani). Son or daughter timing is not offered.")
+        else:
+            warnings.append("Night count not applied: give the first day of the last period to use it.")
+
     for d_offset, cur_date in enumerate(scan_days):
         base_dt = datetime(cur_date.year, cur_date.month, cur_date.day)
+        if ritu_start is not None:
+            night = (cur_date - ritu_start).days + 1      # the night that begins on this day's evening
+            if night not in RITU_NIGHTS:
+                rejections["Not one of the allowed nights after the period (4 to 16, not 11 or 13)"] += 1
+                continue
 
         if hf.age_rule and age_ref is not None:
             ok_age, why_age = _age_allowed(hf.age_rule, age_ref, ap.get("child_gender"), cur_date)
@@ -953,8 +986,9 @@ def find_muhurta_windows(
                 rejections[f"Outside your preferred time ({ap.get('time_preference')})"] += 1
                 continue
             for seg_start, seg_end, limbs in split_by_limbs(clipped[0], clipped[1], tz_offset):
+                seg_lagna = lagna_for_window(lagna, seg_start, seg_end)   # pushkara only where it really is
                 ok, score, rules_passed, why = evaluate_window_for_rule(
-                    cr, lagna, limbs, vaara_idx, birth_details, panchaka_method, ap
+                    cr, seg_lagna, limbs, vaara_idx, birth_details, panchaka_method, ap
                 )
                 if ok:
                     for who, nidx in extra_taras:
@@ -973,17 +1007,25 @@ def find_muhurta_windows(
                     rejections["Covered by Rahu / Yama / Gulika / Durmuhurta / Varjyam"] += 1
 
                 for cw in clean_windows:
+                    # The final window may be shorter than the segment (Rahu kalam etc. removed):
+                    # it keeps the pushkara points and reason only if it still holds pushkara minutes.
+                    cw_lagna = lagna_for_window(lagna, cw.start, cw.end)
+                    cw_score, cw_reasons = score, [r for r in rules_passed if not r.startswith("Pushkara navamsa")]
+                    if seg_lagna.is_pushkara_navamsa and not cw_lagna.is_pushkara_navamsa:
+                        cw_score -= 5
+                    elif cw_lagna.is_pushkara_navamsa:
+                        cw_reasons.append(f"Pushkara navamsa: {pushkara_text(cw_lagna)} (+5)")
                     cand = _build_candidate(
-                        rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, d_offset, tz_offset,
+                        rule, cr, cw, cw_lagna, limbs, panchang, vaara_idx, cur_date, d_offset, tz_offset,
                         place_obj, birth_details, participants, panchaka_method, pushkara_info,
-                        sula_check, facing_dir, b_nak_idx, b_rasi_idx, score, list(rules_passed),
+                        sula_check, facing_dir, b_nak_idx, b_rasi_idx, cw_score, cw_reasons,
                         durmuhurta_spans, varjyam_spans, strict, rejections,
                         extras={"blocked": blocked, "lat": lat, "lon": lon, "people": people or []},
                     )
                     if cand is None:
                         continue
                     candidates.append(cand)
-                    results.append(_window_summary(cand, lagna, rule, score))
+                    results.append(_window_summary(cand, cw_lagna, rule, cw_score))
 
     sorted_candidates = sorted(candidates, key=lambda x: (-x["percentage"], x["date"], x["window_start"]))
     sorted_results = sorted(results, key=lambda x: (-x.get("percentage", 0), x["date"], x["start_time"]))
@@ -1033,7 +1075,7 @@ def _result_detail(rule, cw, lagna, limbs, cur_date, tz_offset, pct, failed, not
     limb_times["nakshatra"]["pada"] = limbs.pada
 
     lagna_info = {"name": lagna.lagna_name_en, "name_te": lagna.lagna_name_te, "navamsa": lagna.navamsa_name_en,
-                  "is_pushkara_navamsa": lagna.is_pushkara_navamsa}
+                  "is_pushkara_navamsa": lagna.is_pushkara_navamsa, "pushkara_minutes": pushkara_text(lagna) or None}
     try:
         # One minute inside the window: at the exact boundary the scanner and Swiss Ephemeris
         # can disagree by seconds about which sign is rising.
@@ -1094,8 +1136,8 @@ def _result_detail(rule, cw, lagna, limbs, cur_date, tz_offset, pct, failed, not
         en.append(f"{len(not_eval)} check(s) not evaluated")
         te.append(f"{len(not_eval)} పరిశీలనలు జరగలేదు")
     if lagna.is_pushkara_navamsa:
-        en.append("lagna in pushkara navamsa")
-        te.append("లగ్నం పుష్కర నవాంశలో ఉంది")
+        en.append(f"lagna in pushkara navamsa {pushkara_text(lagna, with_sign=False)}")
+        te.append(f"లగ్నం పుష్కర నవాంశలో {pushkara_text(lagna, with_sign=False)}")
 
     return {
         "limb_times": limb_times,
@@ -1206,8 +1248,6 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     facing_check = check_facing_compatibility(facing_dir, b_rasi_idx) if facing_dir else None
 
     all_reasons = list(rules_passed)
-    if lagna.is_pushkara_navamsa:
-        all_reasons.append("Pushkara navamsa in the lagna.")
     planets_in_8 = [p.name_en for p in lagna.house_planets.get(8, [])]
     if not planets_in_8:
         all_reasons.append("Ashtama shuddhi: the 8th house is empty.")
@@ -1240,7 +1280,8 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
         "yoga": {"name": limbs.yoga_name, "index": limbs.yoga, "is_pass": limbs.yoga not in DOSHIC_YOGAS},
         "karana": {"name": limbs.karana_name, "is_pass": limbs.karana not in INAUSPICIOUS_KARANAS},
         "lagna": {"name": lagna.lagna_name_en, "name_te": lagna.lagna_name_te,
-                  "navamsa": lagna.navamsa_name_en, "is_pushkara_navamsa": lagna.is_pushkara_navamsa},
+                  "navamsa": lagna.navamsa_name_en, "is_pushkara_navamsa": lagna.is_pushkara_navamsa,
+                  "pushkara_minutes": pushkara_text(lagna) or None},
         "ashtama_shuddhi": {"has_shuddhi": not planets_in_8, "planets_in_8th": planets_in_8,
                             "ashtama_rasi": RASI_NAMES_EN[(lagna.lagna_idx + 6) % 12 + 1],
                             "muhurta_lagna": lagna.lagna_name_en},
@@ -1310,6 +1351,7 @@ def _window_summary(cand: Dict[str, Any], lagna: LagnaWindow, rule: RuleDefiniti
         "lagna_te": lagna.lagna_name_te,
         "navamsa_en": lagna.navamsa_name_en,
         "is_pushkara_navamsa": lagna.is_pushkara_navamsa,
+        "pushkara_navamsa_minutes": pushkara_text(lagna) or None,
         "score": score,
         "percentage": cand["percentage"],
         "verdict": cand["verdict"],

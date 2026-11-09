@@ -3,15 +3,18 @@ category: samskaras
 tab: garbha
 title_en: "Garbhadhana"
 title_te: "గర్భాధానము"
-description_en: "General muhurta for garbhadhana (night). The book's son/daughter timing is not offered."
+description_en: "Muhurta for garbhadhana (night). Give the first day of the last period to use only the allowed nights (classical rule, to be confirmed). Son/daughter timing is not offered."
 description_te: "గర్భాధాన సాధారణ ముహూర్తం (రాత్రి)."
-tab_inputs: [vivaha_couple]
+tab_inputs: [vivaha_couple, garbhadhana_period]
 source:
   part: 4
   section: "గర్భాధాన ప్రకరణము"
   notes: >-
     Plan M14 16.2. Implemented as a general muhurta only (PCPNDT Act; plan legal note).
-    Not yet modelled: ritu-night counting from the first day of menstruation, the first
+    Ritu nights (plan R6b, 9 Nov 2026): classical rule pending the book's text - nights 4-16 counted
+    from the first day of the period, except the 11th and 13th (RITU_NIGHTS in rule_interpreter.py);
+    the date is used for one search only, never stored or logged; even/odd nights are not used.
+    Not yet modelled: the first
     half of Parigha only (whole yoga excluded here), vrata and shraddha days.
 hard_filters:
   common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}

@@ -26,6 +26,7 @@ from app.core.config import SECRET_KEY
 from app.db.engine import app_engine
 
 PENDING = "pending_verification"
+INVITED = "invited"            # added by the super admin; activates when the person confirms a code
 MAX_OTP_ATTEMPTS = 5
 
 _USER_COLUMNS = """
@@ -121,10 +122,12 @@ def update_user_profile(user_id: str, fields: Dict[str, Any]) -> None:
             sets.append("failed_logins = 0, locked_until = NULL")
         elif key == "is_verified" and val:
             sets.append("mobile_verified_at = COALESCE(mobile_verified_at, now())")
-            # Finishing sign-up activates the account; an account an admin disabled stays disabled.
-            sets.append("status = CASE WHEN disabled_reason = :pending THEN 'active' ELSE status END")
-            sets.append("disabled_reason = CASE WHEN disabled_reason = :pending THEN NULL ELSE disabled_reason END")
+            # Finishing sign-up (or accepting an invitation) activates the account; an account an
+            # admin disabled stays disabled.
+            sets.append("status = CASE WHEN disabled_reason IN (:pending, :invited) THEN 'active' ELSE status END")
+            sets.append("disabled_reason = CASE WHEN disabled_reason IN (:pending, :invited) THEN NULL ELSE disabled_reason END")
             params["pending"] = PENDING
+            params["invited"] = INVITED
         else:
             raise ValueError(f"update_user_profile: field '{key}' cannot be changed here")
     if not sets:

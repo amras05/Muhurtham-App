@@ -1,0 +1,9 @@
+[Unit]
+Description=Muhurtham nightly database backup (plan R7)
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+ExecStart=/bin/bash /var/www/muhurtham/deploy/backup.sh

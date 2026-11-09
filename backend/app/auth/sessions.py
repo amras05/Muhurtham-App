@@ -81,10 +81,29 @@ def rotate_refresh(refresh_token: str) -> Optional[Tuple[str, str, str]]:
             FROM app.sessions s JOIN app.users u ON u.id = s.user_id
             WHERE s.refresh_hash = :h AND s.revoked_at IS NULL AND s.expires_at > now()
             FOR UPDATE OF s"""), {"h": _hash(refresh_token)}).first()
-        if row is None or row.status != "active":
+        if row is None:
+            # Plan R5: a token this session already swapped away is being used again, so it was
+            # copied. Sign that person out everywhere (the real owner just logs in again).
+            reused = c.execute(text("""SELECT id::text AS sid, user_id::text AS uid,
+                                              (last_used_at > now() - interval '60 seconds') AS just_swapped
+                                       FROM app.sessions WHERE previous_refresh_hash = :h AND revoked_at IS NULL"""),
+                               {"h": _hash(refresh_token)}).first()
+            # Two tabs renewing at the same moment send the same token a second apart: within
+            # 60 seconds of the swap that is refused quietly, not treated as a stolen token.
+            if reused and not reused.just_swapped:
+                n = c.execute(text("UPDATE app.sessions SET revoked_at = now() WHERE user_id = CAST(:u AS uuid) "
+                                   "AND revoked_at IS NULL"), {"u": reused.uid}).rowcount
+                c.execute(text("""INSERT INTO app.audit_logs (actor_id, actor_role, action, target_type, target_id, details_json)
+                                  VALUES (CAST(:u AS uuid), (SELECT role FROM app.users WHERE id = CAST(:u AS uuid)),
+                                          'session.reuse', 'session', CAST(:s AS text), jsonb_build_object('text', CAST(:d AS text)))"""),
+                          {"u": reused.uid, "s": reused.sid,
+                           "d": f"An old sign-in token was used again; {n} device(s) signed out to be safe"})
             return None
-        c.execute(text("""UPDATE app.sessions SET refresh_hash = :nh, last_used_at = now(),
-                          expires_at = now() + make_interval(days => :days) WHERE id = CAST(:s AS uuid)"""),
+        if row.status != "active":
+            return None
+        c.execute(text("""UPDATE app.sessions SET previous_refresh_hash = refresh_hash, refresh_hash = :nh,
+                          last_used_at = now(), expires_at = now() + make_interval(days => :days)
+                          WHERE id = CAST(:s AS uuid)"""),
                   {"nh": _hash(new_refresh), "s": row.sid, "days": SESSION_DAYS})
     return row.uid, row.sid, new_refresh
 

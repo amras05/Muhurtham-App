@@ -50,6 +50,7 @@ const TAB_INPUT_GROUPS = {
   travel: "fieldsTravel",
   vehicle: "fieldsVehicle",
   samskara_pregnancy: "fieldsSamskaraPregnancy",
+  garbhadhana_period: "fieldsGarbhadhanaPeriod",
   samskara_main_event: "fieldsSamskaraMainEvent",
   pitru_death: "fieldsPitruDeath",
 };
@@ -61,6 +62,7 @@ async function loadMuhurtaCatalog() {
     const data = await res.json();
     allMuhurtaRules = data.all_activities || [];
     if (Array.isArray(data.tabs) && data.tabs.length) CATEGORY_TABS = data.tabs;
+    applyToolVisibility(data.hidden_tools || [], data.hidden_tools_marked || []);
     SUB_GROUP_LABELS = data.sub_groups || {};
     const firstWithEvents = CATEGORY_TABS.find(t => allMuhurtaRules.some(r => ruleInTab(r, t.id)));
     if (!allMuhurtaRules.some(r => ruleInTab(r, currentCategory)) && firstWithEvents) {
@@ -89,7 +91,8 @@ function renderCategoryTabs() {
     btn.setAttribute("aria-selected", t.id === currentCategory ? "true" : "false");
     btn.disabled = count === 0 && t.id !== "yogas";   // Special Yogas searches without events
     btn.title = count === 0 ? (currentLang === "te" ? "ఇంకా అందుబాటులో లేదు" : "Not available yet") : "";
-    btn.innerHTML = `${currentLang === "te" ? t.te : t.en} <span class="tab-badge">${count}</span>`;
+    btn.innerHTML = `${currentLang === "te" ? t.te : t.en} <span class="tab-badge">${count}</span>` +
+      (t.hidden ? `<span class="tab-hidden-mark">${currentLang === "te" ? "దాచబడింది" : "Hidden"}</span>` : "");
     btn.addEventListener("click", () => onCategoryChange(t.id));
     bar.appendChild(btn);
   });
@@ -118,9 +121,9 @@ function populateActivityDropdown() {
       parent = groups[r.sub_group];
     }
     opt.value = r.id;
-    opt.textContent = currentLang === "te" && r.title_te
+    opt.textContent = (r.hidden ? (currentLang === "te" ? "[దాచబడింది] " : "[Hidden] ") : "") + (currentLang === "te" && r.title_te
       ? `${r.title_te} (${r.title_en})`
-      : `${r.title_en} · ${r.title_te || ""}`;
+      : `${r.title_en} · ${r.title_te || ""}`);
     if (r.id === prevVal) {
       opt.selected = true;
       hasSelected = true;
@@ -139,44 +142,7 @@ function currentRule() {
   return allMuhurtaRules.find(r => r.id === act) || null;
 }
 
-const NAKSHATRAS_27 = [
-  { id: 1, en: "Ashwini", te: "అశ్విని" },
-  { id: 2, en: "Bharani", te: "భరణి" },
-  { id: 3, en: "Krittika", te: "కృత్తిక" },
-  { id: 4, en: "Rohini", te: "రోహిణి" },
-  { id: 5, en: "Mrigashira", te: "మృగశిర" },
-  { id: 6, en: "Ardra", te: "ఆర్ద్ర" },
-  { id: 7, en: "Punarvasu", te: "పునర్వసు" },
-  { id: 8, en: "Pushya", te: "పుష్యమి" },
-  { id: 9, en: "Ashlesha", te: "ఆశ్లేష" },
-  { id: 10, en: "Magha", te: "మఖ" },
-  { id: 11, en: "Purva Phalguni", te: "పూర్వఫల్గుని (పుబ్బ)" },
-  { id: 12, en: "Uttara Phalguni", te: "ఉత్తరఫల్గుని (ఉత్తర)" },
-  { id: 13, en: "Hasta", te: "హస్త" },
-  { id: 14, en: "Chitra", te: "చిత్త" },
-  { id: 15, en: "Swati", te: "స్వాతి" },
-  { id: 16, en: "Vishakha", te: "విశాఖ" },
-  { id: 17, en: "Anuradha", te: "అనూరాధ" },
-  { id: 18, en: "Jyeshtha", te: "జ్యేష్ఠ" },
-  { id: 19, en: "Mula", te: "మూల" },
-  { id: 20, en: "Purvashadha", te: "పూర్వాషాఢ" },
-  { id: 21, en: "Uttarashadha", te: "ఉత్తరాషాఢ" },
-  { id: 22, en: "Shravana", te: "శ్రవణము" },
-  { id: 23, en: "Dhanishta", te: "ధనిష్ఠ" },
-  { id: 24, en: "Shatabhisha", te: "శతభిషం" },
-  { id: 25, en: "Purvabhadra", te: "పూర్వాభాద్ర" },
-  { id: 26, en: "Uttarabhadra", te: "ఉత్తరాభాద్ర" },
-  { id: 27, en: "Revati", te: "రేవతి" },
-];
-
-const RASIS_12 = [
-  { id: 1, en: "Mesha", te: "మేషం" }, { id: 2, en: "Vrishabha", te: "వృషభం" },
-  { id: 3, en: "Mithuna", te: "మిథునం" }, { id: 4, en: "Karkataka", te: "కర్కాటకం" },
-  { id: 5, en: "Simha", te: "సింహం" }, { id: 6, en: "Kanya", te: "కన్య" },
-  { id: 7, en: "Tula", te: "తుల" }, { id: 8, en: "Vrishchika", te: "వృశ్చికం" },
-  { id: 9, en: "Dhanus", te: "ధనుస్సు" }, { id: 10, en: "Makara", te: "మకరం" },
-  { id: 11, en: "Kumbha", te: "కుంభం" }, { id: 12, en: "Meena", te: "మీనం" },
-];
+// NAKSHATRAS_27 and RASIS_12 come from js/stars.js
 
 // ---- People taking part (Input Data Master) ----
 // One card per participant the event asks for. Janma and nama nakshatra are separate
@@ -245,6 +211,7 @@ function personCardHTML(spec, idx) {
       <span class="person-card__note">${levelNote} · ${basisNote}</span>
     </summary>
     <div class="person-card__body">
+      ${familyPickerHTML(role, st)}
       <div class="context-grid">
         <div class="field"><label for="${id("name")}">${T("Name", "పేరు")}</label>
           <input type="text" id="${id("name")}" data-k="name" value="${escapeHtml(st.name || "")}" autocomplete="off"></div>
@@ -372,6 +339,7 @@ function collectParticipants() {
     const num = k => parseInt(val(k)) || null;
     const p = { role: card.dataset.role, name: val("name") || null, gotra: val("gotra") || null,
                 gender: val("gender") || null, eldest: !!val("eldest") };
+    if (val("profile_id")) p.profile_id = val("profile_id");      // saved family member (plan R1)
     if (val("birth_date")) p.birth_date = val("birth_date");
     // Directly picked values always count; birth details are sent when that mode is used.
     ["janma_nak_idx", "janma_pada", "nama_nak_idx", "nama_pada", "rasi_idx", "lagna_idx"].forEach(k => { if (num(k)) p[k] = num(k); });
@@ -382,7 +350,7 @@ function collectParticipants() {
       const reg = (typeof allRegions !== "undefined" ? allRegions : []).find(r => r.id === val("birth_region"));
       if (reg) Object.assign(p, { birth_place: reg.label, birth_lat: reg.lat, birth_lon: reg.lon, birth_tz_offset: reg.tz_offset });
     }
-    const given = p.name || p.birth_date || p.janma_nak_idx || p.nama_nak_idx || p.rasi_idx || p.gender || p.eldest;
+    const given = p.profile_id || p.name || p.birth_date || p.janma_nak_idx || p.nama_nak_idx || p.rasi_idx || p.gender || p.eldest;
     if (given) out.push(p);
   });
   return out;
@@ -629,6 +597,7 @@ function buildD1ChartHTML(d1Array, centerLabel) {
 
 // ---- Main Search ----
 let lastData = null;
+let lastRequest = null;   // the payload of the last search, for "Save" (plan R3)
 
 async function findMuhurtas() {
   const regionId = el("mfRegionSelect").value;
@@ -700,6 +669,7 @@ async function findMuhurtas() {
     const tabInputs = currentRule()?.tab_inputs || [];
     const val = id => el(id)?.value?.trim() || null;
     if (tabInputs.includes("samskara_pregnancy")) payload.conception_date = val("mfConceptionDate");
+    if (tabInputs.includes("garbhadhana_period")) payload.period_start_date = val("mfPeriodStart");
     if (tabInputs.includes("samskara_main_event")) payload.main_event_date = val("mfMainEventDate");
     if (tabInputs.includes("pitru_death")) payload.main_event_date = val("mfDeathDate");
     if (tabInputs.includes("upanayana_family")) {
@@ -730,6 +700,7 @@ async function findMuhurtas() {
       payload.vehicle_muhurta_type = val("mfVehicleMuhurtaType");
     }
 
+    lastRequest = payload;
     const res = await fetch(`${API_BASE}/muhurta/find`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -829,7 +800,7 @@ function lagnaStrengthHTML(det) {
     <h4 class="detail-card__title">🏛️ ${T("Lagna and planet strength", "లగ్నం · గ్రహ బలం")}</h4>
     <div class="detail-card__grid">
       <div><strong>${T("Lagna:", "లగ్నం:")}</strong> ${escapeHtml(T(lg.name || "—", lg.name_te || lg.name || "—"))}${escapeHtml(deg)}</div>
-      <div><strong>${T("Navamsa:", "నవాంశ:")}</strong> ${escapeHtml(te(lg.navamsa || "—", RASI_NAMES_TE))}${lg.is_pushkara_navamsa ? T(" (pushkara)", " (పుష్కర)") : ""}</div>
+      <div><strong>${T("Navamsa:", "నవాంశ:")}</strong> ${escapeHtml(te(lg.navamsa || "—", RASI_NAMES_TE))}${lg.is_pushkara_navamsa ? T(" (pushkara", " (పుష్కర") + (lg.pushkara_minutes ? " " + escapeHtml(lg.pushkara_minutes.replace(/ \([^)]*\)/g, "")) : "") + ")" : ""}</div>
     </div>
     <div class="strength-row">${strength}</div>
   </div>`;
@@ -1069,6 +1040,7 @@ function renderResults(data) {
 // ---- Modal ----
 function openDayModal(idx) {
   if (!lastData || !lastData.results[idx]) return;
+  openDayIdx = idx;
   const r = lastData.results[idx];
   const d = r.detailed_eval;
 
@@ -1510,7 +1482,7 @@ populateActivityDropdown();
 el("mfPitruMode")?.addEventListener("change", updatePitruFields);
 
 // Birth-place lists on the cards need the regions; redraw the cards once both have loaded.
-Promise.all([loadRegions(), loadMuhurtaCatalog()]).then(() => { updateContextualFields(); applyUrlPrefill(); });
+Promise.all([loadRegions(), loadMuhurtaCatalog(), loadFamily()]).then(() => { updateContextualFields(); applyUrlPrefill(); });
 
 // Links from the home page: ?activity=<id>&start=YYYY-MM-DD, or #yogas / #pitru for those tools.
 function applyUrlPrefill() {
@@ -1523,10 +1495,202 @@ function applyUrlPrefill() {
     onCategoryChange(rule.tab || rule.category);
     el("mfActivitySelect").value = rule.id;
     updateContextualFields();
+  } else if (q.get("saved")) {
+    openSavedSearch(q.get("saved"));
   } else if (window.location.hash === "#yogas") {
     onCategoryChange("yogas");
   } else if (window.location.hash === "#pitru") {
     onCategoryChange("pitru");
-    setPitruMode(true);
+    if (!el("mfPitruTabCal")?.hidden) setPitruMode(true);
   }
 }
+
+// ---- PDF downloads (plan R8): the server prints what is on screen, with correct Telugu ----
+let openDayIdx = null;
+
+function eventTitle() {
+  const rule = currentRule();
+  return T(rule?.title_en || lastData?.title_en || "Muhurta", rule?.title_te || lastData?.title_te || "ముహూర్తం");
+}
+
+function placeName() {
+  const sel = el("mfRegionSelect");
+  return sel && sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex].text : "";
+}
+
+function downloadDetailPdf(btn) {
+  const r = lastData?.results?.[openDayIdx];
+  PdfDownload.fromElement("mfModalBody", {
+    kind: "muhurta",
+    title: `${eventTitle()} · ${el("mfModalTitle").textContent.trim()}`,
+    subtitle: placeName(),
+    filename: PdfDownload.fileName(lastData?.activity_id, r?.date),
+  }, btn);
+}
+
+function downloadListPdf(btn) {
+  let kind = "results", title = `${eventTitle()} · ${T("muhurtas found", "లభించిన ముహూర్తాలు")}`;
+  if (currentCategory === "yogas") {
+    kind = "yogas"; title = T("Special yogas", "ప్రత్యేక యోగాలు");
+  } else if (currentCategory === "pitru" && pitruCalendarOn) {
+    const m = el("mfPitruMode");
+    kind = "pitru"; title = `${T("Shraddha calendar", "శ్రాద్ధ తిథి నిర్ణయం")} · ${m ? m.options[m.selectedIndex].text : ""}`;
+  }
+  const box = document.createElement("div");
+  const status = el("mfStatus")?.textContent.trim();
+  if (status) { const p = document.createElement("p"); p.textContent = status; box.appendChild(p); }
+  box.insertAdjacentHTML("beforeend", el("summaryBar").outerHTML + el("dayGrid").outerHTML);
+  const start = el("startDate")?.value || "";
+  PdfDownload.fromElement(box, {
+    kind, title,
+    subtitle: [placeName(), kind === "pitru" ? "" : start && T(`from ${start}`, `${start} నుండి`)].filter(Boolean).join(" · "),
+    filename: PdfDownload.fileName(kind === "results" ? lastData?.activity_id : kind, start),
+  }, btn);
+}
+
+// ---- Hidden tools (plan R12): users don't get the Shraddha calendar when the super admin hides it ----
+function applyToolVisibility(hiddenForMe, markedHidden) {
+  const cal = el("mfPitruTabCal");
+  if (!cal) return;
+  if (hiddenForMe.includes("pitru_calendar")) {
+    cal.hidden = true;
+    if (pitruCalendarOn) setPitruMode(false);
+  } else if (markedHidden.includes("pitru_calendar") && !cal.querySelector(".tab-hidden-mark")) {
+    cal.insertAdjacentHTML("beforeend", `<span class="tab-hidden-mark">${T("Hidden", "దాచబడింది")}</span>`);
+  }
+}
+
+// ---- My family on the person cards (plan R1) ----
+var FAMILY = [];          // var: the cards render before this line runs
+var RELATION_LABELS = {
+  self: ["Me", "నేను"], spouse: ["Spouse", "భార్య / భర్త"], son: ["Son", "కుమారుడు"], daughter: ["Daughter", "కుమార్తె"],
+  father: ["Father", "తండ్రి"], mother: ["Mother", "తల్లి"], brother: ["Brother", "సోదరుడు"], sister: ["Sister", "సోదరి"],
+  grandchild: ["Grandchild", "మనవడు / మనవరాలు"], other: ["Other", "ఇతరులు"],
+};
+
+async function loadFamily() {
+  try {
+    const res = await fetch(`${API_BASE}/me/family`);
+    if (res.ok) FAMILY = (await res.json()).family || [];
+  } catch (e) { console.warn("Family not loaded:", e.message); }   // cards work without it
+}
+
+function familyPickerHTML(role, st) {
+  const id = `mfP_${role}_fam`;
+  const fam = FAMILY || [];                // undefined during the first render, before this file finishes
+  if (!fam.length) {
+    return `<p class="participants__hint"><a href="family.html">${T("Save your family once", "మీ కుటుంబాన్ని ఒకసారి భద్రపరచండి")}</a>${T(" to fill these cards with one click.", " — తర్వాత ఒక క్లిక్‌తో ఈ వివరాలు నిండుతాయి.")}</p>`;
+  }
+  return `<div class="field field--family"><label for="${id}">${T("From my family", "నా కుటుంబం నుండి")}</label>
+    <select id="${id}" data-k="profile_id" onchange="pickFamily('${role}', this.value)">
+      <option value="">${T("— Enter the details below —", "— కింద వివరాలు నమోదు చేయండి —")}</option>
+      ${fam.map(f => `<option value="${escapeHtml(f.id)}"${st.profile_id === f.id ? " selected" : ""}>${escapeHtml(f.display_name)} · ${escapeHtml(T(...(RELATION_LABELS[f.relation] || [f.relation, f.relation])))}</option>`).join("")}
+    </select></div>`;
+}
+
+function pickFamily(role, profileId) {
+  const f = (FAMILY || []).find(x => x.id === profileId);
+  if (!f) return;
+  const set = (k, v) => { const i = el(`mfP_${role}_${k}`); if (!i) return; if (i.type === "checkbox") i.checked = !!v; else i.value = v == null ? "" : String(v); };
+  set("name", f.display_name); set("gotra", f.gotra);
+  set("janma", f.janma_nak); set("jpada", f.janma_pada); set("nama", f.nama_nak); set("npada", f.nama_pada);
+  set("rasi", f.janma_rasi); set("lagna", f.birth_lagna);
+  set("gender", { male: "boy", female: "girl" }[f.gender] || ""); set("eldest", f.is_eldest);
+  if (f.birth && f.birth.date) set("dob", f.birth.date);
+  switchPersonMode(role, "star");          // the saved star is shown; the server checks it belongs to you
+}
+
+// ---- Add the open window to the family events of the people picked on the cards (plan R2) ----
+async function addWindowToFamily(btn) {
+  const r = lastData?.results?.[openDayIdx];
+  const picked = collectParticipants().filter(p => p.profile_id);
+  if (!r || !picked.length) {
+    alert(T("Pick people from \"From my family\" on the cards first; the event is saved for them.",
+            "ముందు కార్డులపై 'నా కుటుంబం నుండి' వ్యక్తులను ఎంచుకోండి; కార్యక్రమం వారికి భద్రపరుస్తాం."));
+    return;
+  }
+  const start = r.window_start || r.start_time || "";
+  const time = /^\d{2}:\d{2}/.test(start) ? start.slice(0, 5) : null;
+  btn.disabled = true;
+  try {
+    for (const p of picked) {
+      const res = await fetch(`${API_BASE}/me/family/events`, { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile_id: p.profile_id, activity_id: lastData.activity_id, event_date: r.date, event_time: time,
+                               status: "planned", notes: T("Chosen in the Muhurta Finder", "ముహూర్త శోధనలో ఎంచుకున్నది") }) });
+      if (!res.ok) { const d = await res.json().catch(() => null); throw new Error((d && typeof d.detail === "string" && d.detail) || `HTTP ${res.status}`); }
+    }
+    alert(T(`Saved as a planned event for ${picked.map(p => p.name).join(" and ")}. See My family.`,
+            `${picked.map(p => p.name).join(", ")} కు నిర్ణయించిన కార్యక్రమంగా భద్రపరిచాము. 'నా కుటుంబం'లో చూడండి.`));
+  } catch (e) {
+    alert(T("Couldn't save the event: ", "కార్యక్రమం భద్రపరచలేకపోయాము: ") + e.message);
+  } finally { btn.disabled = false; }
+}
+
+// ---- Saved muhurtas (plan R3) ----
+// Saves keep family profile ids and stars, never birth date, time or place (the server strips them too).
+function requestForSaving() {
+  if (!lastRequest || !lastData) return null;
+  const req = JSON.parse(JSON.stringify(lastRequest));
+  delete req.period_start_date;                       // health data is never saved (plan R6b)
+  const resolved = lastData.participants || [];
+  (req.participants || []).forEach(p => {
+    const r = resolved.find(x => x.role === p.role) || {};
+    ["janma_nak_idx", "janma_pada", "nama_nak_idx", "nama_pada", "rasi_idx", "lagna_idx"].forEach(k => {
+      if (!p[k] && r[k]) p[k] = r[k];               // a star worked out from birth details is kept as the star
+    });
+  });
+  return req;
+}
+
+async function saveSearch(btn, withWindow) {
+  const req = requestForSaving();
+  if (!req) { alert(T("Run a search first.", "ముందు శోధించండి.")); return; }
+  const r = withWindow ? lastData?.results?.[openDayIdx] : null;
+  const label = [eventTitle(), r ? r.date + (r.window_start ? " " + String(r.window_start).slice(0, 5) : "") : T(`from ${req.start_date}`, `${req.start_date} నుండి`),
+                 req.place_name].filter(Boolean).join(" · ");
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${API_BASE}/me/saved`, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: "muhurta", label: label.slice(0, 120), request: req, chosen_window: r || null }) });
+    const d = await res.json().catch(() => null);
+    if (!res.ok) throw new Error((d && typeof d.detail === "string" && d.detail) || `HTTP ${res.status}`);
+    alert(T(`Saved as "${d.label}". Find it under My muhurtas.`, `"${d.label}" గా భద్రపరిచాము. 'నా ముహూర్తాలు'లో చూడండి.`));
+  } catch (e) { alert(T("Couldn't save: ", "భద్రపరచలేకపోయాము: ") + e.message); }
+  finally { btn.disabled = false; }
+}
+
+const SAVED_FIELD_IDS = { conception_date: "mfConceptionDate", veda_shakha: "mfVedaShakha", sutra: "mfSutra", varna: "mfVarna",
+  door_facing: "mfDoorFacing", plot_facing: "mfPlotFacing", house_type: "mfHouseType", origin: "mfTravelOrigin", destination: "mfTravelDest",
+  travel_direction: "mfTravelDir", travel_mode: "mfTravelMode", travel_purpose: "mfTravelPurpose", travel_exemption: "mfTravelExemption",
+  business_name: "mfBusinessName", business_type: "mfBusinessType", entrance_facing: "mfEntranceFacing",
+  vehicle_type: "mfVehicleType", vehicle_muhurta_type: "mfVehicleMuhurtaType" };
+
+async function openSavedSearch(id) {
+  try {
+    const res = await fetch(`${API_BASE}/me/saved/${encodeURIComponent(id)}`);
+    const d = await res.json().catch(() => null);
+    if (!res.ok) throw new Error((d && typeof d.detail === "string" && d.detail) || `HTTP ${res.status}`);
+    const req = d.request || {};
+    const rule = allMuhurtaRules.find(x => x.id === req.activity_id);
+    if (!rule) throw new Error(T("This muhurta is not available now.", "ఈ ముహూర్తం ఇప్పుడు అందుబాటులో లేదు."));
+    (req.participants || []).forEach(p => {
+      participantState[p.role] = { ...p, mode: "star", eldest: !!p.eldest };
+    });
+    onCategoryChange(rule.tab || rule.category);
+    el("mfActivitySelect").value = rule.id;
+    updateContextualFields();
+    if (req.start_date) el("startDate").value = req.start_date;
+    if (req.days_to_scan) el("daysInput").value = req.days_to_scan;
+    if (req.strictness && el("mfStrictness")) el("mfStrictness").value = req.strictness;
+    if (req.time_preference && el("mfTimePref")) el("mfTimePref").value = req.time_preference;
+    if (req.rule_variant && el("mfVariantSelect")) el("mfVariantSelect").value = req.rule_variant;
+    const reg = allRegions.find(x => Math.abs(x.lat - req.lat) < 1e-4 && Math.abs(x.lon - req.lon) < 1e-4);
+    if (reg) el("mfRegionSelect").value = reg.id;
+    else if (el("mfCustomPlaceInput")) { el("mfRegionSelect").value = "custom"; el("mfRegionSelect").dispatchEvent(new Event("change")); el("mfCustomPlaceInput").value = req.place_name || ""; }
+    Object.entries(SAVED_FIELD_IDS).forEach(([k, fid]) => { if (req[k] && el(fid)) el(fid).value = req[k]; });
+    if (req.main_event_date) ["mfMainEventDate", "mfDeathDate"].forEach(fid => { if (el(fid)) el(fid).value = req.main_event_date; });
+    setStatus(T(`Opened "${d.label}".`, `"${d.label}" తెరిచాము.`) + (d.engine_changed ? " " + T("The app has been updated since you saved this, so results may differ.", "భద్రపరిచిన తర్వాత యాప్ నవీకరించబడింది; ఫలితాలు మారవచ్చు.") : ""));
+    findMuhurtas();
+  } catch (e) { setStatus(T("Couldn't open the saved muhurta: ", "భద్రపరిచిన ముహూర్తం తెరవలేకపోయాము: ") + e.message, true); }
+}
+

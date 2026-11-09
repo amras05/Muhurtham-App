@@ -79,6 +79,10 @@ class LagnaWindow(TimeWindow):
     navamsa_name_en: str = ""
     is_pushkara_navamsa: bool = False
     house_planets: Dict[int, List[PlanetPlacement]] = field(default_factory=dict) # house 1-12 -> planets
+    # Exact pushkara navamsa spans inside this lagna (plan R6a): (start, end, navamsa sign name).
+    # A lagna (~2 h) holds two pushkara navamsas of ~13 minutes each; the finder checks each
+    # muhurta window against these instead of the lagna's midpoint.
+    pushkara_spans: List[Tuple[datetime, datetime, str]] = field(default_factory=list)
 
 
 def get_navamsa_sign(longitude: float) -> int:
@@ -145,6 +149,43 @@ def get_planet_positions(jd_ut: float) -> List[PlanetPlacement]:
     return placements
 
 
+def _pushkara_spans(lagna_deg_at, rasi_idx: int, start_h: float, end_h: float,
+                    base_date: datetime) -> List[Tuple[datetime, datetime, str]]:
+    """Exact times the rising degree is inside each pushkara navamsa of this sign (bisection, < 1 s)."""
+    base = (rasi_idx - 1) * 30.0
+
+    def offset(h: float) -> float:          # degrees risen inside this sign, 0-30
+        d = (lagna_deg_at(h) - base) % 360.0
+        return d if d <= 30.0 else (0.0 if d > 180.0 else 30.0)
+
+    def first_at(target: float) -> Optional[float]:
+        if offset(start_h) >= target:
+            return start_h
+        if offset(end_h) < target:
+            return None
+        lo, hi = start_h, end_h
+        for _ in range(24):
+            mid = 0.5 * (lo + hi)
+            if offset(mid) >= target:
+                hi = mid
+            else:
+                lo = mid
+        return hi
+
+    out: List[Tuple[datetime, datetime, str]] = []
+    span = 30.0 / 9.0
+    for n in sorted(PUSHKARA_NAVAMSAS.get(rasi_idx, ())):
+        a, b = (n - 1) * span, n * span
+        t_a = first_at(a)
+        if t_a is None:
+            continue
+        t_b = first_at(b) or end_h
+        if t_b > t_a:
+            nav_name = RASI_NAMES_EN[get_navamsa_sign(base + a + span / 2)]
+            out.append((base_date + timedelta(hours=t_a), base_date + timedelta(hours=t_b), nav_name))
+    return out
+
+
 def scan_day_lagnas(
     year: int, month: int, day: int,
     lat: float, lon: float, tz_offset: float,
@@ -204,7 +245,8 @@ def scan_day_lagnas(
         lagna_deg = get_lagna_deg(mid_h)
 
         nav_idx = get_navamsa_sign(lagna_deg)
-        pushkara = is_pushkara_navamsa(lagna_deg)
+        spans = _pushkara_spans(get_lagna_deg, rasi_idx, start_h, end_h, base_date)
+        pushkara = bool(spans)          # the lagna holds a pushkara navamsa (windows are checked exactly)
 
         # Compute planetary house numbers relative to this Lagna
         planets = get_planet_positions(mid_jd)
@@ -236,6 +278,7 @@ def scan_day_lagnas(
             navamsa_name_en=RASI_NAMES_EN[nav_idx],
             is_pushkara_navamsa=pushkara,
             house_planets=house_map,
+            pushkara_spans=spans,
         )
         lagna_windows.append(lw)
 

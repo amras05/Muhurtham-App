@@ -162,81 +162,11 @@ Errors: 400 for a missing `main_event_date` or an unknown `rule_variant`; 404 fo
 
 ---
 
-## Samskaras (16 Shodasa Samskaras — treatise rules)
+## Samskaras and Pitrukarya (retired)
 
-### `GET /muhurta/samskaras/list`
-List all 16 digitized Samskaras with metadata:
-`id, page_number, name_en/te, tagline_en/te, icon, rules_summary_en/te, special_checks[]`
-
-### `GET /muhurta/samskara-finder`
-Find the best classical Muhurtas for any of the 16 Samskaras.
-
-**Required**
-
-| Param | Notes |
-|---|---|
-| `type` | Samskara id — one of: `garbhadhana`, `pumsavana`, `seemantha`, `jatakarma`, `namakarana`, `annaprashana`, `choodakarana`, `karnavedha`, `upanayana`, `samavartana`, `keshanta_godana`, `aksharabhyasam`, `prajapatya_vrata`, `saumya_vrata`, `agneya_vrata`, `vaishvadeva_vrata`, `vivaha` |
-| `dob` | Reference date: birth date / LMP date / target date (`YYYY-MM-DD`) |
-| `lat`, `lon`, `tz_offset` | |
-
-**Common optional**
-
-| Param | Default | Notes |
-|---|---|---|
-| `tob` | `12:00` | Birth/reference time |
-| `place_name` | `"Location"` | |
-| `method` | `"drik"` | |
-
-**Samskara-specific optional params**
-
-| Param | Values | Used by |
-|---|---|---|
-| `child_gender` | `male` / `female` | Annaprashana, Choodakarana |
-| `ceremony_type` | `seemantha` / `valaikappu_gajulu` | Seemantha |
-| `timing_mode` | `early` (12/16 days) / `later` (6/7/8 months) | Karnavedha |
-| `age_mode` | `months` / `years` | Choodakarana |
-| `varna` | `brahmin` (8th yr) / `kshatriya` (11th) / `vaishya` (12th) | Upanayana |
-| `study_years` | int | Samavartana, Keshanta/Godana (def. 16), Aksharabhyasam (def. 5), post-Upanayana vratas |
-| `husband_moon_rasi_idx` | 1–12 | Garbhadhana (Chandrashtama check) |
-| `husband_nak_idx` | 1–27 | Husband janma nakshatra |
-| `bride_ritu_lagna_idx` | 1–12 | Garbhadhana |
-| `bride_nak_idx` | 1–27 | **Vivaha** (Tarabala / Trijashta star checks) |
-
-**Response shape (per candidate):**
-`date, day_label_en/te, percentage, verdict, lagna_name, tara, reasons[], pushkara_info{}, panchang{vaara, tithi{name,paksha}, yoga{name,start_time,end_time}, karana{…}, …}, chandrabalam, panchaka_rahitam, detailed_eval{maha_doshas[], dashavidha_doshas[]}`
-
-> 📿 **Treatise scope note:** the 21 Maha Doshas, 10 Dashavidha Doshas, and the Rikta-tithi (4, 9, 14) + Amavasya varjyam rules are evaluated **only for `type=vivaha`**. Other samskaras get their own tithi/nakshatra restrictions instead.
-
-**Example:**
-`/muhurta/samskara-finder?type=namakarana&dob=2025-06-15&tob=08:30&lat=17.385&lon=78.4867&tz_offset=5.5&place_name=Vijayawada`
-
-**Example (Vivaha):**
-`/muhurta/samskara-finder?type=vivaha&dob=1995-03-10&tob=10:15&bride_nak_idx=14&lat=17.385&lon=78.4867&tz_offset=5.5`
-
-**Upanayana participant Tarabala (treatise addendum — "తల్లి తండ్రి వటువు అవకాశం ఉంటే గురువుగారి నక్షత్రం కూడా చూడాలి"):**
-optional `mother_nak_idx`, `father_nak_idx`, `guru_nak_idx` (1–27). Each known participant's Tara is computed from their janma nakshatra to the candidate star; adverse Taras (1/3/5/7) deduct 8 points each (soft dosha, not strict rejection). Response candidates carry `participant_tarabala: [{who: mother|father|guru, tara, tara_idx, is_pass, …}]`.
-
-### `GET /muhurta/namakarana-finder`
-Backwards-compatible shortcut = `samskara-finder` with `type=namakarana`.
-Params: `dob` (req), `tob`, `lat`, `lon`, `tz_offset`, `place_name`, `method`.
-Namakarana windows: **11th, 12th, 16th, 20th, 22nd day** from birth.
-
----
-
-## Antyeshti / Pitrukarya (treatise Part 5.3)
-
-### `GET /muhurta/pitrukarya-finder`
-Tithi-locked karya windows (not lagna-based).
-
-| Param | Req | Default | Notes |
-|---|---|---|---|
-| `death_date` | ✔ | — | `YYYY-MM-DD` |
-| `lat`, `lon`, `tz_offset` | ✔ | — | |
-| `place_name` |  | `"Location"` | |
-| `mode` |  | `pending` | `pending` = next permissible days after death · `calendar` = annual Ashtaka/Sankranti calendar |
-| `calendar_year` |  | — | Gregorian year (calendar mode only) |
-
----
+The old endpoints `GET /muhurta/samskaras/list`, `/muhurta/samskara-finder`, `/muhurta/namakarana-finder` and
+`/muhurta/pitrukarya-finder` were removed on 9 Nov 2026 (plan R4). Every samskara is searched with
+`POST /muhurta/find` (see the catalog at `GET /muhurta/catalog`), and pitru dates with `POST /muhurta/pitru-calendar`.
 
 ## Accounts (`/auth`, `/user`, `/me`, `/admin`)
 

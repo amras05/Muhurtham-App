@@ -47,6 +47,21 @@
       <h2 id="dTitle" data-en="Signed-in devices" data-te="లాగిన్ అయిన పరికరాలు">Signed-in devices</h2>
       <ul id="devices" class="portal-list"><li data-en="Loading…" data-te="లోడ్ అవుతోంది…">Loading…</li></ul>
     </section>
+
+    <section class="portal-card" aria-labelledby="yTitle">
+      <h2 id="yTitle" data-en="Your data" data-te="మీ సమాచారం">Your data</h2>
+      <p class="portal-hint" data-en="Download everything stored about you: your account, family (with birth details), family events, saved muhurtas and your activity." data-te="మీ గురించి నిల్వ ఉన్నదంతా డౌన్‌లోడ్ చేసుకోండి: ఖాతా, కుటుంబం (జన్మ వివరాలతో), కుటుంబ కార్యక్రమాలు, భద్రపరిచిన ముహూర్తాలు, మీ కార్యకలాపాలు.">Download everything stored about you: your account, family (with birth details), family events, saved muhurtas and your activity.</p>
+      <div class="row-form"><button type="button" class="btn btn--ghost" id="exportBtn" data-en="Download my data" data-te="నా సమాచారం డౌన్‌లోడ్">Download my data</button></div>
+      <details class="danger-zone">
+        <summary data-en="Delete my account" data-te="నా ఖాతా తొలగించండి">Delete my account</summary>
+        <form id="deleteForm" class="portal-form">
+          <p class="portal-hint" data-en="This removes your name, mobile, family, family events and saved muhurtas, and signs you out everywhere. It can't be undone. The activity log keeps only that an account existed." data-te="ఇది మీ పేరు, మొబైల్, కుటుంబం, కుటుంబ కార్యక్రమాలు, భద్రపరిచిన ముహూర్తాలను తొలగించి అన్ని పరికరాల నుండి సైన్ అవుట్ చేస్తుంది. తిరిగి పొందలేము. ఖాతా ఉండేదని మాత్రమే లాగ్‌లో ఉంటుంది.">This removes your name, mobile, family, family events and saved muhurtas, and signs you out everywhere. It can't be undone. The activity log keeps only that an account existed.</p>
+          <div class="field"><label for="delPassword" data-en="Your password" data-te="మీ పాస్‌వర్డ్">Your password</label><input type="password" id="delPassword" required autocomplete="current-password"></div>
+          <label class="switch"><input type="checkbox" id="delSure" required> <span data-en="I understand my account and data will be deleted for good." data-te="నా ఖాతా, సమాచారం శాశ్వతంగా తొలగిపోతాయని అర్థమైంది.">I understand my account and data will be deleted for good.</span></label>
+          <button type="submit" class="btn btn--danger" data-en="Delete my account" data-te="నా ఖాతా తొలగించండి">Delete my account</button>
+        </form>
+      </details>
+    </section>
   </main>
   <script src="js/config.js"></script>
   <script src="js/app-shell.js"></script>
