@@ -38,7 +38,7 @@
           (s.current ? ' <span class="chip-current">' + tr("this device", "ఈ పరికరం") + "</span>" : "") +
           "<small>" + esc(tr("Last used ", "చివరిసారి ") + when) + "</small></div>" +
           (s.current ? "" : '<button type="button" class="btn btn--sm btn--ghost" data-sid="' + esc(s.id) + '">' + tr("Sign out", "సైన్ అవుట్") + "</button>") + "</li>";
-      }).join("") || "<li>" + tr("No devices.", "పరికరాలు లేవు.") + "</li>";
+      }).join("") || '<li class="empty-state">' + tr("No devices.", "పరికరాలు లేవు.") + "</li>";
     } catch (e) { list.innerHTML = "<li>" + esc(e.message) + "</li>"; }
   }
 

@@ -17,6 +17,22 @@
   --color-text-muted: #655c57;
   --color-border: #ded6cc;
 
+  /* Tints for status boxes and text on a strong colour (Experience Plan U2).
+     Green, amber and red mean the same on every page: use these, not hand-written shades. */
+  --color-success-bg: #edf6f0;
+  --color-success-border: #bfdcc6;
+  --color-danger-bg: #fdecea;
+  --color-danger-border: #f5c2bd;
+  --color-on-strong: #ffffff;
+  --color-warning-bg: #fff8e1;
+  --color-warning-border: #ffe082;
+  --color-info-bg: #eaf1fd;
+  --color-info-border: #b6cdf7;
+  /* Remedies (pariharam) have their own colour, purple, so they are not read as good or bad. */
+  --color-remedy: #6a1b9a;
+  --color-remedy-bg: #faf5fb;
+  --color-remedy-border: #e1bee7;
+
   /* Legacy aliases retained while pages are migrated. */
   --ivory: var(--color-bg);
   --ink: var(--color-text);

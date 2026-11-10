@@ -13,7 +13,6 @@ class MuhurtaCheckQuery(BaseModel):
     tz_offset: float = Field(..., description="Timezone offset (e.g. 5.5 for IST)")
     place_name: str = Field("Location", description="Place name")
     hour: int = Field(6, ge=0, le=23, description="Hour of day (0-23)")
-    method: str = Field("drik", description="'drik' or 'chandramana'")
 
 
 class MuhurtaNextQuery(BaseModel):
@@ -24,7 +23,6 @@ class MuhurtaNextQuery(BaseModel):
     tz_offset: float = Field(..., description="Timezone offset")
     place_name: str = Field("Location", description="Place name")
     max_days: int = Field(60, le=180, description="Max days to scan (up to 180)")
-    method: str = Field("drik", description="'drik' or 'chandramana'")
 
 
 class FinderQuery(BaseModel):

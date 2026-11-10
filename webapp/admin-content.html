@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261108">
-  <link rel="stylesheet" href="css/portal.css">
+  <link rel="stylesheet" href="css/common.css?v=20261110e">
+  <link rel="stylesheet" href="css/portal.css?v=20261110b">
   <title>Content · Muhurtham</title>
 </head>
 <body>
@@ -26,7 +26,7 @@
     <section class="portal-card" aria-labelledby="oTitle">
       <h2 id="oTitle" data-en="Omen calendar (utpata)" data-te="ఉత్పాతాల జాబితా">Omen calendar (utpata)</h2>
       <p class="portal-hint" data-en="Earthquakes, comets, thunderbolts and similar events can't be calculated. Every muhurta on a date listed here fails Mahadosha #15." data-te="భూకంపాలు, తోకచుక్కలు, పిడుగులు వంటివి లెక్కించలేము. ఇక్కడ ఉన్న తేదీలలో ప్రతి ముహూర్తం మహాదోషం #15 వల్ల తిరస్కరించబడుతుంది.">Earthquakes, comets, thunderbolts and similar events can't be calculated. Every muhurta on a date listed here fails Mahadosha #15.</p>
-      <ul class="portal-list" id="omens"><li>…</li></ul>
+      <ul class="portal-list" id="omens"><li><span class="skeleton" role="status" aria-label="Loading"></span></li></ul>
       <form id="omenForm" class="portal-form">
         <h3 data-en="Add an omen" data-te="ఉత్పాతం జోడించండి">Add an omen</h3>
         <div class="row-form">
@@ -47,7 +47,7 @@
     <section class="portal-card" aria-labelledby="nTitle">
       <h2 id="nTitle" data-en="Announcements" data-te="ప్రకటనలు">Announcements</h2>
       <p class="portal-hint" data-en="A short notice shown at the top of the home page." data-te="హోమ్ పేజీ పైభాగంలో చూపే చిన్న ప్రకటన.">A short notice shown at the top of the home page.</p>
-      <ul class="portal-list" id="anns"><li>…</li></ul>
+      <ul class="portal-list" id="anns"><li><span class="skeleton" role="status" aria-label="Loading"></span></li></ul>
       <form id="annForm" class="portal-form">
         <h3 data-en="New announcement" data-te="కొత్త ప్రకటన">New announcement</h3>
         <div class="field"><label for="anTitleEn" data-en="Title (English)" data-te="శీర్షిక (ఇంగ్లీష్)">Title (English)</label><input type="text" id="anTitleEn" maxlength="120"></div>
@@ -64,9 +64,10 @@
     </section>
   </main>
   <script src="js/config.js"></script>
-  <script src="js/app-shell.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/admin-content.js"></script>
+  <script src="js/icons.js?v=20261110"></script>
+  <script src="js/app-shell.js?v=20261110"></script>
+  <script src="js/i18n.js?v=20261110"></script>
+  <script src="js/auth.js?v=20261110b"></script>
+  <script src="js/admin-content.js?v=20261110b"></script>
 </body>
 </html>

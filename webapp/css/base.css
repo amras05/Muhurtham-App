@@ -32,7 +32,7 @@ button, input, select { font: inherit; }
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-sm);
   background: var(--color-primary-strong);
-  color: #fff;
+  color: var(--color-on-strong);
   text-decoration: none;
 }
 
@@ -68,18 +68,25 @@ header h1 {
 header p {
   margin: 6px 0 0;
   font-size: 13px;
-  color: #6b6152;
+  color: var(--color-text-muted);
 }
 
 footer {
   text-align: center;
   margin-top: 32px;
   font-size: 11px;
-  color: #a8987a;
+  color: var(--color-text-muted);
 }
 
 footer code {
-  background: #efe6d0;
+  background: var(--color-surface-muted);
   padding: 1px 5px;
   border-radius: 4px;
 }
+
+/* Telugu text (Experience Plan U2). Telugu letters are taller than Latin ones and carry marks
+   above and below the line, so they need more line height; and spreading the letters apart
+   (letter-spacing, used on the small uppercase English labels) breaks Telugu words up. */
+html[lang="te"] body { line-height: 1.75; }
+html[lang="te"] body * { letter-spacing: normal; }
+html[lang="te"] :is(label, th, td, button, select, input, small, .btn, .label, .kname, .ktime, .kaala-title, .chip, .badge) { line-height: 1.6; }

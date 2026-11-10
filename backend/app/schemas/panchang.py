@@ -12,7 +12,6 @@ class PanchangQuery(BaseModel):
     tz_offset: float = Field(..., description="Timezone offset (e.g. 5.5 for IST)")
     place_name: str = Field("Location", description="Place name")
     hour: int = Field(6, ge=0, le=23, description="Hour of day (0-23)")
-    method: str = Field("drik", description="'drik' or 'chandramana'")
 
 
 class DaySummaryQuery(BaseModel):
@@ -21,10 +20,8 @@ class DaySummaryQuery(BaseModel):
     lon: float = Field(..., description="Longitude")
     tz_offset: float = Field(..., description="Timezone offset (e.g. 5.5 for IST)")
     place_name: str = Field("Location", description="Place name")
-    method: str = Field("drik", description="'drik' or 'chandramana'")
 
 
 class SimplePanchangQuery(BaseModel):
     date: str = Field(..., description="Date in YYYY-MM-DD format")
     region: str = Field(..., description="Region key from /regions, e.g. 'vijayawada'")
-    method: str = Field("drik", description="'drik' or 'chandramana'")

@@ -4,27 +4,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Muhurta Finder · 30-Day Panchang Scanner</title>
+  <title>Muhurta Finder · Muhurtham</title>
   <meta name="description" content="Find auspicious Muhurta windows across 30 days with Pushkara Bhaga, Lagna Shuddhi, and Ashtama Shuddhi analysis.">
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261108">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/muhurta-finder.css">
+  <link rel="stylesheet" href="css/common.css?v=20261110e">
+  <link rel="stylesheet" href="css/components.css?v=20261110e">
+  <link rel="stylesheet" href="css/muhurta-finder.css?v=20261110b">
 </head>
 
 <body>
   <a class="skip-link" href="#mainContent">Skip to main content</a>
-  <main id="mainContent">
-  <nav class="app-shell__nav" aria-label="Primary navigation">
-    <a class="app-shell__brand" href="panchang-lookup.html">ముహూర్తం</a>
-    <div class="app-shell__links">
-      <a class="app-shell__link" href="panchang-lookup.html">Panchang</a>
-      <a class="app-shell__link" href="muhurta-finder.html" aria-current="page">Muhurta Finder</a>
+  <nav class="app-shell__nav portal-nav" aria-label="Primary navigation">
+    <a class="app-shell__brand" href="/">ముహూర్తం</a>
+    <div class="app-shell__links"></div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="langTe" onclick="setLang('te')">తెలుగు</button>
     </div>
     <div class="account-slot" id="accountSlot"></div>
   </nav>
+  <main id="mainContent">
   <div class="wrap">
     <header>
       <div class="eyebrow" data-en="30-Day Muhurta Scanner" data-te="30 రోజుల ముహూర్త శోధన">30-Day Muhurta Scanner</div>
@@ -34,13 +35,6 @@
         Scan 30 days of Panchang with Pushkara Bhaga, Lagna Shuddhi & Ashtama Shuddhi analysis
       </p>
     </header>
-
-    <div class="no-print app-actions" style="margin-bottom: var(--space-4);">
-      <div class="lang-toggle">
-        <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
-        <button class="lang-btn" id="langTe" onclick="setLang('te')">తెలుగు</button>
-      </div>
-    </div>
 
     <!-- Category tabs (built from /muhurta/catalog) -->
     <div class="tab-container" id="mfCategoryTabs" role="tablist" aria-label="Muhurta categories"></div>
@@ -66,7 +60,7 @@
         <label for="mfPlaceInput" data-en="Location" data-te="ప్రాంతం">Location</label>
         <div class="place-search">
           <input type="search" id="mfPlaceInput" autocomplete="off" placeholder="Search a town or city" aria-describedby="mfPlaceNote">
-          <button type="button" id="mfUseMyLocation" class="btn btn--sm btn--ghost" title="Use my current location" aria-label="Use my current location">📍</button>
+          <button type="button" id="mfUseMyLocation" class="btn btn--sm btn--ghost" title="Use my current location" aria-label="Use my current location"><span data-icon="map-pin"></span></button>
         </div>
         <div id="mfPlaceList" class="suggestions-container place-search__list" role="listbox" hidden></div>
         <small id="mfPlaceNote" class="place-search__note"></small>
@@ -143,7 +137,7 @@
       <div id="mfContextualSection" class="contextual-section">
         <!-- Upanayana Fields -->
         <div id="fieldsUpanayana" class="context-group" style="display: none;">
-          <h4 class="context-group__title">🪔 <span data-en="Upanayana tradition" data-te="ఉపనయన సంప్రదాయం">Upanayana tradition</span></h4>
+          <h4 class="context-group__title"><span data-icon="lamp"></span> <span data-en="Upanayana tradition" data-te="ఉపనయన సంప్రదాయం">Upanayana tradition</span></h4>
           <div class="context-grid">
             <div class="field">
               <label for="mfVedaShakha" data-en="Veda Shakha" data-te="వేద శాఖ">Veda Shakha</label>
@@ -221,7 +215,7 @@
 
         <!-- Griha / Vastu Fields -->
         <div id="fieldsGriha" class="context-group" style="display: none;">
-          <h4 class="context-group__title">🏛️ <span data-en="House and plot" data-te="ఇల్లు · స్థలం వివరాలు">House and plot</span></h4>
+          <h4 class="context-group__title"><span data-icon="landmark"></span> <span data-en="House and plot" data-te="ఇల్లు · స్థలం వివరాలు">House and plot</span></h4>
           <div class="context-grid">
             <div class="field">
               <label for="mfDoorFacing" data-en="Main Door Facing Direction" data-te="సింహద్వార ముఖద్వార దిశ">Main Door Facing</label>
@@ -258,7 +252,7 @@
 
         <!-- Business Fields -->
         <div id="fieldsBusiness" class="context-group" style="display: none;">
-          <h4 class="context-group__title">💼 <span data-en="Business & Commercial Enterprise Details" data-te="వ్యాపార ప్రారంభ వివరాలు">Business Enterprise Details</span></h4>
+          <h4 class="context-group__title"><span data-icon="briefcase"></span> <span data-en="Business & Commercial Enterprise Details" data-te="వ్యాపార ప్రారంభ వివరాలు">Business Enterprise Details</span></h4>
           <div class="context-grid">
             <div class="field">
               <label for="mfBusinessName" data-en="Business / Firm Name" data-te="సంస్థ / దుకాణం పేరు">Business Firm Name</label>
@@ -288,7 +282,7 @@
 
         <!-- Travel Fields -->
         <div id="fieldsTravel" class="context-group" style="display: none;">
-          <h4 class="context-group__title">✈️ <span data-en="Prayana (Travel) Journey Details" data-te="ప్రయాణ వివరాలు (వారశూల పరిశీలన)">Prayana Journey Details</span></h4>
+          <h4 class="context-group__title"><span data-icon="plane"></span> <span data-en="Prayana (Travel) Journey Details" data-te="ప్రయాణ వివరాలు (వారశూల పరిశీలన)">Prayana Journey Details</span></h4>
           <div class="context-grid">
             <div class="field">
               <label for="mfTravelDir" data-en="Travel Direction (Vaara Sula Check)" data-te="ప్రయాణ దిశ (వారశూల తనిఖీ)">Travel Direction</label>
@@ -343,7 +337,7 @@
 
         <!-- Vehicle Fields -->
         <div id="fieldsVehicle" class="context-group" style="display: none;">
-          <h4 class="context-group__title">🚗 <span data-en="Vehicle Purchase & Delivery Details" data-te="వాహన కొనుగోలు వివరాలు">Vehicle Purchase Details</span></h4>
+          <h4 class="context-group__title"><span data-icon="car"></span> <span data-en="Vehicle Purchase & Delivery Details" data-te="వాహన కొనుగోలు వివరాలు">Vehicle Purchase Details</span></h4>
           <div class="context-grid">
             <div class="field">
               <label for="mfVehicleType" data-en="Vehicle Type" data-te="వాహనం రకం">Vehicle Type</label>
@@ -377,7 +371,7 @@
         </div>
       </div>
 
-      <button id="findBtn" data-en="🔍 Scan 30 Days for Muhurtas" data-te="🔍 30 రోజుల ముహూర్త శోధన">🔍 Scan 30 Days for Muhurtas</button>
+      <button id="findBtn" data-en="Scan 30 Days for Muhurtas" data-te="30 రోజుల ముహూర్త శోధన">Scan 30 Days for Muhurtas</button>
     </div>
 
     <!-- Progress -->
@@ -421,13 +415,14 @@
 
   <!-- Components (plain scripts: file:// compatible → no ES modules) -->
   <script src="js/config.js"></script>
-  <script src="js/app-shell.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/auth.js"></script>
+  <script src="js/icons.js?v=20261110"></script>
+  <script src="js/app-shell.js?v=20261110"></script>
+  <script src="js/i18n.js?v=20261110"></script>
+  <script src="js/auth.js?v=20261110b"></script>
   <script src="js/regions.js"></script>
-  <script src="js/pdf-download.js"></script>
+  <script src="js/pdf-download.js?v=20261110b"></script>
   <script src="js/stars.js"></script>
-  <script src="js/finder.js"></script>
+  <script src="js/finder.js?v=20261110c"></script>
 </body>
 
 </html>

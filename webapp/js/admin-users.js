@@ -42,7 +42,7 @@
         (p.disabled_reason ? "<small>" + esc(p.disabled_reason) + "</small>" : "") + "</td>" +
         "<td>" + esc(when(p.last_login_at)) + "<small>" + tr(p.login_count + " logins", p.login_count + " లాగిన్లు") + "</small></td>" +
         '<td class="acts">' + (acts.length ? acts.join("<br>") : "<small>—</small>") + "</td></tr>";
-    }).join("") : '<tr><td colspan="7" class="portal-hint">' + tr("No one matches.", "ఎవరూ సరిపోలలేదు.") + "</td></tr>";
+    }).join("") : '<tr><td colspan="7" class="empty-state">' + tr("No one matches.", "ఎవరూ సరిపోలలేదు.") + "</td></tr>";
     renderBulk();
   }
 

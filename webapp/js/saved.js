@@ -31,15 +31,15 @@
       var win = w ? tr("Chosen: ", "ఎంచుకున్నది: ") + [w.date, (w.window_start || w.start_time || "") + ((w.window_end || w.end_time) ? "–" + (w.window_end || w.end_time) : ""),
                     w.percentage != null ? w.percentage + "%" : ""].filter(Boolean).join(" · ") : "";
       return '<li data-id="' + esc(s.id) + '"><div><span><button type="button" class="sv-star" data-star="' + esc(s.id) + '" aria-pressed="' + s.is_favourite + '" aria-label="' +
-        esc(s.is_favourite ? tr("Remove star", "నక్షత్రం తీసివేయండి") : tr("Star", "నక్షత్రం పెట్టండి")) + '">' + (s.is_favourite ? "★" : "☆") + "</button><strong>" + esc(s.label) + "</strong></span>" +
+        esc(s.is_favourite ? tr("Remove star", "నక్షత్రం తీసివేయండి") : tr("Star", "నక్షత్రం పెట్టండి")) + '">' + (s.is_favourite ? Icon("star", { filled: true }) : Icon("star")) + "</button><strong>" + esc(s.label) + "</strong></span>" +
         "<small>" + esc(what) + (line ? " · " + esc(line) : "") + "</small>" + (win ? "<span>" + esc(win) + "</span>" : "") +
         (s.engine_changed ? '<small class="sv-note">' + tr("The app was updated after you saved this; results may differ now.", "భద్రపరిచిన తర్వాత యాప్ నవీకరించబడింది; ఫలితాలు మారవచ్చు.") + "</small>" : "") +
         "<small>" + tr("Saved ", "భద్రపరిచినది ") + esc(new Date(s.created_at).toLocaleDateString()) + "</small></div>" +
         '<div class="acts"><a class="btn btn--sm" href="muhurta-finder.html?saved=' + encodeURIComponent(s.id) + '">' + tr("Run again", "మళ్లీ శోధించండి") + "</a>" +
         '<button type="button" class="btn btn--sm btn--ghost" data-rename="' + esc(s.id) + '">' + tr("Rename", "పేరు మార్చండి") + "</button>" +
         '<button type="button" class="btn btn--sm btn--ghost" data-del="' + esc(s.id) + '">' + tr("Delete", "తొలగించండి") + "</button></div></li>";
-    }).join("") : '<li class="portal-hint">' + tr("Nothing saved yet. In the Muhurta Finder (also Special Yogas and the Shraddha calendar), use \"Save this search\" or \"Save this muhurta\".",
-                                                    "ఇంకా ఏమీ భద్రపరచలేదు. ముహూర్త శోధనలో (విశేష యోగాలు, శ్రాద్ధ పంచాంగం కూడా) 'ఈ శోధన భద్రపరచండి' లేదా 'ఈ ముహూర్తం భద్రపరచండి' వాడండి.") + "</li>";
+    }).join("") : '<li class="empty-state"><p>' + tr("Nothing saved yet. In the Muhurta Finder (also Special Yogas and the Shraddha calendar), use \"Save this search\" or \"Save this muhurta\".",
+                                                    "ఇంకా ఏమీ భద్రపరచలేదు. ముహూర్త శోధనలో (విశేష యోగాలు, శ్రాద్ధ పంచాంగం కూడా) 'ఈ శోధన భద్రపరచండి' లేదా 'ఈ ముహూర్తం భద్రపరచండి' వాడండి.") + '</p><a class="btn btn--sm" href="muhurta-finder.html">' + tr("Open the Muhurta Finder", "ముహూర్త శోధన తెరవండి") + "</a></li>";
   }
 
   async function load() {

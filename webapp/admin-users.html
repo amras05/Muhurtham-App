@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261108">
-  <link rel="stylesheet" href="css/portal.css">
+  <link rel="stylesheet" href="css/common.css?v=20261110e">
+  <link rel="stylesheet" href="css/portal.css?v=20261110b">
   <title>Users · Muhurtham</title>
 </head>
 <body>
@@ -54,13 +54,14 @@
     </form>
     <div class="table-scroll"><table class="people-table" id="peopleTable">
       <thead><tr><th><input type="checkbox" id="selAll" aria-label="Select everyone shown"></th><th data-en="Name" data-te="పేరు">Name</th><th data-en="Mobile" data-te="మొబైల్">Mobile</th><th data-en="Role" data-te="పాత్ర">Role</th><th data-en="Status" data-te="స్థితి">Status</th><th data-en="Last login" data-te="చివరి లాగిన్">Last login</th><th data-en="Actions" data-te="చర్యలు">Actions</th></tr></thead>
-      <tbody id="peopleBody"><tr><td colspan="7" class="portal-hint">…</td></tr></tbody>
+      <tbody id="peopleBody"><tr><td colspan="7"><span class="skeleton" role="status" aria-label="Loading"></span></td></tr></tbody>
     </table></div>
   </main>
   <script src="js/config.js"></script>
-  <script src="js/app-shell.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/admin-users.js"></script>
+  <script src="js/icons.js?v=20261110"></script>
+  <script src="js/app-shell.js?v=20261110"></script>
+  <script src="js/i18n.js?v=20261110"></script>
+  <script src="js/auth.js?v=20261110b"></script>
+  <script src="js/admin-users.js?v=20261110"></script>
 </body>
 </html>

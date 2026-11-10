@@ -25,7 +25,7 @@
         "</strong><small>" + esc(tr(o.description_en || o.description_te, o.description_te || o.description_en)) + " · " + (o.region ? esc(tr("only in " + o.region, o.region + "లో మాత్రమే")) : tr("everywhere", "అన్ని ప్రాంతాలు")) +
         "</small><small>" + tr("Source: ", "ఆధారం: ") + esc(o.source) + " · " + tr("added by ", "జోడించినవారు ") + esc(o.added_by) + "</small></div>" +
         '<button type="button" class="btn btn--sm btn--ghost" data-omen="' + o.id + '">' + tr("Remove", "తొలగించండి") + "</button></li>";
-    }).join("") || "<li>" + tr("No omens recorded for the last 90 days or ahead.", "గత 90 రోజులు లేదా రాబోయే రోజులకు ఉత్పాతాలు నమోదు కాలేదు.") + "</li>";
+    }).join("") || '<li class="empty-state">' + tr("No omens recorded for the last 90 days or ahead.", "గత 90 రోజులు లేదా రాబోయే రోజులకు ఉత్పాతాలు నమోదు కాలేదు.") + "</li>";
     var sel = $("omKind"), cur = sel.value;
     sel.innerHTML = kinds.map(function (k) { return '<option value="' + k + '">' + esc(tr(KIND_EN[k] || k, KIND_TE[k] || k)) + "</option>"; }).join("");
     if (cur) sel.value = cur;
@@ -41,7 +41,9 @@
   }
   $("omens").addEventListener("click", async function (e) {
     var id = e.target.getAttribute("data-omen");
-    if (!id || !confirm(tr("Remove this omen? Muhurtas on these dates will no longer fail #15.", "ఈ ఉత్పాతాన్ని తొలగించాలా? ఈ తేదీల ముహూర్తాలు ఇక #15 వల్ల తిరస్కరించబడవు."))) return;
+    if (!id) return;
+    if (!(await AppShell.confirm(tr("Remove this omen? Muhurtas on these dates will no longer fail #15.", "ఈ ఉత్పాతాన్ని తొలగించాలా? ఈ తేదీల ముహూర్తాలు ఇక #15 వల్ల తిరస్కరించబడవు."),
+                                 { ok: tr("Remove", "తొలగించు"), cancel: tr("Keep it", "ఉంచు"), danger: true }))) return;
     try { await api("DELETE", "/admin/omens/" + id); say("info", tr("Omen removed.", "ఉత్పాతం తొలగించాము.")); loadOmens(); }
     catch (err) { say("error", err.message); }
   });
@@ -70,7 +72,7 @@
       return "<li><div><strong>" + esc(tr(a.title_en || a.title_te, a.title_te || a.title_en)) + ' <span class="status-chip status-chip--' + st[2] + '">' + tr(st[0], st[1]) + "</span></strong>" +
         "<small>" + esc(tr(AUD[a.audience][0], AUD[a.audience][1])) + " · " + esc(when(a.starts_at)) + (a.ends_at ? " → " + esc(when(a.ends_at)) : "") + " · " + esc(a.added_by) + "</small></div>" +
         (a.status !== "ended" ? '<button type="button" class="btn btn--sm btn--ghost" data-ann="' + a.id + '">' + tr("Stop showing", "చూపడం ఆపండి") + "</button>" : "") + "</li>";
-    }).join("") || "<li>" + tr("No announcements yet.", "ఇంకా ప్రకటనలు లేవు.") + "</li>";
+    }).join("") || '<li class="empty-state">' + tr("No announcements yet.", "ఇంకా ప్రకటనలు లేవు.") + "</li>";
   }
   async function loadAnns() {
     try { anns = (await api("GET", "/admin/announcements")).announcements; renderAnns(); }

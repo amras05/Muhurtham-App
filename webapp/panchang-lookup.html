@@ -4,12 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panchangam · Drik Lookup</title>
+  <title>Panchang · Muhurtham</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261110">
-  <link rel="stylesheet" href="css/panchang-month.css?v=20261110c">
+  <link rel="stylesheet" href="css/common.css?v=20261110e">
+  <link rel="stylesheet" href="css/panchang-month.css?v=20261110e">
 </head>
 
 <body>
@@ -17,19 +17,29 @@
   <!-- The entire UI is rendered once on load from the component views:
        js/ui.js (component framework) + js/views.js (composed layout).
        All DOM ids and inline handlers match the previous static markup. -->
+  <nav class="app-shell__nav portal-nav" aria-label="Primary navigation">
+    <a class="app-shell__brand" href="/">ముహూర్తం</a>
+    <div class="app-shell__links"></div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="langTe" onclick="setLang('te')">తెలుగు</button>
+    </div>
+    <div class="account-slot" id="accountSlot"></div>
+  </nav>
   <main id="mainContent"><div id="app"></div></main>
 
   <script src="js/config.js"></script>
-  <script src="js/app-shell.js?v=phase3"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/auth.js"></script>
+  <script src="js/icons.js?v=20261110"></script>
+  <script src="js/app-shell.js?v=20261110"></script>
+  <script src="js/i18n.js?v=20261110"></script>
+  <script src="js/auth.js?v=20261110b"></script>
   <script src="js/regions.js"></script>
-  <script src="js/panchang.js?v=20261110"></script>
-  <script src="js/panchang-month.js?v=20261110c"></script>
-  <script src="js/panchang-share.js?v=20261110b"></script>
+  <script src="js/panchang.js?v=20261110c"></script>
+  <script src="js/panchang-month.js?v=20261110d"></script>
+  <script src="js/panchang-share.js?v=20261110c"></script>
   <script src="js/ui.js"></script>
-  <script src="js/views.js?v=20261110"></script>
-  <script src="js/pdf-download.js?v=20261110"></script>
+  <script src="js/views.js?v=20261110c"></script>
+  <script src="js/pdf-download.js?v=20261110b"></script>
   <script src="js/pdf.js"></script>
   <script src="js/app.js?v=20261110"></script>
 </body>

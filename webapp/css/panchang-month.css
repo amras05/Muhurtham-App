@@ -111,7 +111,7 @@
 .month-cell.is-selected { background: var(--maroon); border-color: var(--maroon); }
 .month-cell.is-selected .month-cell__num,
 .month-cell.is-selected .month-cell__tithi,
-.month-cell.is-selected .month-cell__nak { color: #fff; }
+.month-cell.is-selected .month-cell__nak { color: var(--color-on-strong); }
 
 .month-hint { margin: 10px 0 0; font-size: var(--text-xs); color: var(--color-text-muted); }
 

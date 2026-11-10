@@ -85,6 +85,7 @@ function te(name, map) {
 
 function setLang(lang) {
   currentLang = lang;
+  document.documentElement.lang = lang;   // css/base.css gives Telugu text more height (Experience Plan U2)
   const langEn = el("langEn"), langTe = el("langTe");
   if (langEn && langTe) {
     langEn.className = "lang-btn" + (lang === "en" ? " active" : "");

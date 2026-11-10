@@ -53,7 +53,7 @@
         return "<li><div><strong>" + esc(p.name) + "</strong><small>" + esc(p.mobile_masked) + " · " + (p.role === "super_admin" ? tr("Super admin", "ప్రధాన నిర్వాహకులు") : tr("Admin", "నిర్వాహకులు")) +
           " · " + tr("last login ", "చివరి లాగిన్ ") + esc(p.last_login_at ? new Date(p.last_login_at).toLocaleDateString() : tr("never", "లేదు")) + "</small></div>" +
           (p.can_change_role ? '<button type="button" class="btn btn--sm btn--ghost" data-demote="' + p.id + '">' + tr("Remove admin", "నిర్వాహక హోదా తీసివేయండి") + "</button>" : "") + "</li>";
-      }).join("") || "<li>" + tr("No admins yet.", "ఇంకా నిర్వాహకులు లేరు.") + "</li>";
+      }).join("") || '<li class="empty-state">' + tr("No admins yet.", "ఇంకా నిర్వాహకులు లేరు.") + "</li>";
     } catch (e) { $("admins").innerHTML = "<li>" + esc(e.message) + "</li>"; }
   }
   $("admins").addEventListener("click", async function (e) {
@@ -79,7 +79,7 @@
         var t = new Date(l.at);
         return "<tr><td>" + esc(t.toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })) + "</td><td>" + esc(l.who) +
           (l.role ? "<small>" + esc(l.role) + "</small>" : "") + "</td><td>" + esc(l.action) + "</td><td>" + esc(l.details || "") + (l.ip ? "<small>" + esc(l.ip) + "</small>" : "") + "</td></tr>";
-      }).join("") || '<tr><td colspan="4" class="portal-hint">' + tr("Nothing logged.", "ఏమీ లేదు.") + "</td></tr>";
+      }).join("") || '<tr><td colspan="4" class="empty-state">' + tr("Nothing logged.", "ఏమీ లేదు.") + "</td></tr>";
       $("logMore").hidden = !nextBefore;
     } catch (e) { $("logBody").innerHTML = '<tr><td colspan="4">' + esc(e.message) + "</td></tr>"; }
   }
@@ -115,8 +115,9 @@
   $("notifyForm").addEventListener("submit", async function (e) {
     e.preventDefault();
     if (!$("nfSending").checked && nf && nf.otp_sending &&
-        !window.confirm(tr("Pause all login codes? Nobody can sign up or reset a password until you switch it on again.",
-                           "అన్ని లాగిన్ కోడ్‌లను ఆపాలా? మళ్లీ ప్రారంభించే వరకు ఎవరూ నమోదు చేయలేరు, పాస్‌వర్డ్ మార్చలేరు."))) return;
+        !(await AppShell.confirm(tr("Pause all login codes? Nobody can sign up or reset a password until you switch it on again.",
+                                    "అన్ని లాగిన్ కోడ్‌లను ఆపాలా? మళ్లీ ప్రారంభించే వరకు ఎవరూ నమోదు చేయలేరు, పాస్‌వర్డ్ మార్చలేరు."),
+                                 { ok: tr("Pause codes", "కోడ్‌లు ఆపు"), cancel: tr("Keep sending", "పంపుతూ ఉండు"), danger: true }))) return;
     try {
       await api("PUT", "/admin/settings", { otp_sending: $("nfSending").checked, otp_language: $("nfLang").value,
         admin_alerts: { signup: $("nfSignup").checked, locked: $("nfLocked").checked, disabled: $("nfDisabled").checked, daily_summary: $("nfSummary").checked } });

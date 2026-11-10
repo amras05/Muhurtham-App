@@ -759,7 +759,7 @@ function peopleStrengthHTML(people) {
   });
   if (!rows.length) return "";
   return `<div class="detail-card">
-    <h4 class="detail-card__title">👥 ${T("Strength for each person", "ప్రతి వ్యక్తికి బలం")}</h4>
+    <h4 class="detail-card__title">${Icon("users")} ${T("Strength for each person", "ప్రతి వ్యక్తికి బలం")}</h4>
     <div class="table-scroll"><table class="people-table">
       <thead><tr><th>${T("Person", "వ్యక్తి")}</th><th>${T("Tarabala", "తారాబలం")}</th><th>${T("Chandrabala", "చంద్రబలం")}</th></tr></thead>
       <tbody>${rows.join("")}</tbody></table></div></div>`;
@@ -777,7 +777,7 @@ function lagnaStrengthHTML(det) {
   }).join(" ");
   const deg = lg.degree_dms ? T(` · ${lg.degree_dms} at ${lg.degree_at}`, ` · ${lg.degree_at}కు ${lg.degree_dms}`) : "";
   return `<div class="detail-card">
-    <h4 class="detail-card__title">🏛️ ${T("Lagna and planet strength", "లగ్నం · గ్రహ బలం")}</h4>
+    <h4 class="detail-card__title">${Icon("landmark")} ${T("Lagna and planet strength", "లగ్నం · గ్రహ బలం")}</h4>
     <div class="detail-card__grid">
       <div><strong>${T("Lagna:", "లగ్నం:")}</strong> ${escapeHtml(T(lg.name || "—", lg.name_te || lg.name || "—"))}${escapeHtml(deg)}</div>
       <div><strong>${T("Navamsa:", "నవాంశ:")}</strong> ${escapeHtml(te(lg.navamsa || "—", RASI_NAMES_TE))}${lg.is_pushkara_navamsa ? T(" (pushkara", " (పుష్కర") + (lg.pushkara_minutes ? " " + escapeHtml(lg.pushkara_minutes.replace(/ \([^)]*\)/g, "")) : "") + ")" : ""}</div>
@@ -971,11 +971,11 @@ function renderResults(data) {
       const stmt = currentLang === "te" ? pi.statement_te : pi.statement_en;
       pushMini = `
         <div class="pushkara-mini" style="margin-top: 10px;">
-          <strong>⏰ ${stmt}</strong>
+          <strong>${Icon("clock")} ${stmt}</strong>
           <div class="pushkara-mini__details" style="font-size: 12px; margin-top: 4px; color: #555;">
-            ${windowTimeStr ? `🏛️ <strong>${currentLang === "te" ? "శుభ ముహూర్త వ్యవధి:" : "Muhurtha Window:"}</strong> ${windowTimeStr} (${lagnaLabel} లగ్నం)` : ""}
-            ${pi.pushkara_bhaga?.is_available ? `<br>📌 <strong>${currentLang === "te" ? "పుష్కర భాగం:" : "P. Bhaga:"}</strong> ${pi.pushkara_bhaga.precise_time} (${pi.pushkara_bhaga.time_window})` : ""}
-            ${pi.pushkara_navamsha?.is_available ? `<br>📌 <strong>${currentLang === "te" ? "పుష్కర నవాంశ:" : "P. Navamsha:"}</strong> ${pi.pushkara_navamsha.precise_time}` : ""}
+            ${windowTimeStr ? `${Icon("landmark")} <strong>${currentLang === "te" ? "శుభ ముహూర్త వ్యవధి:" : "Muhurtha Window:"}</strong> ${windowTimeStr} (${lagnaLabel} లగ్నం)` : ""}
+            ${pi.pushkara_bhaga?.is_available ? `<br>${Icon("pin")} <strong>${currentLang === "te" ? "పుష్కర భాగం:" : "P. Bhaga:"}</strong> ${pi.pushkara_bhaga.precise_time} (${pi.pushkara_bhaga.time_window})` : ""}
+            ${pi.pushkara_navamsha?.is_available ? `<br>${Icon("pin")} <strong>${currentLang === "te" ? "పుష్కర నవాంశ:" : "P. Navamsha:"}</strong> ${pi.pushkara_navamsha.precise_time}` : ""}
           </div>
         </div>`;
     }
@@ -989,7 +989,7 @@ function renderResults(data) {
     // Special yogas
     let yogasHtml = "";
     if (r.special_yogas && r.special_yogas.length > 0) {
-      yogasHtml = `<div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px;">${r.special_yogas.map(y => `<span class="rule-chip" style="background:#fef7e0; color:#b06000; font-size:11px;">✨ ${currentLang === 'te' ? y.name_te : y.name_en}</span>`).join("")}</div>`;
+      yogasHtml = `<div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px;">${r.special_yogas.map(y => `<span class="rule-chip" style="background:var(--color-warning-bg); color:var(--color-warning); font-size:11px;">${Icon("sparkle")} ${currentLang === 'te' ? y.name_te : y.name_en}</span>`).join("")}</div>`;
     }
 
     grid.innerHTML += `
@@ -999,7 +999,7 @@ function renderResults(data) {
           <div>
             <div class="day-date" style="font-size: 16px; font-weight: 700;">${r.date} · ${vaaraTe}</div>
             <div class="day-vaara" style="font-size: 13px; color: #777;">
-              ${r.panchang?.chandramana ? `🪔 ${r.panchang.chandramana.month_name || ''} · ${tithiTe}` : tithiTe} · ${nakTe}
+              ${r.panchang?.chandramana ? `${Icon("lamp")} ${r.panchang.chandramana.month_name || ''} · ${tithiTe}` : tithiTe} · ${nakTe}
             </div>
           </div>
           <div class="day-right">
@@ -1012,7 +1012,7 @@ function renderResults(data) {
         ${reasonsHtml}
         <div style="margin-top: 12px; text-align: right;">
           <button type="button" onclick="event.stopPropagation(); openDayModal(${idx})" class="btn btn--primary btn--sm" style="font-size: 12px; padding: 6px 14px;">
-            🔍 ${currentLang === "te" ? "సమగ్ర విశ్లేషణ & D1 చక్రం చూడండి ➔" : "View Full Analysis & D1 Chart Popup ➔"}
+            ${Icon("search")} ${currentLang === "te" ? "సమగ్ర విశ్లేషణ & D1 చక్రం చూడండి →" : "View Full Analysis & D1 Chart Popup →"}
           </button>
         </div>
       </div>
@@ -1043,26 +1043,26 @@ function openDayModal(idx) {
     let subDetails = [];
     if (pi.pushkara_bhaga?.is_available) {
       subDetails.push(currentLang === "te" ?
-        `📌 <strong>పుష్కర భాగ ముహూర్తం:</strong> ${pi.pushkara_bhaga.precise_time} (వ్యవధి: ${pi.pushkara_bhaga.time_window})` :
-        `📌 <strong>Pushkara Bhaga:</strong> ${pi.pushkara_bhaga.precise_time} (Window: ${pi.pushkara_bhaga.time_window})`);
+        `${Icon("pin")} <strong>పుష్కర భాగ ముహూర్తం:</strong> ${pi.pushkara_bhaga.precise_time} (వ్యవధి: ${pi.pushkara_bhaga.time_window})` :
+        `${Icon("pin")} <strong>Pushkara Bhaga:</strong> ${pi.pushkara_bhaga.precise_time} (Window: ${pi.pushkara_bhaga.time_window})`);
     }
     if (pi.pushkara_navamsha?.is_available) {
       subDetails.push(currentLang === "te" ?
-        `📌 <strong>పుష్కర నవాంశ ముహూర్తం:</strong> ${pi.pushkara_navamsha.precise_time} (వ్యవధి: ${pi.pushkara_navamsha.time_window})` :
-        `📌 <strong>Pushkara Navamsha:</strong> ${pi.pushkara_navamsha.precise_time} (Window: ${pi.pushkara_navamsha.time_window})`);
+        `${Icon("pin")} <strong>పుష్కర నవాంశ ముహూర్తం:</strong> ${pi.pushkara_navamsha.precise_time} (వ్యవధి: ${pi.pushkara_navamsha.time_window})` :
+        `${Icon("pin")} <strong>Pushkara Navamsha:</strong> ${pi.pushkara_navamsha.precise_time} (Window: ${pi.pushkara_navamsha.time_window})`);
     }
     if (subDetails.length === 0) {
-      subDetails.push(`📌 <strong>${currentLang === "te" ? "సమయ వ్యవధి:" : "Window:"}</strong> ${pi.time_window}`);
+      subDetails.push(`${Icon("pin")} <strong>${currentLang === "te" ? "సమయ వ్యవధి:" : "Window:"}</strong> ${pi.time_window}`);
     }
 
     bodyHtml += `
       <div class="rec-time-box">
-        <h4 class="rec-time-box__title">☀️ ${currentLang === "te" ? "శుభ ముహూర్త సమయ నిర్ణయం" : "Recommended Time Prediction"}</h4>
-        <div class="rec-time-box__time">⏰ ${stmt}</div>
+        <h4 class="rec-time-box__title">${Icon("sun")} ${currentLang === "te" ? "శుభ ముహూర్త సమయ నిర్ణయం" : "Recommended Time Prediction"}</h4>
+        <div class="rec-time-box__time">${Icon("clock")} ${stmt}</div>
         <div class="rec-time-box__details">
           ${subDetails.join("<br>")}
         </div>
-        ${avoidNote ? `<div class="rec-time-box__note">⚠️ ${currentLang === "te" ? "గమనిక:" : "Note:"} ${avoidNote}</div>` : ''}
+        ${avoidNote ? `<div class="rec-time-box__note">${Icon("alert")} ${currentLang === "te" ? "గమనిక:" : "Note:"} ${avoidNote}</div>` : ''}
       </div>`;
   }
 
@@ -1086,8 +1086,8 @@ function openDayModal(idx) {
     bodyHtml += `
       <div class="native-profile-box">
         <div class="native-profile-box__header">
-          <strong class="native-profile-box__title">👤 ${currentLang === "te" ? "వ్యక్తిగత సమాచారం & గోచారం (Native & Transit)" : "Native Profile & Transit Details"}</strong>
-          ${cb ? `<span class="native-profile-box__badge ${cbBadgeClass}">🌙 ${currentLang === "te" ? "చంద్రబలం:" : "Chandrabalam:"} ${cb.house ? cb.house + 'వ ఇల్లు' : 'అనుకూలం'}</span>` : ''}
+          <strong class="native-profile-box__title">${Icon("user")} ${currentLang === "te" ? "వ్యక్తిగత సమాచారం & గోచారం (Native & Transit)" : "Native Profile & Transit Details"}</strong>
+          ${cb ? `<span class="native-profile-box__badge ${cbBadgeClass}">${Icon("moon")} ${currentLang === "te" ? "చంద్రబలం:" : "Chandrabalam:"} ${cb.house ? cb.house + 'వ ఇల్లు' : 'అనుకూలం'}</span>` : ''}
         </div>
         <div class="native-profile-box__grid">
           ${bd?.janma_nakshatra ? `<span><strong>${currentLang === "te" ? "జన్మ నక్షత్రం:" : "Janma Nakshatra:"}</strong> ${bNakTe || bd.janma_nakshatra} ${bd.janma_nakshatra_pada ? `(${bd.janma_nakshatra_pada} ${currentLang === "te" ? "పాదం" : "pada"})` : ""}</span>` : ''}
@@ -1109,7 +1109,7 @@ function openDayModal(idx) {
     const paksha = currentLang === "te" ? (cm.paksha_te || cm.paksha_en) : `${cm.paksha_en} Paksham`;
     cmBanner = `
       <div class="cm-banner">
-        <span class="cm-banner__sam">🪔 ${samName}</span>
+        <span class="cm-banner__sam">${Icon("lamp")} ${samName}</span>
         <span>·</span>
         <span class="cm-banner__ayanam">${ayanam}</span>
         <span>·</span>
@@ -1125,7 +1125,7 @@ function openDayModal(idx) {
   const isAbhijitAuspicious = r.panchang?.abhijit_kala_muhurtham && r.panchang.abhijit_kala_muhurtham.status === 'auspicious';
   bodyHtml += `
     <div class="detail-card">
-      <h4 class="detail-card__title">📌 ${currentLang === "te" ? "పంచాంగ వివరాలు" : "Panchang Details"}</h4>
+      <h4 class="detail-card__title">${Icon("pin")} ${currentLang === "te" ? "పంచాంగ వివరాలు" : "Panchang Details"}</h4>
       ${cmBanner}
       <div class="detail-card__grid">
         <div><strong>${currentLang === "te" ? "వారం:" : "Weekday:"}</strong> ${vaaraTe}</div>
@@ -1137,7 +1137,7 @@ function openDayModal(idx) {
         <div><strong>${currentLang === "te" ? "సూర్యాస్తమయం:" : "Sunset:"}</strong> ${r.panchang?.sunset || "—"}</div>
         <div><strong>${currentLang === "te" ? "అభిజిత్ ముహూర్తం:" : "Abhijit:"}</strong> ${r.panchang?.abhijit_muhurta ? (r.panchang.abhijit_muhurta.start + ' – ' + r.panchang.abhijit_muhurta.end) : '—'}</div>
         <div class="abhijit-strip ${isAbhijitAuspicious ? 'abhijit-strip--auspicious' : 'abhijit-strip--inauspicious'}">
-          <span>${isAbhijitAuspicious ? '✨' : '⚠️'}</span>
+          <span>${Icon(isAbhijitAuspicious ? "sparkle" : "alert")}</span>
           <span>
             <strong>${currentLang === "te" ? "అభిజిత్ కాల ముహూర్తం:" : "Abhijit Kala Muhurtham:"}</strong>
             ${r.panchang?.abhijit_kala_muhurtham ? 
@@ -1162,7 +1162,7 @@ function openDayModal(idx) {
       <div class="panchaka-box ${isPass ? 'panchaka-box--pass' : 'panchaka-box--fail'}">
         <div class="panchaka-box__header">
           <h4 class="panchaka-box__title ${isPass ? 'panchaka-box__title--pass' : 'panchaka-box__title--fail'}">
-            ☸️ ${currentLang === "te" ? "పంచక రహిత విశ్లేషణ (Panchaka Rahitam)" : "Panchaka Rahitam Analysis"}
+            ${Icon("wheel")} ${currentLang === "te" ? "పంచక రహిత విశ్లేషణ (Panchaka Rahitam)" : "Panchaka Rahitam Analysis"}
           </h4>
           <span class="panchaka-box__badge ${isPass ? 'panchaka-box__badge--pass' : 'panchaka-box__badge--fail'}">
             ${isPass ? (currentLang === "te" ? "శుభ పంచకం (దోష రహితం)" : "Subha (Clean)") : (currentLang === "te" ? "అశుభ పంచకం" : "Dosha")}
@@ -1173,7 +1173,7 @@ function openDayModal(idx) {
           <div class="panchaka-box__classification"><strong>${currentLang === "te" ? "పంచక ఫలితం:" : "Classification:"}</strong> <span class="${isPass ? 'panchaka-box__classification-name--pass' : 'panchaka-box__classification-name--fail'}">${panName}</span> — <em>${panEffect}</em></div>
           ${panPariharam && !isPass ? `
             <div class="panchaka-box__remedy">
-              <strong>🌿 ${currentLang === "te" ? "శాస్త్రోక్త పరిహారం:" : "Classical Remedy:"}</strong> ${panPariharam}
+              <strong>${Icon("leaf")} ${currentLang === "te" ? "శాస్త్రోక్త పరిహారం:" : "Classical Remedy:"}</strong> ${panPariharam}
             </div>
           ` : ''}
         </div>
@@ -1186,37 +1186,37 @@ function openDayModal(idx) {
     bodyHtml += `
       <div class="kv-section">
         <h4 class="kv-header">
-          <span>⏳ ${currentLang === "te" ? "రోజు మొత్తంలో కాల విభజన (పంచధా కాల విభజన)" : "Daily 5-Fold Time Division (Kala Vibhajana)"}</span>
+          <span>${Icon("hourglass")} ${currentLang === "te" ? "రోజు మొత్తంలో కాల విభజన (పంచధా కాల విభజన)" : "Daily 5-Fold Time Division (Kala Vibhajana)"}</span>
           <span class="kv-header__sub">${currentLang === "te" ? "పగలు 5 భాగాలు + రాత్రి పవిత్ర కాలాలు" : "5 Day divisions + Night Sacred Periods"}</span>
         </h4>
         <div class="kv-grid">
           <div class="kv-card">
-            <div class="kv-card__name kv-card__name--pratah">🌅 ${currentLang === "te" ? kv.pratah_kalam?.name_te : kv.pratah_kalam?.name_en}</div>
+            <div class="kv-card__name kv-card__name--pratah">${Icon("sunrise")} ${currentLang === "te" ? kv.pratah_kalam?.name_te : kv.pratah_kalam?.name_en}</div>
             <div class="kv-card__time">${kv.pratah_kalam?.start} – ${kv.pratah_kalam?.end}</div>
             <div class="kv-card__desc">${currentLang === "te" ? kv.pratah_kalam?.desc_te : kv.pratah_kalam?.desc_en}</div>
           </div>
           <div class="kv-card">
-            <div class="kv-card__name kv-card__name--sangava">🌾 ${currentLang === "te" ? kv.sangava_kalam?.name_te : kv.sangava_kalam?.name_en}</div>
+            <div class="kv-card__name kv-card__name--sangava">${Icon("sun")} ${currentLang === "te" ? kv.sangava_kalam?.name_te : kv.sangava_kalam?.name_en}</div>
             <div class="kv-card__time">${kv.sangava_kalam?.start} – ${kv.sangava_kalam?.end}</div>
             <div class="kv-card__desc">${currentLang === "te" ? kv.sangava_kalam?.desc_te : kv.sangava_kalam?.desc_en}</div>
           </div>
           <div class="kv-card kv-card--highlight">
-            <div class="kv-card__name kv-card__name--madhya">☀️ ${currentLang === "te" ? kv.madhyahnika_kalam?.name_te : kv.madhyahnika_kalam?.name_en} <span class="kv-tag">అభిజిత్</span></div>
+            <div class="kv-card__name kv-card__name--madhya">${Icon("sun")} ${currentLang === "te" ? kv.madhyahnika_kalam?.name_te : kv.madhyahnika_kalam?.name_en} <span class="kv-tag">అభిజిత్</span></div>
             <div class="kv-card__time">${kv.madhyahnika_kalam?.start} – ${kv.madhyahnika_kalam?.end}</div>
             <div class="kv-card__desc">${currentLang === "te" ? kv.madhyahnika_kalam?.desc_te : kv.madhyahnika_kalam?.desc_en}</div>
           </div>
           <div class="kv-card">
-            <div class="kv-card__name kv-card__name--aparahna">⛅ ${currentLang === "te" ? kv.aparahna_kalam?.name_te : kv.aparahna_kalam?.name_en}</div>
+            <div class="kv-card__name kv-card__name--aparahna">${Icon("cloud-sun")} ${currentLang === "te" ? kv.aparahna_kalam?.name_te : kv.aparahna_kalam?.name_en}</div>
             <div class="kv-card__time">${kv.aparahna_kalam?.start} – ${kv.aparahna_kalam?.end}</div>
             <div class="kv-card__desc">${currentLang === "te" ? kv.aparahna_kalam?.desc_te : kv.aparahna_kalam?.desc_en}</div>
           </div>
           <div class="kv-card">
-            <div class="kv-card__name kv-card__name--sayahna">🌇 ${currentLang === "te" ? kv.sayahna_kalam?.name_te : kv.sayahna_kalam?.name_en}</div>
+            <div class="kv-card__name kv-card__name--sayahna">${Icon("sunset")} ${currentLang === "te" ? kv.sayahna_kalam?.name_te : kv.sayahna_kalam?.name_en}</div>
             <div class="kv-card__time">${kv.sayahna_kalam?.start} – ${kv.sayahna_kalam?.end}</div>
             <div class="kv-card__desc">${currentLang === "te" ? kv.sayahna_kalam?.desc_te : kv.sayahna_kalam?.desc_en}</div>
           </div>
           <div class="kv-card kv-card--sacred">
-            <div class="kv-card__name kv-card__name--sacred">🕉️ ${currentLang === "te" ? "రాత్రి విశేష కాలములు" : "Night Sacred Timings"}</div>
+            <div class="kv-card__name kv-card__name--sacred">${Icon("moon")} ${currentLang === "te" ? "రాత్రి విశేష కాలములు" : "Night Sacred Timings"}</div>
             <div class="kv-card__sacred-times">
               <strong>${currentLang === "te" ? "ప్రదోషం:" : "Pradosha:"}</strong> ${kv.pradosha_kalam?.start} – ${kv.pradosha_kalam?.end}<br>
               <strong>${currentLang === "te" ? "నిశీథ కాలం:" : "Nisitha:"}</strong> ${kv.nisitha_kalam?.start} – ${kv.nisitha_kalam?.end}<br>
@@ -1234,7 +1234,7 @@ function openDayModal(idx) {
     bodyHtml += `
       <div class="lagna-section">
         <h4 class="lagna-section__title">
-          <span>🏛️ ${currentLang === "te" ? "ప్రతి లగ్న అంతము (సూర్యోదయం నుండి 12 లగ్నాలు)" : "Daily Lagna Schedule (Lagna Antyalu - All 12 Signs)"}</span>
+          <span>${Icon("landmark")} ${currentLang === "te" ? "ప్రతి లగ్న అంతము (సూర్యోదయం నుండి 12 లగ్నాలు)" : "Daily Lagna Schedule (Lagna Antyalu - All 12 Signs)"}</span>
           <span class="lagna-section__subtitle">${currentLang === "te" ? "ముహూర్త లగ్నం హైలైట్ చేయబడినది" : "Muhurta Lagna Highlighted"}</span>
         </h4>
         <div class="lagna-grid">`;
@@ -1264,7 +1264,7 @@ function openDayModal(idx) {
   }
   bodyHtml += `
     <div class="inauspicious-card">
-      <h4 class="inauspicious-card__title">⏳ ${currentLang === "te" ? "అశుభ సమయములు" : "Inauspicious Timings"}</h4>
+      <h4 class="inauspicious-card__title">${Icon("hourglass")} ${currentLang === "te" ? "అశుభ సమయములు" : "Inauspicious Timings"}</h4>
       <div class="inauspicious-card__grid">
         <div><strong>${currentLang === "te" ? "రాహు కాలం:" : "Rahu:"}</strong> ${fmtP(ip.rahu_kalam)}</div>
         <div><strong>${currentLang === "te" ? "యమగండం:" : "Yama:"}</strong> ${fmtP(ip.yamagandam)}</div>
@@ -1287,13 +1287,13 @@ function openDayModal(idx) {
   const chartLabel = currentLang === "te" ? `ముహూర్త D1<br>(${mTime || r.date})` : `MUHURTA D1<br>(${mTime || r.date})`;
   bodyHtml += `
     <div class="chart-card">
-      <h4 class="chart-card__title">📊 ${currentLang === "te" ? `ముహూర్త D1 చక్రం (${r.date})` : `Muhurta D1 Chart (${r.date})`}</h4>
+      <h4 class="chart-card__title">${Icon("chart")} ${currentLang === "te" ? `ముహూర్త D1 చక్రం (${r.date})` : `Muhurta D1 Chart (${r.date})`}</h4>
       ${buildD1ChartHTML(r.d1_chart, chartLabel)}
     </div>`;
 
   // 9. Rule Evaluation Grid
   if (d) {
-    bodyHtml += `<h4 class="rules-eval-title">📜 ${currentLang === "te" ? "ముహూర్త నియమ విశ్లేషణ" : "Muhurta Rules Evaluation"}</h4>`;
+    bodyHtml += `<h4 class="rules-eval-title">${Icon("scroll")} ${currentLang === "te" ? "ముహూర్త నియమ విశ్లేషణ" : "Muhurta Rules Evaluation"}</h4>`;
     bodyHtml += `<div class="rule-grid">`;
 
     // Vaara
@@ -1369,7 +1369,7 @@ function openDayModal(idx) {
     bodyHtml += `
       <div class="dosha-panel dosha-panel--maha">
         <div class="dosha-panel__header dosha-panel__header--maha">
-          <span>🔥 ${currentLang === "te" ? "ఏకవింశతి మహాదోషముల విశ్లేషణ (21 Maha Doshas)" : "21 Maha Doshas Evaluation"}</span>
+          <span>${Icon("flame")} ${currentLang === "te" ? "ఏకవింశతి మహాదోషముల విశ్లేషణ (21 Maha Doshas)" : "21 Maha Doshas Evaluation"}</span>
           <span class="dosha-panel__score dosha-panel__score--maha">${mahaScore}</span>
         </div>
         <div class="dosha-panel__body dosha-panel__body--maha">`;
@@ -1387,7 +1387,7 @@ function openDayModal(idx) {
     bodyHtml += `
       <div class="dosha-panel dosha-panel--dasha">
         <div class="dosha-panel__header dosha-panel__header--dasha">
-          <span>⚡ ${currentLang === "te" ? "దశవిధ దోషముల విశ్లేషణ (10 Dashavidha Doshas)" : "10 Dashavidha Doshas Evaluation"}</span>
+          <span>${Icon("zap")} ${currentLang === "te" ? "దశవిధ దోషముల విశ్లేషణ (10 Dashavidha Doshas)" : "10 Dashavidha Doshas Evaluation"}</span>
           <span class="dosha-panel__score dosha-panel__score--dasha">${dashaScore}</span>
         </div>
         <div class="dosha-panel__body dosha-panel__body--dasha">`;
@@ -1405,7 +1405,7 @@ function openDayModal(idx) {
     bodyHtml += `
       <div class="dosha-panel dosha-panel--pariharam">
         <div class="dosha-panel__header dosha-panel__header--pariharam">
-          <span>🛡️ ${currentLang === "te" ? "ముహూర్తములో దోషాలకు పరిహారములు (Muhurta Dosha Remedies)" : "Muhurta Dosha Cancellation Remedies (Pariharams)"}</span>
+          <span>${Icon("shield")} ${currentLang === "te" ? "ముహూర్తములో దోషాలకు పరిహారములు (Muhurta Dosha Remedies)" : "Muhurta Dosha Cancellation Remedies (Pariharams)"}</span>
           <span class="dosha-panel__score dosha-panel__score--pariharam">${pariharas.length} ${currentLang === "te" ? "పరిహారములు వర్తించును" : "Active Remedies"}</span>
         </div>
         <div class="dosha-panel__body dosha-panel__body--pariharam">`;
@@ -1415,7 +1415,7 @@ function openDayModal(idx) {
       bodyHtml += `
         <div class="pariharam-item">
           <div class="pariharam-item__header">
-            <strong class="pariharam-item__name">✨ ${prTitle}</strong>
+            <strong class="pariharam-item__name">${Icon("sparkle")} ${prTitle}</strong>
             <span class="pariharam-item__badge">${pr.status}</span>
           </div>
           ${pr.shloka ? `<div class="pariharam-item__shloka">"${pr.shloka}"</div>` : ''}
@@ -1433,7 +1433,7 @@ function openDayModal(idx) {
       const yDesc = currentLang === "te" ? y.desc_te : y.desc_en;
       let yogaClass = "yoga-item--good";
       if (y.type === "bad") { yogaClass = "yoga-item--bad"; }
-      bodyHtml += `<div class="yoga-item yoga-item--compact ${yogaClass}">✨ ${yName} — <span class="yoga-item__desc">${yDesc}</span></div>`;
+      bodyHtml += `<div class="yoga-item yoga-item--compact ${yogaClass}">${Icon("sparkle")} ${yName} — <span class="yoga-item__desc">${yDesc}</span></div>`;
     });
     bodyHtml += `</div>`;
   }
@@ -1587,8 +1587,8 @@ async function addWindowToFamily(btn) {
   const r = lastData?.results?.[openDayIdx];
   const picked = collectParticipants().filter(p => p.profile_id);
   if (!r || !picked.length) {
-    alert(T("Pick people from \"From my family\" on the cards first; the event is saved for them.",
-            "ముందు కార్డులపై 'నా కుటుంబం నుండి' వ్యక్తులను ఎంచుకోండి; కార్యక్రమం వారికి భద్రపరుస్తాం."));
+    AppShell.toast(T("Pick people from \"From my family\" on the cards first; the event is saved for them.",
+                     "ముందు కార్డులపై 'నా కుటుంబం నుండి' వ్యక్తులను ఎంచుకోండి; కార్యక్రమం వారికి భద్రపరుస్తాం."), "error");
     return;
   }
   const start = r.window_start || r.start_time || "";
@@ -1601,10 +1601,10 @@ async function addWindowToFamily(btn) {
                                status: "planned", notes: T("Chosen in the Muhurta Finder", "ముహూర్త శోధనలో ఎంచుకున్నది") }) });
       if (!res.ok) { const d = await res.json().catch(() => null); throw new Error((d && typeof d.detail === "string" && d.detail) || `HTTP ${res.status}`); }
     }
-    alert(T(`Saved as a planned event for ${picked.map(p => p.name).join(" and ")}. See My family.`,
-            `${picked.map(p => p.name).join(", ")} కు నిర్ణయించిన కార్యక్రమంగా భద్రపరిచాము. 'నా కుటుంబం'లో చూడండి.`));
+    AppShell.toast(T(`Saved as a planned event for ${picked.map(p => p.name).join(" and ")}. See My family.`,
+                     `${picked.map(p => p.name).join(", ")} కు నిర్ణయించిన కార్యక్రమంగా భద్రపరిచాము. 'నా కుటుంబం'లో చూడండి.`), "success");
   } catch (e) {
-    alert(T("Couldn't save the event: ", "కార్యక్రమం భద్రపరచలేకపోయాము: ") + e.message);
+    AppShell.toast(T("Couldn't save the event: ", "కార్యక్రమం భద్రపరచలేకపోయాము: ") + e.message, "error");
   } finally { btn.disabled = false; }
 }
 
@@ -1629,15 +1629,17 @@ const PITRU_MODE_NAMES = { annual: ["Yearly shraddha", "వార్షిక �
 
 // Special Yogas / Shraddha calendar results on screen (plan F2): what to save, and its name.
 // A death date is personal, so it is saved only when the person says yes.
-function toolSearchForSaving() {
+async function toolSearchForSaving() {
   const req = JSON.parse(JSON.stringify(lastToolSearch.request));
   if (lastToolSearch.kind === "yogas") {
     return { kind: "yogas", request: req,
              label: [T("Special yogas", "విశేష యోగాలు"), T(`from ${req.start_date}`, `${req.start_date} నుండి`), req.place_name].filter(Boolean).join(" · ") };
   }
   const m = PITRU_MODE_NAMES[req.mode] || [req.mode, req.mode];
-  if (req.death_date && !confirm(T("Also save the date and time of death? If you choose Cancel, it is not saved and you enter it again when you run this search.",
-                                   "మరణ తేదీ, సమయం కూడా భద్రపరచాలా? రద్దు చేస్తే అవి భద్రపరచబడవు; మళ్లీ శోధించినప్పుడు మళ్లీ నమోదు చేయాలి."))) {
+  if (req.death_date && !(await AppShell.confirm(
+        T("Also save the date and time of death? If you don't, you enter them again when you run this search.",
+          "మరణ తేదీ, సమయం కూడా భద్రపరచాలా? వద్దంటే, మళ్లీ శోధించినప్పుడు మళ్లీ నమోదు చేయాలి."),
+        { ok: T("Save them", "భద్రపరచు"), cancel: T("Don't save them", "భద్రపరచవద్దు") }))) {
     delete req.death_date;
     delete req.death_time;
   }
@@ -1648,10 +1650,10 @@ function toolSearchForSaving() {
 async function saveSearch(btn, withWindow) {
   let kind = "muhurta", req, label, r = null;
   if (lastToolSearch && !withWindow) {
-    ({ kind, request: req, label } = toolSearchForSaving());
+    ({ kind, request: req, label } = await toolSearchForSaving());
   } else {
     req = requestForSaving();
-    if (!req) { alert(T("Run a search first.", "ముందు శోధించండి.")); return; }
+    if (!req) { AppShell.toast(T("Run a search first.", "ముందు శోధించండి."), "error"); return; }
     r = withWindow ? lastData?.results?.[openDayIdx] : null;
     label = [eventTitle(), r ? r.date + (r.window_start ? " " + String(r.window_start).slice(0, 5) : "") : T(`from ${req.start_date}`, `${req.start_date} నుండి`),
              req.place_name].filter(Boolean).join(" · ");
@@ -1662,8 +1664,8 @@ async function saveSearch(btn, withWindow) {
       body: JSON.stringify({ kind, label: label.slice(0, 120), request: req, chosen_window: r || null }) });
     const d = await res.json().catch(() => null);
     if (!res.ok) throw new Error((d && typeof d.detail === "string" && d.detail) || `HTTP ${res.status}`);
-    alert(T(`Saved as "${d.label}". Find it under My muhurtas.`, `"${d.label}" గా భద్రపరిచాము. 'నా ముహూర్తాలు'లో చూడండి.`));
-  } catch (e) { alert(T("Couldn't save: ", "భద్రపరచలేకపోయాము: ") + e.message); }
+    AppShell.toast(T(`Saved as "${d.label}". Find it under My muhurtas.`, `"${d.label}" గా భద్రపరిచాము. 'నా ముహూర్తాలు'లో చూడండి.`), "success");
+  } catch (e) { AppShell.toast(T("Couldn't save: ", "భద్రపరచలేకపోయాము: ") + e.message, "error"); }
   finally { btn.disabled = false; }
 }
 

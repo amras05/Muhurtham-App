@@ -98,6 +98,6 @@
 .auth-hint { margin: 0; font-size: var(--text-sm); }
 
 .auth-alert { padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); font-size: var(--text-sm); }
-.auth-alert--error { background: #fdecea; color: var(--color-danger); border: 1px solid #f5c2bd; }
-.auth-alert--info { background: #edf6f0; color: var(--color-success); border: 1px solid #bfdcc6; }
+.auth-alert--error { background: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-border); }
+.auth-alert--info { background: var(--color-success-bg); color: var(--color-success); border: 1px solid var(--color-success-border); }
 .auth-note { margin: 0; font-size: var(--text-sm); color: var(--color-text-muted); }

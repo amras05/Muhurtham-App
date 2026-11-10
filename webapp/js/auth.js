@@ -116,11 +116,12 @@ window.Auth = (function () {
     { href: "muhurta-finder.html", en: "Muhurta Finder", te: "ముహూర్త శోధన" },
     { href: "family.html", en: "My family", te: "నా కుటుంబం" },
     { href: "saved.html", en: "My muhurtas", te: "నా ముహూర్తాలు" },
-    { href: "admin-users.html", en: "Users", te: "వినియోగదారులు", roles: ["admin", "super_admin"] },
-    { href: "admin-content.html", en: "Content", te: "విషయాలు", roles: ["admin", "super_admin"] },
-    { href: "admin-muhurtas.html", en: "Muhurtas", te: "ముహూర్తాలు", roles: ["super_admin"] },
-    { href: "admin-stats.html", en: "Statistics", te: "గణాంకాలు", roles: ["super_admin"] },
-    { href: "admin-settings.html", en: "Settings", te: "సెట్టింగులు", roles: ["super_admin"] },
+    // group "admin": shown together under one "Admin" menu (Experience Plan U1)
+    { href: "admin-users.html", en: "Users", te: "వినియోగదారులు", roles: ["admin", "super_admin"], group: "admin" },
+    { href: "admin-content.html", en: "Content", te: "విషయాలు", roles: ["admin", "super_admin"], group: "admin" },
+    { href: "admin-muhurtas.html", en: "Muhurtas", te: "ముహూర్తాలు", roles: ["super_admin"], group: "admin" },
+    { href: "admin-stats.html", en: "Statistics", te: "గణాంకాలు", roles: ["super_admin"], group: "admin" },
+    { href: "admin-settings.html", en: "Settings", te: "సెట్టింగులు", roles: ["super_admin"], group: "admin" },
   ];
   var BUILT = ["saved.html", "family.html", "home.html", "admin.html", "panchang-lookup.html", "muhurta-finder.html", "admin-users.html", "admin-content.html", "admin-muhurtas.html", "admin-stats.html", "admin-settings.html"];   // add admin pages as they are built
 
@@ -128,13 +129,67 @@ window.Auth = (function () {
     var links = document.querySelector(".app-shell__nav .app-shell__links");
     if (!links || !currentUser) return;
     var here = window.location.pathname.split("/").pop() || "";
-    links.innerHTML = NAV.filter(function (n) {
+    var allowed = NAV.filter(function (n) {
       return (!n.roles || n.roles.indexOf(currentUser.role) !== -1) && BUILT.indexOf(n.href) !== -1;
-    }).map(function (n) {
-      return '<a class="app-shell__link" href="' + n.href + '"' + (n.href === here ? ' aria-current="page"' : "") + ">" + esc(tr(n.en, n.te)) + "</a>";
-    }).join("");
+    });
+    var link = function (cls) {
+      return function (n) {
+        return '<a class="' + cls + '" href="' + n.href + '"' + (n.href === here ? ' aria-current="page"' : "") + ">" + esc(tr(n.en, n.te)) + "</a>";
+      };
+    };
+    var admin = allowed.filter(function (n) { return n.group === "admin"; });
+    var current = admin.filter(function (n) { return n.href === here; })[0];
+    links.innerHTML = allowed.filter(function (n) { return !n.group; }).map(link("app-shell__link")).join("") +
+      (admin.length
+        ? '<div class="nav-group">' +
+            '<button type="button" class="app-shell__link nav-group__btn' + (current ? " is-current" : "") + '" id="navAdminBtn" aria-haspopup="true" aria-expanded="false" aria-controls="navAdminPanel">' +
+              esc(tr("Admin", "నిర్వహణ")) + ' <span aria-hidden="true">▾</span></button>' +
+            '<div class="nav-group__panel" id="navAdminPanel" hidden>' + admin.map(link("nav-group__item")).join("") + "</div>" +
+          "</div>"
+        : "");
+    renderCrumbs(current);
+    bindNavGroup();
     var brand = document.querySelector(".app-shell__brand");
     if (brand) brand.setAttribute("href", "/");
+  }
+
+  // "Dashboard › Users" above the title of the pages inside the Admin menu.
+  function renderCrumbs(current) {
+    var main = document.getElementById("mainContent");
+    if (!main || !current) return;
+    var crumbs = document.getElementById("crumbs");
+    if (!crumbs) {
+      crumbs = document.createElement("nav");
+      crumbs.id = "crumbs";
+      crumbs.className = "crumbs";
+      main.insertBefore(crumbs, main.firstChild);
+    }
+    crumbs.setAttribute("aria-label", tr("You are here", "మీరు ఇక్కడ ఉన్నారు"));
+    crumbs.innerHTML = '<a href="admin.html">' + esc(tr("Dashboard", "డాష్‌బోర్డ్")) + '</a><span aria-hidden="true">›</span>' +
+      '<span aria-current="page">' + esc(tr(current.en, current.te)) + "</span>";
+  }
+
+  // One set of listeners for the Admin menu; the menu itself is redrawn on every language change.
+  var navGroupBound = false;
+  function bindNavGroup() {
+    if (navGroupBound) return;
+    navGroupBound = true;
+    function setOpen(open) {
+      var btn = document.getElementById("navAdminBtn"), panel = document.getElementById("navAdminPanel");
+      if (!btn || !panel) return;
+      panel.hidden = !open;
+      btn.setAttribute("aria-expanded", String(open));
+    }
+    document.addEventListener("click", function (e) {
+      var panel = document.getElementById("navAdminPanel");
+      if (!panel) return;
+      if (e.target.closest && e.target.closest("#navAdminBtn")) return setOpen(panel.hidden);
+      if (!panel.hidden && !panel.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener("keydown", function (e) {
+      var panel = document.getElementById("navAdminPanel"), btn = document.getElementById("navAdminBtn");
+      if (e.key === "Escape" && panel && !panel.hidden) { setOpen(false); btn.focus(); }
+    });
   }
 
   // ── Super admin alert bell (plan R11): /admin/alerts, unread = newer than when this account last
@@ -153,7 +208,7 @@ window.Auth = (function () {
       if (!box) return;
       var unread = items.filter(isNew).length;
       box.innerHTML = '<button type="button" class="alert-bell__btn" id="alertBellBtn" aria-haspopup="true" aria-expanded="' + open + '" aria-label="' +
-        esc(tr("Alerts", "హెచ్చరికలు") + (unread ? " (" + unread + ")" : "")) + '"><span aria-hidden="true">🔔</span>' +
+        esc(tr("Alerts", "హెచ్చరికలు") + (unread ? " (" + unread + ")" : "")) + '">' + Icon("bell") + '' +
         (unread ? '<span class="alert-bell__count">' + (unread > 9 ? "9+" : unread) + "</span>" : "") + "</button>" +
         '<div class="alert-bell__panel" ' + (open ? "" : "hidden") + "><ul>" +
         (items.length ? items.map(function (x) {

@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261108">
-  <link rel="stylesheet" href="css/portal.css">
+  <link rel="stylesheet" href="css/common.css?v=20261110e">
+  <link rel="stylesheet" href="css/portal.css?v=20261110b">
   <title>Settings · Muhurtham</title>
 </head>
 <body>
@@ -35,13 +35,13 @@
       </section>
       <section class="portal-card" aria-labelledby="hTitle">
         <h2 id="hTitle" data-en="System health" data-te="వ్యవస్థ స్థితి">System health</h2>
-        <dl class="kv" id="system"><dt>…</dt><dd></dd></dl>
+        <dl class="kv" id="system"><dt><span class="skeleton skeleton--line" role="status" aria-label="Loading"></span></dt><dd></dd></dl>
       </section>
     </div>
 
     <section class="portal-card" aria-labelledby="nTitle">
       <h2 id="nTitle" data-en="Notifications" data-te="నోటిఫికేషన్లు">Notifications</h2>
-      <p class="portal-hint" id="nfStatus">…</p>
+      <p class="portal-hint" id="nfStatus"><span class="skeleton skeleton--line" role="status" aria-label="Loading"></span></p>
       <form id="notifyForm" class="portal-form">
         <label class="switch"><input type="checkbox" id="nfSending"> <span data-en="Send login codes on WhatsApp (sign-up, forgot password, new mobile)" data-te="వాట్సాప్‌లో లాగిన్ కోడ్‌లు పంపండి (నమోదు, పాస్‌వర్డ్ మర్చిపోవడం, కొత్త మొబైల్)">Send login codes on WhatsApp (sign-up, forgot password, new mobile)</span></label>
         <p class="portal-hint" data-en="Switching this off pauses every code: nobody can sign up or reset a password until it is on again. Logging in with a password still works." data-te="ఇది ఆపితే అన్ని కోడ్‌లు ఆగిపోతాయి: మళ్లీ ప్రారంభించే వరకు ఎవరూ నమోదు చేయలేరు, పాస్‌వర్డ్ మార్చలేరు. పాస్‌వర్డ్‌తో లాగిన్ పనిచేస్తుంది.">Switching this off pauses every code: nobody can sign up or reset a password until it is on again. Logging in with a password still works.</p>
@@ -65,7 +65,7 @@
     <section class="portal-card" aria-labelledby="aTitle">
       <h2 id="aTitle" data-en="Admins" data-te="నిర్వాహకులు">Admins</h2>
       <p class="portal-hint" data-en="To make someone an admin, find them on the Users page and choose Make admin." data-te="ఎవరినైనా నిర్వాహకులుగా చేయడానికి, వినియోగదారుల పేజీలో వారిని వెతికి 'నిర్వాహకులుగా చేయండి' ఎంచుకోండి.">To make someone an admin, find them on the Users page and choose Make admin.</p>
-      <ul class="portal-list" id="admins"><li>…</li></ul>
+      <ul class="portal-list" id="admins"><li><span class="skeleton" role="status" aria-label="Loading"></span></li></ul>
     </section>
 
     <section class="portal-card" aria-labelledby="lTitle">
@@ -76,9 +76,10 @@
     </section>
   </main>
   <script src="js/config.js"></script>
-  <script src="js/app-shell.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/admin-settings.js"></script>
+  <script src="js/icons.js?v=20261110"></script>
+  <script src="js/app-shell.js?v=20261110"></script>
+  <script src="js/i18n.js?v=20261110"></script>
+  <script src="js/auth.js?v=20261110b"></script>
+  <script src="js/admin-settings.js?v=20261110b"></script>
 </body>
 </html>

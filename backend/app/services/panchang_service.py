@@ -10,14 +10,6 @@ from app.geo.regions import get_region
 from app.utils.date_helpers import parse_date_str
 
 
-def get_panchang_calculator(method: str = "drik"):
-    """
-    Returns the calculation function based on requested method.
-    Preserves existing behavior (drik engine by default).
-    """
-    return compute_drik_panchang
-
-
 def get_panchang_data(
     date_str: str,
     lat: float,
@@ -25,7 +17,6 @@ def get_panchang_data(
     tz_offset: float,
     place_name: str = "Location",
     hour: int = 6,
-    method: str = "drik",
 ) -> Dict[str, Any]:
     """Calculate complete panchang for a given date, location, and hour."""
     y, m, d = parse_date_str(date_str)
@@ -33,8 +24,7 @@ def get_panchang_data(
         hour_val = int(hour)
     except (TypeError, ValueError):
         hour_val = 6
-    calculator = get_panchang_calculator(method)
-    return calculator(y, m, d, lat, lon, tz_offset, place_name, hour=hour_val)
+    return compute_drik_panchang(y, m, d, lat, lon, tz_offset, place_name, hour=hour_val)
 
 
 def get_day_summary_data(
@@ -43,12 +33,10 @@ def get_day_summary_data(
     lon: float,
     tz_offset: float,
     place_name: str = "Location",
-    method: str = "drik",
 ) -> Dict[str, Any]:
     """Calculate panchang and evaluate favorable/avoid/mixed verdict for all activities."""
     y, m, d = parse_date_str(date_str)
-    calculator = get_panchang_calculator(method)
-    panchang = calculator(y, m, d, lat, lon, tz_offset, place_name)
+    panchang = compute_drik_panchang(y, m, d, lat, lon, tz_offset, place_name)
     activities = list_activities()
     results = [evaluate(a["id"], panchang) for a in activities]
     favorable = [r for r in results if r.get("verdict") == "favorable"]
@@ -104,9 +92,8 @@ def get_month_panchang_data(
 ) -> Dict[str, Any]:
     """Panchang for every day of a calendar month (Drik), trimmed for the month calendar."""
     days_in_month = calendar.monthrange(year, month)[1]
-    calculator = get_panchang_calculator()
     days = [
-        _month_day_entry(calculator(year, month, d, lat, lon, tz_offset, place_name))
+        _month_day_entry(compute_drik_panchang(year, month, d, lat, lon, tz_offset, place_name))
         for d in range(1, days_in_month + 1)
     ]
     return {"year": year, "month": month, "place": place_name, "days": days}
@@ -115,10 +102,8 @@ def get_month_panchang_data(
 def get_simple_panchang_data(
     date_str: str,
     region: str,
-    method: str = "drik",
 ) -> Dict[str, Any]:
     """Basic panchang lookup using a predefined region."""
     y, m, d = parse_date_str(date_str)
     r = get_region(region)
-    calculator = get_panchang_calculator(method)
-    return calculator(y, m, d, r["lat"], r["lon"], r["tz_offset"], r["label"])
+    return compute_drik_panchang(y, m, d, r["lat"], r["lon"], r["tz_offset"], r["label"])

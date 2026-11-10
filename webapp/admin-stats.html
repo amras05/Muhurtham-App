@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261108">
-  <link rel="stylesheet" href="css/portal.css">
+  <link rel="stylesheet" href="css/common.css?v=20261110e">
+  <link rel="stylesheet" href="css/portal.css?v=20261110b">
   <title>Statistics · Muhurtham</title>
 </head>
 <body>
@@ -26,7 +26,7 @@
         <select id="statDays"><option value="7" data-en="Last 7 days" data-te="గత 7 రోజులు">Last 7 days</option><option value="30" selected data-en="Last 30 days" data-te="గత 30 రోజులు">Last 30 days</option><option value="90" data-en="Last 90 days" data-te="గత 90 రోజులు">Last 90 days</option></select></div>
     </div>
     <div id="statMsg" class="auth-alert auth-alert--error" role="status" hidden></div>
-    <div class="stat-grid" id="statTiles"><p class="portal-hint">…</p></div>
+    <div class="stat-grid" id="statTiles"><span class="skeleton skeleton--tile" aria-hidden="true"></span><span class="skeleton skeleton--tile" aria-hidden="true"></span><span class="skeleton skeleton--tile" aria-hidden="true"></span><span class="skeleton skeleton--tile" aria-hidden="true"></span></div>
     <div class="stats-charts" id="statCharts"></div>
     <div class="portal-two">
       <section class="portal-card" aria-labelledby="tmTitle"><h2 id="tmTitle" data-en="Most-searched muhurtas" data-te="ఎక్కువగా వెతికిన ముహూర్తాలు">Most-searched muhurtas</h2><ol class="rank-list" id="topMuhurtas"></ol></section>
@@ -36,9 +36,10 @@
     <p class="portal-hint" data-en="Days follow India time. Counts come from the activity log, so they start from when logging began." data-te="రోజులు భారత కాలమానం ప్రకారం. సంఖ్యలు కార్యకలాపాల లాగ్ నుండి వస్తాయి.">Days follow India time. Counts come from the activity log, so they start from when logging began.</p>
   </main>
   <script src="js/config.js"></script>
-  <script src="js/app-shell.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/admin-stats.js"></script>
+  <script src="js/icons.js?v=20261110"></script>
+  <script src="js/app-shell.js?v=20261110"></script>
+  <script src="js/i18n.js?v=20261110"></script>
+  <script src="js/auth.js?v=20261110b"></script>
+  <script src="js/admin-stats.js?v=20261110"></script>
 </body>
 </html>

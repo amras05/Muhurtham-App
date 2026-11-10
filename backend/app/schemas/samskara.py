@@ -23,7 +23,6 @@ class SamskaraFinderQuery(BaseModel):
     husband_nak_idx: Optional[int] = Field(None, description="1-27 Janma Nakshatra index of husband")
     bride_ritu_lagna_idx: Optional[int] = Field(None, description="1-12 First Ritu Lagna of bride")
     bride_nak_idx: Optional[int] = Field(None, description="1-27 Janma Nakshatra of bride")
-    method: str = Field("drik", description="'drik' or 'chandramana'")
 
 
 class PitrukaryaQuery(BaseModel):

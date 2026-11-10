@@ -11,7 +11,7 @@ window.PdfDownload = (function () {
   async function fromElement(element, opts, button) {
     var node = typeof element === "string" ? document.getElementById(element) : element;
     if (!node || !node.innerHTML.trim()) {
-      alert(tr("There is nothing to put in the PDF yet.", "PDF లో చేర్చడానికి ఇంకా ఏమీ లేదు."));
+      AppShell.toast(tr("There is nothing to put in the PDF yet.", "PDF లో చేర్చడానికి ఇంకా ఏమీ లేదు."), "error");
       return;
     }
     var label = button ? button.innerHTML : null;
@@ -46,7 +46,7 @@ window.PdfDownload = (function () {
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
     } catch (e) {
-      alert(tr("Couldn't make the PDF: ", "PDF తయారు కాలేదు: ") + e.message);
+      AppShell.toast(tr("Couldn't make the PDF: ", "PDF తయారు కాలేదు: ") + e.message, "error");
     } finally {
       if (button) { button.disabled = false; button.innerHTML = label; }
     }

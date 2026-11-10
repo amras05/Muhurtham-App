@@ -2,12 +2,12 @@
    Muhurtham App · Design System & Stylesheet Hub
    Loads the modular CSS architecture: tokens, base, components, and panchang.
    ============================================================ */
-@import url("variables.css");
-@import url("base.css");
-@import url("components.css");
-@import url("panchang.css");
-@import url("app-shell.css");
-@import url("dashboard.css");
+@import url("variables.css?v=20261110b");
+@import url("base.css?v=20261110b");
+@import url("components.css?v=20261110e");
+@import url("panchang.css?v=20261110b");
+@import url("app-shell.css?v=20261110c");
+@import url("dashboard.css?v=20261110b");
 
 /* Elements with the `hidden` attribute stay hidden even when a class gives them
    display: grid / flex (e.g. the finder's Shraddha and Special Yogas panels). */

@@ -8,8 +8,8 @@
   gap: var(--space-3);
   margin: var(--space-4) 0 var(--space-6);
   padding: var(--space-1);
-  background: var(--color-surface-muted, #f8f6f0);
-  border: 1px solid var(--color-border, #e8dfd1);
+  background: var(--color-surface-muted, var(--color-bg));
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg, 12px);
 }
 
@@ -22,7 +22,7 @@
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-md, 8px);
-  color: var(--color-text, #2c251e);
+  color: var(--color-text);
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease-in-out;
@@ -35,8 +35,8 @@
 }
 
 .mode-tab.active {
-  background: #ffffff;
-  border-color: var(--color-accent, #c59b27);
+  background: var(--color-surface);
+  border-color: var(--color-accent, var(--gold));
   box-shadow: 0 2px 8px rgba(123, 31, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
@@ -54,12 +54,12 @@
 .mode-tab__text strong {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--color-primary-strong, #7b1f00);
+  color: var(--color-primary-strong, var(--color-primary));
 }
 
 .mode-tab__text small {
   font-size: 0.8rem;
-  color: var(--color-text-muted, #716658);
+  color: var(--color-text-muted);
   margin-top: 2px;
 }
 
@@ -72,7 +72,7 @@
   max-width: 42rem;
   margin: 0 auto var(--space-3);
   text-align: center;
-  color: var(--color-text-muted, #716658);
+  color: var(--color-text-muted);
   font-size: 0.9rem;
 }
 
@@ -85,10 +85,10 @@
 .task-card {
   display: block;
   padding: var(--space-4);
-  border: 1px solid var(--color-border, #e8dfd1);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg, 12px);
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text, #2c251e);
+  background: var(--color-surface);
+  color: var(--color-text);
   text-align: left;
   text-decoration: none;
   box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.06));
@@ -98,7 +98,7 @@
 
 .task-card:hover {
   transform: translateY(-2px);
-  border-color: var(--color-accent, #c59b27);
+  border-color: var(--color-accent, var(--gold));
   box-shadow: var(--shadow-md, 0 4px 12px rgba(123, 31, 0, 0.08));
 }
 
@@ -111,13 +111,13 @@
   display: block;
   margin-top: var(--space-2);
   font-weight: 700;
-  color: var(--color-primary-strong, #7b1f00);
+  color: var(--color-primary-strong, var(--color-primary));
 }
 
 .task-card__text {
   display: block;
   margin-top: var(--space-1);
-  color: var(--color-text-muted, #716658);
+  color: var(--color-text-muted);
   font-size: 0.85rem;
   line-height: 1.4;
 }
@@ -133,13 +133,13 @@
   align-items: center;
   margin-bottom: var(--space-3);
   padding-bottom: var(--space-2);
-  border-bottom: 1.5px solid var(--color-border, #e8dfd1);
+  border-bottom: 1.5px solid var(--color-border);
 }
 
 .samskara-catalog__title {
   font-size: 1.15rem;
   font-weight: 800;
-  color: var(--color-primary-strong, #7b1f00);
+  color: var(--color-primary-strong, var(--color-primary));
   font-family: var(--font-telugu);
 }
 
@@ -152,21 +152,21 @@
 
 .samskara-filter-pill {
   padding: 4px 12px;
-  border: 1px solid var(--color-border, #e8dfd1);
-  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--color-text-muted, #716658);
+  color: var(--color-text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .samskara-filter-pill:hover,
 .samskara-filter-pill.active {
-  background: var(--color-primary-strong, #7b1f00);
-  border-color: var(--color-primary-strong, #7b1f00);
-  color: #ffffff;
+  background: var(--color-primary-strong, var(--color-primary));
+  border-color: var(--color-primary-strong, var(--color-primary));
+  color: var(--color-on-strong);
 }
 
 .samskara-groups {
@@ -187,7 +187,7 @@
   gap: var(--space-2);
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--color-primary-strong, #7b1f00);
+  color: var(--color-primary-strong, var(--color-primary));
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding-left: var(--space-1);
@@ -210,10 +210,10 @@
   justify-content: space-between;
   min-height: 6.8rem;
   padding: var(--space-3);
-  border: 1.5px solid var(--color-border, #e8dfd1);
+  border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md, 8px);
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text, #2c251e);
+  background: var(--color-surface);
+  color: var(--color-text);
   cursor: pointer;
   text-align: left;
   position: relative;
@@ -223,13 +223,13 @@
 
 .samskara-choice:hover {
   transform: translateY(-2px);
-  border-color: var(--color-accent, #c59b27);
+  border-color: var(--color-accent, var(--gold));
   box-shadow: 0 4px 12px rgba(123, 31, 0, 0.08);
 }
 
 .samskara-choice.active {
-  background: linear-gradient(135deg, #fffcf5 0%, #fff9ec 100%);
-  border-color: var(--color-primary-strong, #7b1f00);
+  background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-warning-bg) 100%);
+  border-color: var(--color-primary-strong, var(--color-primary));
   box-shadow: 0 0 0 2px rgba(123, 31, 0, 0.2), 0 4px 12px rgba(123, 31, 0, 0.08);
 }
 
@@ -250,27 +250,27 @@
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 4px;
-  background: var(--color-surface-muted, #f8f6f0);
-  color: var(--color-text-muted, #716658);
+  background: var(--color-surface-muted, var(--color-bg));
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
 .samskara-choice.active .samskara-choice__badge {
-  background: var(--color-primary-strong, #7b1f00);
-  color: #ffffff;
+  background: var(--color-primary-strong, var(--color-primary));
+  color: var(--color-on-strong);
 }
 
 .samskara-choice__name {
   margin-top: var(--space-2);
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--color-primary-strong, #7b1f00);
+  color: var(--color-primary-strong, var(--color-primary));
   line-height: 1.25;
 }
 
 .samskara-choice__te {
   font-size: 0.8rem;
-  color: var(--color-text-muted, #716658);
+  color: var(--color-text-muted);
   font-family: var(--font-telugu);
   margin-top: 2px;
 }

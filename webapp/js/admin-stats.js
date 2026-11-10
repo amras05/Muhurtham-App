@@ -58,7 +58,7 @@
     var top = list.length ? list[0].count : 1;
     $(el).innerHTML = list.length ? list.map(function (x) {
       return "<li><span>" + esc(tr(x.en, x.te || x.en)) + "</span><b>" + x.count + '</b><span class="bar"><span style="width:' + Math.round(100 * x.count / top) + '%"></span></span></li>';
-    }).join("") : '<li class="portal-hint">' + tr("No searches in this period.", "ఈ కాలంలో శోధనలు లేవు.") + "</li>";
+    }).join("") : '<li class="empty-state">' + tr("No searches in this period.", "ఈ కాలంలో శోధనలు లేవు.") + "</li>";
   }
 
   function render() {

@@ -32,14 +32,14 @@
     if (c.failed_logins_today) items.push(["", tr(c.failed_logins_today + " wrong password attempt(s) today", "ఈ రోజు " + c.failed_logins_today + " తప్పు పాస్‌వర్డ్ ప్రయత్నాలు"), ""]);
     $("attention").innerHTML = items.length ? items.map(function (i) {
       return '<li class="' + (i[0] === "warn" ? "is-warn" : "") + '"><span>' + esc(i[1]) + "</span>" + (i[2] ? '<a href="' + i[2] + '">' + tr("Open", "చూడండి") + "</a>" : "") + "</li>";
-    }).join("") : '<li><span>' + tr("Nothing needs attention.", "గమనించవలసినది ఏదీ లేదు.") + "</span></li>";
+    }).join("") : '<li class="empty-state">' + tr("Nothing needs attention.", "గమనించవలసినది ఏదీ లేదు.") + "</li>";
     $("scopeNote").textContent = data.scope === "all" ? tr("(everyone)", "(అందరూ)") : tr("(users)", "(వినియోగదారులు)");
     $("activity").innerHTML = data.recent.length ? data.recent.map(function (r) {
       var a = ACTIONS[r.action] || [r.action, r.action];
       var t = new Date(r.at);
       return "<li><time>" + esc(t.toLocaleDateString(undefined, { day: "numeric", month: "short" }) + " " + t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })) +
         "</time><span><strong>" + esc(r.who) + "</strong> · " + esc(tr(a[0], a[1])) + "</span></li>";
-    }).join("") : '<li class="portal-hint">' + tr("No activity yet.", "ఇంకా కార్యకలాపాలు లేవు.") + "</li>";
+    }).join("") : '<li class="empty-state">' + tr("No activity yet.", "ఇంకా కార్యకలాపాలు లేవు.") + "</li>";
   }
 
   async function load() {

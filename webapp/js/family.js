@@ -61,7 +61,8 @@
         eventsHTML(p) +
         '</div><div class="acts"><button type="button" class="btn btn--sm btn--ghost" data-edit="' + esc(p.id) + '">' + tr("Edit", "మార్చండి") + "</button>" +
         '<button type="button" class="btn btn--sm btn--ghost" data-remove="' + esc(p.id) + '">' + tr("Remove", "తొలగించండి") + "</button></div></li>";
-    }).join("") : '<li class="portal-hint">' + tr("No one saved yet. Add yourself first, then your family.", "ఇంకా ఎవరూ లేరు. ముందు మిమ్మల్ని, తర్వాత కుటుంబ సభ్యులను జోడించండి.") + "</li>";
+    }).join("") : '<li class="empty-state"><p>' + tr("No one saved yet. Add yourself first, then your family.", "ఇంకా ఎవరూ లేరు. ముందు మిమ్మల్ని, తర్వాత కుటుంబ సభ్యులను జోడించండి.") +
+      '</p><button type="button" class="btn btn--sm" onclick="document.getElementById(\'famAdd\').click()">' + tr("Add a person", "వ్యక్తిని జోడించండి") + "</button></li>";
   }
 
   // ── Events per person (plan R2) ──

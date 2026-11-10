@@ -341,7 +341,7 @@ function bindPanchangShare(root, opts) {
       const blob = await panchangDayPng(opts.getSections());
       await shareOrDownload(blob, `${base}.png`, title);
     } catch (err) {
-      alert(_tr("Couldn't make the image: ", "చిత్రం తయారు కాలేదు: ") + err.message);
+      AppShell.toast(_tr("Couldn't make the image: ", "చిత్రం తయారు కాలేదు: ") + err.message, "error");
     } finally {
       b.disabled = false; b.innerHTML = label;
     }
@@ -356,7 +356,7 @@ function bindPanchangShare(root, opts) {
         setTimeout(() => { b.innerHTML = label; }, 2000);
       }
     } catch (err) {
-      alert(_tr("Couldn't share or copy the text: ", "పాఠ్యం పంపడం / కాపీ కాలేదు: ") + err.message);
+      AppShell.toast(_tr("Couldn't share or copy the text: ", "పాఠ్యం పంపడం / కాపీ కాలేదు: ") + err.message, "error");
     }
   });
 }

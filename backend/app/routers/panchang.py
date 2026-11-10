@@ -22,7 +22,6 @@ def get_panchang(
     tz_offset: float = Query(..., description="e.g. 5.5 for IST"),
     place_name: str = Query("Location"),
     hour: int = Query(6, description="Hour of day to evaluate panchang at (0-23)"),
-    method: str = Query("drik", description="Calculation method: 'drik' or 'chandramana'"),
 ):
     """Full panchang for a given date/place — powers the 'Date Lookup' screen."""
     try:
@@ -33,7 +32,6 @@ def get_panchang(
             tz_offset=tz_offset,
             place_name=place_name,
             hour=hour,
-            method=method,
         )
     except ValueError as e:
         raise HTTPException(400, "date must be in YYYY-MM-DD format") from e
@@ -46,7 +44,6 @@ def day_summary(
     lon: float = Query(...),
     tz_offset: float = Query(...),
     place_name: str = Query("Location"),
-    method: str = Query("drik", description="Calculation method: 'drik' or 'chandramana'"),
 ):
     """
     Panchang + a verdict for EVERY known activity on this date, in one call.
@@ -58,7 +55,6 @@ def day_summary(
             lon=lon,
             tz_offset=tz_offset,
             place_name=place_name,
-            method=method,
         )
     except ValueError as e:
         raise HTTPException(400, "date must be in YYYY-MM-DD format") from e
@@ -81,7 +77,6 @@ def month_panchang(
 def simple_panchang(
     date_str: str = Query(..., alias="date", description="YYYY-MM-DD"),
     region: str = Query(..., description="region id from /regions, e.g. 'vijayawada'"),
-    method: str = Query("drik", description="Calculation method: 'drik' or 'chandramana'"),
 ):
     """
     Basic panchang for a region + date, Chandramana-based.
@@ -90,7 +85,6 @@ def simple_panchang(
         return get_simple_panchang_data(
             date_str=date_str,
             region=region,
-            method=method,
         )
     except ValueError as e:
         raise HTTPException(400, "date must be in YYYY-MM-DD format") from e

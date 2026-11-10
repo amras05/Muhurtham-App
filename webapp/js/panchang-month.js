@@ -124,8 +124,8 @@ function renderMonth() {
     if (d.date === today) cls.push("is-today");
     if (d.date === monthSelected) cls.push("is-selected");
     let mark = "";
-    if (t.name === "Purnima") { cls.push("is-purnima"); mark = "🌕"; }
-    else if (t.name === "Amavasya") { cls.push("is-amavasya"); mark = "🌑"; }
+    if (t.name === "Purnima") { cls.push("is-purnima"); mark = Icon("moon-disc"); }
+    else if (t.name === "Amavasya") { cls.push("is-amavasya"); mark = Icon("moon-disc", { filled: true }); }
     else if (t.name === "Ekadashi") cls.push("is-ekadashi");
     const label = `${dayNum}, ${tithiName}, ${nakName}`;
     html +=

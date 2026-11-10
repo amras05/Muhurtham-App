@@ -500,12 +500,16 @@ def compute_day_panchang(year: int, month: int, day: int,
     karana_start_hrs = karana_raw[1]
     karana_end_hrs = karana_raw[2] if len(karana_raw) > 2 else None
 
-    # Inauspicious times
-    rahu_kalam = drik.raahu_kaalam(jd, place)
-    yamagandam = drik.yamaganda_kaalam(jd, place)
-    gulika_kalam = drik.gulikai_kaalam(jd, place)
-    
-    dur_raw = drik.durmuhurtam(jd, place)
+    # Inauspicious times. These depend on the weekday, which PyJHora reads from the time of `jd`
+    # (sunrise to sunrise), so a query hour before sunrise (the 06:00 default in winter) gave the
+    # previous weekday's kalams. Local noon is always after sunrise and still gives this date's
+    # sunrise and day length.
+    jd_noon = utils.julian_day_number(date_in, (12, 0, 0))
+    rahu_kalam = drik.raahu_kaalam(jd_noon, place)
+    yamagandam = drik.yamaganda_kaalam(jd_noon, place)
+    gulika_kalam = drik.gulikai_kaalam(jd_noon, place)
+
+    dur_raw = drik.durmuhurtam(jd_noon, place)
     durmuhurtam_list = []
     if dur_raw:
         for i in range(0, len(dur_raw), 2):

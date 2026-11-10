@@ -16,22 +16,9 @@ var Views = (function () {
     '<p data-en="Drik Panchang (Lahiri Ayanamsa) & Namakarana Muhurta Finder" data-te="దృక్ పంచాంగం (లాహిరి అయనాంశ) — సిద్ధాంత ముహూర్త నిర్ణయి">Drik Panchang (Lahiri Ayanamsa) & Namakarana Muhurta Finder</p>' +
     "</hgroup>" +
     '<div class="no-print app-actions">' +
-    B({ id: "printSmartBtn", cls: "btn btn--gold", onclick: "exportSmartPdf()", icon: "🖨️", en: "Print / Save PDF", te: "ప్రింట్ / PDF సేవ్", label: "Print / Save PDF" }) +
-    '<div class="lang-toggle">' +
-    '<button class="lang-btn active" id="langEn" onclick="setLang(\'en\')">English</button>' +
-    '<button class="lang-btn" id="langTe" onclick="setLang(\'te\')">తెలుగు</button>' +
-    "</div>" +
+    B({ id: "printSmartBtn", cls: "btn btn--gold", onclick: "exportSmartPdf()", icon: Icon("printer"), en: "Print / Save PDF", te: "ప్రింట్ / PDF సేవ్", label: "Print / Save PDF" }) +
     "</div>";
-
-  var shellNav =
-    '<nav class="app-shell__nav" aria-label="Primary navigation">' +
-      '<a class="app-shell__brand" href="panchang-lookup.html">ముహూర్తం</a>' +
-      '<div class="app-shell__links">' +
-        '<a class="app-shell__link" href="panchang-lookup.html" aria-current="page">Panchang</a>' +
-        '<a class="app-shell__link" href="muhurta-finder.html">Muhurta Finder</a>' +
-      '</div>' +
-      '<div class="account-slot" id="accountSlot"></div>' +
-    '</nav>';
+  // The site header (menu, language switch, account) is in panchang-lookup.html, the same as every page.
 
   // ---- Panchang panel -------------------------------------------------------
   var RASIS12 = UI.selectInput("_noop", [{ value: "" }]).replace('<select id="_noop"></select>', "");
@@ -83,7 +70,7 @@ var Views = (function () {
         K("బ్రహ్మ ముహూర్తం", "Brahma Muhurta", "vBrahma") +
         K("గోధూళి ముహూర్తం", "Godhuli Muhurta", "vGodhuli") +
         K("అమృత కాలం", "Amrit Kalam", "vAmrit")) +
-      KS("✨ అభిజిత్ కాల ముహూర్తం", "✨ Abhijit Kala Muhurtham",
+      KS("అభిజిత్ కాల ముహూర్తం", "Abhijit Kala Muhurtham",
         '<div class="kaala-row kaala-row--borderless">' +
         '<span class="kname kname--gold" data-en="Auspicious Timing" data-te="శుభ సమయము">Auspicious Timing</span>' +
         '<span class="ktime ktime--gold" id="vAbhijitKala">—</span></div>',
@@ -91,7 +78,7 @@ var Views = (function () {
       '<div id="vPanchakaSection"></div>' +
       '<div id="vKalaVibhajanaSection"></div>' +
       '<div id="vLagnaScheduleSection"></div>' +
-      KS("✨ విశేష యోగములు", "Special Muhurta Yogas", '<div id="vSpecialYogas" class="list-body"></div>') +
+      KS("విశేష యోగములు", "Special Muhurta Yogas", '<div id="vSpecialYogas" class="list-body"></div>') +
       KS("అనుకూలమైన ముహూర్తములు", "Favorable Muhurtas", '<div id="vFavorableActivities" class="list-body"></div>') +
       KS("నిషిద్ధ సమయాలు / పనులు", "Activities to Avoid", '<div id="vAvoidActivities" class="list-body"></div>') +
     "</div>";
@@ -119,9 +106,9 @@ var Views = (function () {
     '<section class="task-launcher" aria-label="Choose a task">' +
       '<p class="task-launcher__intro">Choose the task you want to complete.</p>' +
       '<div class="task-grid">' +
-        '<a class="task-card" href="#tabPanchangContent"><span class="task-card__icon">📅</span><span class="task-card__title">Panchang for a date</span><span class="task-card__text">View daily timings and activities.</span></a>' +
-        '<a class="task-card" href="muhurta-finder.html"><span class="task-card__icon">🪔</span><span class="task-card__title">Find a ceremony Muhurta</span><span class="task-card__text">Every samskara is in the Muhurta Finder.</span></a>' +
-        '<a class="task-card" href="muhurta-finder.html"><span class="task-card__icon">🔮</span><span class="task-card__title">Scan multiple days</span><span class="task-card__text">Compare Muhurta results across a date range.</span></a>' +
+        '<a class="task-card" href="#tabPanchangContent"><span class="task-card__icon">' + Icon("calendar") + '</span><span class="task-card__title">Panchang for a date</span><span class="task-card__text">View daily timings and activities.</span></a>' +
+        '<a class="task-card" href="muhurta-finder.html"><span class="task-card__icon">' + Icon("lamp") + '</span><span class="task-card__title">Find a ceremony Muhurta</span><span class="task-card__text">Every samskara is in the Muhurta Finder.</span></a>' +
+        '<a class="task-card" href="muhurta-finder.html"><span class="task-card__icon">' + Icon("search") + '</span><span class="task-card__title">Scan multiple days</span><span class="task-card__text">Compare Muhurta results across a date range.</span></a>' +
       '</div>' +
     '</section>';
 
@@ -133,7 +120,6 @@ var Views = (function () {
   var layout = function (rootId) {
     return (
       '<div class="app-shell"><div class="wrap">' +
-        shellNav +
         '<header id="appHeader">' + header + "</header>" +
         '<section id="tabPanchangContent">' + panchangForm + viewTabs +
           '<div id="dayView" role="tabpanel" aria-labelledby="tabDayBtn">' + panchangResults + "</div>" +

@@ -27,19 +27,19 @@
 
 .btn--primary {
   background: var(--maroon);
-  color: #fff;
+  color: var(--color-on-strong);
 }
 .btn--primary:hover:not(:disabled) { background: var(--maroon-accent); }
 
 .btn--gold {
   background: var(--marigold);
-  color: #fff;
+  color: var(--color-on-strong);
 }
 .btn--gold:hover:not(:disabled) { filter: brightness(1.08); }
 
 .btn--maroon {
   background: var(--maroon);
-  color: #fff;
+  color: var(--color-on-strong);
 }
 .btn--maroon:hover:not(:disabled) { background: var(--deep-maroon); }
 
@@ -87,18 +87,18 @@
   cursor: pointer;
   border: none;
   background: var(--card-bg);
-  color: #6b6152;
+  color: var(--color-text-muted);
   font-family: inherit;
   transition: all 0.2s ease;
 }
 
 .lang-btn.active {
   background: var(--maroon);
-  color: #fff;
+  color: var(--color-on-strong);
 }
 
 .lang-btn:hover:not(.active) {
-  background: #efe6d0;
+  background: var(--color-surface-muted);
 }
 
 /* Controls Container */
@@ -124,7 +124,7 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #8a7f68;
+  color: var(--color-text-muted);
   margin-bottom: 4px;
   font-weight: 600;
 }
@@ -139,7 +139,7 @@ input[type="time"] {
   font-size: 15px;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: #fff;
+  background: var(--color-surface);
   color: var(--ink);
   font-family: inherit;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -156,7 +156,7 @@ input:focus {
 button#goButton {
   align-self: flex-end;
   background: var(--maroon);
-  color: #fff;
+  color: var(--color-on-strong);
   border: none;
   padding: 10px 20px;
   border-radius: 6px;
@@ -176,7 +176,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   text-align: center;
   margin-top: 18px;
   font-size: 13px;
-  color: #8a7f68;
+  color: var(--color-text-muted);
 }
 
 .status.error {
@@ -215,7 +215,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #a08d63;
+  color: var(--color-text-muted);
   margin-bottom: 4px;
   font-weight: 700;
 }
@@ -234,7 +234,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 
 .card .value.sub-time {
   font-size: 11px;
-  color: #8a7f68;
+  color: var(--color-text-muted);
   font-weight: 400;
   margin-top: 4px;
   word-break: break-word;
@@ -268,7 +268,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 700;
-  color: #6b6152;
+  color: var(--color-text-muted);
   cursor: pointer;
   background: rgba(255, 255, 255, 0.75);
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -312,7 +312,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 
 .tab-item.active .tab-badge {
   background: var(--maroon);
-  color: #ffffff;
+  color: var(--color-on-strong);
 }
 
 /* Suggestions autocomplete box */
@@ -331,14 +331,14 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   padding: 10px 12px;
   font-size: 13.5px;
   cursor: pointer;
-  border-bottom: 1px solid #f6f0e2;
+  border-bottom: 1px solid var(--color-border);
   color: var(--ink);
   text-align: left;
   transition: background 0.15s;
 }
 
 .suggestion-item:hover {
-  background: #efe6d0;
+  background: var(--color-surface-muted);
 }
 
 .suggestion-item:last-child {
@@ -388,7 +388,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 .modal-header {
   padding: 16px 20px;
   background: var(--maroon);
-  color: #ffffff;
+  color: var(--color-on-strong);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -411,7 +411,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 .modal-close {
   background: transparent;
   border: none;
-  color: #ffffff;
+  color: var(--color-on-strong);
   font-size: 20px;
   cursor: pointer;
   line-height: 1;
@@ -473,7 +473,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #fdfaf2;
+  background: var(--color-bg);
   border: 1px solid var(--line);
   font-weight: 700;
   color: var(--maroon);
@@ -494,13 +494,13 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 }
 
 .panchaka-box--pass {
-  background: #f1f8e9;
-  border-color: #81c784;
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
 }
 
 .panchaka-box--fail {
-  background: #fff3e0;
-  border-color: #ffb74d;
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
 }
 
 .panchaka-box__header {
@@ -516,8 +516,8 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   font-weight: 700;
 }
 
-.panchaka-box__title--pass { color: #1b5e20; }
-.panchaka-box__title--fail { color: #e65100; }
+.panchaka-box__title--pass { color: var(--color-success); }
+.panchaka-box__title--fail { color: var(--color-warning); }
 
 .panchaka-box__badge {
   display: inline-block;
@@ -525,15 +525,15 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   border-radius: 12px;
   font-size: 11px;
   font-weight: 700;
-  color: #fff;
+  color: var(--color-on-strong);
 }
 
-.panchaka-box__badge--pass { background: #2e7d32; }
-.panchaka-box__badge--fail { background: #e65100; }
+.panchaka-box__badge--pass { background: var(--color-success); }
+.panchaka-box__badge--fail { background: var(--color-warning); }
 
 .panchaka-box__body {
   font-size: 12px;
-  color: #424242;
+  color: var(--color-text);
   line-height: 1.5;
 }
 
@@ -541,23 +541,23 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   margin-top: 4px;
 }
 
-.panchaka-box__classification-name--pass { font-weight: 700; color: #1b5e20; }
-.panchaka-box__classification-name--fail { font-weight: 700; color: #b71c1c; }
+.panchaka-box__classification-name--pass { font-weight: 700; color: var(--color-success); }
+.panchaka-box__classification-name--fail { font-weight: 700; color: var(--color-danger); }
 
 .panchaka-box__remedy {
   margin-top: 6px;
-  background: #ffffff;
+  background: var(--color-surface);
   padding: 6px 10px;
   border-radius: 4px;
-  border: 1px dashed #ff9800;
+  border: 1px dashed var(--color-warning);
   font-size: 11px;
-  color: #e65100;
+  color: var(--color-warning);
 }
 
 /* Kala Vibhajana (5-fold daily time division) */
 .kv-section {
-  background: #fafafa;
-  border: 1px solid #e0e0e0;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
   padding: 12px;
   border-radius: 8px;
   margin-top: 16px;
@@ -575,7 +575,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 .kv-header__sub {
   font-size: 11px;
   font-weight: 500;
-  color: #757575;
+  color: var(--color-text-muted);
 }
 
 .kv-grid {
@@ -586,20 +586,20 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 }
 
 .kv-card {
-  background: #ffffff;
+  background: var(--color-surface);
   padding: 8px;
   border-radius: 6px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--color-border);
 }
 
 .kv-card--highlight {
-  background: #fffde7;
-  border-color: #ffd54f;
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
 }
 
 .kv-card--sacred {
-  background: #ede7f6;
-  border-color: #d1c4e9;
+  background: var(--color-remedy-bg);
+  border-color: var(--color-remedy-border);
 }
 
 .kv-card__name {
@@ -607,41 +607,41 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   font-size: 12px;
 }
 
-.kv-card__name--pratah   { color: #e65100; }
-.kv-card__name--sangava  { color: #2e7d32; }
-.kv-card__name--madhya   { color: #f57f17; }
-.kv-card__name--aparahna { color: #5d4037; }
-.kv-card__name--sayahna  { color: #ad1457; }
-.kv-card__name--sacred   { color: #4527a0; }
+.kv-card__name--pratah   { color: var(--color-warning); }
+.kv-card__name--sangava  { color: var(--color-success); }
+.kv-card__name--madhya   { color: var(--color-warning); }
+.kv-card__name--aparahna { color: var(--color-text); }
+.kv-card__name--sayahna  { color: var(--color-remedy); }
+.kv-card__name--sacred   { color: var(--color-remedy); }
 
 .kv-card__time {
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
   margin: 2px 0;
 }
 
 .kv-card__desc {
   font-size: 11px;
-  color: #666;
+  color: var(--color-text-muted);
 }
 
 .kv-card__sacred-times {
   font-size: 11px;
-  color: #311b92;
+  color: var(--color-remedy);
   margin-top: 2px;
 }
 
 .kv-tag {
   font-size: 10px;
-  background: #fff;
+  background: var(--color-surface);
   padding: 1px 4px;
   border-radius: 4px;
-  border: 1px solid #fbc02d;
+  border: 1px solid var(--color-warning-border);
 }
 
 /* Lagna Schedule */
 .lagna-section {
-  background: #ffffff;
+  background: var(--color-surface);
   border: 1px solid var(--gold);
   padding: 12px;
   border-radius: 8px;
@@ -665,8 +665,8 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 }
 
 .lagna-item {
-  background: #fdfdfd;
-  border: 1px solid #e0e0e0;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
   padding: 6px 8px;
   border-radius: 6px;
 }
@@ -678,13 +678,13 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 }
 
 .lagna-item__name {
-  color: #333;
+  color: var(--color-text);
   font-weight: 700;
   font-size: 12px;
 }
 
 .lagna-item__time {
-  color: #616161;
+  color: var(--color-text-muted);
   font-weight: 600;
   margin-top: 2px;
 }
@@ -699,21 +699,21 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 }
 
 .yoga-item--good {
-  background: #fff8e1;
-  border-color: #c59b27;
-  color: #4a0e17;
+  background: var(--gold-light);
+  border-color: var(--gold);
+  color: var(--color-primary-strong);
 }
 
 .yoga-item--bad {
-  background: #ffebee;
-  border-color: #e57373;
-  color: #b71c1c;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger);
 }
 
 .yoga-item--info {
-  background: #e3f2fd;
-  border-color: #64b5f6;
-  color: #0d47a1;
+  background: var(--color-info-bg);
+  border-color: var(--color-info-border);
+  color: var(--color-info);
 }
 
 .yoga-item__name {
@@ -740,7 +740,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 }
 
 .padas-row__label {
-  color: #6b6152;
+  color: var(--color-text-muted);
 }
 
 .padas-row__time {
@@ -751,7 +751,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 /* Empty state */
 .empty-msg {
   font-size: 13px;
-  color: #6b6152;
+  color: var(--color-text-muted);
   padding: 4px 0;
 }
 
@@ -776,7 +776,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 .rec-time-box__details {
   font-size: 13px;
   font-weight: 600;
-  color: #4e342e;
+  color: var(--color-text);
   margin-top: 6px;
   line-height: 1.6;
 }
@@ -785,16 +785,16 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   font-weight: 600;
   color: var(--bad);
   margin-top: 6px;
-  background: #fff0f0;
+  background: var(--color-danger-bg);
   padding: 4px 8px;
   border-radius: 4px;
-  border: 1px solid #ffcdd2;
+  border: 1px solid var(--color-danger-border);
 }
 
 /* Native Profile Box */
 .native-profile-box, .mf-native-profile {
-  background: #eef7ee;
-  border: 1.5px solid #81c784;
+  background: var(--color-success-bg);
+  border: 1.5px solid var(--color-success-border);
   padding: 10px 14px;
   border-radius: var(--radius-md);
   margin-bottom: 16px;
@@ -810,7 +810,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   gap: 6px;
 }
 .native-profile-box__title {
-  color: #1b5e20;
+  color: var(--color-success);
   font-size: 13px;
 }
 .native-profile-box__badge {
@@ -820,48 +820,48 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   font-weight: 700;
 }
 .native-profile-box__badge--pass {
-  background: #c8e6c9;
-  color: #1b5e20;
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 .native-profile-box__badge--fail {
-  background: #ffcdd2;
-  color: #b71c1c;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 .native-profile-box__grid {
   font-size: 12px;
-  color: #2e7d32;
+  color: var(--color-success);
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
 .native-profile-box__footer {
   font-size: 11px;
-  color: #33691e;
-  border-top: 1px dashed #a5d6a7;
+  color: var(--color-success);
+  border-top: 1px dashed var(--color-success-border);
   padding-top: 4px;
   margin-top: 2px;
 }
 
 /* Chandramana Banner */
 .cm-banner, .mf-cm-banner {
-  background: linear-gradient(135deg, #fff9e6 0%, #fff1c6 100%);
-  border: 1px solid #d4af37;
+  background: linear-gradient(135deg, var(--color-warning-bg) 0%, var(--color-warning-bg) 100%);
+  border: 1px solid var(--gold);
   padding: 8px 12px;
   border-radius: 6px;
   margin-bottom: 10px;
   font-size: 13px;
   font-weight: 700;
-  color: #5d4037;
+  color: var(--color-text);
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
 }
-.cm-banner__sam { color: #b71c1c; }
+.cm-banner__sam { color: var(--color-danger); }
 .cm-banner__ayanam,
-.cm-banner__ruthu { color: #4e342e; }
-.cm-banner__maasa { color: #1b5e20; }
-.cm-banner__paksha { color: #0d47a1; }
+.cm-banner__ruthu { color: var(--color-text); }
+.cm-banner__maasa { color: var(--color-success); }
+.cm-banner__paksha { color: var(--color-info); }
 
 /* Detail Card & Grid */
 .detail-card, .mf-panchang-card {
@@ -893,27 +893,27 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   gap: 6px;
 }
 .abhijit-strip--auspicious {
-  background: #fffde7;
-  border: 1px solid #fdd835;
-  color: #e65100;
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  color: var(--color-warning);
 }
 .abhijit-strip--inauspicious {
-  background: #fff0f0;
-  border: 1px solid #ffcdd2;
-  color: #b71c1c;
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger);
 }
 
 /* Inauspicious Periods Card */
 .inauspicious-card, .mf-inauspicious {
-  background: #fff5f5;
+  background: var(--color-danger-bg);
   padding: 12px;
   border-radius: var(--radius-md);
-  border: 1px solid #ffcdd2;
+  border: 1px solid var(--color-danger-border);
   margin-bottom: 16px;
 }
 .inauspicious-card__title {
   margin: 0 0 8px 0;
-  color: #b71c1c;
+  color: var(--color-danger);
   font-size: 14px;
 }
 .inauspicious-card__grid {
@@ -921,22 +921,22 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 8px;
   font-size: 13px;
-  color: #5c0011;
+  color: var(--color-primary-strong);
 }
 .inauspicious-card__note {
   font-size: 11px;
-  color: #7f0000;
+  color: var(--color-primary-strong);
   margin-top: 8px;
-  background: #ffebee;
+  background: var(--color-danger-bg);
   padding: 6px 10px;
   border-radius: 4px;
-  border: 1px dashed #ef9a9a;
+  border: 1px dashed var(--color-danger-border);
   line-height: 1.4;
 }
 
 /* Chart Container Card */
 .chart-card, .mf-chart-section {
-  background: #ffffff;
+  background: var(--color-surface);
   padding: 12px;
   border-radius: var(--radius-md);
   border: 1px solid var(--maroon);
@@ -950,8 +950,8 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 }
 
 /* Chart planet status badges */
-.chart-retro { color: #b71c1c; font-weight: 700; font-size: 11px; }
-.chart-combust { color: #d84315; font-weight: 700; font-size: 11px; }
+.chart-retro { color: var(--color-danger); font-weight: 700; font-size: 11px; }
+.chart-combust { color: var(--color-warning); font-weight: 700; font-size: 11px; }
 
 /* Dosha Panels */
 .dosha-panel {
@@ -959,33 +959,33 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   border-radius: var(--radius-md);
   overflow: hidden;
 }
-.dosha-panel--maha { border: 1.5px solid #b71c1c; }
-.dosha-panel--dasha { border: 1.5px solid #e65100; }
-.dosha-panel--pariharam { border: 1.5px solid #8e24aa; margin-bottom: 16px; }
+.dosha-panel--maha { border: 1.5px solid var(--color-danger); }
+.dosha-panel--dasha { border: 1.5px solid var(--color-warning); }
+.dosha-panel--pariharam { border: 1.5px solid var(--color-remedy); margin-bottom: 16px; }
 
 .dosha-panel__header {
   padding: 10px 14px;
-  color: #ffffff;
+  color: var(--color-on-strong);
   font-weight: 700;
   font-size: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.dosha-panel__header--maha { background: #b71c1c; }
-.dosha-panel__header--dasha { background: #e65100; }
-.dosha-panel__header--pariharam { background: #8e24aa; }
+.dosha-panel__header--maha { background: var(--color-danger); }
+.dosha-panel__header--dasha { background: var(--color-warning); }
+.dosha-panel__header--pariharam { background: var(--color-remedy); }
 
 .dosha-panel__score {
-  background: #ffffff;
+  background: var(--color-surface);
   padding: 3px 10px;
   border-radius: var(--radius-pill);
   font-size: 12px;
   font-weight: 800;
 }
-.dosha-panel__score--maha { color: #b71c1c; }
-.dosha-panel__score--dasha { color: #e65100; }
-.dosha-panel__score--pariharam { color: #8e24aa; font-size: 11px; }
+.dosha-panel__score--maha { color: var(--color-danger); }
+.dosha-panel__score--dasha { color: var(--color-warning); }
+.dosha-panel__score--pariharam { color: var(--color-remedy); font-size: 11px; }
 
 .dosha-panel__body {
   padding: 10px;
@@ -993,23 +993,23 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 8px;
 }
-.dosha-panel__body--maha { background: #fff8f8; }
-.dosha-panel__body--dasha { background: #fffde7; }
+.dosha-panel__body--maha { background: var(--color-danger-bg); }
+.dosha-panel__body--dasha { background: var(--color-warning-bg); }
 .dosha-panel__body--pariharam {
-  background: #faf5fb;
+  background: var(--color-remedy-bg);
   display: flex;
   flex-direction: column;
 }
 
 .dosha-item {
-  background: #ffffff;
+  background: var(--color-surface);
   border-radius: 6px;
   padding: 8px 10px;
   font-size: 12px;
 }
-.dosha-item--pass { border: 1px solid #c8e6c9; }
-.dosha-item--fail-maha { border: 1px solid #ffcdd2; }
-.dosha-item--fail-dasha { border: 1px solid #ffe0b2; }
+.dosha-item--pass { border: 1px solid var(--color-success-border); }
+.dosha-item--fail-maha { border: 1px solid var(--color-danger-border); }
+.dosha-item--fail-dasha { border: 1px solid var(--color-warning-border); }
 
 .dosha-item__header {
   display: flex;
@@ -1018,7 +1018,7 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   margin-bottom: 4px;
 }
 .dosha-item__name {
-  color: #2c3e50;
+  color: var(--color-text);
   font-size: 13px;
   font-weight: 700;
 }
@@ -1029,21 +1029,21 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   font-weight: 700;
 }
 .dosha-item__badge--pass {
-  background: #e8f5e9;
-  color: #2e7d32;
-  border: 1px solid #a5d6a7;
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1px solid var(--color-success-border);
 }
 .dosha-item__badge--fail {
-  background: #ffebee;
-  color: #c62828;
-  border: 1px solid #ef9a9a;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-border);
 }
-.dosha-item__desc--pass { color: #388e3c; font-size: 11px; font-weight: 500; }
-.dosha-item__desc--fail { color: #d32f2f; font-size: 11px; font-weight: 500; }
+.dosha-item__desc--pass { color: var(--color-success); font-size: 11px; font-weight: 500; }
+.dosha-item__desc--fail { color: var(--color-danger); font-size: 11px; font-weight: 500; }
 
 .pariharam-item {
-  background: #ffffff;
-  border: 1px solid #ce93d8;
+  background: var(--color-surface);
+  border: 1px solid var(--color-remedy-border);
   border-radius: 6px;
   padding: 8px 12px;
   font-size: 12px;
@@ -1055,13 +1055,13 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   margin-bottom: 4px;
 }
 .pariharam-item__name {
-  color: #4a148c;
+  color: var(--color-remedy);
   font-size: 13px;
   font-weight: 700;
 }
 .pariharam-item__badge {
-  background: #e1bee7;
-  color: #4a148c;
+  background: var(--color-remedy-bg);
+  color: var(--color-remedy);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 10px;
@@ -1069,13 +1069,13 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 }
 .pariharam-item__shloka {
   font-family: serif;
-  color: #6a1b9a;
+  color: var(--color-remedy);
   font-style: italic;
   margin-bottom: 4px;
   font-size: 11px;
 }
 .pariharam-item__desc {
-  color: #333;
+  color: var(--color-text);
   line-height: 1.4;
 }
 
@@ -1086,9 +1086,9 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
 }
 
 /* Dosha rows that were not evaluated (data or author input missing) */
-.dosha-item--muted { border: 1px dashed #cfd8dc; background: #fafafa; }
-.dosha-item__badge--muted { background: #eceff1; color: #546e7a; border: 1px solid #cfd8dc; }
-.dosha-item__desc--muted { color: #607d8b; font-size: 11px; font-weight: 500; }
+.dosha-item--muted { border: 1px dashed var(--color-border); background: var(--color-bg); }
+.dosha-item__badge--muted { background: var(--color-surface-muted); color: var(--color-text-muted); border: 1px solid var(--color-border); }
+.dosha-item__desc--muted { color: var(--color-text-muted); font-size: 11px; font-weight: 500; }
 
 /* Share row: PDF · Image · Text (js/panchang-share.js) — Panchang month panel and the Today card */
 .share-bar {
@@ -1110,5 +1110,49 @@ button#goButton:disabled { opacity: 0.5; cursor: default; }
   color: var(--maroon);
   border: 1px solid var(--maroon);
 }
-.share-bar__btn:hover:not(:disabled) { background: var(--maroon); color: #fff; }
+.share-bar__btn:hover:not(:disabled) { background: var(--maroon); color: var(--color-on-strong); }
 .share-bar__btn:disabled { opacity: 0.6; cursor: wait; }
+
+/* Icons (js/icons.js): drawn in the colour of the text around them */
+.icon {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+  vertical-align: -0.2em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.icon--filled { fill: currentColor; }
+
+/* Loading placeholders: a soft bar where content is about to appear (Experience Plan U2) */
+.skeleton {
+  display: block;
+  height: 2.75rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(100deg, var(--color-surface-muted) 40%, var(--color-bg) 50%, var(--color-surface-muted) 60%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.4s linear infinite;
+}
+.skeleton--line { display: inline-block; width: 12rem; max-width: 100%; height: 1em; vertical-align: middle; }
+.skeleton--tile { height: 5rem; }
+.skeleton--card { height: 11rem; }
+@keyframes skeleton-sweep { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+
+/* Empty lists: what belongs here, and the next step when there is one */
+.empty-state {
+  list-style: none;
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+.empty-state p { margin: 0 0 var(--space-3); }
+.empty-state .btn { text-decoration: none; display: inline-block; }
+td.empty-state { border-style: none; background: none; }
