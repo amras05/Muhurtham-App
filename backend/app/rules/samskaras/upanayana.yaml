@@ -15,10 +15,16 @@ source:
     Moon-sign preference, varna and Veda-lord planetary strength.
 hard_filters:
   common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
-  age_rule: {reference: birth, unit: years, allowed: [5, 6, 7, 8, 9, 10, 11]}
+  # Years 5-9; 10 and 11 only if needed (book para 1914). With no birth date, or no muhurta in either,
+  # muhurtas are shown regardless of age, marked (11 Nov 2026).
+  age_rule: {reference: birth, unit: years, allowed: [5, 6, 7, 8, 9], fallback: [10, 11]}
   time_of_day: forenoon
   # Varnesha, vedadhipati and Guru bala for the vatu (classical lords; author to confirm)
   upanayana_strength: true
+  # Anadhyaya days, sankranti anadhyaya and trishtakas (book paras 1994-2004, 1916)
+  anadhyaya: true
+  # Doshapavada for the upanayana lagna (book paras 1972-78)
+  doshapavada: true
   vaara_exclude: [tuesday, saturday]
   tithi_exclude: [pratipada, chaturthi, shashti, ashtami, navami, ekadashi, dwadashi, chaturdashi, purnima, amavasya]
   karana_exclude: [bhadra]

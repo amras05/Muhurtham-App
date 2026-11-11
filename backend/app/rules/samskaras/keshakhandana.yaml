@@ -3,8 +3,8 @@ category: samskaras
 tab: shishu
 title_en: "Keshakhandana (First Haircut)"
 title_te: "కేశఖండనము"
-description_en: "Boys in even months, girls in the 3rd, 5th or 7th month; Uttarayana, forenoon."
-description_te: "బాలురకు సరి మాసాలు, బాలికలకు 3, 5, 7 మాసాలు; ఉత్తరాయణం, పూర్వాహ్ణం."
+description_en: "Boys in even months, girls in the 3rd, 5th or 7th month; forenoon."
+description_te: "బాలురకు సరి మాసాలు, బాలికలకు 3, 5, 7 మాసాలు; పూర్వాహ్ణం."
 tab_inputs: [samskara_child]
 source:
   part: 4
@@ -18,5 +18,4 @@ hard_filters:
   tithi_exclude: [tritiya, ashtami, trayodashi, amavasya]
   karana_exclude: [bhadra]
   nakshatra_allow: [ashwini, mrigashira, punarvasu, pushya, hasta, chitra, swati, shravana, dhanishta, shatabhisha, revati]
-  sun_sign_allow: [makara, kumbha, meena, mesha, vrishabha, mithuna]
 soft_scoring: {}

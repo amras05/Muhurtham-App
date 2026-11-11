@@ -1010,3 +1010,102 @@ button#findBtn:disabled {
 .field--location { position: relative; }
 .suggestion-item--empty { color: var(--color-text-muted); cursor: default; }
 
+
+/* ---- Sri Bhaskara-style additions (11 Nov 2026): amsha, personal bala, lunar months, min score ---- */
+.amsha-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; }
+.amsha-badge { padding: 3px 10px; border-radius: var(--radius-pill); font-weight: 700; font-size: 12px; border: 1px solid currentColor; }
+.amsha-badge--pushkara { color: var(--color-success); background: var(--color-success-bg); }
+.amsha-badge--vargottama { color: var(--color-info); background: var(--color-info-bg); }
+.amsha-badge--shubha { color: var(--color-warning); background: var(--color-warning-bg); }
+.amsha-row__time { color: var(--color-text-muted); }
+
+.personal-bala { display: grid; gap: 6px; margin-top: 10px; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
+.personal-bala__row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 13px; }
+.personal-bala__row strong { min-width: 6rem; color: var(--color-text); }
+.bala { padding: 2px 8px; border-radius: var(--radius-sm); font-weight: 600; font-size: 12px; }
+.bala--ok { color: var(--color-success); background: var(--color-success-bg); }
+.bala--bad { color: var(--color-danger); background: var(--color-danger-bg); }
+
+.lunar-months { grid-column: 1 / -1; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px 12px; margin: 0; }
+.lunar-months legend { font-size: 13px; font-weight: 600; padding: 0 4px; color: var(--color-text); }
+.lunar-months__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.lunar-months__chips label { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill); font-size: 13px; cursor: pointer; background: var(--color-surface); }
+.lunar-months__chips label:has(input:checked) { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-on-strong); }
+.lunar-months__chips input { accent-color: var(--color-primary); }
+.lunar-months__hint { display: block; margin-top: 6px; color: var(--color-text-muted); font-size: 12px; }
+.results-filter-note { margin: 0 0 12px; color: var(--color-text-muted); font-size: 13px; }
+.bala--warn { color: var(--color-warning); background: var(--color-warning-bg); }
+
+/* One-year results, loaded 60 days at a time (11 Nov 2026) */
+.load-more { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px;
+  margin: 16px 0 32px; padding: 14px; border: 1px dashed var(--color-border); border-radius: var(--radius-md);
+  color: var(--color-text-muted); font-size: 14px; text-align: center; }
+.load-more__spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary); animation: load-more-spin 0.8s linear infinite; }
+@keyframes load-more-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .load-more__spinner { animation: none; } }
+
+/* Summary boxes as filters (11 Nov 2026) */
+.summary-stat--filter {
+  appearance: none; display: grid; gap: 2px; justify-items: center;
+  padding: 8px 6px; border: 2px solid transparent; border-radius: var(--radius-md);
+  background: none; font: inherit; cursor: pointer;
+}
+.summary-stat--filter:hover { background: var(--color-surface-muted); }
+.summary-stat--filter:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.summary-stat--filter.is-active { border-color: var(--color-primary); background: var(--color-surface-muted); }
+.summary-stat--filter.is-active .label { color: var(--color-primary); font-weight: 700; }
+.custom-kala-note { margin-top: 8px; font-size: 12px; color: var(--color-text-muted); }
+/* Doshapavada chips (book paras 1972-78) */
+.apavada-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.apavada-chip { padding: 3px 10px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; border: 1px solid currentColor; }
+.apavada-chip--all { color: var(--color-success); background: var(--color-success-bg); }
+.apavada-chip--partial { color: var(--color-info); background: var(--color-info-bg); }
+
+/* Two ways to search: for a person, or muhurtas by month (11 Nov 2026) */
+.finder-modes { display: flex; gap: 4px; margin: 0 0 14px; padding: 4px; border-radius: var(--radius-md); background: var(--color-surface-muted); }
+.finder-mode { flex: 1; appearance: none; border: 0; border-radius: var(--radius-sm); padding: 10px 12px; background: none;
+  font: inherit; font-weight: 700; color: var(--color-text-muted); cursor: pointer; }
+.finder-mode.active { background: var(--color-surface); color: var(--color-primary); box-shadow: var(--shadow-sm); }
+.finder-mode:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.pool-intro { margin: 0 0 12px; color: var(--color-text-muted); font-size: 14px; }
+.mode-pool .field--activity, .mode-pool .field--variant, .mode-pool .field--start-date, .mode-pool .field--timepref,
+.mode-pool #mfInfoBanner, .mode-pool #mfParticipants, .mode-pool #mfContextualSection,
+.mode-pool #mfYogaPanel, .mode-pool #mfPitruPanel { display: none !important; }
+.pool-month { margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--color-border);
+  color: var(--color-primary); font-size: 17px; }
+.pool-month small { font-weight: 500; color: var(--color-text-muted); font-size: 13px; margin-left: 6px; }
+
+/* Cards / compact switch, one-line muhurtas, ceremony chips (11 Nov 2026) */
+.results-view { display: inline-flex; gap: 2px; padding: 3px; margin: 0 0 12px; border-radius: var(--radius-md); background: var(--color-surface-muted); }
+.view-btn { appearance: none; border: 0; border-radius: var(--radius-sm); padding: 6px 14px; background: none; font: inherit; font-size: 13px;
+  font-weight: 700; color: var(--color-text-muted); cursor: pointer; }
+.view-btn.active { background: var(--color-surface); color: var(--color-primary); box-shadow: var(--shadow-sm); }
+.view-btn:focus-visible, .filter-chip:focus-visible, .event-chip:focus-visible, .lagna-row--link:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.event-filter { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.filter-chip { appearance: none; padding: 5px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface);
+  font: inherit; font-size: 13px; font-weight: 600; color: var(--color-text); cursor: pointer; }
+.filter-chip small { color: var(--color-text-muted); font-weight: 500; }
+.filter-chip.is-active { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-on-strong); }
+.filter-chip.is-active small { color: var(--color-on-strong); }
+.lagna-row { display: grid; gap: 6px; padding: 12px 14px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
+.lagna-row:nth-of-type(even) { background: var(--color-bg); }
+.lagna-row--link { cursor: pointer; }
+.lagna-row--link:hover { background: var(--color-surface-muted); }
+.lagna-row__line1 { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; color: var(--color-text); }
+.lagna-row__line1 strong { color: var(--color-primary); }
+.lagna-row__line2 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.lagna-row__lagna { font-weight: 700; color: var(--color-primary); font-size: 15px; }
+.lagna-row__time { font-weight: 700; font-variant-numeric: tabular-nums; }
+.lagna-row__pct { padding: 2px 8px; border-radius: var(--radius-sm); font-weight: 700; font-size: 13px; border: 1px solid currentColor; }
+.lagna-row__pct--excellent { color: var(--color-success); background: var(--color-success-bg); }
+.lagna-row__pct--medium { color: var(--color-warning); background: var(--color-warning-bg); }
+.lagna-row__pct--avoid { color: var(--color-danger); background: var(--color-danger-bg); }
+.lagna-row__events { display: flex; flex-wrap: wrap; gap: 6px; }
+.event-chip { appearance: none; padding: 3px 10px; border-radius: var(--radius-pill); border: 1px solid currentColor; background: var(--color-surface);
+  font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.event-chip--excellent { color: var(--color-success); }
+.event-chip--medium { color: var(--color-warning); }
+.event-chip--avoid { color: var(--color-danger); }
+.event-chip:hover { filter: brightness(0.92); }

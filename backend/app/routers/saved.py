@@ -38,7 +38,7 @@ _REQUEST_KEYS = {"activity_id", "start_date", "days_to_scan", "lat", "lon", "tz_
                  "strictness", "rule_variant", "time_preference", "participants", "conception_date", "main_event_date",
                  "veda_shakha", "sutra", "varna", "door_facing", "plot_facing", "house_type", "origin", "destination",
                  "travel_direction", "travel_mode", "travel_purpose", "travel_exemption", "business_name", "business_type",
-                 "entrance_facing", "vehicle_type", "vehicle_muhurta_type"}
+                 "entrance_facing", "vehicle_type", "vehicle_muhurta_type", "lunar_months"}
 _WINDOW_KEYS = {"date", "window_start", "window_end", "start_time", "end_time", "verdict", "percentage", "score", "lagna_en", "lagna_te"}
 # Special Yogas and Shraddha calendar searches (plan F2). A death date is kept only when the person
 # chose to save it; the finder asks first and leaves it out otherwise.

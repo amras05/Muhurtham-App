@@ -2,6 +2,8 @@
 Unified Declarative Muhurtha Finder Router (Layer 3 API).
 Exposes the catalog of all ~80 events and the continuous window calculation engine.
 """
+import re
+from functools import lru_cache
 from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -60,14 +62,17 @@ class MuhurtaFindRequest(BaseModel):
     place_name: str = Field("Location", description="Human readable location name")
     panchaka_method: str = Field("standard", description="Panchaka tradition: 'standard', 'dhruvaka', or 'matantara'")
     min_window_minutes: float = Field(15.0, ge=5.0, le=120.0, description="Minimum acceptable window duration in minutes")
-    strictness: str = Field("strict", pattern="^(strict|lenient)$",
-                            description="'strict' (default) excludes windows with a fatal Mahadosha; 'lenient' keeps them with a warning")
+    strictness: str = Field("lenient", pattern="^(strict|lenient)$",
+                            description="'lenient' (default) keeps windows with a failed Mahadosha, marked and scored lower; "
+                                        "'strict' leaves them out")
 
     # Level 1 — General
     person_name: Optional[str] = Field(None, description="Primary person name")
     date_to: Optional[str] = Field(None, description="End date YYYY-MM-DD")
     time_preference: Optional[str] = Field("any", description="Time preference: 'any', 'morning', 'afternoon', 'evening', 'night'")
     participants: List[ParticipantIn] = Field(default_factory=list, description="People taking part; see /muhurta/catalog for each event's list")
+    lunar_months: List[int] = Field(default_factory=list, max_length=12,
+                                    description="Only these lunar months (1 Chaitra … 12 Phalguna, amanta); empty means all")
 
     # Level 2 — Astrological & Nama Nakshatra
     janma_nak_idx: Optional[int] = Field(None, ge=1, le=27, description="Janma Nakshatra index (1-27)")
@@ -315,6 +320,73 @@ def _count_search(request: Request, activity_id: str) -> None:
         logger.warning(f"Could not record a search: {type(ex).__name__}")
 
 
+# ── Muhurtas by month (11 Nov 2026): the lunar months of a Telugu year with their dates ─────────────
+@lru_cache(maxsize=64)
+def _lunar_months(year: int, lat: float, lon: float, tz: float) -> tuple:
+    """Amanta months from Ugadi (Chaitra S1) of `year` to the next Ugadi, from the panchang at each sunrise.
+    Adhika months are listed separately. Cached: month boundaries hardly change with place."""
+    from app.engines.panchang import compute_day_panchang
+    from app.models.names import LUNAR_MONTH_NAMES, TELUGU_LUNAR_MONTH_NAMES
+    groups, day, end = [], date(year, 2, 10), date(year + 1, 5, 10)
+    while day <= end:
+        cm = compute_day_panchang(day.year, day.month, day.day, lat, lon, tz, "Place").get("chandramana") or {}
+        key = (cm.get("month_number"), bool(cm.get("is_adhika_masa")))
+        if groups and groups[-1]["key"] == key:
+            groups[-1]["end"] = day
+        else:
+            groups.append({"key": key, "start": day, "end": day})
+        day += timedelta(days=1)
+    first = next((i for i, g in enumerate(groups) if g["key"][0] == 1 and g["start"] > date(year, 2, 10)), None)
+    if first is None:
+        return ()
+    out = []
+    for g in groups[first:]:
+        m, adhika = g["key"]
+        if out and m == 1 and out[-1]["month_number"] == 12:
+            break                                        # the next Ugadi
+        out.append({"month_number": m, "adhika": adhika,
+                    "name_en": (("Adhika " if adhika else "") + LUNAR_MONTH_NAMES[m]) if m else "?",
+                    "name_te": (("అధిక " if adhika else "") + TELUGU_LUNAR_MONTH_NAMES[m]) if m else "?",
+                    "start": g["start"].isoformat(), "end": g["end"].isoformat(),
+                    "days": (g["end"] - g["start"]).days + 1})
+    return tuple(out)
+
+
+@router.get("/lunar-months")
+def lunar_months(year: int = Query(..., ge=1950, le=2100), lat: float = Query(..., ge=-90, le=90),
+                 lon: float = Query(..., ge=-180, le=180), tz_offset: float = Query(..., ge=-14, le=14),
+                 current_user: dict = Depends(get_current_user)):
+    """The 12 (or 13) lunar months of the Telugu year that starts at Ugadi of `year`, with their dates."""
+    months = _lunar_months(year, round(lat, 1), round(lon, 1), tz_offset)
+    if not months:
+        raise HTTPException(status_code=404, detail="Could not work out the lunar months for that year.")
+    return {"year": year, "months": list(months)}
+
+
+_NOT_CHECKED = re.compile(r"^Tarabala for the (\w+) not checked: nakshatra not given$")
+
+
+def _soften_optional_people(warnings: List[str], rule) -> List[str]:
+    """People who are optional (level L2, e.g. mother and guru at upanayana) and were left empty get
+    one quiet line, not a warning each; required and recommended people (vatu, father) keep theirs."""
+    if not rule:
+        return warnings
+    specs = participants_for([p.model_dump() for p in rule.participants] if rule.participants else None,
+                             rule.tab or rule.category, rule.tab_inputs)
+    optional = {s["role"] for s in specs if s.get("level") == "L2"}
+    labels = {s["role"]: s.get("label_en", s["role"]) for s in specs}
+    kept, skipped = [], []
+    for w in warnings:
+        m = _NOT_CHECKED.match(w)
+        if m and m.group(1) in optional:
+            skipped.append(labels.get(m.group(1), m.group(1)).lower())
+        else:
+            kept.append(w)
+    if skipped:
+        kept.append(f"Optional, not entered: {', '.join(skipped)} (their tarabala is not part of this result)")
+    return kept
+
+
 @router.post("/find")
 def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None,
                            current_user: dict = Depends(get_current_user)):
@@ -363,6 +435,7 @@ def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None,
 
     # Level 3 Activity-specific parameters bundle
     activity_params = {
+        "lunar_months": [m for m in req.lunar_months if 1 <= m <= 12],
         "groom_name": req.groom_name,
         "groom_nak_idx": req.groom_nak_idx,
         "groom_gotra": req.groom_gotra,
@@ -468,7 +541,7 @@ def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None,
     if request is not None:
         _count_search(request, req.activity_id)
     result["participants"] = resolved_people
-    result["warnings"] = people_warnings + (result.get("warnings") or [])
+    result["warnings"] = _soften_optional_people(people_warnings + (result.get("warnings") or []), rule)
     if isinstance(result.get("activity_params"), dict):
         result["activity_params"].pop("period_start_date", None)     # health data: not echoed back (plan R6b)
     # Sibling marriage (plan R2, decision E2): warn only, from the signed-in person's family events.

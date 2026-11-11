@@ -26,7 +26,8 @@ import yaml
 
 from app.core.logging import logger
 from app.engines.dosha_registry import link_rows
-from app.engines.lagna_scanner import RASI_NAMES_EN, LagnaWindow, evaluate_house_rules, scan_day_lagnas
+from app.engines.lagna_scanner import (RASI_NAMES_EN, LagnaWindow, evaluate_house_rules, get_navamsa_sign,
+                                       is_pushkara_navamsa as _in_pushkara, scan_day_lagnas)
 from app.engines.participants import participants_for
 from app.engines.special_yogas import apply_dosha_profile, evaluate_yogas, extra_checks
 from app.engines.limb_timeline import (
@@ -233,10 +234,9 @@ def _travel_check(limbs: "Limbs", vaara_idx: int, planets: Dict[str, Any], ap: D
 
 # Combustion orbs in degrees from the Sun (direct motion), standard values
 # Upanayana (category index 2, items 8-11). Classical lords; author to confirm the book's table.
-VARNESHA = {"brahmana": ("jupiter", "venus"), "kshatriya": ("sun", "mars"), "vaishya": ("moon",)}
+VARNESHA = {"brahmana": ("jupiter",), "kshatriya": ("sun",), "vaishya": ("moon",)}   # book paras 1923-25
 VEDADHIPATI = {"rig": "jupiter", "yajur": "venus", "sama": "mars", "atharva": "mercury"}
 DEBILITATION = {"sun": 7, "moon": 8, "mars": 4, "mercury": 12, "jupiter": 10, "venus": 6, "saturn": 1}
-GURU_BALA_VATU_BAD = {4, 8, 12}
 
 
 def _planet_weak(pname: str, planets: Dict[str, Any]) -> Optional[str]:
@@ -253,27 +253,110 @@ def _planet_weak(pname: str, planets: Dict[str, Any]) -> Optional[str]:
     return None
 
 
-def _upanayana_strength(planets: Dict[str, Any], ap: Dict[str, Any]) -> Tuple[bool, List[str]]:
+# ── Upanayana: the book's planet and Moon checks (Part 5, paras 1921-1957; 11 Nov 2026) ─────────
+_EXALT = {"sun": 1, "moon": 2, "mars": 10, "mercury": 6, "jupiter": 4, "venus": 12, "saturn": 7}
+_OWN = {"sun": {5}, "moon": {4}, "mars": {1, 8}, "mercury": {3, 6}, "jupiter": {9, 12}, "venus": {2, 7}, "saturn": {10, 11}}
+_PID = {"sun": 0, "moon": 1, "mars": 2, "mercury": 3, "jupiter": 4, "venus": 5, "saturn": 6}
+_GURU_GOOD_SIGNS = {4, 9, 12}            # Karkataka, Dhanus, Meena (para 1948)
+_GURU_BAD_SIGNS = {2, 3, 6, 7, 10}       # Vrishabha, Mithuna, Kanya, Tula, Makara (para 1949)
+_MOON_SIGN = {                           # paras 1951-57: (good / bad / neutral, the result for the vatu)
+    5: ("bad", "the vatu becomes sinful"), 4: ("bad", "the vatu becomes poor"),
+    10: ("bad", "the vatu becomes a servant of the lowly"), 11: ("bad", "the vatu becomes a servant of the lowly"),
+    3: ("good", "the vatu becomes a scholar"), 6: ("good", "the vatu becomes a scholar"),
+    9: ("good", "the vatu becomes a somayaji"), 12: ("good", "the vatu becomes a somayaji"),
+    1: ("neutral", "the vatu bears weapons"), 8: ("neutral", "the vatu bears weapons"),
+    2: ("neutral", "the vatu marries soon"), 7: ("neutral", "the vatu marries soon")}
+
+
+def _upanayana_planet(pname: str, planets: Dict[str, Any], moudhya: Dict[str, str]) -> Tuple[Optional[str], Optional[str]]:
+    """(why weak, why strong) for a varnesha or vedadhipati. Weak (paras 1927, 1939): combust, in its bala or
+    vriddha days, debilitated, in an enemy's sign, or with an enemy. Strong (para 1928): exalted, own or
+    friend's sign."""
+    from app.engines.vocab import ENEMIES, FRIENDS, SIGN_LORD
+    p = planets.get(pname)
+    if not p:
+        return None, None
+    why = _planet_weak(pname, planets)
+    if why:
+        return why, None
+    state = moudhya.get(pname)
+    if state in ("bala", "vriddha"):
+        return f"{p.name_en} is in its {'child (bala)' if state == 'bala' else 'old (vriddha)'} days", None
+    sign, pid = int(p.longitude // 30) + 1, _PID[pname]
+    lord = SIGN_LORD[sign]
+    if lord != pid and lord in ENEMIES.get(pid, set()):
+        return f"{p.name_en} is in an enemy's sign ({RASI_NAMES_EN[sign]})", None
+    foes = [q.name_en for n, q in planets.items()
+            if n in _PID and _PID[n] in ENEMIES.get(pid, set()) and int(q.longitude // 30) + 1 == sign]
+    if foes:
+        return f"{p.name_en} is with its enemy {', '.join(foes)}", None
+    good = ("exalted" if _EXALT.get(pname) == sign else "in its own sign" if sign in _OWN.get(pname, set())
+            else "in a friend's sign" if lord in FRIENDS.get(pid, set()) else None)
+    return None, good
+
+
+def _upanayana_strength(planets: Dict[str, Any], ap: Dict[str, Any], limbs: "Limbs",
+                        lagna: LagnaWindow) -> Tuple[List[str], List[str], int]:
+    """(not matched, matched notes, preference points) for the upanayana chart."""
+    fails: List[str] = []
     notes: List[str] = []
-    varna = (ap.get("varna") or "").lower()
-    for pname in VARNESHA.get(varna, ()):
-        why = _planet_weak(pname, planets)
-        if why:
-            return False, [f"Varnesha weak: {why}"]
-        notes.append(f"Varnesha {pname.title()} is strong")
+    bonus = 0
+    moudhya = ap.get("_moudhya") or {}
+    checks = [("Varnesha", p) for p in VARNESHA.get((ap.get("varna") or "").lower(), ())]
     shakha = (ap.get("veda_shakha") or "").lower()
     if shakha in VEDADHIPATI:
-        why = _planet_weak(VEDADHIPATI[shakha], planets)
-        if why:
-            return False, [f"Vedadhipati weak: {why}"]
-        notes.append(f"Vedadhipati {VEDADHIPATI[shakha].title()} is strong")
-    vatu_rasi, jup = ap.get("vatu_rasi_idx"), planets.get("jupiter")
-    if vatu_rasi and jup:
-        house = (int(jup.longitude // 30) + 1 - int(vatu_rasi)) % 12 + 1
-        if house in GURU_BALA_VATU_BAD:
-            return False, [f"Guru bala for the vatu: Jupiter is {house}th from the vatu's rashi"]
-        notes.append(f"Guru bala for the vatu: Jupiter {house}th from the rashi")
-    return True, notes
+        checks.append(("Vedadhipati", VEDADHIPATI[shakha]))
+    for role, pname in checks:
+        weak, strong = _upanayana_planet(pname, planets, moudhya)
+        if weak:
+            fails.append(f"{role} weak: {weak} (book paras 1927, 1939)")
+        else:
+            notes.append(f"{role} {pname.title()} is strong" + (f" ({strong})" if strong else ""))
+
+    # Guru bala (paras 1948-49): Jupiter in Vrishabha, Mithuna, Kanya, Tula or Makara (or their navamsas) is bad;
+    # in Karkataka, Dhanus or Meena (or their navamsas) it is very good, even 1st, 8th or 12th from the rashi.
+    jup = planets.get("jupiter")
+    if jup:
+        js, jn = int(jup.longitude // 30) + 1, get_navamsa_sign(jup.longitude)
+        good = js in _GURU_GOOD_SIGNS or (jn in _GURU_GOOD_SIGNS and js not in _GURU_BAD_SIGNS)
+        if js in _GURU_BAD_SIGNS or (jn in _GURU_BAD_SIGNS and js not in _GURU_GOOD_SIGNS):
+            where = RASI_NAMES_EN[js] if js in _GURU_BAD_SIGNS else f"{RASI_NAMES_EN[jn]} navamsa"
+            fails.append(f"Guru bala: Jupiter in {where}, poor for learning and fortune (book para 1949)")
+        else:
+            vr = ap.get("vatu_rasi_idx")
+            house = (js - int(vr)) % 12 + 1 if vr else None
+            if house in (1, 8, 12) and not good:
+                fails.append(f"Guru bala for the vatu: Jupiter is {house}th from the vatu's rashi (book para 1948)")
+            elif good:
+                notes.append(f"Guru bala: Jupiter in {RASI_NAMES_EN[js]} gives full learning and fortune (book para 1948)")
+                bonus += 3
+
+    # Moon's sign (paras 1951-57)
+    kind, effect = _MOON_SIGN.get(limbs.moon_rasi, ("neutral", ""))
+    msg = f"Moon's sign {RASI_NAMES_EN[limbs.moon_rasi]}: {effect} (book paras 1951-57)"
+    if kind == "bad":
+        fails.append(msg)
+    elif kind == "good":
+        notes.append(msg)
+        bonus += 3
+    # Moon's navamsa and Shravana / Punarvasu 4th pada (para 1921), a preference
+    moon = planets.get("moon")
+    if moon:
+        mn = get_navamsa_sign(moon.longitude)
+        if mn in (4, 2, 3, 6, 7, 9, 12):
+            notes.append(f"Moon in {RASI_NAMES_EN[mn]} navamsa ({'its own' if mn == 4 else 'a benefic'}'s navamsa, book para 1921)")
+            bonus += 2
+    if limbs.nakshatra_name.lower().startswith(("shravana", "punarvasu")) and limbs.pada == 4:
+        notes.append(f"{limbs.nakshatra_name} 4th pada (book para 1921)")
+        bonus += 2
+
+    # Sun or Mars aspecting the 12th house (para 1937): the vatu's father loses his sight
+    house_of = {p.name_en.lower(): h for h, plist in (lagna.house_planets or {}).items() for p in plist}
+    if house_of.get("sun") == 6:
+        fails.append("Sun aspects the 12th: harm to the father's eyesight (book para 1937)")
+    if house_of.get("mars") in (5, 6, 9):
+        fails.append("Mars aspects the 12th: harm to the father's eyesight (book para 1937)")
+    return fails, notes, bonus
 
 
 COMBUST_ORB = {"moon": 12.0, "mars": 17.0, "mercury": 14.0, "jupiter": 11.0, "venus": 10.0, "saturn": 15.0}
@@ -479,6 +562,9 @@ def dosha_audit(maha: List[Dict[str, Any]], dashavidha: List[Dict[str, Any]], ot
     colour = "red" if maha_fail else ("amber" if (dash_fail or excepted or other_fail or to_confirm) else "green")
     return {
         "colour": colour,
+        # names of the mahadoshas that did not match, for the result card ("Mahadosha not matched: …")
+        "maha_failed_en": [r.get("name_en", "").split(". ", 1)[-1] for r in maha if r.get("status") == "fail"],
+        "maha_failed_te": [r.get("name_te", "").split(". ", 1)[-1] for r in maha if r.get("status") == "fail"],
         "mahadosha": {"total": 21, "failed": maha_fail, "not_evaluated": count(maha, "not_evaluated"), "checked": bool(maha)},
         "dashavidha": {"total": 10, "failed": dash_fail, "excepted": len(excepted), "not_evaluated": count(dashavidha, "not_evaluated"),
                        "checked": bool(dashavidha)},
@@ -487,6 +573,78 @@ def dosha_audit(maha: List[Dict[str, Any]], dashavidha: List[Dict[str, Any]], ot
         "to_confirm": to_confirm,
         "jupiter_in_lagna": jupiter_in_lagna,
     }
+
+
+# The book's two lagna strengths (paras 1180-81): pushkaramsha and vargottama. "Shubhamsha" is not a
+# book term and is not used (11 Nov 2026).
+AMSHA_NAMES = {"pushkara": ("Pushkaramsha", "పుష్కరాంశ"), "vargottama": ("Vargottamamsha", "వర్గోత్తమాంశ"),
+               "none": ("Ordinary amsha", "సామాన్య అంశ")}
+
+
+def window_amsha(start: datetime, end: datetime, tz_offset: float, lat: float, lon: float) -> Dict[str, Any]:
+    """The best navamsa the lagna passes through inside the window, and when (11 Nov 2026).
+    Pushkaramsha (book para 1181) > Vargottamamsha (navamsa = lagna sign, para 1180).
+    A navamsa lasts about 13 minutes, so the window is checked every 2 minutes."""
+    from app.engines.limb_timeline import ascendant_at
+    rank = {"pushkara": 2, "vargottama": 1, "none": 0}
+    best = ("none", start, None)
+    t = start + timedelta(minutes=1)
+    while t < end:
+        asc = ascendant_at(local_to_jd(t, tz_offset), lat, lon)
+        nav, rasi = get_navamsa_sign(asc), int(asc // 30) + 1
+        kind = "pushkara" if _in_pushkara(asc) else "vargottama" if nav == rasi else "none"
+        if rank[kind] > rank[best[0]]:
+            best = (kind, t, nav)
+            if kind == "pushkara":
+                break
+        t += timedelta(minutes=2)
+    kind, at, nav = best
+    return {"type": kind, "name_en": AMSHA_NAMES[kind][0], "name_te": AMSHA_NAMES[kind][1],
+            "at": at.strftime("%H:%M") if kind != "none" else None,
+            "navamsa": RASI_NAMES_EN[nav] if nav else None}
+
+
+# ── Doshapavada for the upanayana lagna (book paras 1972-78; 11 Nov 2026) ──────────────────────
+_PLANET_BY_ID = {0: "sun", 1: "moon", 2: "mars", 3: "mercury", 4: "jupiter", 5: "venus", 6: "saturn"}
+# Chart (lagna) doshas the "remove all doshas" exceptions cancel. Day, tithi and personal checks are not
+# lagna doshas and stay: tarabala, chandrabala, panchaka, anadhyaya, varnesha, age.
+_NOT_LAGNA_DOSHA = ("Tarabala", "Chandrabala", "Panchaka", "Nitya anadhyaya", "Naimittika anadhyaya", "Trishtaka",
+                    "Sankranti anadhyaya", "Anadhyaya near", "Varnesha", "Vedadhipati", "Guru bala", "Moon's sign")
+_LAGNA_EXTRA_IDS = {"papa_drishti"}
+
+
+def doshapavada(lagna: LagnaWindow) -> List[Dict[str, Any]]:
+    """The book's exceptions present in this lagna chart. kind 'all' cancels every lagna dosha except the
+    21 mahadoshas (Dr. Nemani: mahadoshas are never allowed); kind 'partial' counts as a plus."""
+    from app.engines.vocab import SIGN_LORD
+    planets = _planets_by_name(lagna)
+    house = {name: h for h, plist in (lagna.house_planets or {}).items() for name in (p.name_en.lower() for p in plist)}
+    strong = lambda name: name in planets and _planet_weak(name, planets) is None
+    lord = _PLANET_BY_ID.get(SIGN_LORD.get(lagna.lagna_idx))
+    out = []
+    if house.get("sun") == 11:
+        out.append({"id": "sun_11", "kind": "all", "en": "Sun in the 11th removes all doshas (book para 1978)",
+                    "te": "లగ్నమునకు 11వ స్థానమున రవి సర్వ దోషములను హరించును (గ్రంథం 1978)"})
+    if house.get("jupiter") == 1 and all(strong(x) for x in {lord, "jupiter", "sun", "moon"} if x):
+        out.append({"id": "jupiter_lagna", "kind": "all",
+                    "en": "Jupiter in the lagna with lagna lord, Jupiter, Sun and Moon strong removes 10 lakh doshas (book para 1975)",
+                    "te": "పంచేష్టిక బలముతో గురుడు లగ్నమున 10 లక్షల దోషములను పోగొట్టును (గ్రంథం 1975)"})
+    if house.get("venus") == 1:
+        out.append({"id": "venus_lagna", "kind": "partial", "en": "Venus in the lagna removes 2 lakh doshas (book para 1974)",
+                    "te": "శుక్రుడు లగ్నమున 2 లక్షల దోషములను హరించును (గ్రంథం 1974)"})
+    if house.get("mercury") == 1 and strong("mercury"):
+        out.append({"id": "mercury_lagna", "kind": "partial", "en": "Strong Mercury in the lagna removes 1 lakh doshas (book para 1973)",
+                    "te": "బలవంతుడైన బుధుడు లగ్నమున లక్ష దోషములను పోగొట్టును (గ్రంథం 1973)"})
+    if lord and house.get(lord) in (3, 6, 11):
+        out.append({"id": "lord_upachaya", "kind": "partial",
+                    "en": f"Lagna lord {lord.title()} in the {house[lord]}th removes 2 lakh doshas (book para 1976)",
+                    "te": f"లగ్నాధిపతి {house[lord]}వ స్థానమున 2 లక్షల దోషములను హరించును (గ్రంథం 1976)"})
+    m = next((x for x in ("sun", "mars", "saturn") if house.get(x) in (3, 6, 8, 11) and strong(x)), None)
+    if m:
+        out.append({"id": "malefic_upachaya", "kind": "partial",
+                    "en": f"Strong {m.title()} in the {house[m]}th removes 2 lakh doshas (book para 1977)",
+                    "te": f"బలవంతుడైన పాపగ్రహం {house[m]}వ స్థానమున 2 లక్షల దోషములను హరించును (గ్రంథం 1977)"})
+    return out
 
 
 def lagna_for_window(lagna: LagnaWindow, start: datetime, end: datetime) -> LagnaWindow:
@@ -509,10 +667,16 @@ def evaluate_window_for_rule(
     birth_details: Optional[Dict[str, Any]] = None,
     panchaka_method: str = "standard",
     activity_params: Optional[Dict[str, Any]] = None,
+    soft_misses: Optional[List[str]] = None,
 ) -> Tuple[bool, int, List[str], List[str]]:
     """
     Evaluates one lagna segment against the compiled rule.
     Returns (is_passed, score, rules_passed, reasons_failed).
+
+    soft_misses: when a list is given ("Show all" mode, 11 Nov 2026), the chart and placement checks
+    (steps 6-9: lagna, houses, planets, combustion, panchaka, tara and chandra bala) do not refuse the
+    window; each one missed is added to the list and the window goes on, marked and scored lower.
+    The panchanga checks (steps 1-5: weekday, tithi, nakshatra, yoga, karana, month, Sun's sign) still refuse.
     """
     hf = cr.hf
     sc = cr.rule.soft_scoring
@@ -522,6 +686,13 @@ def evaluate_window_for_rule(
 
     def fail(msg: str):
         return False, 0, [], [msg]
+
+    def miss(msg: str):
+        """A chart / placement check that failed: refuse, or note it and go on in Show-all mode."""
+        if soft_misses is None:
+            return fail(msg)
+        soft_misses.append(msg)
+        return None
 
     # 1. Vara (the day's weekday, sunrise to sunrise)
     if vaara_idx in cr.vaara_exclude:
@@ -582,19 +753,42 @@ def evaluate_window_for_rule(
 
     # 6. Lagna
     if cr.lagna_types and lagna.mobility.lower() not in cr.lagna_types:
-        return fail(f"{lagna.lagna_name_en} lagna ({lagna.mobility}) is not an allowed lagna type")
+        if (r := miss(f"{lagna.lagna_name_en} lagna ({lagna.mobility}) is not an allowed lagna type")):
+            return r
     if cr.lagna_allow and lagna.lagna_idx not in cr.lagna_allow:
-        return fail(f"{lagna.lagna_name_en} is not an allowed lagna")
+        if (r := miss(f"{lagna.lagna_name_en} is not an allowed lagna")):
+            return r
     if lagna.lagna_idx in cr.lagna_exclude:
-        return fail(f"{lagna.lagna_name_en} lagna is excluded")
+        if (r := miss(f"{lagna.lagna_name_en} lagna is excluded")):
+            return r
+
+    # 6b. A combust planet in the lagna: the muhurta is not allowed, in Strict and Show all alike
+    # (11 Nov 2026, user's rule). Retrograde Jupiter, Mercury and Venus are allowed: Mercury and Venus
+    # turn retrograde as they pass the Sun, so they read as "combust" then.
+    sun_p = next((p for plist in (lagna.house_planets or {}).values() for p in plist if p.name_en == "Sun"), None)
+    if sun_p:
+        for p in (lagna.house_planets or {}).get(1, []):
+            pname = p.name_en.lower()
+            if pname not in COMBUST_ORB:
+                continue
+            dist = abs((p.longitude - sun_p.longitude + 180.0) % 360.0 - 180.0)
+            if dist > COMBUST_ORB[pname]:
+                continue
+            if pname in ("jupiter", "mercury", "venus") and p.speed < 0:
+                passed.append(f"Retrograde {p.name_en} in the lagna is {dist:.1f}° from the Sun: allowed (retrograde)")
+                continue
+            return fail(f"Combust {p.name_en} in the lagna ({dist:.1f}° from the Sun): muhurta not allowed")
 
     # 7. House occupancy (e.g. ashtama shuddhi)
     if hf.house_rules:
         h_pass, h_reasons = evaluate_house_rules(lagna, hf.house_rules)
         if not h_pass:
-            failing = [r for r in h_reasons if "must be empty" in r or "contains malefics" in r]
-            return False, 0, [], failing or h_reasons
-        passed.extend(h_reasons)
+            failing = [r for r in h_reasons if "must be empty" in r or "contains malefics" in r] or h_reasons
+            if soft_misses is None:
+                return False, 0, [], failing
+            soft_misses.extend(failing)
+        else:
+            passed.extend(h_reasons)
 
     # 7b. Planet placements and combustion
     planets = _planets_by_name(lagna)
@@ -606,64 +800,79 @@ def evaluate_window_for_rule(
                 passed.append(f"{msg} (+{soft})" + (f" — {note}" if note else ""))
             continue
         if not ok_p:
-            return fail(msg + (f" ({note})" if note else ""))
-        if msg:
+            if (r := miss(msg + (f" ({note})" if note else ""))):
+                return r
+        elif msg:
             passed.append(msg)
     moon = planets.get("moon")
     if hf.moon_free_of_malefics and moon:
         with_moon = [p.name_en for p in planets.values() if p.is_malefic and p.rasi_idx == moon.rasi_idx]
         if with_moon:
-            return fail(f"Moon is with malefic(s): {', '.join(with_moon)}")
-        passed.append("Moon is free of malefics")
+            if (r := miss(f"Moon is with malefic(s): {', '.join(with_moon)}")):
+                return r
+        else:
+            passed.append("Moon is free of malefics")
     if hf.mars_saturn_not_opposed and planets.get("mars") and planets.get("saturn"):
         if (planets["mars"].rasi_idx - planets["saturn"].rasi_idx) % 12 == 6:
-            return fail("Mars and Saturn are in mutual 7th")
+            if (r := miss("Mars and Saturn are in mutual 7th")):
+                return r
     if hf.travel_checks:
         ok_t, msg_t = _travel_check(limbs, vaara_idx, planets, activity_params or {})
         if not ok_t:
-            return fail(msg_t)
-        if msg_t:
+            if (r := miss(msg_t)):
+                return r
+        elif msg_t:
             passed.append(msg_t)
         purpose = (activity_params or {}).get("travel_purpose")
         if purpose in TRAVEL_PURPOSE_LAGNAS and lagna.lagna_idx in TRAVEL_PURPOSE_LAGNAS[purpose]:
             score += 3
             passed.append(f"Lagna suits the purpose ({purpose}) (+3)")
     if hf.upanayana_strength:
-        ok_u, notes_u = _upanayana_strength(planets, activity_params or {})
-        if not ok_u:
-            return fail(notes_u[0])
+        fails_u, notes_u, bonus_u = _upanayana_strength(planets, activity_params or {}, limbs, lagna)
+        for f in fails_u:
+            if (r := miss(f)):
+                return r
         passed.extend(notes_u)
+        score += bonus_u
     sun = planets.get("sun")
     for pname in cr.not_combust:
         p = planets.get(pname)
         if sun and p:
             dist = abs((p.longitude - sun.longitude + 180.0) % 360.0 - 180.0)
             if dist <= COMBUST_ORB[pname]:
-                return fail(f"{p.name_en} is combust ({dist:.1f}° from the Sun)")
-            passed.append(f"{p.name_en} is not combust")
+                if (r := miss(f"{p.name_en} is combust ({dist:.1f}° from the Sun)")):
+                    return r
+            else:
+                passed.append(f"{p.name_en} is not combust")
 
     # 8. Panchaka rahita
     if hf.common.panchaka_rahita:
         p_res = evaluate_panchaka(limbs.tithi_number, vaara_idx, limbs.nakshatra, lagna.lagna_idx,
                                   method=panchaka_method, tithi_30=limbs.tithi)
         if not p_res["is_pass"]:
-            return fail(f"Panchaka: {p_res['name_en']} ({p_res['effect_en']})")
-        passed.append(f"Panchaka rahita: {p_res['name_en']}")
+            if (r := miss(f"Panchaka: {p_res['name_en']} ({p_res['effect_en']})")):
+                return r
+        else:
+            passed.append(f"Panchaka rahita: {p_res['name_en']}")
 
     # 9. Participant balas
     if birth_details:
         if birth_details.get("janma_nak_idx"):
             tb = evaluate_tarabala(limbs.nakshatra, birth_details["janma_nak_idx"])
             if not tb["is_pass"]:
-                return fail(f"Tarabala failed: {tb['name_en']} tara (navaka {tb['navaka']})")
-            passed.append(f"Tarabala: {tb['name_en']} tara")
-            score += 3
+                if (r := miss(f"Tarabala failed: {tb['name_en']} tara (navaka {tb['navaka']})")):
+                    return r
+            else:
+                passed.append(f"Tarabala: {tb['name_en']} tara")
+                score += 3
         if birth_details.get("janma_moon_rasi_idx"):
             cb = evaluate_chandrabala(limbs.moon_rasi, birth_details["janma_moon_rasi_idx"])
             if not cb["is_pass"]:
-                return fail(f"Chandrabala failed: {cb['verdict_en']}")
-            passed.append("Chandrabala satisfied")
-            score += 2
+                if (r := miss(f"Chandrabala failed: {cb['verdict_en']}")):
+                    return r
+            else:
+                passed.append("Chandrabala satisfied")
+                score += 2
 
     # Soft scoring
     score += sc.vaara_weights.get(vaara_str, 0)
@@ -719,6 +928,65 @@ def _age_allowed(rule_age, ref_date: Optional[date], gender: Optional[str], day:
     return False, f"{unit.title()} {n} is outside the allowed window {sorted(allowed)}"
 
 
+def _age_tier(rule_age, ref_date: Optional[date], gender: Optional[str], day: date) -> Tuple[Optional[int], str]:
+    """0 = preferred age, 1 = second choice ("if needed"), 2 = outside both; None when the reference
+    date is missing or the day is before it (11 Nov 2026)."""
+    if ref_date is None or day < ref_date:
+        return None, ""
+    ok, why = _age_allowed(rule_age, ref_date, gender, day)
+    if ok:
+        return 0, why
+    n = _ordinal_age(ref_date, day, rule_age.unit)
+    if n in set(rule_age.fallback or []):
+        return 1, f"{rule_age.unit[:-1].title()} {n}: allowed if needed {sorted(rule_age.fallback)}"
+    return 2, why
+
+
+# ── Anadhyaya (book paras 1994-2004; 11 Nov 2026) ─────────────────────────────────────────────
+# Tithi index 1-30: shukla 1-15 (15 = Purnima), krishna 16-30 (K2 = 17, K7 = 22, 30 = Amavasya).
+# Months are amanta (1 Chaitra ... 12 Phalguna).
+NITYA_ANADHYAYA = {1: "Pratipada", 16: "Pratipada", 8: "Ashtami", 23: "Ashtami", 14: "Chaturdashi",
+                   29: "Chaturdashi", 15: "Purnima", 30: "Amavasya"}                       # para 1996
+NAIMITTIKA_ANADHYAYA = {                                                                    # paras 2001, 2003
+    1: {3}, 2: {3}, 4: {6, 10, 17}, 6: {3, 11, 28}, 7: {11}, 8: {5, 9, 11, 17},
+    10: {3, 9, 11}, 11: {7, 11, 12}, 12: {17}}
+TRISHTAKA = {9: {22, 23, 24}, 10: {22, 23, 24}, 11: {22, 23, 24}, 12: {22, 23, 24}}          # para 2004: K7-K9
+SANKRANTI_ANADHYAYA = {1: "Mesha", 4: "Karkataka", 7: "Tula", 10: "Makara"}                  # para 1995: 1.5 days
+
+
+def _anadhyaya_reason(tithi: int, masa: Optional[int], jd: float) -> Optional[str]:
+    """Why this moment is an anadhyaya for upanayana, or None. Para 2003's fifth krishna day (the
+    trayodashi reached by Bharani) is not used: its wording is unclear (Dr. Nemani to confirm)."""
+    from app.engines.limb_timeline import limbs_at
+    paksha = "S" if tithi <= 15 else "K"
+    label = f"{paksha}{tithi if tithi <= 15 else tithi - 15}"
+    from app.models.names import LUNAR_MONTH_NAMES
+    month = LUNAR_MONTH_NAMES[masa] if masa and 1 <= masa <= 12 else ""
+    if tithi in NITYA_ANADHYAYA:
+        return f"Nitya anadhyaya: {NITYA_ANADHYAYA[tithi]} (book para 1996)"
+    if masa and tithi in TRISHTAKA.get(masa, set()):
+        return f"Trishtaka: {month} {label} (book para 2004)"
+    if masa and tithi in NAIMITTIKA_ANADHYAYA.get(masa, set()):
+        return f"Naimittika anadhyaya: {month} {label} (book paras 2001-2003)"
+    now_sign, before_sign = limbs_at(jd).sun_rasi, limbs_at(jd - 1.5).sun_rasi
+    if now_sign != before_sign and now_sign in SANKRANTI_ANADHYAYA:
+        return f"Sankranti anadhyaya: within 1.5 days of {SANKRANTI_ANADHYAYA[now_sign]} sankranti (book para 1995)"
+    # Para 1959: no upanayana when one of the days from the day before to the 4th day is an anadhyaya.
+    # Read as the day before and the next two days; naimittika anadhyaya and trishtaka only (the nitya
+    # tithis fall every few days and would leave almost no date; Dr. Nemani to confirm).
+    for off, word in ((-1, "the day before"), (1, "the next day"), (2, "the day after next")):
+        t2 = limbs_at(jd + off).tithi
+        m2 = masa
+        if masa and off > 0 and t2 < tithi:
+            m2 = masa % 12 + 1
+        elif masa and off < 0 and t2 > tithi:
+            m2 = (masa - 2) % 12 + 1
+        if m2 and (t2 in NAIMITTIKA_ANADHYAYA.get(m2, set()) or t2 in TRISHTAKA.get(m2, set())):
+            lab = f"{'S' if t2 <= 15 else 'K'}{t2 if t2 <= 15 else t2 - 15}"
+            return f"Anadhyaya near the muhurta: {LUNAR_MONTH_NAMES[m2]} {lab} is {word} (book para 1959)"
+    return None
+
+
 def _clip_time_of_day(start: datetime, end: datetime, mode: Optional[str],
                       sunrise: datetime, sunset: datetime) -> Optional[Tuple[datetime, datetime]]:
     if not mode:
@@ -740,6 +1008,12 @@ _REASON_GROUPS = [
     (re.compile(r"^Karana .* (is excluded|is not an allowed)"), "Karana not allowed for this event"),
     (re.compile(r"^Lagna .* (is excluded|is not an allowed)"), "Lagna not allowed for this event"),
     (re.compile(r"^Panchaka: "), "Panchaka dosha"),
+    (re.compile(r"^(Nitya anadhyaya|Naimittika anadhyaya|Trishtaka|Sankranti anadhyaya)"), "Anadhyaya day (no upanayana)"),
+    (re.compile(r"^Anadhyaya near the muhurta"), "Anadhyaya within the day before to the 4th day"),
+    (re.compile(r"^Combust \w+ in the lagna"), "A combust planet in the lagna"),
+    (re.compile(r"^Moon's sign "), "Moon's sign not favourable for upanayana"),
+    (re.compile(r"^Guru bala"), "Guru bala not favourable"),
+    (re.compile(r"^(Varnesha|Vedadhipati) weak"), "Varnesha / vedadhipati weak"),
     (re.compile(r"^Tarabala failed for the (\w+)"), None),
     (re.compile(r"^Tarabala failed"), "Tarabala failed for the main person"),
     (re.compile(r"^Chandrabala failed"), "Chandrabala failed for the main person"),
@@ -896,7 +1170,7 @@ def find_muhurta_windows(
     panchaka_method: str = "standard",
     min_window_minutes: float = 15.0,
     activity_params: Optional[Dict[str, Any]] = None,
-    strictness: str = "strict",
+    strictness: str = "lenient",
     rule_variant: Optional[str] = None,
     people: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
@@ -913,7 +1187,7 @@ def find_muhurta_windows(
         return {"error": f"Unknown activity rule '{activity_id}'"}
     rule = cr.rule
     common = cr.hf.common
-    strict = (strictness or "strict").lower() == "strict"
+    strict = (strictness or "lenient").lower() == "strict"
 
     if isinstance(start_date, str):
         start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
@@ -937,7 +1211,7 @@ def find_muhurta_windows(
             p["janma_lagna"] = int(birth_details["birth_lagna_idx"])
         participants.append(p)
 
-    ap = activity_params or {}
+    ap = dict(activity_params or {})     # a copy: per-day helper values must not leak into the result
     warnings: List[str] = []
     hf = cr.hf
 
@@ -955,7 +1229,7 @@ def find_muhurta_windows(
     if hf.age_rule:
         age_ref = _parse_date(ap.get("child_dob") if hf.age_rule.reference == "birth" else ap.get("conception_date"))
         if age_ref is None:
-            warnings.append(_age_allowed(hf.age_rule, None, None, start_date)[1])
+            warnings.append(_age_allowed(hf.age_rule, None, None, start_date)[1] + "; muhurtas are shown regardless of age")
 
     extra_taras = []
     for who in hf.tarabala_for or []:
@@ -995,11 +1269,16 @@ def find_muhurta_windows(
                 rejections["Not one of the allowed nights after the period (4 to 16, not 11 or 13)"] += 1
                 continue
 
+        day_age = None
         if hf.age_rule and age_ref is not None:
-            ok_age, why_age = _age_allowed(hf.age_rule, age_ref, ap.get("child_gender"), cur_date)
-            if not ok_age:
+            if cur_date < age_ref:
+                rejections["Before the date of birth" if hf.age_rule.reference == "birth" else "Before the conception date"] += 1
+                continue
+            tier, why_age = _age_tier(hf.age_rule, age_ref, ap.get("child_gender"), cur_date)
+            if strict and tier == 2:
                 rejections["Outside the age window"] += 1
                 continue
+            day_age = {"tier": tier, "text": why_age}
 
         # 1. Day panchang (sunrise snapshot: vara, kalas, display values)
         panchang = compute_day_panchang(
@@ -1016,6 +1295,11 @@ def find_muhurta_windows(
         if day_reject:
             rejections[day_reject] += 1
             continue
+        # Lunar months the person chose to search (11 Nov 2026), e.g. Magha to Jyeshtha.
+        wanted_months = ap.get("lunar_months") or []
+        if wanted_months and (panchang.get("chandramana") or {}).get("month_number") not in wanted_months:
+            rejections["Outside the lunar months you chose"] += 1
+            continue
 
         # 2. Bad periods. Every type is computed for the dosha checks; only the ones
         #    the rule asks to avoid are subtracted from the windows.
@@ -1023,13 +1307,24 @@ def find_muhurta_windows(
         varjyam = [TimeWindow(start=v["start"], end=v["end"], label=f"Varjyam ({v['nakshatra']})",
                               metadata={"type": "varjyam"})
                    for v in varjyam_windows(day_start, day_end, tz_offset)]
-        avoid = {"rahu": common.avoid_rahu_kalam, "yama": common.avoid_yamagandam,
-                 "gulika": common.avoid_gulika, "durmuhurta": common.avoid_durmuhurta,
-                 "varjyam": common.avoid_varjyam}
-        blocked = [w for w in all_kalas + varjyam if avoid.get(w.metadata.get("type"), True)]
+        # Book para 1681 (11 Nov 2026): "by shastra only the vara-janita durmuhurtas should be followed";
+        # Rahu kalam (a southern custom) and Gulika (a northern one) do not cut windows. They are shown on
+        # the card for information. The rule files' avoid_rahu_kalam / avoid_yamagandam / avoid_gulika
+        # flags are kept but no longer cut.
+        CUSTOM_KALAS = ("rahu", "yama", "gulika")
+        avoid = {"durmuhurta": common.avoid_durmuhurta, "varjyam": common.avoid_varjyam}
+        custom_kalas = [w for w in all_kalas if w.metadata.get("type") in CUSTOM_KALAS]
+        blocked = [w for w in all_kalas + varjyam
+                   if w.metadata.get("type") not in CUSTOM_KALAS and avoid.get(w.metadata.get("type"), True)]
         blocked += _day_periods(hf.exclude_periods, day_start, sunset_dt)
         durmuhurta_spans = [(w.start, w.end) for w in all_kalas if w.metadata.get("type") == "durmuhurta"]
         varjyam_spans = [(w.start, w.end) for w in varjyam]
+
+        if hf.upanayana_strength:
+            # Jupiter's and Venus's bala / vriddha days, for the varnesha and vedadhipati (book para 1927)
+            from app.engines.limb_timeline import moudhya_status as _moudhya
+            day_jd = int(local_to_jd(datetime(cur_date.year, cur_date.month, cur_date.day, 12), tz_offset) - 0.5)
+            ap["_moudhya"] = {pl: _moudhya(day_jd, pl)["state"] for pl in ("jupiter", "venus")}
 
         # 3. Lagnas across the day
         lagnas = scan_day_lagnas(cur_date.year, cur_date.month, cur_date.day, lat, lon, tz_offset, sr_h)
@@ -1052,16 +1347,28 @@ def find_muhurta_windows(
                 continue
             for seg_start, seg_end, limbs in split_by_limbs(clipped[0], clipped[1], tz_offset):
                 seg_lagna = lagna_for_window(lagna, seg_start, seg_end)   # pushkara only where it really is
+                misses: Optional[List[str]] = None if strict else []
                 ok, score, rules_passed, why = evaluate_window_for_rule(
-                    cr, seg_lagna, limbs, vaara_idx, birth_details, panchaka_method, ap
+                    cr, seg_lagna, limbs, vaara_idx, birth_details, panchaka_method, ap, soft_misses=misses
                 )
+                if ok and hf.anadhyaya:
+                    why_an = _anadhyaya_reason(limbs.tithi, (panchang.get("chandramana") or {}).get("month_number"),
+                                               local_to_jd(seg_start, tz_offset))
+                    if why_an:
+                        if misses is None:
+                            ok, why = False, [why_an]
+                        else:
+                            misses.append(why_an)
                 if ok:
                     for who, nidx in extra_taras:
                         tb = evaluate_tarabala(limbs.nakshatra, nidx)
                         if not tb["is_pass"]:
-                            ok, why = False, [f"Tarabala failed for the {who}: {tb['name_en']} tara"]
-                            break
-                        rules_passed.append(f"Tarabala for the {who}: {tb['name_en']}")
+                            if misses is None:
+                                ok, why = False, [f"Tarabala failed for the {who}: {tb['name_en']} tara"]
+                                break
+                            misses.append(f"Tarabala failed for the {who}: {tb['name_en']} tara")
+                        else:
+                            rules_passed.append(f"Tarabala for the {who}: {tb['name_en']}")
                 if not ok:
                     rejections[_reason_key(why[0]) if why else "hard filter"] += 1
                     continue
@@ -1069,7 +1376,7 @@ def find_muhurta_windows(
                 seg = TimeWindow(start=seg_start, end=seg_end, label=f"{lagna.lagna_name_en} Lagna")
                 clean_windows = subtract_blocked_intervals([seg], blocked, min_duration_minutes=min_window_minutes)
                 if not clean_windows:
-                    rejections["Covered by Rahu / Yama / Gulika / Durmuhurta / Varjyam"] += 1
+                    rejections["Covered by Durmuhurta / Varjyam / an excluded time of day"] += 1
 
                 for cw in clean_windows:
                     # The final window may be shorter than the segment (Rahu kalam etc. removed):
@@ -1085,15 +1392,37 @@ def find_muhurta_windows(
                         place_obj, birth_details, participants, panchaka_method, pushkara_info,
                         sula_check, facing_dir, b_nak_idx, b_rasi_idx, cw_score, cw_reasons,
                         durmuhurta_spans, varjyam_spans, strict, rejections,
-                        extras={"blocked": blocked, "lat": lat, "lon": lon, "people": people or []},
+                        extras={"blocked": blocked, "lat": lat, "lon": lon, "people": people or [], "misses": misses or [],
+                                "custom_kalas": custom_kalas},
                     )
                     if cand is None:
                         continue
+                    if day_age is not None:
+                        cand["age"] = day_age
                     candidates.append(cand)
                     results.append(_window_summary(cand, cw_lagna, rule, cw_score))
 
-    sorted_candidates = sorted(candidates, key=lambda x: (-x["percentage"], x["date"], x["window_start"]))
-    sorted_results = sorted(results, key=lambda x: (-x.get("percentage", 0), x["date"], x["start_time"]))
+    # Age (11 Nov 2026): every muhurta is listed. Those in the preferred years come first, then the
+    # "if needed" years, then the rest; each card shows the age (Strict still refuses outside the window).
+    tiers = sorted({c["age"]["tier"] for c in candidates if c.get("age")})
+    if tiers:
+        ar = hf.age_rule
+        unit = ar.unit if ar else "years"
+        if tiers[0] == 0 and len(tiers) > 1:
+            warnings.append(f"Muhurtas in the preferred {unit} {sorted(ar.allowed or [])} are listed first; "
+                            f"the others follow, each marked with the age.")
+        elif tiers[0] == 1:
+            warnings.append(f"No muhurta in the preferred {unit} {sorted(ar.allowed or [])} within these dates; "
+                            f"{unit} {sorted(ar.fallback or [])} (allowed if needed) are listed first.")
+        elif tiers[0] == 2:
+            warnings.append(f"No muhurta in the allowed {unit} within these dates; all muhurtas are shown, "
+                            f"each marked with the age.")
+    age_rank = {(c["date"], c["window_start"]): (c.get("age") or {}).get("tier", 0) for c in candidates}
+
+    sorted_candidates = sorted(candidates, key=lambda x: (age_rank.get((x["date"], x["window_start"]), 0),
+                                                          -x["percentage"], -x.get("rule_score", 0), x["date"], x["window_start"]))
+    sorted_results = sorted(results, key=lambda x: (age_rank.get((x["date"], x["start_time"]), 0),
+                                                    -x.get("percentage", 0), -x.get("score", 0), x["date"], x["start_time"]))
 
     return {
         "activity_id": rule.id,
@@ -1280,6 +1609,12 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     sr_jd = local_to_jd(day_sunrise, tz_offset)
     extra = extra_checks(tab, rule.id, limbs.tithi, tithi_bounds(jd_mid), local_to_jd(cw.start, tz_offset),
                          [sr_jd - 1.0, sr_jd, sr_jd + 1.0, sr_jd + 2.0], lagna.house_planets)
+    # This event's own chart rules that the window misses (Show-all mode): one failed row each.
+    for i, msg in enumerate((extras or {}).get("misses") or []):
+        extra.append({"id": f"rule_miss_{i + 1}", "number": None,
+                      "name_en": f"Event rule not matched: {msg}", "name_te": f"కార్య నియమం సరిపోలలేదు: {msg}",
+                      "status": "fail", "is_pass": False, "score": 0, "severity": "serious",
+                      "desc_en": msg, "desc_te": msg, "ref": rule.source.page if rule.source else ""})
     score += yoga_points
     link_rows(maha_doshas)          # book_id and rule status from rules/shared/dosha_registry.yaml (plan B2)
     link_rows(dashavidha)
@@ -1290,6 +1625,26 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     if common.dashavidha_10:
         checked += dashavidha
     checked += yoga_doshas + extra
+    # Doshapavada (book paras 1972-78): "remove all" exceptions cancel the lagna doshas (not the 21
+    # mahadoshas, not day / tithi / personal checks); partial ones are a plus row in the table.
+    apavada = doshapavada(lagna) if cr.hf.doshapavada else []
+    if any(a["kind"] == "all" for a in apavada):
+        why = next(a for a in apavada if a["kind"] == "all")
+        for d in list(dashavidha) + list(extra):
+            is_miss = str(d.get("id", "")).startswith("rule_miss_")
+            lagna_dosha = (is_miss and not str(d.get("desc_en", "")).startswith(_NOT_LAGNA_DOSHA)) or \
+                          (not is_miss and d.get("id") in _LAGNA_EXTRA_IDS) or d in dashavidha
+            if d.get("status") == "fail" and lagna_dosha:
+                d["status"], d["severity"], d["excepted_by"] = "excepted", "info", why["id"]
+                d["desc_en"] = f"{d.get('desc_en') or ''} Excepted: {why['en']}.".strip()
+                d["desc_te"] = f"{d.get('desc_te') or ''} మినహాయింపు: {why['te']}.".strip()
+    for a in apavada:
+        if a["kind"] == "partial":
+            row = {"id": f"apavada_{a['id']}", "number": None, "name_en": f"Doshapavada: {a['en']}",
+                   "name_te": f"దోషాపవాదం: {a['te']}", "status": "pass", "is_pass": True, "score": 10,
+                   "severity": "info", "desc_en": a["en"], "desc_te": a["te"]}
+            extra.append(row)
+            checked.append(row)
     failed = [d for d in checked if d["status"] == "fail"]
     fatal = [d for d in failed if d["severity"] == "fatal"]
     audit = dosha_audit(maha_doshas if common.mahadoshas_21 else [], dashavidha if common.dashavidha_10 else [],
@@ -1330,14 +1685,20 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
         cautions.append(f"Not evaluated (data or author input missing): {', '.join(not_eval)}")
 
     serious = [d for d in failed if d["severity"] == "serious"]
-    pct = score * 10 - 12 * len(serious) - 25 * len(fatal) + (10 if lagna.is_pushkara_navamsa else 0) + 50
+    # Percentage = the guna-dosha table (11 Nov 2026, same method as the Sri Bhaskara app): every check
+    # that applies scores +10 if it passed and -10 if it is a dosha; "excepted" and "to be confirmed"
+    # count as applying but score 0; "not applicable" and "not evaluated" are left out. The total is
+    # divided by 10 x the checks that apply. Windows with a mahadosha are listed with it marked.
+    applicable = [d for d in checked if d["status"] in ("pass", "fail", "excepted", "to_confirm")]
+    points = sum(10 if d["status"] == "pass" else -10 if d["status"] == "fail" else 0 for d in applicable)
+    pct = round(max(0, points) / (10 * len(applicable)) * 100) if applicable else 50
     pct = int(min(98, max(5, pct)))
-    # Soft points must not lift a window with a serious dosha to "best", or a fatal one
-    # (kept only in Lenient mode) above "avoid".
+    # Our one addition: a window with a failed mahadosha or a serious dosha is never shown as "best".
     if fatal:
-        pct = min(pct, 49)
+        pct = min(pct, 64 - 10 * (len(fatal) - 1))   # one mahadosha: at most 64; each more: 10 lower
     elif serious:
         pct = min(pct, 74)
+    pct = max(5, pct)
     if sula_check and sula_check.get("has_sula"):
         pct = min(pct, 40)
     verdict = "ఉత్తమ ముహూర్తం" if pct >= 75 else ("మధ్యమ ముహూర్తం" if pct >= 50 else "నిషిద్ధం")
@@ -1382,6 +1743,11 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     cand_panchang["varjyam"] = [{"start": a.strftime("%H:%M:%S"), "end": b.strftime("%H:%M:%S")}
                                 for a, b in varjyam_spans]
 
+    try:
+        amsha = window_amsha(cw.start, cw.end, tz_offset, (extras or {})["lat"], (extras or {})["lon"])
+    except (KeyError, ValueError, TypeError) as ex:
+        logger.error(f"Amsha not worked out: {ex}")
+        amsha = None
     detail = _result_detail(rule, cw, lagna, limbs, cur_date, tz_offset, pct, failed, not_eval,
                             cautions, extras or {})
 
@@ -1396,6 +1762,13 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
         "duration_minutes": cw.duration_minutes,
         "duration_ghatis": cw.duration_ghatis,
         "percentage": pct,
+        "amsha": amsha,               # Pushkaramsha / Vargottamamsha and the time it starts
+        "doshapavada": apavada,       # the book's exceptions in this lagna (paras 1972-78)
+        "custom_kalas": [{"type": w.metadata.get("type"), "name": w.label,
+                          "start": w.start.strftime("%H:%M"), "end": w.end.strftime("%H:%M")}
+                         for w in (extras or {}).get("custom_kalas", []) if w.start < cw.end and w.end > cw.start],
+        "audit_points": {"points": points, "applicable": len(applicable)},   # how the percentage was made
+        "rule_score": score,          # the event's own preference points (weekday, lagna, pushkara): breaks ties
         "verdict": verdict,
         "reasons": all_reasons,
         "cautions": cautions,

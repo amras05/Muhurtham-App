@@ -63,6 +63,8 @@ class AgeRule(BaseModel):
     boy: Optional[List[int]] = Field(None, description="Ordinals allowed for a boy")
     girl: Optional[List[int]] = Field(None, description="Ordinals allowed for a girl")
     min_ordinal: Optional[int] = Field(None, description="Allow any ordinal from this value onwards")
+    fallback: Optional[List[int]] = Field(None, description="Second choice, used only when no muhurta falls in "
+                                                         "'allowed' (e.g. upanayana years 10 and 11 'if needed')")
     note: Optional[str] = None
 
 
@@ -123,6 +125,10 @@ class HardFilters(BaseModel):
     moon_free_of_malefics: bool = Field(False, description="No malefic in the Moon's sign")
     mars_saturn_not_opposed: bool = Field(False, description="Mars and Saturn not in mutual 7th")
     upanayana_strength: bool = Field(False, description="Varnesha and vedadhipati strong; Guru bala for the vatu")
+    doshapavada: bool = Field(False, description="Apply the upanayana lagna's exceptions (book paras 1972-78): "
+                                                 "Sun in the 11th, Jupiter / Venus / Mercury in the lagna, and the rest")
+    anadhyaya: bool = Field(False, description="Avoid anadhyaya days, sankranti anadhyaya and trishtakas "
+                                               "(book paras 1994-2004; upanayana and vidyabhyasa)")
 
 
 class SoftScoring(BaseModel):
@@ -137,7 +143,8 @@ class SoftScoring(BaseModel):
 class ParticipantSpec(BaseModel):
     """A person the event asks about (Input Data Master). Overrides the tab's default list."""
     role: str = Field(..., description="Role id from engines/participants.py ROLES")
-    level: Literal["L1", "L2"] = Field("L2", description="L1 always asked; L2 optional personal-strength details")
+    level: Literal["L1", "L1o", "L2"] = Field("L2", description="L1 always asked; L1o recommended (shown open, optional); "
+                                                                  "L2 optional personal-strength details")
     primary: bool = Field(False, description="Feeds the main tarabala / chandrabala / lagnashtama checks")
     star_basis: Literal["janma", "nama"] = Field("janma", description="Which nakshatra the rules use for this person")
     fields: List[str] = Field(default_factory=list, description="Extra card fields: birth_date, gender, eldest")

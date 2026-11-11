@@ -3,8 +3,8 @@ category: general
 tab: spiritual
 title_en: "Pratishtha of All Deities"
 title_te: "సర్వదేవతా ప్రతిష్ఠ"
-description_en: "Consecration of deities in Uttarayana, with Jupiter and Venus not combust."
-description_te: "ఉత్తరాయణంలో, గురు శుక్రులు అస్తంగతులు కానప్పుడు దేవతా ప్రతిష్ఠ."
+description_en: "Consecration of deities, with Jupiter and Venus not combust."
+description_te: "గురు శుక్రులు అస్తంగతులు కానప్పుడు దేవతా ప్రతిష్ఠ."
 source:
   part: 7
   section: "సాధారణ కార్యములకు ముహూర్తములు"
@@ -20,7 +20,6 @@ hard_filters:
   tithi_exclude: [amavasya]
   karana_exclude: [bhadra]
   nakshatra_allow: [shravana, dhanishta, shatabhisha, uttara_phalguni, uttara_ashadha, uttara_bhadrapada, anuradha, punarvasu, hasta, chitra, revati, mrigashira, ashwini, rohini]
-  sun_sign_allow: [makara, kumbha, meena, mesha, vrishabha, mithuna]
   not_combust: [jupiter, venus]
   house_rules:
     - house: 8

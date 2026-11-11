@@ -100,6 +100,7 @@ function renderCategoryTabs() {
 
 function populateActivityDropdown() {
   renderCategoryTabs();
+  if (poolMode) fillPoolEvents();           // keep the by-month event list in step (catalog load, language)
   const actSelect = el("mfActivitySelect");
   if (!actSelect) return;
   const prevVal = actSelect.value;
@@ -184,9 +185,12 @@ function personCardHTML(spec, idx) {
   const label = T(spec.label_en, spec.label_te);
   const id = k => `mfP_${role}_${k}`;
   const needsDob = (spec.fields || []).includes("birth_date");
+  // L1 required · L1o recommended (shown open, may be left empty; e.g. the father at upanayana) · L2 optional, folded
   const levelNote = spec.level === "L1"
     ? T("Required", "తప్పనిసరి")
-    : T("Optional: adds this person's tarabala", "ఐచ్ఛికం: వీరి తారాబలం కూడా పరిశీలిస్తుంది");
+    : spec.level === "L1o"
+      ? T("Recommended (optional): adds this person's tarabala", "సిఫార్సు (ఐచ్ఛికం): వీరి తారాబలం కూడా పరిశీలిస్తుంది")
+      : T("Optional: adds this person's tarabala", "ఐచ్ఛికం: వీరి తారాబలం కూడా పరిశీలిస్తుంది");
   const basisNote = spec.star_basis === "nama"
     ? T("Rules use the nama nakshatra", "నియమాలు నామ నక్షత్రాన్ని వాడుతాయి")
     : T("Rules use the janma nakshatra", "నియమాలు జన్మ నక్షత్రాన్ని వాడుతాయి");
@@ -205,7 +209,7 @@ function personCardHTML(spec, idx) {
   }
   const tab = (m, en, te) => `<button type="button" role="tab" class="nama-tab${mode === m ? " active" : ""}" aria-selected="${mode === m}" onclick="switchPersonMode('${role}','${m}')">${T(en, te)}</button>`;
   return `
-  <details class="person-card" data-role="${role}" data-mode="${mode}" data-needs-dob="${needsDob}" ${spec.level === "L1" || idx === 0 || st.open ? "open" : ""}>
+  <details class="person-card" data-role="${role}" data-mode="${mode}" data-needs-dob="${needsDob}" ${spec.level === "L1" || spec.level === "L1o" || idx === 0 || st.open ? "open" : ""}>
     <summary class="person-card__head">
       <strong>${escapeHtml(label)}</strong>
       <span class="person-card__note">${levelNote} · ${basisNote}</span>
@@ -468,8 +472,7 @@ function renderPitruCalendar(mode, data) {
   const dd = data.death;
   const head = dd ? T(`Death tithi: ${dd.tithi_label}, ${dd.masa_en}${dd.adhika ? " (adhika)" : ""} masa.`,
                       `మరణ తిథి: ${dd.masa_te}${dd.adhika ? " (అధిక)" : ""} మాసం, ${dd.tithi_label}.`) : "";
-  const notes = [...(data.warnings || []), ...(data.notes || [])];
-  setStatus([head, ...notes].filter(Boolean).join(" "));
+  setStatus([head, ...(data.notes || [])].filter(Boolean).join(" "));
   let rows = [];
   if (mode === "annual") rows = data.shraddha.map(r => [r.date, T(`Year ${r.year_no} shraddha`, `${r.year_no}వ సంవత్సర శ్రాద్ధం`),
     `${VAARA_NAMES[currentLang]?.[r.weekday] || r.weekday}${r.aparahna_minutes ? T(` · tithi covers ${r.aparahna_minutes} min of aparahna`, ` · అపరాహ్ణంలో ${r.aparahna_minutes} ని.`) : ""}${r.note ? " · " + r.note : ""}`]);
@@ -521,7 +524,7 @@ async function renderYogaPanel() {
 async function runYogaSearch(loc) {
   const picked = sel => [...document.querySelectorAll(`${sel} input:checked`)].map(i => i.value);
   const body = {
-    start_date: loc.startDate, days_to_scan: Math.min(loc.days, 60), lat: loc.lat, lon: loc.lon,
+    start_date: loc.startDate, days_to_scan: 60, lat: loc.lat, lon: loc.lon,
     tz_offset: loc.tz_offset, place_name: loc.place_name,
     yogas: picked("#mfYogaList"), conditions: picked("#mfCondList"),
     janma_nak_idx: parseInt(el("mfYogaNak")?.value) || null, janma_rasi_idx: parseInt(el("mfYogaRasi")?.value) || null,
@@ -547,8 +550,7 @@ async function runYogaSearch(loc) {
 }
 
 function renderYogaResults(data) {
-  const warn = (data.warnings || []).length ? ` ${T("Note:", "గమనిక:")} ${data.warnings.join("; ")}` : "";
-  setStatus(T(`${data.total} window(s) in ${data.days_scanned} days.`, `${data.days_scanned} రోజుల్లో ${data.total} సమయాలు.`) + warn);
+  setStatus(T(`${data.total} window(s) in ${data.days_scanned} days.`, `${data.days_scanned} రోజుల్లో ${data.total} సమయాలు.`));
   el("summaryBar").innerHTML = "";
   el("dayGrid").innerHTML = data.windows.length ? data.windows.map(w => `
     <div class="yoga-row">
@@ -597,6 +599,358 @@ function buildD1ChartHTML(d1Array, centerLabel) {
   return html;
 }
 
+// ---- Required details not given (11 Nov 2026) ----
+// Only people marked Required (level L1) are checked; Recommended and Optional people never ask.
+// A saved family member counts as complete: the server fills in their star.
+function missingRequired() {
+  const specs = (currentRule()?.participants || []).filter(s => s.level === "L1");
+  const given = collectParticipants();
+  const out = [];
+  specs.forEach(s => {
+    const p = given.find(x => x.role === s.role) || {};
+    if (p.profile_id) return;
+    const fromBirth = !!(p.from_birth && p.birth_date);
+    const parts = [];
+    if (s.star_basis === "nama") {
+      if (!p.nama_nak_idx) parts.push(T("nama nakshatra", "నామ నక్షత్రం"));
+    } else {
+      if (!p.janma_nak_idx && !fromBirth) parts.push(T("janma nakshatra", "జన్మ నక్షత్రం"));
+      if (!p.rasi_idx && !fromBirth) parts.push(T("janma rashi", "జన్మ రాశి"));
+    }
+    if ((s.fields || []).includes("birth_date") && !p.birth_date) parts.push(T("date of birth", "పుట్టిన తేదీ"));
+    if (parts.length) out.push({ role: s.role, text: `${T(s.label_en, s.label_te)}: ${parts.join(", ")}` });
+  });
+  return out;
+}
+
+// ---- One year of muhurtas, 60 days at a time (11 Nov 2026) ----
+// The first search covers 60 days; when the end of the list comes into view the next 60 days load,
+// up to one year from the start date. Results are listed by date so new ones always follow on.
+const YEAR_DAYS = 366, CHUNK_DAYS = 60;
+let paging = null;        // { payload, scanned, done, loading, error, rejections }
+let moreObserver = null;
+
+function addDaysIso(iso, n) {
+  const d = new Date(iso + "T00:00:00");
+  d.setDate(d.getDate() + n);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function chunkResults(data) { return (data.candidates && data.candidates.length) ? data.candidates : (data.windows || []); }
+function byDateTime(a, b) {
+  return (a.date + " " + (a.window_start || a.start_time || "")).localeCompare(b.date + " " + (b.window_start || b.start_time || ""));
+}
+function mergeRejections(data) {
+  (data.rejection_summary || []).forEach(x => { paging.rejections[x.reason] = (paging.rejections[x.reason] || 0) + x.count; });
+  lastData.rejection_summary = Object.entries(paging.rejections).sort((a, b) => b[1] - a[1]).slice(0, 10)
+    .map(([reason, count]) => ({ reason, count }));
+}
+
+function startPaging(payload, data) {
+  paging = { payload, scanned: payload.days_to_scan, done: payload.days_to_scan >= YEAR_DAYS, loading: false, error: null, rejections: {} };
+  data.results = chunkResults(data).slice().sort(byDateTime);
+  lastData = data;
+  mergeRejections(data);
+  lastData.days_scanned = paging.scanned;
+  renderResults(lastData);
+  updateMore();
+  if (!lastData.results.length && !paging.done) loadMore();      // nothing yet: keep looking through the year
+}
+
+async function loadMore() {
+  if (!paging || paging.loading || paging.done || lastToolSearch) return;
+  paging.loading = true; paging.error = null;
+  updateMore();
+  const days = Math.min(CHUNK_DAYS, YEAR_DAYS - paging.scanned);
+  const body = { ...paging.payload, start_date: addDaysIso(paging.payload.start_date, paging.scanned), days_to_scan: days };
+  try {
+    const res = await fetch(`${API_BASE}/muhurta/find`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) { const d = await res.json().catch(() => null); throw new Error((d && typeof d.detail === "string" && d.detail) || `HTTP ${res.status}`); }
+    const data = await res.json();
+    lastData.results = lastData.results.concat(chunkResults(data).slice().sort(byDateTime));
+    lastData.candidates = lastData.results;
+    mergeRejections(data);
+    paging.scanned += days;
+    paging.done = paging.scanned >= YEAR_DAYS;
+    lastData.days_scanned = paging.scanned;
+    renderResults(lastData);
+  } catch (e) {
+    paging.error = e.message;
+  } finally {
+    paging.loading = false;
+    updateMore();
+  }
+  if (!paging.error && !paging.done && !lastData.results.length) loadMore();
+}
+
+function updateMore() {
+  const box = el("mfMore");
+  if (!box) return;
+  if (!paging || lastToolSearch) { box.hidden = true; return; }
+  box.hidden = false;
+  const upTo = addDaysIso(paging.payload.start_date, paging.scanned - 1);
+  const next = addDaysIso(paging.payload.start_date, Math.min(YEAR_DAYS, paging.scanned + CHUNK_DAYS) - 1);
+  if (paging.loading) {
+    box.innerHTML = `<span class="load-more__spinner" aria-hidden="true"></span> ${escapeHtml(T(`Loading muhurtas up to ${next}…`, `${next} వరకు ముహూర్తాలు లోడ్ అవుతున్నాయి…`))}`;
+  } else if (paging.error) {
+    box.innerHTML = `${escapeHtml(T("Couldn't load more: ", "మరిన్ని లోడ్ కాలేదు: ") + paging.error)} <button type="button" class="btn btn--sm" onclick="loadMore()">${escapeHtml(T("Try again", "మళ్ళీ ప్రయత్నించు"))}</button>`;
+  } else if (paging.done) {
+    box.innerHTML = escapeHtml(T(`That's one year of muhurtas, up to ${upTo}.`, `${upTo} వరకు ఒక సంవత్సరం ముహూర్తాలు చూపించాము.`));
+  } else {
+    box.innerHTML = `<span>${escapeHtml(T(`Showing muhurtas up to ${upTo}.`, `${upTo} వరకు ముహూర్తాలు.`))}</span> <button type="button" class="btn btn--sm" onclick="loadMore()">${escapeHtml(T(`Load more, up to ${next}`, `${next} వరకు మరిన్ని చూపించు`))}</button>`;
+  }
+  if (!moreObserver && "IntersectionObserver" in window) {
+    moreObserver = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting) && paging && !paging.loading && !paging.done && !paging.error) loadMore();
+    }, { rootMargin: "300px" });
+    moreObserver.observe(box);
+  }
+}
+
+// Summary box filter: "excellent" | "medium" | "avoid" | null (all). Clicking the active box again clears it.
+let bandFilter = null;
+el("summaryBar")?.addEventListener("click", e => {
+  const b = e.target.closest("[data-band]");
+  if (!b || !lastData) return;
+  const key = b.getAttribute("data-band") || null;
+  bandFilter = bandFilter === key ? null : key;
+  renderResults(lastData);
+});
+
+// ---- Muhurtas by month (11 Nov 2026) ----
+// No personal details: the user picks an event, a Telugu year (Ugadi to Ugadi) and lunar months; each
+// month is searched in turn and its muhurtas are listed under a month heading as soon as it is done.
+var poolMode = false;      // var: read by populateActivityDropdown, which can run first
+const POOL_SKIP_INPUTS = ["samskara_main_event", "pitru_death", "garbhadhana_period"];
+// "All main ceremonies": the events Sri Bhaskara's pool tags, that this app has (book rules each).
+const POOL_MAIN = ["vivaha", "upanayana", "griha_pravesha", "bhumi_puja", "business_start", "seemantonnayana", "namakarana", "annaprashana"];
+function poolEligible(r) { return !r.informational && !(r.tab_inputs || []).some(k => POOL_SKIP_INPUTS.includes(k)); }
+
+function fillPoolEvents() {
+  const sel = el("mfPoolEvent");
+  if (!sel) return;
+  const prev = sel.value || el("mfActivitySelect")?.value;
+  sel.innerHTML = "";
+  const all = document.createElement("option");
+  all.value = "__all";
+  all.textContent = T("All main ceremonies", "అన్ని ముఖ్య కార్యాలు");
+  sel.appendChild(all);
+  CATEGORY_TABS.forEach(t => {
+    const rules = allMuhurtaRules.filter(r => (r.tab || r.category) === t.id && poolEligible(r));
+    if (!rules.length) return;
+    const g = document.createElement("optgroup");
+    g.label = T(t.en, t.te);
+    rules.forEach(r => {
+      const o = document.createElement("option");
+      o.value = r.id;
+      o.textContent = currentLang === "te" && r.title_te ? `${r.title_te} (${r.title_en})` : r.title_en;
+      g.appendChild(o);
+    });
+    sel.appendChild(g);
+  });
+  if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+}
+
+function fillPoolYears() {
+  const sel = el("mfPoolYear");
+  if (!sel || sel.options.length) return;
+  const now = new Date();
+  const current = now.getMonth() < 3 ? now.getFullYear() - 1 : now.getFullYear();   // the Telugu year starts at Ugadi
+  for (let y = current - 1; y <= current + 2; y++) {
+    const o = document.createElement("option");
+    o.value = y;
+    o.textContent = `${y}–${String(y + 1).slice(2)}`;
+    sel.appendChild(o);
+  }
+  sel.value = current;
+}
+
+function setFinderMode(pool) {
+  poolMode = pool;
+  el("mfControls")?.classList.toggle("mode-pool", pool);
+  [["mfModePerson", !pool], ["mfModePool", pool]].forEach(([id, on]) => {
+    el(id)?.classList.toggle("active", on);
+    el(id)?.setAttribute("aria-selected", String(on));
+  });
+  el("mfCategoryTabs").hidden = pool;
+  el("mfPoolIntro").hidden = !pool;
+  document.querySelectorAll(".field--pool").forEach(f => { f.hidden = !pool; });
+  const fb = el("findBtn");
+  fb.setAttribute("data-en", pool ? "Show muhurtas" : "Find muhurtas");
+  fb.setAttribute("data-te", pool ? "ముహూర్తాలు చూపించు" : "ముహూర్తాలు వెతుకు");
+  fb.textContent = fb.getAttribute(currentLang === "te" ? "data-te" : "data-en");
+  if (pool) {
+    setYogaMode(false);
+    if (el("mfPitruPanel")) el("mfPitruPanel").hidden = true;
+    fillPoolEvents();
+    fillPoolYears();
+  } else {
+    onCategoryChange(currentCategory);
+  }
+}
+el("mfModePerson")?.addEventListener("click", () => setFinderMode(false));
+el("mfModePool")?.addEventListener("click", () => setFinderMode(true));
+
+async function runPool(loc) {
+  const activityId = el("mfPoolEvent")?.value;
+  if (!activityId) { setStatus(T("Choose an event.", "కార్యం ఎంచుకోండి."), true); return; }
+  const year = Number(el("mfPoolYear").value);
+  const wanted = [...document.querySelectorAll("#mfLunarMonths input:checked")].map(i => Number(i.value));
+  paging = null; bandFilter = null; lastToolSearch = null;
+  el("findBtn").disabled = true;
+  el("mfResults").style.display = "none";
+  const more = el("mfMore");
+  setStatus(T("Working out the lunar months of the year…", "సంవత్సరంలోని చాంద్రమాన మాసాలు లెక్కిస్తున్నాం…"));
+  try {
+    const mres = await fetch(`${API_BASE}/muhurta/lunar-months?year=${year}&lat=${loc.lat}&lon=${loc.lon}&tz_offset=${loc.tz_offset}`);
+    const mdata = await mres.json().catch(() => null);
+    if (!mres.ok) throw new Error((mdata && typeof mdata.detail === "string" && mdata.detail) || `HTTP ${mres.status}`);
+    const months = mdata.months.filter(m => !wanted.length || wanted.includes(m.month_number));
+    if (!months.length) throw new Error(T("None of the chosen months falls in that year.", "ఎంచుకున్న మాసాలు ఆ సంవత్సరంలో లేవు."));
+    const base = { activity_id: activityId, lat: loc.lat, lon: loc.lon, tz_offset: loc.tz_offset, place_name: loc.place_name,
+                   panchaka_method: "standard", strictness: el("mfStrictness")?.value || "lenient", time_preference: "any",
+                   participants: [] };
+    lastRequest = { ...base, start_date: months[0].start, days_to_scan: Math.min(366, months.reduce((a, m) => a + m.days, 0)),
+                    lunar_months: wanted };
+    const allEvents = activityId === "__all";
+    const events = allEvents ? POOL_MAIN.filter(id => allMuhurtaRules.some(r => r.id === id)) : [activityId];
+    lastData = { results: [], candidates: [], rejection_summary: [], days_scanned: 0, strictness: base.strictness,
+                 monthRanges: months, poolDone: false, allEvents,
+                 title_en: allEvents ? "Main ceremonies" : undefined, title_te: allEvents ? "ముఖ్య కార్యాలు" : undefined };
+    eventFilter = null;
+    const rej = {};
+    setStatus("");
+    for (const [i, m] of months.entries()) {
+      for (const [k, ev] of events.entries()) {
+        const rule = allMuhurtaRules.find(r => r.id === ev);
+        if (more) {
+          more.hidden = false;
+          const what = allEvents ? `: ${T(rule?.title_en || ev, rule?.title_te || ev)} (${k + 1}/${events.length})` : "";
+          more.innerHTML = `<span class="load-more__spinner" aria-hidden="true"></span> ${escapeHtml(T(
+            `Searching ${m.name_en}${what}, month ${i + 1} of ${months.length}…`, `${m.name_te}${what} వెతుకుతున్నాం, ${months.length} లో ${i + 1}వ మాసం…`))}`;
+        }
+        const res = await fetch(`${API_BASE}/muhurta/find`, { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...base, activity_id: ev, start_date: m.start, days_to_scan: m.days, lunar_months: [m.month_number] }) });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) throw new Error((data && typeof data.detail === "string" && data.detail) || `HTTP ${res.status}`);
+        if (!allEvents) Object.assign(lastData, { title_en: data.title_en, title_te: data.title_te, activity_id: data.activity_id });
+        const tag = { id: ev, en: data.title_en, te: data.title_te };
+        const chunk = chunkResults(data).map(r => Object.assign(r, { _event: tag }));
+        lastData.results = lastData.results.concat(chunk).sort(byDateTime);
+        lastData.candidates = lastData.results;
+        (data.rejection_summary || []).forEach(x => { rej[x.reason] = (rej[x.reason] || 0) + x.count; });
+        lastData.rejection_summary = Object.entries(rej).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([reason, count]) => ({ reason, count }));
+        lastData.poolDone = i === months.length - 1 && k === events.length - 1;
+        renderResults(lastData);
+      }
+      lastData.days_scanned += m.days;
+    }
+    if (more) {
+      more.hidden = false;
+      more.textContent = T(`All muhurtas for ${months.map(m => m.name_en).join(", ")} (${year}–${String(year + 1).slice(2)}).`,
+                           `${months.map(m => m.name_te).join(", ")} (${year}–${String(year + 1).slice(2)}) ముహూర్తాలన్నీ చూపించాము.`);
+    }
+  } catch (e) {
+    setStatus(T("Couldn't load the muhurtas: ", "ముహూర్తాలు లోడ్ కాలేదు: ") + e.message, true);
+    if (more) more.hidden = true;
+  } finally {
+    el("findBtn").disabled = false;
+  }
+}
+
+// ---- Compact list and ceremony chips (11 Nov 2026) ----
+var resultView = (() => { try { return localStorage.getItem("mh_result_view") || "cards"; } catch (e) { return "cards"; } })();
+var eventFilter = null;      // a ceremony id in the "All main ceremonies" list, or null for all
+
+function bandClass(p) { return p >= 75 ? "excellent" : p >= 50 ? "medium" : "avoid"; }
+function dmy(iso) { const [y, m, d] = String(iso).split("-"); return `${d}-${m}-${y}`; }
+
+// One line per muhurta (or, for all ceremonies, one line per lagna with a tag per ceremony).
+function renderCompactList(data, results, passes, grid) {
+  const shown = results.map((r, idx) => ({ r, idx })).filter(x => passes(x.r));
+  const rows = [];
+  if (data.allEvents) {
+    const byLagna = new Map();
+    shown.forEach(x => {
+      const key = `${x.r.date}|${x.r.detailed_eval?.lagna?.name || x.r.window_start}`;
+      if (!byLagna.has(key)) { byLagna.set(key, []); rows.push(byLagna.get(key)); }
+      byLagna.get(key).push(x);
+    });
+  } else {
+    shown.forEach(x => rows.push([x]));
+  }
+  let lastMonthHead = null, html = "";
+  rows.forEach(group => {
+    const best = group.reduce((a, b) => ((b.r.percentage || 0) > (a.r.percentage || 0) ? b : a));
+    const r = best.r, p = r.panchang || {};
+    if (data.monthRanges) {
+      const m = data.monthRanges.find(x => r.date >= x.start && r.date <= x.end);
+      if (m && m.start !== lastMonthHead) {
+        lastMonthHead = m.start;
+        html += `<h3 class="pool-month">${escapeHtml(T(m.name_en, m.name_te))} <small>${escapeHtml(dmy(m.start))} – ${escapeHtml(dmy(m.end))}</small></h3>`;
+      }
+    }
+    const vaara = VAARA_NAMES[currentLang]?.[p.vaara] || p.vaara || "";
+    const tRaw = typeof p.tithi === "string" ? p.tithi.split(" ")[0] : "";
+    const tithi = te(tRaw, TITHI_NAMES_TE) || tRaw;
+    const nak = te(p.nakshatra, NAKSHATRA_NAMES_TE) || p.nakshatra || "";
+    const lg = r.detailed_eval?.lagna || {};
+    const lagna = currentLang === "te" ? (lg.name_te || lg.name) : `${lg.name || ""} lagna`;
+    const am = r.amsha && r.amsha.type !== "none"
+      ? ` <span class="amsha-badge amsha-badge--${escapeHtml(r.amsha.type)}">${escapeHtml(T(r.amsha.name_en, r.amsha.name_te))}</span>` : "";
+    const starts = group.map(x => x.r.window_start).sort();
+    const ends = group.map(x => x.r.window_end).sort();
+    const time = `${String(starts[0]).slice(0, 5)}–${String(ends[ends.length - 1]).slice(0, 5)}`;
+    // one tag per ceremony: its best window inside this lagna (durmuhurta can split a lagna into pieces)
+    const perEvent = [];
+    group.forEach(x => {
+      const i = perEvent.findIndex(y => y.r._event?.id === x.r._event?.id);
+      if (i < 0) perEvent.push(x);
+      else if ((x.r.percentage || 0) > (perEvent[i].r.percentage || 0)) perEvent[i] = x;
+    });
+    const chips = data.allEvents ? `<div class="lagna-row__events">${perEvent.map(x =>
+      `<button type="button" class="event-chip event-chip--${bandClass(x.r.percentage || 0)}" onclick="openDayModal(${x.idx})" title="${escapeHtml(T("Full analysis", "సమగ్ర విశ్లేషణ"))}">${escapeHtml(T(x.r._event.en, x.r._event.te))} ${x.r.percentage}%</button>`).join("")}</div>` : "";
+    const open = data.allEvents ? "" : ` role="button" tabindex="0" onclick="openDayModal(${best.idx})" onkeydown="if(event.key==='Enter')openDayModal(${best.idx})"`;
+    html += `<div class="lagna-row${data.allEvents ? "" : " lagna-row--link"}"${open}>
+      <div class="lagna-row__line1"><strong>${escapeHtml(dmy(r.date))}</strong><span>${escapeHtml(vaara)}</span><span>${escapeHtml(tithi)}</span><span>${escapeHtml(nak)}</span></div>
+      <div class="lagna-row__line2"><span class="lagna-row__lagna">${escapeHtml(lagna)}</span>${am}<span class="lagna-row__time">${escapeHtml(time)}</span>
+        <span class="lagna-row__pct lagna-row__pct--${bandClass(r.percentage || 0)}">${r.percentage}%</span></div>
+      ${chips}
+    </div>`;
+  });
+  grid.insertAdjacentHTML("beforeend", html || `<div class="empty-state"><p>${escapeHtml(T("No muhurtas match these filters.", "ఈ ఎంపికలకు ముహూర్తాలు లేవు."))}</p></div>`);
+}
+
+function renderEventFilter(data, results) {
+  const box = el("mfEventFilter");
+  if (!box) return;
+  if (!data.allEvents) { box.hidden = true; box.innerHTML = ""; return; }
+  const counts = {}, names = {};
+  results.forEach(r => { if (r._event) { counts[r._event.id] = (counts[r._event.id] || 0) + 1; names[r._event.id] = r._event; } });
+  const chip = (id, label, n) => `<button type="button" class="filter-chip${(eventFilter || "") === id ? " is-active" : ""}" data-event="${escapeHtml(id)}" aria-pressed="${(eventFilter || "") === id}">${escapeHtml(label)}${n != null ? ` <small>${n}</small>` : ""}</button>`;
+  box.hidden = false;
+  box.innerHTML = chip("", T("All", "అన్నీ"), null) + POOL_MAIN.filter(id => names[id]).map(id => chip(id, T(names[id].en, names[id].te), counts[id])).join("");
+}
+el("mfEventFilter")?.addEventListener("click", e => {
+  const b = e.target.closest("[data-event]");
+  if (!b || !lastData) return;
+  const id = b.getAttribute("data-event") || null;
+  eventFilter = eventFilter === id ? null : id;
+  renderResults(lastData);
+});
+
+function setResultView(view, initial) {
+  resultView = view;
+  try { localStorage.setItem("mh_result_view", view); } catch (e) { /* private mode */ }
+  document.querySelectorAll(".results-view .view-btn").forEach(b => {
+    const on = b.getAttribute("data-view") === view;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-pressed", String(on));
+  });
+  if (!initial && lastData && !lastToolSearch) renderResults(lastData);
+}
+document.querySelectorAll(".results-view .view-btn").forEach(b => b.addEventListener("click", () => setResultView(b.getAttribute("data-view"))));
+setResultView(resultView, true);     // buttons only: no results exist yet at page load
+
 // ---- Main Search ----
 let lastData = null;
 let lastRequest = null;   // the payload of the last search, for "Save" (plan R3)
@@ -604,14 +958,33 @@ let lastToolSearch = null; // { kind: "yogas" | "pitru", request } when those re
 
 async function findMuhurtas() {
   const startDate = el("startDate").value;
-  const days = Math.min(366, Math.max(1, parseInt(el("daysInput").value) || 30));   // up to one year
-  if (!chosenPlace || !startDate) {
+  const days = CHUNK_DAYS;      // the first part of the year; the rest loads as the list scrolls
+  paging = null;
+  bandFilter = null;
+  eventFilter = null;
+  updateMore();
+  if (!chosenPlace || (!startDate && !poolMode)) {
     setStatus(currentLang === "te" ? "దయచేసి తేదీ మరియు ప్రాంతం ఎంచుకోండి." : "Pick a start date and a place first.", true);
     return;
   }
   const lat = chosenPlace.lat, lon = chosenPlace.lon, tz_offset = chosenPlace.tz_offset, place_name = chosenPlace.label;
+  if (poolMode) return runPool({ lat, lon, tz_offset, place_name });
 
   lastToolSearch = null;    // set again once a yoga or shraddha search succeeds
+  if (currentCategory !== "yogas" && !(currentCategory === "pitru" && pitruCalendarOn)) {
+    const missing = missingRequired();
+    if (missing.length) {
+      const go = await AppShell.confirm(
+        T(`These details are not given:\n${missing.map(m => "• " + m.text).join("\n")}\n\nThe checks that need them will be left out of the results.`,
+          `ఈ వివరాలు ఇవ్వలేదు:\n${missing.map(m => "• " + m.text).join("\n")}\n\nవాటి అవసరమైన పరిశీలనలు ఫలితాల్లో ఉండవు.`),
+        { ok: T("Search anyway", "అలాగే శోధించు"), cancel: T("Fill them in", "వివరాలు ఇస్తాను") });
+      if (!go) {
+        const card = document.querySelector(`#mfParticipants .person-card[data-role="${missing[0].role}"]`);
+        if (card) { card.open = true; card.scrollIntoView({ behavior: "smooth", block: "center" }); card.querySelector("select, input")?.focus({ preventScroll: true }); }
+        return;
+      }
+    }
+  }
   if (currentCategory === "yogas") {
     return runYogaSearch({ lat, lon, tz_offset, place_name, startDate, days });
   }
@@ -639,10 +1012,11 @@ async function findMuhurtas() {
       tz_offset: tz_offset,
       place_name: place_name,
       panchaka_method: "standard",
-      strictness: el("mfStrictness")?.value || "strict",
+      strictness: el("mfStrictness")?.value || "lenient",
       rule_variant: el("mfVariantSelect")?.value || null,
       time_preference: el("mfTimePref")?.value || "any",
       participants: collectParticipants(),
+      lunar_months: [...document.querySelectorAll("#mfLunarMonths input:checked")].map(i => Number(i.value)),
     };
 
     // Event details (form groups the rule lists in tab_inputs). People come from the cards above.
@@ -699,12 +1073,10 @@ async function findMuhurtas() {
     } else if (data.windows && data.windows.length > 0) {
       data.results = data.windows;
     }
-    lastData = data;
-
     setTimeout(() => {
       el("progressSection").style.display = "none";
-      renderResults(data);
-      setStatus((data.warnings || []).join(" · "));
+      startPaging(payload, data);
+      setStatus("");      // notes about details not given are asked before the search instead (11 Nov 2026)
     }, 400);
 
   } catch (e) {
@@ -869,55 +1241,88 @@ function renderResults(data) {
   const results = data.results || data.candidates || [];
   const title = currentLang === "te" ? (data.title_te || data.title_en) : data.title_en;
 
-  // Summary
-  const excellent = results.filter(r => (r.percentage || 0) >= 75 || r.verdict === "highly_favorable" || r.verdict === "ఉత్తమ ముహూర్తం").length;
-  const favorable = results.filter(r => (r.percentage || 0) >= 50 && (r.percentage || 0) < 75 || r.verdict === "favorable" || r.verdict === "మధ్యమ ముహూర్తం").length;
-  const unfavorable = results.filter(r => (r.percentage || 0) < 50 || r.verdict === "unfavorable" || r.verdict === "నిషిద్ధం").length;
-  const withMuhurta = results.filter(r => r.pushkara_info && r.pushkara_info.is_available).length;
-
-  el("summaryBar").innerHTML = `
-    <div class="summary-stat">
-      <div class="num num--excellent">${excellent}</div>
-      <div class="label" data-en="Excellent" data-te="ఉత్తమ ముహూర్తములు">${currentLang === "te" ? "ఉత్తమ ముహూర్తములు" : "Excellent"}</div>
-    </div>
-    <div class="summary-stat">
-      <div class="num num--favorable">${favorable}</div>
-      <div class="label" data-en="Medium" data-te="మధ్యమ ముహూర్తములు">${currentLang === "te" ? "మధ్యమ ముహూర్తములు" : "Medium"}</div>
-    </div>
-    <div class="summary-stat">
-      <div class="num num--unfavorable">${unfavorable}</div>
-      <div class="label" data-en="Avoid" data-te="నిషిద్ధములు">${currentLang === "te" ? "నిషిద్ధములు" : "Avoid"}</div>
-    </div>
-    <div class="summary-stat">
-      <div class="num num--muhurta">${results.length}</div>
-      <div class="label" data-en="Total Evaluated" data-te="మొత్తం ముహూర్తములు">${currentLang === "te" ? "మొత్తం ముహూర్తములు" : "Total Evaluated"}</div>
-    </div>
-  `;
+  // Summary boxes double as filters (11 Nov 2026): Excellent >= 75 %, Medium 50-74 %, Avoid < 50 %.
+  const band = r => { const p = r.percentage || 0; return p >= 75 ? "excellent" : p >= 50 ? "medium" : "avoid"; };
+  const count = b => results.filter(r => band(r) === b).length;
+  const tile = (key, n, numCls, en, te) => `
+    <button type="button" class="summary-stat summary-stat--filter${bandFilter === key ? " is-active" : ""}" data-band="${key}"
+            aria-pressed="${bandFilter === key}" title="${escapeHtml(T("Show only these", "ఇవి మాత్రమే చూపించు"))}">
+      <span class="num ${numCls}">${n}</span>
+      <span class="label">${escapeHtml(T(en, te))}</span>
+    </button>`;
+  el("summaryBar").innerHTML =
+    tile("excellent", count("excellent"), "num--excellent", "Excellent", "ఉత్తమ ముహూర్తములు") +
+    tile("medium", count("medium"), "num--favorable", "Medium", "మధ్యమ ముహూర్తములు") +
+    tile("avoid", count("avoid"), "num--unfavorable", "Avoid", "నిషిద్ధములు") +
+    tile("", results.length, "num--muhurta", "All muhurtas", "అన్ని ముహూర్తములు");
 
   // Day cards
   const grid = el("dayGrid");
   grid.innerHTML = "";
+
+  // Minimum score (11 Nov 2026): hide cards below it, but keep each card's index into lastData so
+  // "Full analysis" still opens the right one.
+  const minScore = Number(el("mfMinScore")?.value || 0);
+  const passes = r => (r.percentage || 0) >= minScore && (!bandFilter || band(r) === bandFilter)
+                    && (!eventFilter || (r._event && r._event.id === eventFilter));
+  renderEventFilter(data, results);
+  const shownCount = results.filter(passes).length;
+  const bandName = { excellent: T("Excellent", "ఉత్తమ"), medium: T("Medium", "మధ్యమ"), avoid: T("Avoid", "నిషిద్ధ") }[bandFilter];
+  if (results.length > 0 && shownCount === 0 && bandFilter) {
+    grid.innerHTML = `<div class="empty-state"><p>${escapeHtml(T(
+      `No ${bandName} muhurtas among the ${results.length} loaded so far. Choose "All muhurtas" to see every one.`,
+      `ఇప్పటివరకు లోడ్ అయిన ${results.length} లో ${bandName} ముహూర్తాలు లేవు. అన్నీ చూడటానికి "అన్ని ముహూర్తములు" నొక్కండి.`))}</p></div>`;
+    return;
+  }
+  if (results.length > 0 && shownCount === 0) {
+    const top = Math.max(...results.map(r => r.percentage || 0));
+    grid.innerHTML = `<div class="empty-state"><p>${escapeHtml(T(
+      `${results.length} muhurtas were found, but none reaches ${minScore}%. The best is ${top}%. Lower the minimum score to see them.`,
+      `${results.length} ముహూర్తాలు లభించాయి, కానీ ఏదీ ${minScore}% చేరలేదు. అత్యధికం ${top}%. చూడటానికి కనీస శాతం తగ్గించండి.`))}</p></div>`;
+    return;
+  }
+  if (minScore > 0 || bandFilter) {
+    const what = [bandName, minScore > 0 ? T(`${minScore}% or above`, `${minScore}% పైన`) : ""].filter(Boolean).join(", ");
+    grid.innerHTML = `<p class="results-filter-note">${escapeHtml(T(`Showing ${shownCount} of ${results.length} muhurtas: ${what}.`,
+      `${results.length} లో ${shownCount} ముహూర్తాలు: ${what}.`))}</p>`;
+  }
 
   if (results.length === 0) {
     const reasons = (data.rejection_summary || []).slice(0, 5)
       .map(x => `<li>${escapeHtml(x.reason)} <span class="reject-count">× ${x.count}</span></li>`).join("");
     const strictNote = data.strictness === "strict"
       ? (currentLang === "te"
-        ? "కఠిన నియమంలో మహాదోషం ఉన్న సమయాలు తొలగించబడ్డాయి. 'సడలింపు' ఎంచుకుంటే అవి హెచ్చరికతో కనిపిస్తాయి."
-        : "Strict mode drops windows with a fatal mahadosha. Choose Lenient to see them with warnings.")
+        ? "కఠిన నియమంలో మహాదోషం ఉన్న సమయాలు దాచబడ్డాయి. 'అన్నీ చూపించు' ఎంచుకుంటే అవి సరిపోని మహాదోషంతో, తక్కువ శాతంతో కనిపిస్తాయి."
+        : "Strict mode hides windows with a mahadosha. Choose \"Show all\" to see them with the mahadosha marked and a lower percentage.")
       : "";
     grid.innerHTML = `
       <div class="empty-state">
         <p>${currentLang === "te"
-          ? `ఎంచుకున్న ${data.days_scanned || 30} రోజులలో ఈ కార్యానికి శాస్త్రోక్త ముహూర్తం లభించలేదు. రోజుల సంఖ్య పెంచి మళ్ళీ ప్రయత్నించండి.`
-          : `No muhurta passed the book's rules in the ${data.days_scanned || 30} days scanned. Try a longer range.`}</p>
+          ? (paging && !paging.done ? `మొదటి ${data.days_scanned} రోజుల్లో ముహూర్తం లేదు; ముందుకు వెతుకుతున్నాం…` : `ప్రారంభ తేదీ నుండి ఒక సంవత్సరంలో ఈ కార్యానికి శాస్త్రోక్త ముహూర్తం లభించలేదు. వేరే ప్రారంభ తేదీ ఎంచుకోండి.`)
+          : data.monthRanges ? (data.poolDone ? `No muhurta for this event in the chosen months. Try other months or another year.` : `Nothing yet; looking through the next month…`)
+          : (paging && !paging.done ? `Nothing in the first ${data.days_scanned} days; looking further…` : `No muhurta passed the book's rules within one year of the start date. Try another start date.`)}</p>
         ${reasons ? `<p class="empty-state__label">${currentLang === "te" ? "ఎక్కువగా తిరస్కరించిన కారణాలు:" : "Most common reasons windows were rejected:"}</p><ul class="empty-state__reasons">${reasons}</ul>` : ""}
         ${strictNote ? `<p class="empty-state__note">${strictNote}</p>` : ""}
       </div>`;
     return;
   }
 
+  if (resultView === "compact" || data.allEvents) {
+    renderCompactList(data, results, passes, grid);
+    return;
+  }
+
+  let lastMonthHead = null;
   results.forEach((r, idx) => {
+    if (!passes(r)) return;
+    if (data.monthRanges) {
+      const m = data.monthRanges.find(x => r.date >= x.start && r.date <= x.end);
+      const key = m ? m.start : null;
+      if (m && key !== lastMonthHead) {
+        lastMonthHead = key;
+        grid.insertAdjacentHTML("beforeend", `<h3 class="pool-month">${escapeHtml(T(m.name_en, m.name_te))} <small>${escapeHtml(m.start)} – ${escapeHtml(m.end)}</small></h3>`);
+      }
+    }
     const vaaraTe = VAARA_NAMES[currentLang][r.panchang?.vaara] || r.panchang?.vaara || "—";
     const nakRaw = typeof r.panchang?.nakshatra === 'object' ? r.panchang.nakshatra.name : (r.panchang?.nakshatra || "");
     const nakTe = te(nakRaw, NAKSHATRA_NAMES_TE) || nakRaw || "—";
@@ -933,6 +1338,37 @@ function renderResults(data) {
     const verdictText = currentLang === "te" ?
       (isAvoid ? "నిషిద్ధం" : (isGood ? "ఉత్తమ ముహూర్తం" : "మధ్యమ ముహూర్తం")) :
       (isAvoid ? "Avoid" : (isGood ? "Excellent" : "Medium"));
+    // Amsha of the lagna inside this window (Pushkaramsha / Vargottamamsha / Shubhamsha) and when it starts.
+    const am = r.amsha;
+    const amshaHtml = am && am.type !== "none"
+      ? `<div class="amsha-row"><span class="amsha-badge amsha-badge--${escapeHtml(am.type)}">${escapeHtml(T(am.name_en, am.name_te))}</span>` +
+        `<span class="amsha-row__time">${escapeHtml(T(`best from ${am.at}`, `${am.at} నుండి ఉత్తమం`))}${am.navamsa ? ` · ${escapeHtml(T(am.navamsa + " navamsa", am.navamsa + " నవాంశ"))}` : ""}</span></div>`
+      : "";
+    // Doshapavada (book paras 1972-78): the book's exceptions present in this lagna. "all" ones cancel the
+    // lagna doshas (not mahadoshas); "partial" ones count as a plus.
+    const apv = r.doshapavada || [];
+    const apavadaHtml = apv.length ? `<div class="apavada-row">${apv.map(a =>
+      `<span class="apavada-chip apavada-chip--${a.kind === "all" ? "all" : "partial"}">✓ ${escapeHtml(T(a.en, a.te))}</span>`).join("")}</div>` : "";
+    // Rahu kalam / Yamagandam / Gulika inside the window: information only. Book para 1681: by shastra only
+    // the vara-janita durmuhurtas are followed, so these no longer cut windows or lower the score.
+    const kalas = r.custom_kalas || [];
+    const kalaHtml = kalas.length ? `<div class="custom-kala-note">${escapeHtml(T(
+      `Overlaps ${kalas.map(k => `${k.name} ${k.start}–${k.end}`).join(", ")}: a custom, not shastra (book para 1681), so it is not counted.`,
+      `${kalas.map(k => `${k.name} ${k.start}–${k.end}`).join(", ")} తో కలుస్తుంది: ఇది ఆచారం, శాస్త్రం కాదు (గ్రంథం 1681), కాబట్టి లెక్కించలేదు.`))}</div>` : "";
+    // Age of the child on this date (only when the birth date was given): 0 preferred, 1 "if needed", 2 outside.
+    const ag = r.age;
+    const ageHtml = ag ? `<div class="amsha-row"><span class="bala bala--${ag.tier === 0 ? "ok" : ag.tier === 1 ? "warn" : "bad"}">${
+      ag.tier === 0 ? "✓" : ag.tier === 1 ? "!" : "✕"} ${escapeHtml(T("Age", "వయస్సు"))}: ${escapeHtml(ag.text)}</span></div>` : "";
+    // Each person's tarabala and chandrabala for this window (only when their star was given).
+    const people = (r.detail?.people || []).filter(p => p.tara || p.chandrabala);
+    const personalHtml = people.length ? `<div class="personal-bala">${people.map(p => {
+      const who = p.name || T(String(p.role || "Person"), String(p.role || "వ్యక్తి"));
+      const tara = p.tara ? `<span class="bala bala--${p.tara.is_pass ? "ok" : "bad"}">${p.tara.is_pass ? "✓" : "✕"} ${escapeHtml(T("Tarabala", "తారాబలం"))}: ${escapeHtml(T(p.tara.name, p.tara.name_te || p.tara.name))}</span>` : "";
+      const cb = p.chandrabala ? `<span class="bala bala--${p.chandrabala.is_pass ? "ok" : "bad"}">${p.chandrabala.is_pass ? "✓" : "✕"} ${escapeHtml(T("Chandrabala", "చంద్రబలం"))}${p.chandrabala.house ? ` (${p.chandrabala.house}${T("th", "వ")})` : ""}</span>` : "";
+      return `<div class="personal-bala__row"><strong>${escapeHtml(who)}</strong>${tara}${cb}</div>`;
+    }).join("")}</div>` : "";
+    const mahaCount = r.audit?.mahadosha?.failed || 0;
+    const mahaTag = mahaCount ? ` · ${T(`${mahaCount} mahadosha not matched`, `${mahaCount} మహాదోషం సరిపోలేదు`)}` : "";
 
     const windowTimeStr = r.window_start ? `${r.window_start} – ${r.window_end}` : (r.start_time ? `${r.start_time} – ${r.end_time}` : "");
     const lagnaLabel = currentLang === "te" ? (r.lagna_te || r.lagna_en || "") : (r.lagna_en || "");
@@ -1003,10 +1439,15 @@ function renderResults(data) {
             </div>
           </div>
           <div class="day-right">
-            <span class="verdict-badge ${verdictClass}">${pct}% · ${verdictText}</span>
+            <span class="verdict-badge ${verdictClass}">${pct}% · ${verdictText}${mahaTag}</span>
           </div>
         </div>
+        ${amshaHtml}
+        ${apavadaHtml}
+        ${ageHtml}
+        ${kalaHtml}
         ${pushMini}
+        ${personalHtml}
         ${dotsHtml}
         ${yogasHtml}
         ${reasonsHtml}
@@ -1399,6 +1840,23 @@ function openDayModal(idx) {
     bodyHtml += `</div></div>`;
   }
 
+  // 11b. This event's own chart rules that the window does not meet ("Show all" mode, 11 Nov 2026):
+  // the window is listed, each rule is marked not matched, and the percentage is lower.
+  const ruleMisses = (d?.extra_checks || []).filter(x => String(x.id || "").startsWith("rule_miss_"));
+  if (ruleMisses.length > 0) {
+    bodyHtml += `
+      <div class="dosha-panel dosha-panel--dasha">
+        <div class="dosha-panel__header dosha-panel__header--dasha">
+          <span>${Icon("alert")} ${T("This event's rules not matched", "ఈ కార్యపు నియమాలు సరిపోలనివి")}</span>
+          <span class="dosha-panel__score dosha-panel__score--dasha">${ruleMisses.length}</span>
+        </div>
+        <div class="dosha-panel__body dosha-panel__body--dasha">`;
+    ruleMisses.forEach(m => {
+      bodyHtml += doshaItemHTML(m, T("Not matched", "సరిపోలలేదు"), m.desc_en, "dasha");
+    });
+    bodyHtml += `</div></div>`;
+  }
+
   // 12. Muhurta Dosha Pariharams (ముహూర్తములో దోషాలకు పరిహారములు)
   const pariharas = d?.pariharas;
   if (pariharas && pariharas.length > 0) {
@@ -1463,6 +1921,8 @@ el("mfSearchPlaceBtn").addEventListener("click", findMuhurtas);
 
 populateActivityDropdown();
 el("mfPitruMode")?.addEventListener("change", updatePitruFields);
+// Changing the minimum score redraws the cards already found; no new search is needed.
+el("mfMinScore")?.addEventListener("change", () => { if (lastData && !lastToolSearch) renderResults(lastData); });
 
 // Birth-place lists on the cards need the regions; redraw the cards once both have loaded.
 Promise.all([loadRegions(), loadMuhurtaCatalog(), loadFamily()]).then(() => { updateContextualFields(); applyUrlPrefill(); });
@@ -1691,8 +2151,8 @@ async function openSavedSearch(id) {
     el("mfActivitySelect").value = rule.id;
     updateContextualFields();
     if (req.start_date) el("startDate").value = req.start_date;
-    if (req.days_to_scan) el("daysInput").value = req.days_to_scan;
     if (req.strictness && el("mfStrictness")) el("mfStrictness").value = req.strictness;
+    document.querySelectorAll("#mfLunarMonths input").forEach(i => { i.checked = (req.lunar_months || []).includes(Number(i.value)); });
     if (req.time_preference && el("mfTimePref")) el("mfTimePref").value = req.time_preference;
     if (req.rule_variant && el("mfVariantSelect")) el("mfVariantSelect").value = req.rule_variant;
     if (req.lat != null && req.lon != null) setPlace({ label: req.place_name || "", lat: req.lat, lon: req.lon, tz_offset: req.tz_offset }, false);
@@ -1718,7 +2178,6 @@ async function openSavedToolSearch(d) {
     if (el("mfYogaNak")) el("mfYogaNak").value = req.janma_nak_idx || "";
     if (el("mfYogaRasi")) el("mfYogaRasi").value = req.janma_rasi_idx || "";
     if (req.start_date) el("startDate").value = req.start_date;
-    if (req.days_to_scan) el("daysInput").value = req.days_to_scan;
     setStatus(opened);
     return findMuhurtas();
   }
@@ -1742,14 +2201,17 @@ async function openSavedToolSearch(d) {
 
 // ---- Dosha audit banner (plan B1): "0 of 21 mahadoshas · 0 of 10 dashavidha doshas" ----
 // Green: nothing failed. Amber: a dosha the author's rule excepts (Jupiter in the lagna) or a lesser
-// dosha. Red: a mahadosha (never allowed; shown only in Lenient mode as "why not this date").
+// dosha. Red: a mahadosha did not match (listed with a lower percentage; hidden in Strict mode).
 function auditBannerHTML(a, compact) {
   if (!a) return "";
   const m = a.mahadosha || {}, d = a.dashavidha || {};
   const parts = [];
   if (m.checked) parts.push(T(`${m.failed} of 21 mahadoshas`, `21 మహాదోషాల్లో ${m.failed}`));
   if (d.checked) parts.push(T(`${d.failed} of 10 dashavidha doshas`, `10 దశవిధ దోషాల్లో ${d.failed}`));
-  const head = { green: T("Clean", "శుద్ధం"), amber: T("Clean with exception", "మినహాయింపుతో శుద్ధం"), red: T("Blocked: mahadosha", "నిషిద్ధం: మహాదోషం") }[a.colour] || "";
+  // Red: which mahadosha(s) did not match. The window is still listed, with a lower percentage (11 Nov 2026).
+  const failedNames = T((a.maha_failed_en || []).join(", "), (a.maha_failed_te || []).join(", "));
+  const head = { green: T("Clean", "శుద్ధం"), amber: T("Clean with exception", "మినహాయింపుతో శుద్ధం"),
+                 red: T("Mahadosha not matched", "మహాదోషం సరిపోలేదు") + (failedNames ? ": " + failedNames : "") }[a.colour] || "";
   const exc = (a.excepted || []).length && !compact
     ? `<div class="audit-banner__note">${escapeHtml(T("Excepted because Jupiter is in the muhurta lagna: ", "ముహూర్త లగ్నంలో గురుడు ఉన్నందున మినహాయింపు: ") + a.excepted.join(", "))}</div>` : "";
   const tc = (a.to_confirm || []).length && !compact

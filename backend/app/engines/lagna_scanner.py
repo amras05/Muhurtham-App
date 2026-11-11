@@ -67,6 +67,7 @@ class PlanetPlacement:
     rasi_degree: float     # 0.0 - 30.0
     navamsa_idx: int      # 1-12 sign
     house_num: int        # 1-12 relative to Lagna
+    speed: float = 0.0    # degrees per day; negative = retrograde (11 Nov 2026)
 
 
 @dataclass
@@ -125,6 +126,7 @@ def get_planet_positions(jd_ut: float) -> List[PlanetPlacement]:
                 rasi_degree=rasi_deg,
                 navamsa_idx=nav_idx,
                 house_num=1,  # Calculated when paired with Lagna
+                speed=res[3],
             )
         )
 

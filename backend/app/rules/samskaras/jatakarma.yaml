@@ -18,7 +18,6 @@ hard_filters:
   tithi_exclude: [chaturthi, navami, purnima, amavasya]
   karana_exclude: [bhadra]
   nakshatra_allow: [ashwini, rohini, punarvasu, pushya, uttara_phalguni, hasta, swati, anuradha, uttara_ashadha, shravana, dhanishta, shatabhisha, uttara_bhadrapada]
-  sun_sign_allow: [makara, kumbha, meena, mesha, vrishabha, mithuna]
   not_combust: [jupiter, venus]
   planet_rules:
     - planet: benefic

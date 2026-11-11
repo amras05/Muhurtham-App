@@ -4,22 +4,24 @@ tab: griha
 sub_group: entry
 title_en: "Griha Pravesha (House Warming - New House)"
 title_te: "నూతన గృహప్రవేశము"
-description_en: "Entering a new house: Uttarayana, fixed lagna, Vaishakha, Jyeshtha, Magha or Phalguna."
-description_te: "నూతన గృహప్రవేశం: ఉత్తరాయణం, స్థిర లగ్నం, వైశాఖ/జ్యేష్ఠ/మాఘ/ఫాల్గుణ మాసాలు."
+description_en: "Entering a new house: fixed lagna; not in Ashadha, Bhadrapada, Pushya or Kartari."
+description_te: "నూతన గృహప్రవేశం: స్థిర లగ్నం; ఆషాఢ, భాద్రపద, పుష్య మాసాలు మరియు కర్తరి వర్జ్యం."
 tab_inputs: [griha_owner]
 source:
   part: 6
   section: "గృహప్రవేశము"
   notes: >-
-    Plan M19 21.9. Pushya is medium (lower score). Not yet modelled: tri-tithi days, Mars'
+    Plan M19 21.9. Months: user decision 2026-11-11, only Ashadha, Bhadrapada and Pushya are
+    excluded, plus Kartari (Vaishakha); this replaces the book's four-month list (para 2198) and the
+    Uttarayana-only rule (para 2202). Adhika and shunya masa still apply. Not yet modelled: tri-tithi days, Mars'
     shadvarga, Venus facing the entrant, the janma rashi direction table, Vrishabha and Kalasha
     chakras (awaiting the author's confirmation of their order).
+kartari: all
 hard_filters:
   common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
   vaara_exclude: [sunday, tuesday]
   monday_needs_waxing_moon: true
-  masa_allow: [vaishakha, jyeshtha, magha, phalguna]
-  sun_sign_allow: [makara, kumbha, meena, mesha, vrishabha, mithuna]
+  masa_exclude: [ashadha, bhadrapada, pushya]
   tithi_exclude: [rikta, shashti, krishna_ashtami, krishna_ekadashi, krishna_dwadashi, krishna_trayodashi, amavasya, shukla_pratipada]
   exclude_dagdha_tithi: true
   exclude_periods: [pradosha]

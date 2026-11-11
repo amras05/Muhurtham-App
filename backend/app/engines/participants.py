@@ -47,7 +47,8 @@ ROLES: Dict[str, Dict[str, Any]] = {
 }
 
 # Default participants per tab (rule files may override with `participants:`).
-#   level L1 = always asked; L2 = optional, folded ("personal strength")
+#   level L1 = always asked; L1o = recommended: shown open but optional (11 Nov 2026, e.g. the
+#   father at upanayana); L2 = optional, folded ("personal strength")
 #   star_basis: janma (tarabala from the birth star) or nama (house/business rules use the name star)
 #   fields: extra fields on the card besides the star widget
 def _p(role, level="L2", primary=False, star_basis="janma", fields=None):
@@ -56,7 +57,7 @@ def _p(role, level="L2", primary=False, star_basis="janma", fields=None):
 
 TAB_PARTICIPANTS: Dict[str, List[Dict[str, Any]]] = {
     "vivaha":      [_p("groom", "L1", True, fields=["eldest"]), _p("bride", "L1", fields=["eldest"])],
-    "upanayana":   [_p("vatu", "L1", True, fields=["birth_date"]), _p("father"), _p("mother"), _p("guru")],
+    "upanayana":   [_p("vatu", "L1", True, fields=["birth_date"]), _p("father", "L1o"), _p("mother"), _p("guru")],
     "vidya":       [_p("student", "L1", True)],
     "griha":       [_p("owner", "L1", True, "nama"), _p("spouse", "L2", False, "nama")],
     "garbha":      [_p("wife", "L1", True), _p("husband")],

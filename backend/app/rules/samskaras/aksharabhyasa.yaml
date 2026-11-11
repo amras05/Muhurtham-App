@@ -3,8 +3,8 @@ category: samskaras
 tab: vidya
 title_en: "Aksharabhyasa"
 title_te: "అక్షరాభ్యాసము"
-description_en: "In the 5th year, daytime, Uttarayana."
-description_te: "5వ సంవత్సరంలో, పగలు, ఉత్తరాయణం."
+description_en: "In the 5th year, daytime."
+description_te: "5వ సంవత్సరంలో, పగలు."
 tab_inputs: [samskara_child]
 source:
   part: 5
@@ -17,7 +17,6 @@ hard_filters:
   tithi_exclude: [pratipada, rikta, ashtami, amavasya]
   karana_exclude: [bhadra]
   nakshatra_allow: [anuradha, revati, ashwini, hasta, chitra, swati, punarvasu, pushya, shravana]
-  sun_sign_allow: [makara, kumbha, meena, mesha, vrishabha, mithuna]
   sun_sign_exclude: [mithuna, kanya, dhanus, meena]
   house_rules:
     - house: 8

@@ -9,9 +9,9 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261110e">
+  <link rel="stylesheet" href="css/common.css?v=20261111">
   <link rel="stylesheet" href="css/components.css?v=20261110e">
-  <link rel="stylesheet" href="css/muhurta-finder.css?v=20261110b">
+  <link rel="stylesheet" href="css/muhurta-finder.css?v=20261111h">
 </head>
 
 <body>
@@ -36,6 +36,13 @@
       </p>
     </header>
 
+    <!-- Two ways to search (11 Nov 2026): for a person, or the muhurtas of an event by lunar month -->
+    <div class="finder-modes" role="tablist" aria-label="How to search">
+      <button type="button" role="tab" class="finder-mode active" id="mfModePerson" aria-selected="true" data-en="Find for a person" data-te="వ్యక్తి కోసం ముహూర్తం">Find for a person</button>
+      <button type="button" role="tab" class="finder-mode" id="mfModePool" aria-selected="false" data-en="Muhurtas by month" data-te="మాసాల వారీ ముహూర్తాలు">Muhurtas by month</button>
+    </div>
+    <p class="pool-intro" id="mfPoolIntro" hidden data-en="Choose an event, a year and the lunar months: every suitable muhurta is listed month by month. No personal details are needed." data-te="కార్యం, సంవత్సరం, చాంద్రమాన మాసాలు ఎంచుకోండి: అనువైన ముహూర్తాలన్నీ మాసాల వారీగా చూపిస్తాము. వ్యక్తిగత వివరాలు అవసరం లేదు.">Choose an event, a year and the lunar months: every suitable muhurta is listed month by month. No personal details are needed.</p>
+
     <!-- Category tabs (built from /muhurta/catalog) -->
     <div class="tab-container" id="mfCategoryTabs" role="tablist" aria-label="Muhurta categories"></div>
 
@@ -47,6 +54,14 @@
           <option value="">Loading activities...</option>
         </select>
         <small id="mfEventDesc" class="event-desc"></small>
+      </div>
+      <div class="field field--pool" hidden>
+        <label for="mfPoolEvent" data-en="Event" data-te="కార్యం">Event</label>
+        <select id="mfPoolEvent"></select>
+      </div>
+      <div class="field field--pool" hidden>
+        <label for="mfPoolYear" data-en="Year (from Ugadi)" data-te="సంవత్సరం (ఉగాది నుండి)">Year (from Ugadi)</label>
+        <select id="mfPoolYear"></select>
       </div>
       <div class="field field--variant" id="mfVariantField" hidden>
         <label for="mfVariantSelect" data-en="Rule list" data-te="నియమ జాబితా">Rule list</label>
@@ -66,15 +81,11 @@
         <small id="mfPlaceNote" class="place-search__note"></small>
         <select id="mfRegionSelect" hidden aria-hidden="true"></select>
       </div>
-      <div class="field field--days">
-        <label for="daysInput" data-en="Days to Scan" data-te="శోధన రోజులు">Days to Scan</label>
-        <input type="number" id="daysInput" value="30" min="1" max="366" title="Up to one year (366 days)">
-      </div>
       <div class="field field--strictness">
         <label for="mfStrictness" data-en="Strictness" data-te="నియమ కఠినత">Strictness</label>
         <select id="mfStrictness">
-          <option value="strict" data-en="Strict: drop windows with a fatal mahadosha" data-te="కఠినం: మహాదోషం ఉన్న సమయాలు తొలగించు">Strict: drop windows with a fatal mahadosha</option>
-          <option value="lenient" data-en="Lenient: keep them with a warning" data-te="సడలింపు: హెచ్చరికతో చూపించు">Lenient: keep them with a warning</option>
+          <option value="lenient" selected data-en="Show all: mark mahadoshas not matched, lower %" data-te="అన్నీ చూపించు: సరిపోని మహాదోషాలు గుర్తించి % తగ్గించు">Show all: mark mahadoshas not matched, lower %</option>
+          <option value="strict" data-en="Strict: hide windows with a mahadosha" data-te="కఠినం: మహాదోషం ఉన్న సమయాలు దాచు">Strict: hide windows with a mahadosha</option>
         </select>
       </div>
       <div class="field field--timepref">
@@ -94,6 +105,33 @@
           <option value="purnimanta" data-en="Purnimanta" data-te="పూర్ణిమాంత">Purnimanta</option>
         </select>
       </div>
+      <div class="field field--minscore">
+        <label for="mfMinScore" data-en="Minimum score" data-te="కనీస శాతం">Minimum score</label>
+        <select id="mfMinScore">
+          <option value="0" data-en="Show every score" data-te="అన్ని శాతాలు చూపించు">Show every score</option>
+          <option value="50" data-en="50% and above" data-te="50% పైన">50% and above</option>
+          <option value="70" data-en="70% and above (good)" data-te="70% పైన (మంచివి)">70% and above (good)</option>
+          <option value="85" data-en="85% and above (best)" data-te="85% పైన (ఉత్తమం)">85% and above (best)</option>
+        </select>
+      </div>
+      <fieldset class="lunar-months" id="mfLunarMonths">
+        <legend data-en="Only these lunar months (optional)" data-te="ఈ చాంద్రమాన మాసాలు మాత్రమే (ఐచ్ఛికం)">Only these lunar months (optional)</legend>
+        <div class="lunar-months__chips">
+          <label><input type="checkbox" value="1"> <span data-en="Chaitra" data-te="చైత్రం">Chaitra</span></label>
+          <label><input type="checkbox" value="2"> <span data-en="Vaishakha" data-te="వైశాఖం">Vaishakha</span></label>
+          <label><input type="checkbox" value="3"> <span data-en="Jyeshtha" data-te="జ్యేష్ఠం">Jyeshtha</span></label>
+          <label><input type="checkbox" value="4"> <span data-en="Ashadha" data-te="ఆషాఢం">Ashadha</span></label>
+          <label><input type="checkbox" value="5"> <span data-en="Shravana" data-te="శ్రావణం">Shravana</span></label>
+          <label><input type="checkbox" value="6"> <span data-en="Bhadrapada" data-te="భాద్రపదం">Bhadrapada</span></label>
+          <label><input type="checkbox" value="7"> <span data-en="Ashwayuja" data-te="ఆశ్వయుజం">Ashwayuja</span></label>
+          <label><input type="checkbox" value="8"> <span data-en="Kartika" data-te="కార్తీకం">Kartika</span></label>
+          <label><input type="checkbox" value="9"> <span data-en="Margashira" data-te="మార్గశిరం">Margashira</span></label>
+          <label><input type="checkbox" value="10"> <span data-en="Pushya" data-te="పుష్యం">Pushya</span></label>
+          <label><input type="checkbox" value="11"> <span data-en="Magha" data-te="మాఘం">Magha</span></label>
+          <label><input type="checkbox" value="12"> <span data-en="Phalguna" data-te="ఫాల్గుణం">Phalguna</span></label>
+        </div>
+        <small class="lunar-months__hint" data-en="None ticked: every month. Months are amanta. Results cover one year from the start date." data-te="ఏదీ ఎంచుకోకపోతే: అన్ని మాసాలు. మాసాలు అమాంత పద్ధతి. ఫలితాలు ప్రారంభ తేదీ నుండి ఒక సంవత్సరం.">None ticked: every month. Months are amanta. Results cover one year from the start date.</small>
+      </fieldset>
       <div id="mfInfoBanner" class="info-banner" role="note" hidden></div>
 
       <!-- People taking part (built per event from the catalog) -->
@@ -371,7 +409,7 @@
         </div>
       </div>
 
-      <button id="findBtn" data-en="Scan 30 Days for Muhurtas" data-te="30 రోజుల ముహూర్త శోధన">Scan 30 Days for Muhurtas</button>
+      <button id="findBtn" data-en="Find muhurtas" data-te="ముహూర్తాలు వెతుకు">Find muhurtas</button>
     </div>
 
     <!-- Progress -->
@@ -388,11 +426,20 @@
         <button type="button" class="btn btn--sm btn--ghost" onclick="saveSearch(this, false)"><span data-en="Save this search" data-te="ఈ శోధన భద్రపరచండి">Save this search</span></button>
         <button type="button" class="btn btn--sm btn--ghost" onclick="downloadListPdf(this)"><span data-en="Download PDF" data-te="PDF డౌన్‌లోడ్">Download PDF</span></button>
       </div>
+      <!-- Cards or one line per muhurta (11 Nov 2026) -->
+      <div class="results-view no-print" role="group" aria-label="Result layout">
+        <button type="button" class="view-btn active" data-view="cards" aria-pressed="true" data-en="Cards" data-te="కార్డులు">Cards</button>
+        <button type="button" class="view-btn" data-view="compact" aria-pressed="false" data-en="Compact list" data-te="సంక్షిప్త జాబితా">Compact list</button>
+      </div>
+      <!-- Ceremony chips, for "All main ceremonies" by month -->
+      <div class="event-filter no-print" id="mfEventFilter" role="group" aria-label="Ceremony" hidden></div>
       <!-- Summary Bar -->
       <div class="summary-bar" id="summaryBar"></div>
 
       <!-- Day Cards -->
       <div class="day-grid" id="dayGrid"></div>
+      <!-- One year from the start date, loaded 60 days at a time as the list scrolls (11 Nov 2026) -->
+      <div class="load-more" id="mfMore" aria-live="polite" hidden></div>
     </div>
   </div>
   </main>
@@ -422,7 +469,7 @@
   <script src="js/regions.js"></script>
   <script src="js/pdf-download.js?v=20261110b"></script>
   <script src="js/stars.js"></script>
-  <script src="js/finder.js?v=20261110c"></script>
+  <script src="js/finder.js?v=20261111n"></script>
 </body>
 
 </html>
