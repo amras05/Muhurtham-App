@@ -110,14 +110,17 @@ window.Auth = (function () {
 
   // Header links for this role (the server enforces the same rules).
   var NAV = [
-    // Panchang first: it is the users' landing page (13 Nov 2026).
+    // The Stitch design's five items (19 Nov 2026); Today's Panchang is the users' landing page.
     { href: "panchang-lookup.html", en: "Today's Panchang", te: "నేటి పంచాంగం" },
-    { href: "panchang-month.html", en: "Monthly Panchang", te: "మాస పంచాంగం" },
-    { href: "home.html", en: "Home", te: "హోమ్", roles: ["user"] },
+    { href: "muhurta-finder.html", en: "Muhurta Darshini", te: "ముహూర్త దర్శిని" },
+    { href: "muhurtas.html", en: "All muhurtas", te: "అన్ని ముహూర్తాలు" },
+    { href: "muhurta-finder.html#parishilana", en: "Muhurta Parishilana", te: "ముహూర్త పరిశీలన" },
+    { href: "family.html", en: "Family vault & settings", te: "కుటుంబ ఖజానా & సెట్టింగ్స్" },
     { href: "admin.html", en: "Dashboard", te: "డాష్‌బోర్డ్", roles: ["admin", "super_admin"] },
-    { href: "muhurta-finder.html", en: "Muhurta Finder", te: "ముహూర్త శోధన" },
-    { href: "family.html", en: "My family", te: "నా కుటుంబం" },
-    { href: "saved.html", en: "My muhurtas", te: "నా ముహూర్తాలు" },
+    // Reachable from the pages above; hidden from the menu unless Settings › Menu shows them.
+    { href: "panchang-month.html", en: "Monthly Panchang", te: "మాస పంచాంగం", show: false },
+    { href: "home.html", en: "Home", te: "హోమ్", roles: ["user"], show: false },
+    { href: "saved.html", en: "My muhurtas", te: "నా ముహూర్తాలు", show: false },
     // group "admin": shown together under one "Admin" menu (Experience Plan U1)
     { href: "admin-users.html", perm: "users.view", en: "Users", te: "వినియోగదారులు", roles: ["admin", "super_admin"], group: "admin" },
     { href: "admin-content.html", perm: "content.edit", en: "Content", te: "విషయాలు", roles: ["admin", "super_admin"], group: "admin" },
@@ -125,13 +128,14 @@ window.Auth = (function () {
     { href: "admin-stats.html", perm: "system.view", en: "Statistics", te: "గణాంకాలు", roles: ["super_admin"], group: "admin" },
     { href: "admin-settings.html", en: "Settings", te: "సెట్టింగులు", roles: ["super_admin"], group: "admin" },
   ];
-  var BUILT = ["saved.html", "family.html", "home.html", "admin.html", "panchang-lookup.html", "panchang-month.html", "muhurta-finder.html", "admin-users.html", "admin-content.html", "admin-muhurtas.html", "admin-stats.html", "admin-settings.html"];   // add admin pages as they are built
+  var BUILT = ["saved.html", "family.html", "home.html", "admin.html", "panchang-lookup.html", "panchang-month.html", "muhurta-finder.html",
+               "muhurtas.html", "muhurta-finder.html#parishilana", "admin-users.html", "admin-content.html", "admin-muhurtas.html", "admin-stats.html", "admin-settings.html"];   // add admin pages as they are built
 
   // The super admin's menu settings (order, shown, names; plan D4) laid over NAV. Who may see a page
   // (roles) stays in NAV and on the server.
   function navItems() {
     var cfg = window.SiteConfig && SiteConfig.data && SiteConfig.data.nav;
-    if (!cfg || !cfg.items) return NAV;
+    if (!cfg || !cfg.items) return NAV.filter(function (n) { return n.show !== false; });
     var byHref = {};
     NAV.forEach(function (n) { byHref[n.href] = n; });
     var out = [];
@@ -139,10 +143,10 @@ window.Auth = (function () {
       var n = byHref[c.href];
       if (!n) return;
       if (c.show === false && n.href !== "admin-settings.html") return;
-      out.push(Object.assign({}, n, { en: c.en || n.en, te: c.te || n.te }));
+      out.push(Object.assign({}, n, { en: c.en || n.en, te: c.te || n.te, show: true }));
       delete byHref[c.href];
     });
-    Object.keys(byHref).forEach(function (h) { out.push(byHref[h]); });   // pages added to the code later
+    Object.keys(byHref).forEach(function (h) { if (byHref[h].show !== false) out.push(byHref[h]); });   // pages added to the code later
     return out;
   }
   // Admin pages also follow the admin's powers (plan D10); the server checks the same permissions.
@@ -151,6 +155,7 @@ window.Auth = (function () {
     return !Array.isArray(perms) || perms.indexOf(p) !== -1;
   }
   if (window.SiteConfig) SiteConfig.onChange(function () { if (currentUser) renderNav(); });
+  window.addEventListener("hashchange", function () { if (currentUser) renderNav(); });
 
   function renderNav() {
     var links = document.querySelector(".app-shell__nav .app-shell__links");
@@ -162,7 +167,9 @@ window.Auth = (function () {
     });
     var link = function (cls) {
       return function (n) {
-        return '<a class="' + cls + '" href="' + n.href + '"' + (n.href === here ? ' aria-current="page"' : "") + ">" + esc(tr(n.en, n.te)) + "</a>";
+        var hash = window.location.hash || "";
+        var isHere = n.href.indexOf("#") !== -1 ? n.href === here + hash : (n.href === here && hash !== "#parishilana");
+        return '<a class="' + cls + '" href="' + n.href + '"' + (isHere ? ' aria-current="page"' : "") + ">" + esc(tr(n.en, n.te)) + "</a>";
       };
     };
     var admin = allowed.filter(function (n) { return n.group === "admin"; });

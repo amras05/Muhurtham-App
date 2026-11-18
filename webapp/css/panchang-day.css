@@ -300,3 +300,131 @@
 /* Monthly Panchang page (13 Nov 2026): title above the fields; "Back to the calendar" above a picked day. */
 .pm-title { margin: 0 0 var(--space-4); }
 .pm-dayhead { margin: var(--space-4) 0 0; }
+
+/* ============================================================
+   Stitch "desktop_panchangam" design (19 Nov 2026). Overrides the rules above where they differ:
+   a header row on the page (no card), white status cards with a coloured left edge, compact
+   anga rows, a 2x2 Sun/Moon grid, the five-panchaka card, a 4-column rashi grid, one-line lagnas.
+   ============================================================ */
+.pd { gap: var(--space-6); }
+.pd-hero { background: transparent; box-shadow: none; padding: 0; overflow: visible; gap: var(--space-4); }
+.pd-hero::before, .pd-hero::after { display: none; }
+
+/* Header row */
+.pd-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-4); flex-wrap: wrap; }
+.pd-head__left { display: grid; gap: 6px; min-width: 0; }
+.pd-head__line { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
+.pd-head h1 { margin: 0; font-size: 26px; line-height: 1.3; color: var(--color-primary-strong); }
+.pd-head h1 span { font-size: 18px; font-weight: 600; color: var(--color-text-muted); }
+.pd-badge { background: var(--color-gold-soft); color: #241a00; }
+.pd-ribbon { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: var(--radius-pill); background: var(--color-surface-muted);
+  font-size: 13px; font-weight: 500; color: var(--color-text-muted); flex-wrap: wrap; }
+.pd-ribbon svg { color: var(--color-accent); }
+.pd-head__sub { margin: 0; font-size: 14px; color: var(--color-text-muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.pd-head__place { display: inline-flex; align-items: center; gap: 4px; color: var(--color-accent); font-weight: 600; }
+.pd-head__place a { color: var(--color-primary-strong); }
+.pd-head__right { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.pd-datenav__today { background: var(--color-primary-strong); color: var(--color-on-strong); }
+.pd-datenav__today svg { color: var(--color-gold-soft); }
+.pd-datenav__btn { min-width: 40px; font-size: 18px; }
+.pd-head__cal { display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; border-radius: 12px; background: var(--color-surface);
+  border: 1px solid var(--color-border); color: var(--color-primary-strong); font-weight: 600; text-decoration: none; box-shadow: var(--shadow-sm); }
+.pd-head__cal:hover { border-color: var(--color-primary); }
+
+/* Status cards */
+.pd-tiles { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); }
+.pd-tile { display: grid; gap: 6px; align-content: start; padding: 16px 18px; border-radius: 16px; background: var(--color-surface);
+  border: 1px solid var(--color-border); border-left: 4px solid var(--color-primary); box-shadow: var(--shadow-sm); }
+.pd-tile--bad { border-left-color: var(--color-danger); }
+.pd-tile--gold, .pd-tile--warn { border-left-color: var(--color-gold); }
+.pd-tile--neutral { border-left-color: var(--color-border-strong); }
+.pd-tile--now { box-shadow: var(--shadow-sm), inset 0 0 0 2px var(--color-tertiary); }
+.pd-tile__top { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); }
+.pd-tile__label { font-size: 12px; font-weight: 600; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 6px; }
+.pd-tile__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-primary); }
+.pd-tile--bad .pd-tile__dot { background: var(--color-danger); }
+.pd-tile--gold .pd-tile__dot, .pd-tile--warn .pd-tile__dot { background: var(--color-gold); }
+.pd-tile__icon { width: 36px; height: 36px; font-size: 18px; border-radius: 50%; }
+.pd-tile__big { font-family: var(--font-serif); font-size: 22px; font-weight: 700; line-height: 1.25; color: var(--color-primary-strong); }
+.pd-tile--bad .pd-tile__big { color: var(--color-danger); }
+.pd-tile--gold .pd-tile__big { color: var(--color-accent); }
+.pd-tile--neutral .pd-tile__big { color: var(--color-text); }
+.pd-tile__lines { display: grid; gap: 2px; font-size: 13px; color: var(--color-text-muted); }
+.pd-tile__lines small { font-size: 12px; font-weight: 600; }
+.pd-tile--now .pd-tile__lines small { color: var(--color-tertiary); }
+.pd-tile__chips { display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap; }
+.pd-tiles .pd-tile:has(.pd-livedot) .pd-tile__top { padding-right: 60px; }
+.pd-livedot { top: 14px; right: 14px; }
+
+/* Card titles */
+.pd-card__title { font-size: 18px; }
+.pd-square { width: 10px; height: 10px; border-radius: 2px; background: var(--color-accent); display: inline-block; }
+.pd-card__icon { color: var(--color-accent); font-size: 20px; }
+
+/* Five angas */
+.pd-angas { padding: var(--space-6) 20px; gap: var(--space-4); overflow: visible; }
+.pd-angas__list { padding: 0; gap: 10px; }
+.pd-anga { padding: 12px 14px; gap: 6px; border: 1px solid var(--color-border); background: var(--color-surface-muted); }
+.pd-anga__label { font-size: 12px; color: var(--color-accent); }
+.pd-anga__main { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); flex-wrap: wrap; }
+.pd-anga__main h3 { font-size: 20px; }
+.pd-anga__until { font-size: 13px; font-weight: 600; color: var(--color-text); }
+.pd-anga__sub { font-size: 12px; color: var(--color-text-muted); }
+.pd-pada { gap: 1px; padding: 6px 4px; background: var(--color-surface); border: 1px solid var(--color-border); }
+.pd-pada span { font-size: 11px; font-weight: 600; color: var(--color-text); }
+.pd-pada--now span, .pd-pada--now strong { color: var(--color-on-strong); }
+.pd-pada--past { text-decoration: none; }
+
+/* Sun and Moon */
+.pd-lum-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pd-lum { gap: 2px; padding: 12px; border: 1px solid var(--color-border); }
+.pd-lum__label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--color-accent); }
+.pd-lum strong { font-family: var(--font-serif); font-size: 20px; color: var(--color-primary-strong); }
+.pd-lum small { font-size: 11.5px; color: var(--color-text-muted); }
+.pd-lum__foot { display: flex; justify-content: space-between; gap: var(--space-2); flex-wrap: wrap; padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border); font-size: 12px; color: var(--color-text-muted); }
+
+/* Good / bad lists: label and time on one line, wrapping when narrow */
+.pd-time { display: flex; justify-content: space-between; align-items: baseline; gap: 4px 10px; flex-wrap: wrap; padding: 6px 2px;
+  background: transparent; border-bottom: 1px dashed var(--color-border); border-radius: 0; }
+.pd-time:last-child { border-bottom: 0; }
+.pd-times__col { padding: 12px 14px; gap: 2px; border: 1px solid var(--color-border); }
+.pd-times__col h3 { font-family: var(--font-sans); font-size: 13px; }
+.pd-time strong { font-size: 14px; }
+
+/* Five panchakas */
+.pd-pan { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.pd-pan__box { display: grid; gap: 4px; justify-items: center; text-align: center; padding: 10px 6px; border-radius: 10px;
+  background: var(--color-surface-muted); border: 1px solid var(--color-border); font-size: 12px; color: var(--color-text-muted); }
+.pd-pan__box strong { color: var(--color-success); font-size: 12px; }
+.pd-pan__box.is-hit { background: var(--color-danger-bg); border-color: var(--color-danger-border); }
+.pd-pan__box.is-hit strong { color: var(--color-danger); }
+
+/* 12 rashis, four to a row */
+.pd-rasis { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.pd-rasi { padding: 10px 6px; border: 1px solid var(--color-border); gap: 3px; }
+.pd-rasi__pos { font-size: 11.5px; font-weight: 600; color: var(--color-accent); }
+.pd-rasi--ashtama .pd-rasi__pos, .pd-rasi--bad .pd-rasi__pos { color: var(--color-danger); }
+.pd-rasi small { justify-self: center; padding: 1px 8px; border-radius: var(--radius-pill); background: var(--color-surface); }
+.pd-rasi[aria-pressed="true"] .pd-rasi__pos { color: var(--color-gold-soft); }
+
+/* Lagnas: one line each */
+.pd-lagna { padding: 10px 12px; border: 1px solid var(--color-border); }
+.pd-lagna strong { font-family: var(--font-serif); font-size: 15px; }
+.pd-lagna span { font-size: 13px; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.pd-lagna--current { border-color: var(--color-primary-strong); }
+.pd-lagna--current span { color: var(--color-gold-soft); font-weight: 600; }
+
+/* Do's and don'ts with ✓ / ✕ */
+.pd-do::before { content: "✓"; width: auto; height: auto; border-radius: 0; background: none; color: var(--color-primary); font-weight: 700; transform: none; }
+.pd-do--bad::before { content: "✕"; color: var(--color-danger); }
+.pd-do { color: var(--color-text); }
+
+/* Bottom bar */
+.pd-cta { border-radius: 16px; }
+.pd-cta__actions { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
+.pd-cta__btn { background: var(--color-primary-strong); color: var(--color-on-strong); box-shadow: var(--shadow-md); }
+
+/* Columns: 4 / 5 / 3 as drawn; two columns, then one, when narrower */
+@media (max-width: 1240px) { .pd-rasis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .pd-pan { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .pd-head h1 { font-size: 22px; } .pd-rasis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pd-pan { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

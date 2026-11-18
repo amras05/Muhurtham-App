@@ -145,6 +145,9 @@ const PD_VAARA = {
                       "నీలి కాటుక వంటి కాంతి కలవాడు, సూర్యపుత్రుడు, యముని అన్న, ఛాయా సూర్యులకు జన్మించిన శనైశ్చరునికి నమస్కారం."] },
 };
 // The nine traditionally inauspicious yogas, by index (1 = Vishkambha … 27 = Vaidhriti).
+// Lord of each sign, Mesha first (for "lagna lord" on the lagna card).
+const PD_SIGN_LORD = [["Mars", "కుజుడు"], ["Venus", "శుక్రుడు"], ["Mercury", "బుధుడు"], ["Moon", "చంద్రుడు"], ["Sun", "సూర్యుడు"], ["Mercury", "బుధుడు"],
+  ["Venus", "శుక్రుడు"], ["Mars", "కుజుడు"], ["Jupiter", "గురుడు"], ["Saturn", "శని"], ["Saturn", "శని"], ["Jupiter", "గురుడు"]];
 const PD_BAD_YOGAS = new Set([1, 6, 9, 10, 13, 15, 17, 19, 27]);
 // Chandrabalam by the Moon's house from a rashi: the same rule as compute_chandrabalam on the server.
 const PD_CB = { good: [1, 3, 6, 7, 10, 11], moderate: [2, 5, 9], ashtama: [8] };
@@ -318,6 +321,12 @@ function pdStartTicker() {
   }, pdRefreshMs());
 }
 
+// 1st, 2nd, 3rd, 4th … 11th, 12th
+function pdOrd(n) {
+  const k = n % 100;
+  return n + (k >= 11 && k <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th"));
+}
+
 function pdRasiName(idx) {
   return idx ? (RASI_NAMES[currentLang] || RASI_NAMES.en)[idx - 1] : "—";
 }
@@ -338,6 +347,7 @@ function render(data) {
   el("pdAngas").innerHTML = pdAngas(ctx);
   el("pdLuminaries").innerHTML = pdLuminaries(ctx);
   el("pdTimes").innerHTML = pdTimes(ctx);
+  if (el("pdPanchaka")) el("pdPanchaka").innerHTML = pdPanchaka(ctx);
   el("pdChandrabalam").innerHTML = pdChandrabalam(ctx);
   el("pdLagnas").innerHTML = pdLagnas(ctx);
   el("pdDos").innerHTML = pdDos(ctx);
@@ -370,6 +380,7 @@ function pdApplySections() {
   show(document.querySelector("#pdTimes .pd-timeline"), on("timeline"));
   show(document.querySelector("#pdTimes .pd-times"), on("times"));
   show(document.querySelector("#pdTimes .pd-minis"), on("yogas_panchaka"));
+  show(el("pdPanchaka"), on("yogas_panchaka"));
   show(el("pdChandrabalam"), on("chandrabalam"));
   show(el("pdLagnas"), on("lagnas"));
   show(el("pdDos"), on("dos"));
@@ -400,58 +411,64 @@ function pdHero({ p, isToday, nowMins, cur, live }) {
     cm.samvatsara_name ? T(`${cm.samvatsara_name} nama samvatsara`, `శ్రీ ${cm.samvatsara_telugu || cm.samvatsara_name} నామ సంవత్సరం`) : null,
     T(cm.ayanam_en, cm.ayanam_te), T(cm.ruthu_en, cm.ruthu_te),
     masa ? masa + (cm.is_adhika_masa ? ` (${T("Adhika", "అధిక")})` : "") : null,
-    T(cm.paksha_en ? `${cm.paksha_en} paksha` : "", cm.paksha_te),
   ].filter(Boolean);
 
-  // Lagna tile: the lagna running now (today) or at sunrise (any other day).
+  // Lagna card: the lagna running now (today) or at sunrise (any other day).
   const ls = p.lagna_schedule || [];
   let lagna = ls[0], lagnaLabel = T("Lagna at sunrise", "సూర్యోదయ లగ్నం");
   if (isToday) {
-    const cur = ls.find(l => pdMins(l.start_time) <= nowMins && nowMins < pdMins(l.end_time));
-    if (cur) { lagna = cur; lagnaLabel = T("Current lagna", "ప్రస్తుత లగ్నం"); }
+    const now = ls.find(l => pdMins(l.start_time) <= nowMins && nowMins < pdMins(l.end_time));
+    if (now) { lagna = now; lagnaLabel = T("Current lagna", "ప్రస్తుత లగ్నం"); }
   }
-  const lagnaText = lagna ? `${T(lagna.lagna_name, lagna.lagna_name_te)} (${pdTime(lagna.start_time)} – ${pdTime(lagna.end_time)})` : "—";
   const amrit = (p.amrit_kalam || [])[0];
   const abh = p.abhijit_kala_muhurtham;
   const abhClean = abh && abh.status === "auspicious";
-
   const running = (o) => isToday && pdIn(o, nowMins);
-  const nowChip = `<span class="pd-chip pd-chip--live">${T("Now", "ఇప్పుడు")}</span>`;
-  const tile = (icon, mod, label, chip, value, isNow) => `
-    <div class="pd-tile pd-tile--${mod}${isNow ? " pd-tile--now" : ""}">
-      <span class="pd-tile__icon">${Icon(icon)}</span>
-      <div class="pd-tile__body">
-        <div class="pd-tile__label">${label}${chip ? ` <span class="pd-chip pd-chip--${mod}">${chip}</span>` : ""}${isNow ? " " + nowChip : ""}</div>
-        <div class="pd-tile__value">${value}</div>
-      </div>
-    </div>`;
 
+  // One status card (Stitch design): label with a dot and an icon on top, the big value, lines, a chip.
+  const tile = (icon, mod, label, big, lines, chip, isNow) => `
+    <div class="pd-tile pd-tile--${mod}${isNow ? " pd-tile--now" : ""}">
+      <div class="pd-tile__top"><span class="pd-tile__label"><span class="pd-tile__dot"></span>${label}</span><span class="pd-tile__icon">${Icon(icon)}</span></div>
+      <div class="pd-tile__big">${big}</div>
+      ${lines ? `<div class="pd-tile__lines">${lines}</div>` : ""}
+      ${chip || isNow ? `<div class="pd-tile__chips">${isNow ? `<span class="pd-chip pd-chip--live">${T("Now", "ఇప్పుడు")}</span>` : ""}${chip ? `<span class="pd-chip pd-chip--${mod === "bad" ? "bad" : mod === "gold" ? "gold" : "good"}">${chip}</span>` : ""}</div>` : ""}
+    </div>`;
+  const lagnaLord = lagna ? PD_SIGN_LORD[(lagna.lagna_index || lagna.rasi_index || 1) - 1] : null;
+  const lagnaCard = lagna ? tile("sparkle", "good", lagnaLabel, esc(T(lagna.lagna_name, lagna.lagna_name_te)),
+    `<span>${pdTime(lagna.start_time)} – ${pdTime(lagna.end_time)}</span>` +
+    (lagnaLord ? `<small>${T("Lagna lord", "లగ్నాధిపతి")}: ${T(lagnaLord[0], lagnaLord[1])}</small>` : ""), "", false) : "";
+
+  const place = esc(p.place || "");
   return `
-    <div class="pd-hero__top">
-      <div class="pd-hero__title">
-        <div class="pd-hero__badges">
-          <span class="pd-badge">${isToday ? T("Today's Drik panchangam", "నేటి దృక్సిద్ధాంత పంచాంగం") : T("Drik panchangam", "దృక్సిద్ధాంత పంచాంగం")}</span>
-          <span class="pd-hero__meta">${Icon("pin")} ${esc(p.place || "")}${PD_TODAY_ONLY()
-            ? ` · <a href="account.html#home">${T("Change place", "ప్రదేశం మార్చండి")}</a>` : ""}</span>
+    <div class="pd-head">
+      <div class="pd-head__left">
+        <div class="pd-head__line">
+          <span class="pd-badge">${isToday ? T("Today", "దిన సూచిక") : T("Panchangam", "పంచాంగం")}</span>
+          <h1>${d} ${months[(m || 1) - 1]} ${y} <span>${esc(vaara)}</span></h1>
+          <span class="pd-ribbon">${Icon("sparkle")} ${ribbon.map(esc).join(" · ")}</span>
         </div>
-        <h1>${d} ${months[(m || 1) - 1]} ${y}, ${esc(vaara)}</h1>
-        <p class="pd-hero__sub">${esc(masa)} ${esc(paksha)} ${esc(tithi)} <span class="pd-dot"></span> ${esc(nak)} ${T("nakshatra", "నక్షత్రం")}</p>
+        <p class="pd-head__sub">${esc(masa)} ${esc(paksha)} ${esc(tithi)} · ${esc(nak)}
+          <span class="pd-head__place">${Icon("pin")} ${place}${PD_TODAY_ONLY() ? ` · <a href="family.html#home">${T("Change place", "ప్రదేశం మార్చండి")}</a>` : ""}</span></p>
       </div>
-      ${PD_TODAY_ONLY() ? "" : `<div class="pd-datenav no-print" role="group" aria-label="${T("Change date", "తేదీ మార్చండి")}">
-        <button type="button" class="pd-datenav__btn" data-pd-shift="-1" aria-label="${T("Previous day", "ముందు రోజు")}">‹ <span>${T("Previous", "ముందు రోజు")}</span></button>
-        <button type="button" class="pd-datenav__today" data-pd-today ${isToday ? 'aria-current="date"' : ""}>${Icon("calendar")} ${T("Today", "నేడు")}</button>
-        <button type="button" class="pd-datenav__btn" data-pd-shift="1" aria-label="${T("Next day", "మరుసటి రోజు")}"><span>${T("Next", "మరుసటి రోజు")}</span> ›</button>
-      </div>`}
+      <div class="pd-head__right no-print">
+        ${PD_TODAY_ONLY()
+          ? `<span class="pd-datenav"><span class="pd-datenav__today" aria-current="date">${Icon("calendar")} ${T("Today", "నేడు")}</span></span>
+             <a class="pd-head__cal" href="panchang-month.html">${Icon("calendar")} ${T("Month view", "నెల పంచాంగం")}</a>`
+          : `<span class="pd-datenav" role="group" aria-label="${T("Change date", "తేదీ మార్చండి")}">
+               <button type="button" class="pd-datenav__btn" data-pd-shift="-1" aria-label="${T("Previous day", "ముందు రోజు")}">‹</button>
+               <button type="button" class="pd-datenav__today" data-pd-today ${isToday ? 'aria-current="date"' : ""}>${T("Today", "నేడు")}</button>
+               <button type="button" class="pd-datenav__btn" data-pd-shift="1" aria-label="${T("Next day", "మరుసటి రోజు")}">›</button>
+             </span>`}
+      </div>
     </div>
-    <div class="pd-ribbon">${ribbon.map(esc).join('<span class="pd-ribbon__sep">•</span>')}</div>
     ${isToday ? pdLiveStrip({ p, nowMins, cur, live, lagnaNow: lagna }) : ""}
     <div class="pd-tiles">
-      ${isToday ? pdLiveTiles({ p, nowMins, cur, lagna, lagnaLabel, lagnaText, tile }) : `
-      ${tile("sparkle", "good", lagnaLabel, "", esc(lagnaText), false)}
-      ${tile("alert", "bad", T("Rahu kalam", "రాహుకాలం"), T("avoid", "వర్జ్యం"), pdRange(p.rahu_kalam), running(p.rahu_kalam))}
-      ${tile("star", abhClean ? "gold" : "warn", T("Abhijit muhurtam", "అభిజిత్ ముహూర్తం"),
-             abhClean ? T("clean", "శుభం") : T("check", "పరిశీలించండి"), pdRange(p.abhijit_muhurta), running(p.abhijit_muhurta))}
-      ${tile("leaf", "good", T("Amrit kalam", "అమృత కాలం"), "", amrit ? pdRange(amrit) : "—", (p.amrit_kalam || []).some(running))}`}
+      ${isToday ? pdLiveTiles({ p, nowMins, cur, lagnaCard, tile }) : `
+      ${lagnaCard}
+      ${tile("alert", "bad", T("Rahu kalam", "రాహుకాలం"), pdRange(p.rahu_kalam), "", T("Avoid", "వర్జ్యం"), running(p.rahu_kalam))}
+      ${tile("star", abhClean ? "gold" : "warn", T("Abhijit muhurtam", "అభిజిత్ ముహూర్తం"), pdRange(p.abhijit_muhurta), "",
+             abhClean ? T("Clean", "శుభం") : T("Check", "పరిశీలించండి"), running(p.abhijit_muhurta))}
+      ${tile("leaf", "good", T("Amrit kalam", "అమృత కాలం"), amrit ? pdRange(amrit) : "—", "", "", (p.amrit_kalam || []).some(running))}`}
     </div>`;
 }
 
@@ -476,20 +493,15 @@ function pdRunningOrNext(rows, nowMins) {
 
 // Today's three tiles, all live: the lagna now, the bad period now (or next), the good period now (or next).
 // (The fourth "next change" tile was removed at the user's request, 13 Nov 2026.)
-function pdLiveTiles({ p, nowMins, cur, lagna, lagnaLabel, lagnaText, tile }) {
-  const live = `<span class="pd-chip pd-chip--live">${T("Now", "ఇప్పుడు")}</span>`;
-  const lagnaLeft = lagna ? pdMins(lagna.end_time) - nowMins : null;
-  const out = [tile("sparkle", "good", lagnaLabel, "", `${esc(lagnaText)}${lagnaLeft > 0 ? `<small class="pd-tile__sub">${T(`${pdDur(lagnaLeft)} left`, `ఇంకా ${pdDur(lagnaLeft)}`)}</small>` : ""}`, false)];
-
+function pdLiveTiles({ p, nowMins, cur, lagnaCard, tile }) {
   const card = (r, icon, mod, title) => {
-    if (r.state === "none") return tile(icon, "neutral", title, "", T("No more today", "ఈ రోజు ఇక లేవు"), false);
+    if (r.state === "none") return tile(icon, "neutral", title, T("No more today", "ఈ రోజు ఇక లేవు"), "", "", false);
     const extra = (r.others || []).map(x => x.label).join(", ");
     const sub = r.state === "now"
       ? T(`${pdDur(r.b - nowMins)} left`, `ఇంకా ${pdDur(r.b - nowMins)}`) + (extra ? ` · ${T("also", "అలాగే")} ${esc(extra)}` : "")
       : T(`starts in ${pdDur(r.a - nowMins)}`, `${pdDur(r.a - nowMins)}లో మొదలు`);
-    const label = `${r.state === "now" ? title : T(`Next: ${title}`, `తదుపరి ${title}`)}`;
-    return tile(icon, r.state === "now" ? mod : "neutral", label, "",
-      `${esc(r.label)}<br><span class="pd-tile__time">${pdRange(r.o)}</span><small class="pd-tile__sub">${sub}</small>`, r.state === "now");
+    const label = r.state === "now" ? title : T(`Next: ${title}`, `తదుపరి ${title}`);
+    return tile(icon, r.state === "now" ? mod : "neutral", label, pdRange(r.o), `<span>${esc(r.label)}</span><small>${sub}</small>`, "", r.state === "now");
   };
   const badRows = (P, sh) => [
     [T("Rahu kalam", "రాహుకాలం"), [P.rahu_kalam].map(sh)], [T("Yamagandam", "యమగండం"), [P.yamagandam].map(sh)],
@@ -503,35 +515,38 @@ function pdLiveTiles({ p, nowMins, cur, lagna, lagnaLabel, lagnaText, tile }) {
   const tomorrow = pdNextDayP && pdNextDayP.date > p.date ? pdNextDayP : null;
   const bad = pdRunningOrNext(badRows(p, same).concat(tomorrow ? badRows(tomorrow, pdShiftDay) : []), nowMins);
   const good = pdRunningOrNext(goodRows(p, same).concat(tomorrow ? goodRows(tomorrow, pdShiftDay) : []), nowMins);
-  out.push(card(bad, "alert", "bad", T("Bad time", "అశుభ కాలం")));
-  out.push(card(good, "star", "gold", T("Good time", "శుభ కాలం")));
+  const out = [lagnaCard, card(bad, "alert", "bad", T("Bad time", "అశుభ కాలం")), card(good, "star", "gold", T("Good time", "శుభ కాలం"))];
 
-  // A blinking "Live" badge on each of today's tiles.
+  // A blinking "Live" badge on each of today's cards.
   const badge = `<span class="pd-livedot" aria-label="${T("Live", "ప్రత్యక్షం")}"><span class="pd-livedot__dot"></span>${T("LIVE", "లైవ్")}</span>`;
-  return out.map(h => h.replace(/(<div class="pd-tile [^"]*">)/, `$1${badge}`)).join("");
+  return out.filter(Boolean).map(h => h.replace(/(<div class="pd-tile [^"]*">)/, `$1${badge}`)).join("");
 }
 
 function pdAngas({ p, isToday, nowMins, cur, live }) {
   const t = cur.tithi, n = cur.nakshatra, y = cur.yoga, k = cur.karana;
   const paksha = PAKSHA_NAMES[currentLang][t.paksha] || t.paksha;
-  const ends = (str) => `${T("until", "వరకు")} <strong>${pdTime(str)}</strong>`;
+  const until = (str) => `${pdTime(str)} ${T("", "వరకు")}`.trim();
 
-  // How much of the tithi has passed (today only).
   let bar = "";
   const ts = pdMins(t.start_time), tend = pdMins(t.end_time);
   if (isToday && ts != null && tend != null && tend > ts) {
     const left = Math.max(0, Math.min(100, Math.round(100 * (tend - nowMins) / (tend - ts))));
     bar = `<div class="pd-progress" role="img" aria-label="${T(`${left}% of the tithi left`, `తిథి ${left}% మిగిలింది`)}"><span style="width:${100 - left}%"></span></div>
-           <div class="pd-progress__legend"><span>${T("Began", "ప్రారంభం")}: ${pdTime(t.start_time)}</span><span>${T("Left", "మిగిలినది")}: ${left}%</span></div>`;
+           <div class="pd-anga__sub">${T("Began", "ప్రారంభం")}: ${pdTime(t.start_time)} · ${T("Left", "మిగిలినది")}: ${left}%</div>`;
   }
 
+  // Each pada with its navamsa rashi (nakshatra n, pada k → navamsa ((n-1)*4 + k - 1) mod 12 + 1).
+  const nakIdx = Number(n.index) || 0;
   const padas = (n.padas || []).map(pd => {
     const s = pdMins(pd.start_time), e = pdMins(pd.end_time);
     const state = isToday && e != null && e <= nowMins ? "past" : (isToday && s != null && s <= nowMins && nowMins < e ? "now" : "");
+    const nav = nakIdx ? (((nakIdx - 1) * 4 + Number(pd.pada) - 1) % 12) + 1 : null;
     return `<div class="pd-pada ${state ? "pd-pada--" + state : ""}">
-      <strong>${T(`Pada ${pd.pada}`, `${pd.pada}వ పాదం`)}</strong>
-      <small>${state === "now" ? T("now", "ప్రస్తుతం") : state === "past" ? T("over", "ముగిసింది") : pdTime(pd.start_time)}</small></div>`;
+      <strong>${T(`Pada ${pd.pada}`, `${pd.pada}వ పాదం`)}</strong>${nav ? `<span>${pdRasiName(nav)}</span>` : ""}
+      <small>${state === "now" ? T("now", "ప్రస్తుతం") : state === "past" ? T("over", "సమాప్తం") : T("to come", "రాబోవునది")}</small></div>`;
   }).join("");
+  const next = n.next ? `<div class="pd-anga__sub">${T(`Next: ${n.next.name} from ${pdTime(n.next.start_time)}`,
+    `అనంతర నక్షత్రం: ${te(n.next.name, NAKSHATRA_NAMES_TE)} (${pdTime(n.next.start_time)} నుండి)`)}</div>` : "";
 
   const yogaBad = PD_BAD_YOGAS.has(Number(y.index));
   const kName = String(k.name || "");
@@ -540,30 +555,27 @@ function pdAngas({ p, isToday, nowMins, cur, live }) {
     : ["neutral", T("Chara karana", "చర కరణం")];
   const lord = (PD_VAARA[p.vaara] || {}).lord || ["", ""];
 
-  const row = (num, icon, label, chip, chipMod, title, body) => `
+  const row = (num, label, chip, chipMod, title, right, body) => `
     <div class="pd-anga">
-      <div class="pd-anga__head"><span class="pd-anga__label">${Icon(icon)} ${num}. ${label}</span>${chip ? `<span class="pd-chip pd-chip--${chipMod}">${chip}</span>` : ""}</div>
-      <h3>${title}</h3>
-      ${body}
+      <div class="pd-anga__head"><span class="pd-anga__label">${num}. ${label}</span>${chip ? `<span class="pd-chip pd-chip--${chipMod}">${chip}</span>` : ""}</div>
+      <div class="pd-anga__main"><h3>${title}</h3>${right ? `<span class="pd-anga__until">${right}</span>` : ""}</div>
+      ${body || ""}
     </div>`;
 
   return `
-    <header class="pd-angas__head">
-      <div><h2>${T("The five angas", "పంచాంగ ప్రధానాంగాలు")}</h2><p>${live
-        ? T(`Running now (${pdClock(nowMins)})`, `ఇప్పుడు నడుస్తున్నవి (${pdClock(nowMins)})`)
-        : T("At sunrise", "సూర్యోదయ సమయానికి")}</p></div>
-      <span class="pd-angas__tag">${T("Drik", "దృగ్గణితం")}</span>
-    </header>
+    <div class="pd-card__titlerow">
+      <h2 class="pd-card__title"><span class="pd-square"></span> ${T("The five angas", "5 పంచాంగ ప్రధానాంగాలు")}</h2>
+      <span class="pd-chip pd-chip--neutral">${live ? T(`Now · ${pdClock(nowMins)}`, `ఇప్పుడు · ${pdClock(nowMins)}`) : T("At sunrise", "సూర్యోదయానికి")}</span>
+    </div>
     <div class="pd-angas__list">
-      ${row(1, "moon", T("Tithi", "తిథి"), esc(paksha), "gold", esc(te(t.name, TITHI_NAMES_TE)),
-            `<p>${ends(t.end_time)}</p>${bar}`)}
-      ${row(2, "sparkle", T("Nakshatra", "నక్షత్రం"), T(`Pada ${n.pada}`, `${n.pada}వ పాదం`), "neutral", esc(te(n.name, NAKSHATRA_NAMES_TE)),
-            `<p>${ends(n.end_time)}</p>${padas ? `<div class="pd-padas">${padas}</div>` : ""}`)}
-      ${row(3, "calendar", T("Vara", "వారం"), "", "", esc(T(p.vaara, (VAARA_NAMES.te || {})[p.vaara] || p.vaara)),
-            `<p>${T("Lord of the day", "వారాధిపతి")}: <strong>${T(lord[0], lord[1])}</strong></p>`)}
-      ${row(4, "wheel", T("Yoga", "నిత్య యోగం"), yogaBad ? T("Inauspicious", "అశుభ యోగం") : T("Auspicious", "శుభ యోగం"),
-            yogaBad ? "bad" : "good", esc(te(y.name, YOGA_NAMES_TE)), `<p>${ends(y.end_time)}</p>`)}
-      ${row(5, "hourglass", T("Karana", "కరణం"), kKind[1], kKind[0], esc(te(k.name, KARANA_NAMES_TE)), `<p>${ends(k.end_time)}</p>`)}
+      ${row(1, T("Tithi", "తిథి (Tithi)"), esc(paksha), "gold", esc(te(t.name, TITHI_NAMES_TE)), until(t.end_time), bar)}
+      ${row(2, T("Nakshatra", "నక్షత్రం (Nakshatra)"), T(`Pada ${n.pada}`, `${n.pada}వ పాదం`), "gold", esc(te(n.name, NAKSHATRA_NAMES_TE)), until(n.end_time),
+            (padas ? `<div class="pd-padas">${padas}</div>` : "") + next)}
+      ${row(3, T("Vara", "వారం (Vāsara)"), "", "", esc(T(p.vaara, (VAARA_NAMES.te || {})[p.vaara] || p.vaara)), "",
+            `<div class="pd-anga__sub">${T("Lord of the day", "వారాధిపతి")}: ${T(lord[0], lord[1])}</div>`)}
+      ${row(4, T("Yoga", "నిత్య యోగం (Yoga)"), yogaBad ? T("Inauspicious", "అశుభ యోగం") : T("Auspicious", "శుభ యోగం"),
+            yogaBad ? "bad" : "good", esc(te(y.name, YOGA_NAMES_TE)), until(y.end_time), "")}
+      ${row(5, T("Karana", "కరణం (Karana)"), kKind[1], kKind[0], esc(te(k.name, KARANA_NAMES_TE)), until(k.end_time), "")}
     </div>`;
 }
 
@@ -571,27 +583,21 @@ function pdLuminaries({ p }) {
   const L = p.luminaries || {};
   const sr = pdMins(p.sunrise), ss = pdMins(p.sunset);
   const dayLen = sr != null && ss != null ? ss - sr : null;
-  const dayTxt = dayLen != null ? T(`${Math.floor(dayLen / 60)} h ${Math.round(dayLen % 60)} min`, `${Math.floor(dayLen / 60)} గం. ${Math.round(dayLen % 60)} నిమి.`) : "—";
+  const hm = (v) => T(`${Math.floor(v / 60)} h ${Math.round(v % 60)} min`, `${Math.floor(v / 60)} గం. ${Math.round(v % 60)} ని.`);
   const moonNext = L.moon_rasi_end_time
-    ? T(`Enters ${pdRasiName(L.next_moon_rasi_index)} at ${pdTime(L.moon_rasi_end_time)}`,
-        `${pdTime(L.moon_rasi_end_time)} కి ${pdRasiName(L.next_moon_rasi_index)}లోకి`)
-    : T("In this rashi all day", "రోజంతా ఈ రాశిలోనే");
-  const card = (icon, name, rasi, rows, foot) => `
-    <div class="pd-lum">
-      <div class="pd-lum__head"><span>${Icon(icon)} ${name}</span><small>${rasi}</small></div>
-      ${rows.map(([k, v]) => `<div class="pd-lum__row"><span>${k}</span><strong>${v}</strong></div>`).join("")}
-      <div class="pd-lum__foot">${foot}</div>
-    </div>`;
+    ? T(`enters ${pdRasiName(L.next_moon_rasi_index)} at ${pdTime(L.moon_rasi_end_time)}`, `${pdTime(L.moon_rasi_end_time)} కి ${pdRasiName(L.next_moon_rasi_index)}లోకి`)
+    : T("in this rashi all day", "రోజంతా ఈ రాశిలోనే");
+  const box = (icon, label, time, line) => `
+    <div class="pd-lum"><span class="pd-lum__label">${Icon(icon)} ${label}</span><strong>${time}</strong><small>${line}</small></div>`;
   return `
-    <h2 class="pd-card__title">${Icon("sunrise")} ${T("Sun and Moon", "సూర్య, చంద్ర సంచారాలు")}</h2>
+    <div class="pd-card__titlerow"><h2 class="pd-card__title">${T("Sun and Moon", "సౌర & చాంద్ర సంచార గణన")}</h2><span class="pd-card__icon">${Icon("sun")}</span></div>
     <div class="pd-lum-grid">
-      ${card("sun", T("Sun", "రవి"), `${pdRasiName(L.sun_rasi_index)} ${T("rashi", "రాశి")}`,
-             [[T("Sunrise", "సూర్యోదయం"), pdTime(p.sunrise)], [T("Sunset", "సూర్యాస్తమయం"), pdTime(p.sunset)]],
-             `${T("Day length", "పగటి ప్రమాణం")}: ${dayTxt}`)}
-      ${card("moon", T("Moon", "చంద్రుడు"), `${pdRasiName(L.moon_rasi_index)} ${T("rashi", "రాశి")}`,
-             [[T("Moonrise", "చంద్రోదయం"), pdTime(L.moonrise)], [T("Moonset", "చంద్రాస్తమయం"), pdTime(L.moonset)]],
-             moonNext)}
-    </div>`;
+      ${box("sunrise", T("Sunrise", "సూర్యోదయం"), pdTime(p.sunrise), `${pdRasiName(L.sun_rasi_index)} ${T("rashi", "రాశి")}`)}
+      ${box("sunset", T("Sunset", "సూర్యాస్తమయం"), pdTime(p.sunset), T("Sun sets", "పశ్చిమాన అస్తమయం"))}
+      ${box("moon", T("Moonrise", "చంద్రోదయం"), pdTime(L.moonrise), `${pdRasiName(L.moon_rasi_index)} ${T("rashi", "రాశి")}`)}
+      ${box("moon", T("Moonset", "చంద్రాస్తమయం"), pdTime(L.moonset), moonNext)}
+    </div>
+    ${dayLen != null ? `<div class="pd-lum__foot"><span>${T("Day", "దిన ప్రమాణం")}: ${hm(dayLen)}</span><span>${T("Night (about)", "రాత్రి ప్రమాణం (సుమారు)")}: ${hm(1440 - dayLen)}</span></div>` : ""}`;
 }
 
 function pdTimes({ p, isToday, nowMins }) {
@@ -632,19 +638,10 @@ function pdTimes({ p, isToday, nowMins }) {
 
   const yogas = (p.special_yogas || []).map(y =>
     `<li class="pd-yoga pd-yoga--${y.type === "bad" ? "bad" : y.type === "info" ? "info" : "good"}">${esc(T(y.name_en, y.name_te))}</li>`).join("");
-  const pan = p.panchaka_rahitam;
-  const panTile = pan ? `
-    <div class="pd-mini pd-mini--${pan.is_pass ? "good" : "bad"}">
-      <div class="pd-mini__head"><span>${Icon("shield")} ${T("Panchaka rahitam", "పంచక రహిత పరిశీలన")}</span>
-        <span class="pd-chip pd-chip--${pan.is_pass ? "good" : "bad"}">${pan.is_pass ? T("No dosha ✓", "దోష రహితం ✓") : T("Dosha", "దోషం")}</span></div>
-      <p><strong>${T("Remainder", "శేషం")}: ${esc(pan.remainder)}</strong> · ${esc(T(pan.name_en, pan.name_te))}</p>
-      <p class="pd-mini__note" title="${esc(pan.formula || "")}">${T("At sunrise, with the sunrise lagna.", "సూర్యోదయ సమయం, సూర్యోదయ లగ్నంతో.")}</p>
-    </div>` : "";
 
   return `
     <div class="pd-card__titlerow">
-      <div><h2 class="pd-card__title">${Icon("clock")} ${T("The day's timings", "24 గంటల కాల చక్రం")}</h2>
-        <p class="pd-card__sub">${T("Good and bad periods across the day", "నేటి శుభాశుభ సమయాల విభజన")}</p></div>
+      <h2 class="pd-card__title"><span class="pd-square"></span> ${T("The day's timings", "24-గంటల కాల చక్రం & శుభాశుభ విభాగాలు")}</h2>
       <div class="pd-legend"><span class="pd-legend__good">${T("Good", "శుభం")}</span><span class="pd-legend__bad">${T("Avoid", "వర్జ్యం")}</span></div>
     </div>
     <div class="pd-timeline" aria-hidden="true">
@@ -653,15 +650,33 @@ function pdTimes({ p, isToday, nowMins }) {
       <div class="pd-axis"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>12 AM</span></div>
     </div>
     <div class="pd-times">
-      <div class="pd-times__col pd-times__col--good"><h3>${Icon("star")} ${T("Good times", "శుభ సమయాలు")}</h3>${list(good, "good")}</div>
-      <div class="pd-times__col pd-times__col--bad"><h3>${Icon("alert")} ${T("Times to avoid", "అశుభ సమయాలు")}</h3>${list(bad, "bad")}</div>
+      <div class="pd-times__col pd-times__col--good"><h3>${Icon("star")} ${T("Auspicious", "శుభ సమయములు")}</h3>${list(good, "good")}</div>
+      <div class="pd-times__col pd-times__col--bad"><h3>${Icon("alert")} ${T("Inauspicious", "అశుభ సమయములు")}</h3>${list(bad, "bad")}</div>
     </div>
     <div class="pd-minis">
       <div class="pd-mini pd-mini--gold">
         <div class="pd-mini__head"><span>${Icon("sparkle")} ${T("Special yogas today", "నేటి విశేష యోగాలు")}</span></div>
         ${yogas ? `<ul class="pd-yogas">${yogas}</ul>` : `<p>${T("No special yoga today.", "ఈ రోజు విశేష యోగాలు లేవు.")}</p>`}
       </div>
-      ${panTile}
+    </div>`;
+}
+
+// Panchaka rahitam (Stitch design): the five named panchakas, the one that applies marked. Remainders
+// 1 mrityu, 2 agni, 4 raja, 6 chora, 8 roga; any other remainder is panchaka-free.
+function pdPanchaka({ p }) {
+  const pan = p.panchaka_rahitam;
+  if (!pan) return "";
+  const kinds = [[1, "Mrityu", "మృత్యు పంచకం"], [2, "Agni", "అగ్ని పంచకం"], [4, "Raja", "రాజ పంచకం"], [6, "Chora", "చోర పంచకం"], [8, "Roga", "రోగ పంచకం"]];
+  const rem = Number(pan.remainder);
+  return `
+    <div class="pd-card__titlerow">
+      <h2 class="pd-card__title">${T("Panchaka rahitam", "పంచక రహిత పరిశీలన")}</h2>
+      <span class="pd-chip pd-chip--${pan.is_pass ? "good" : "bad"}">${pan.is_pass ? T(`No dosha (remainder ${rem})`, `దోష రహితం (శేషం ${rem})`) : esc(T(pan.name_en, pan.name_te))}</span>
+    </div>
+    <p class="pd-card__sub" title="${esc(pan.formula || "")}">${T("From today's tithi, weekday, nakshatra and the sunrise lagna.", "నేటి తిథి, వారం, నక్షత్రం, సూర్యోదయ లగ్నం కలయిక ఆధారంగా లెక్కించబడింది.")}</p>
+    <div class="pd-pan">${kinds.map(([r, en, teName]) => `
+      <div class="pd-pan__box ${rem === r ? "is-hit" : ""}"><span>${T(`${en} panchakam`, teName)}</span>
+        <strong>${rem === r ? "✕ " + T("Present", "ఉంది") : "✓ " + T("Free", "రహితం")}</strong></div>`).join("")}
     </div>`;
 }
 
@@ -679,8 +694,9 @@ function pdChandrabalam({ p, isToday, nowMins }) {
   };
   const btns = [...Array(12)].map((_, i) => {
     const r = i + 1, inf = info(r);
+    const pos = inf.house === 1 ? T("Janma (1st)", "జన్మ చంద్రుడు") : inf.house === 8 ? T("8th: ashtama", "అష్టమ చంద్రుడు") : T(`${pdOrd(inf.house)} Moon`, `${inf.house}వ చంద్రుడు`);
     return `<button type="button" class="pd-rasi pd-rasi--${inf.kind}" data-pd-rasi="${r}" aria-pressed="${r === pdSelectedRasi}">
-      <strong>${pdRasiName(r)}</strong><small>${inf.chip}</small></button>`;
+      <strong>${pdRasiName(r)}</strong><span class="pd-rasi__pos">${pos}</span><small>${inf.chip}</small></button>`;
   }).join("");
   const sel = info(pdSelectedRasi);
   const g = PD_GOCHARA[sel.house];
@@ -688,7 +704,7 @@ function pdChandrabalam({ p, isToday, nowMins }) {
                      ashtama: T("Chandrashtama: avoid", "చంద్రాష్టమం: వర్జ్యం"), bad: T("Weak chandrabalam", "అశుభ చంద్రబలం") }[sel.kind];
   return `
     <div class="pd-card__titlerow">
-      <div><h2 class="pd-card__title">${Icon("moon")} ${T("Chandrabalam for each rashi", "రాశి వారి చంద్రబల పరిశీలన")}</h2>
+      <div><h2 class="pd-card__title">${T("Chandrabalam for the 12 rashis", "12 రాశుల చంద్రబల పరిశీలన చక్రం")}</h2>
         <p class="pd-card__sub">${isToday
           ? T(`From the Moon in ${pdRasiName(moon)} now`, `ఇప్పుడు ${pdRasiName(moon)}లో ఉన్న చంద్రుని ఆధారంగా`)
           : T(`From the Moon in ${pdRasiName(moon)} at sunrise`, `సూర్యోదయ సమయ ${pdRasiName(moon)} చంద్రుని ఆధారంగా`)}</p></div>
@@ -698,7 +714,7 @@ function pdChandrabalam({ p, isToday, nowMins }) {
     <div class="pd-rasi-detail pd-rasi-detail--${sel.kind}" aria-live="polite">
       <span class="pd-rasi-detail__icon">${Icon("moon")}</span>
       <div>
-        <h3>${pdRasiName(pdSelectedRasi)} ${T("rashi", "రాశి")}: ${T(`Moon in the ${sel.house}${["st","nd","rd"][sel.house - 1] || "th"} house`, `${sel.house}వ స్థానంలో చంద్రుడు`)}
+        <h3>${pdRasiName(pdSelectedRasi)} ${T("rashi", "రాశి")}: ${T(`Moon in the ${pdOrd(sel.house)} house`, `${sel.house}వ స్థానంలో చంద్రుడు`)}
           <span class="pd-chip pd-chip--${sel.kind === "good" ? "good" : sel.kind === "moderate" ? "gold" : "bad"}">${kindText}</span></h3>
         <p>${T("Traditional result", "సాంప్రదాయ గోచార ఫలం")}: ${T(g[0], g[1])}.</p>
         ${L.moon_rasi_end_time && !moved ? `<p class="pd-rasi-detail__note">${T(`The Moon enters ${pdRasiName(L.next_moon_rasi_index)} at ${pdTime(L.moon_rasi_end_time)}; after that, count from there.`, `${pdTime(L.moon_rasi_end_time)} తర్వాత చంద్రుడు ${pdRasiName(L.next_moon_rasi_index)}లో ఉంటాడు; అప్పటి నుండి అక్కడి నుండి లెక్కించాలి.`)}</p>` : ""}
@@ -715,12 +731,13 @@ function pdLagnas({ p, isToday, nowMins }) {
   }
   const items = ls.map((l, i) => `
     <li class="pd-lagna ${i === curIdx ? "pd-lagna--current" : ""}">
-      <div><strong>${i + 1}. ${esc(T(l.lagna_name, l.lagna_name_te))}</strong><small>${pdTime(l.start_time)} – ${pdTime(l.end_time)}</small></div>
-      ${i === curIdx ? `<span class="pd-chip pd-chip--gold">${isToday ? T("Now", "ప్రస్తుతం") : T("At sunrise", "సూర్యోదయం")}</span>` : ""}
+      <strong>${esc(T(`${l.lagna_name} lagna`, `${l.lagna_name_te} లగ్నం`))}</strong>
+      <span>${pdTime(l.start_time)} – ${pdTime(l.end_time)}${i === curIdx ? ` ${Icon("star", { filled: true })}` : ""}</span>
     </li>`).join("");
   return `
-    <div class="pd-card__titlerow"><h2 class="pd-card__title">${Icon("landmark")} ${T("The 12 lagnas", "12 లగ్నాల సమయ చక్రం")}</h2>
-      <span class="pd-card__hint">${T("from sunrise", "సూర్యోదయం నుండి")}</span></div>
+    <div class="pd-card__titlerow"><h2 class="pd-card__title">${T("The 12 lagnas", "12 లగ్నాల సమయ చక్రం")}</h2>
+      <span class="pd-card__hint">${T("24 hours", "24 గంటలు")}</span></div>
+    <p class="pd-card__sub">${esc(p.place || "")} · ${T("from sunrise", "సూర్యోదయం నుండి")}</p>
     <ol class="pd-lagnas">${items}</ol>`;
 }
 
@@ -731,11 +748,11 @@ function pdDos({ data }) {
   const avoid = (data.avoid_activities || []).slice(0, 6);
   const li = (a, reasons, mod) => `<li class="pd-do pd-do--${mod}" title="${why(reasons)}">${esc(name(a))}</li>`;
   return `
-    <h2 class="pd-card__title">${Icon("scroll")} ${T("Good for / avoid today", "నేటి అనుకూల, వర్జ్యములు")}</h2>
+    <div class="pd-card__titlerow"><h2 class="pd-card__title">${T("Good for / avoid today", "నేటి అనుకూల & వర్జ్యాలు")}</h2><span class="pd-card__icon">${Icon("scroll")}</span></div>
     <div class="pd-dos">
-      <div class="pd-dos__box pd-dos__box--good"><h3>${T("Good for", "చేయదగిన పనులు")}</h3>
+      <div class="pd-dos__box pd-dos__box--good"><h3>${T("Good for (do's)", "చేయదగిన శుభకార్యాలు (Do's)")}</h3>
         ${fav.length ? `<ul>${fav.map(a => li(a, a.reasons_favorable, "good")).join("")}</ul>` : `<p>${T("Nothing in particular.", "ప్రత్యేకంగా ఏవీ లేవు.")}</p>`}</div>
-      <div class="pd-dos__box pd-dos__box--bad"><h3>${T("Avoid", "వర్జించవలసినవి")}</h3>
+      <div class="pd-dos__box pd-dos__box--bad"><h3>${T("Avoid (don'ts)", "వర్జ్యాలు & నిషేధాలు (Don'ts)")}</h3>
         ${avoid.length ? `<ul>${avoid.map(a => li(a, a.reasons_avoid, "bad")).join("")}</ul>` : `<p>${T("Nothing in particular.", "ప్రత్యేకంగా ఏవీ లేవు.")}</p>`}</div>
     </div>
     <p class="pd-card__sub">${T("Reasons for each are under \"More details\" below.", "కారణాలు కింద \"మరిన్ని వివరాలు\"లో ఉన్నాయి.")}</p>`;
@@ -761,13 +778,17 @@ function pdText(key, en, te) {
 }
 
 function pdCta() {
+  const pdf = window.SiteConfig && SiteConfig.sharingOn ? SiteConfig.sharingOn("pdf") : false;
   return `
     <div class="pd-cta__text">
-      <span class="pd-cta__icon">${Icon("calendar")}</span>
+      <span class="pd-cta__icon">${Icon("lamp")}</span>
       <div><strong>${esc(pdText("today_cta_title", "Looking for a muhurta?", "శుభ ముహూర్తం కావాలా?"))}</strong>
         <span>${esc(pdText("today_cta_text", "The Muhurta Finder checks every rule of the book for your event, person and place.", "ముహూర్త శోధన మీ కార్యం, వ్యక్తి, ప్రదేశానికి గ్రంథంలోని అన్ని నియమాలు పరిశీలిస్తుంది."))}</span></div>
     </div>
-    <a class="pd-cta__btn" href="muhurta-finder.html">★ ${T("Find a muhurta", "ముహూర్త శోధన ప్రారంభించండి")} ›</a>`;
+    <div class="pd-cta__actions">
+      ${pdf ? `<button type="button" class="btn btn--outline" onclick="exportSmartPdf()">${Icon("printer")} ${T("Print panchang (PDF)", "పంచాంగ పత్రం ముద్రించు (PDF)")}</button>` : ""}
+      <a class="pd-cta__btn" href="muhurta-finder.html">★ ${T("Find a muhurta", "ముహూర్త శోధన ప్రారంభించండి")} →</a>
+    </div>`;
 }
 
 // Date buttons and rashi buttons (one listener for the whole Day view).

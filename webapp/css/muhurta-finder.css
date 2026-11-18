@@ -1120,3 +1120,113 @@ button#findBtn:disabled {
 .event-chip--medium { color: var(--color-warning); }
 .event-chip--avoid { color: var(--color-danger); }
 .event-chip:hover { filter: brightness(0.92); }
+
+/* ============================================================
+   Muhurta Darshini, Stitch "desktop_muhurtha_finder" design (19 Nov 2026).
+   Title bar; category chips across the page; two columns: the form as numbered step cards (left, sticky
+   on wide screens) and the results (right). Mode rules above (.mode-pool and the rest) still apply.
+   ============================================================ */
+.mf-title { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; margin: var(--space-2) 0 var(--space-4); }
+.mf-title__icon { width: 48px; height: 48px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--color-primary); color: var(--color-gold-soft); box-shadow: var(--shadow-gold); flex: none; }
+.mf-title__icon svg { width: 24px; height: 24px; }
+.mf-title > div { flex: 1; min-width: 16rem; display: grid; gap: 2px; }
+.mf-title h1 { margin: 0; font-family: var(--font-serif); font-size: clamp(22px, 2.4vw, 28px); color: var(--color-primary-strong); }
+.mf-title p { margin: 0; font-size: 14px; color: var(--color-text-muted); }
+.mf-title__chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--radius-pill);
+  background: var(--color-surface); border: 1px solid var(--color-border); font-size: 12px; font-weight: 600; color: var(--color-primary-strong); }
+.mf-title__chip svg { width: 14px; height: 14px; color: var(--color-accent); }
+
+/* Category chips across the page */
+#mfCategoryTabs.tab-container { border-bottom: 0; margin: 0 0 var(--space-6); padding: 6px; gap: 6px; border-radius: 14px;
+  background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-sm); }
+#mfCategoryTabs .tab-item { border: 1px solid transparent; border-radius: var(--radius-pill); background: var(--color-surface-muted);
+  font-weight: 600; padding: 8px 14px; }
+#mfCategoryTabs .tab-item.active, #mfCategoryTabs .tab-item[aria-selected="true"] { background: var(--color-primary-strong); color: var(--color-on-strong); border-color: transparent; }
+
+/* Two columns */
+.mf-layout { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-6); align-items: start; }
+.mf-form { display: grid; gap: var(--space-4); min-width: 0; }
+@media (min-width: 1100px) { .mf-form { position: sticky; top: 96px; max-height: calc(100vh - 110px); overflow-y: auto; padding-right: 4px; } }
+.mf-out { display: grid; gap: var(--space-4); min-width: 0; }
+
+/* The form: no outer box; each step is a card */
+#mfControls.controls { display: grid; gap: var(--space-4); padding: 0; background: transparent; border: 0; box-shadow: none; margin: 0; }
+.mf-step { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; align-content: start; padding: 18px;
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; box-shadow: var(--shadow-sm); }
+.mf-step > * { min-width: 0; }
+.mf-step > .field--activity, .mf-step > .lunar-months, .mf-step > #mfInfoBanner, .mf-step > .participants, .mf-step > .yoga-panel,
+.mf-step > .contextual-section, .mf-step > .field--location, .mf-step > .mf-step__title { grid-column: 1 / -1; }
+.mf-step__title { margin: 0 0 2px; display: flex; align-items: center; gap: 10px; font-family: var(--font-serif); font-size: 17px; color: var(--color-primary-strong); }
+.mf-step__num { width: 26px; height: 26px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--color-gold-soft); color: #241a00; font-family: var(--font-sans); font-size: 13px; font-weight: 700; }
+.mf-step .field { min-width: 0; flex: none; }
+.mf-step .participants { margin-top: 0; }
+/* A step with nothing to show (no people, no extra details for this event) is not drawn */
+#mfStepDetails:not(:has(.yoga-panel:not([hidden]), .context-group:not([style*="none"]))) { display: none; }
+#mfStepPeople:not(:has(#mfParticipants > *)) { display: none; }
+
+.finder-modes { margin: 0; border: 1px solid var(--color-border); border-radius: 12px; }
+.finder-mode { border-radius: 9px; font-weight: 600; }
+.finder-mode.active { background: var(--color-primary-strong); color: var(--color-on-strong); }
+
+#findBtn { grid-column: 1 / -1; width: 100%; min-height: 54px; border: 0; border-radius: 14px; cursor: pointer;
+  background: linear-gradient(90deg, var(--color-primary-strong), var(--color-primary)); color: var(--color-on-strong);
+  font-family: var(--font-serif); font-size: 17px; font-weight: 700; box-shadow: var(--shadow-md); }
+#findBtn:hover:not(:disabled) { filter: brightness(1.06); }
+#findBtn:disabled { opacity: 0.6; cursor: wait; }
+
+/* Results: what to show before a search */
+.mf-empty { display: grid; justify-items: center; gap: 8px; text-align: center; padding: 48px 24px; border-radius: 16px;
+  background: var(--color-surface); border: 1px dashed var(--color-border-strong); color: var(--color-text-muted); }
+.mf-empty svg { width: 36px; height: 36px; color: var(--color-accent); }
+.mf-empty h2 { margin: 0; font-family: var(--font-serif); font-size: 20px; color: var(--color-primary-strong); }
+.mf-empty p { margin: 0; max-width: 40ch; }
+.mf-out:has(#mfResults[style*="block"]) .mf-empty, .mf-out:has(#progressSection[style*="block"]) .mf-empty { display: none; }
+
+/* Result cards: white, gold edge, score on the right */
+.summary-bar { border-radius: 14px; }
+.day-card { background: var(--color-surface); border: 1px solid var(--color-border); border-left: 4px solid var(--color-gold);
+  border-radius: 16px; padding: 18px 20px; box-shadow: var(--shadow-sm); }
+.day-card.highly_favorable { border-left-color: var(--color-primary); }
+.day-card.unfavorable { border-left-color: var(--color-danger); }
+.day-card:hover { box-shadow: var(--shadow-md); transform: none; }
+.day-date { font-family: var(--font-serif); color: var(--color-primary-strong); font-size: 20px !important; }
+.verdict-badge { font-family: var(--font-serif); font-size: 15px; padding: 6px 12px; border-radius: 12px; }
+
+@media (max-width: 1100px) { .mf-layout { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .mf-step { grid-template-columns: 1fr; } }
+
+/* ============================================================
+   Muhurta Parishilana, Stitch "desktop_audit" design (19 Nov 2026): the muhurta detail opens as a
+   full-screen page: a sticky header (back, previous / title / next, actions) and a two-column body.
+   ============================================================ */
+.pa-view.modal-overlay { padding: 0; background: var(--color-bg); align-items: stretch; justify-content: stretch; }
+.pa-view .modal-content { max-width: none; width: 100%; height: 100vh; max-height: none; border-radius: 0; box-shadow: none;
+  background: var(--color-bg); overflow-y: auto; display: block; }
+.pa-view .modal-header { position: sticky; top: 0; z-index: 5; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-4);
+  padding: 12px max(16px, 32px); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--color-border); }
+.pa-nav { display: flex; align-items: center; justify-content: center; gap: var(--space-3); min-width: 0; }
+.pa-nav__btn { width: 42px; height: 42px; flex: none; border-radius: 12px; border: 1px solid var(--color-border); background: var(--color-surface);
+  font-size: 22px; color: var(--color-primary-strong); cursor: pointer; }
+.pa-nav__btn:hover:not(:disabled) { border-color: var(--color-primary); }
+.pa-nav__btn:disabled { opacity: 0.35; cursor: default; }
+.pa-nav__title { display: grid; justify-items: center; text-align: center; min-width: 0; }
+.pa-kicker { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: var(--color-accent); }
+html[lang="te"] .pa-kicker { letter-spacing: normal; }
+.pa-view .modal-title { font-family: var(--font-serif); font-size: 22px; font-weight: 700; color: var(--color-primary-strong); }
+.pa-count { font-size: 12px; color: var(--color-text-muted); }
+.pa-view .modal-header__actions { justify-content: flex-end; }
+.pa-view .modal-body { max-width: 1280px; margin: 0 auto; padding: var(--space-6) max(16px, 32px) var(--space-12);
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); align-items: start; }
+.pa-view .modal-body > * { min-width: 0; margin: 0 !important; }
+/* Wide blocks span both columns: the summary banners, the event header, the rule grid and the dosha lists */
+.pa-view .modal-body > .verdict-strip, .pa-view .modal-body > .audit-banner, .pa-view .modal-body > .event-header,
+.pa-view .modal-body > .rules-eval-title, .pa-view .modal-body > .rule-grid, .pa-view .modal-body > h4 { grid-column: 1 / -1; }
+.pa-view .rule-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+body.pa-open { overflow: hidden; }
+@media (max-width: 1000px) {
+  .pa-view .modal-body { grid-template-columns: 1fr; }
+  .pa-view .modal-header { grid-template-columns: 1fr; justify-items: start; }
+  .pa-nav { justify-content: flex-start; }
+}

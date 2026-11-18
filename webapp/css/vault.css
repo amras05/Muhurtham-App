@@ -1,0 +1,39 @@
+/* ============================================================
+   Gayatri Jyotirnidhi · Family Vault & Settings (Stitch "desktop_settings_vault", 19 Nov 2026)
+   A profile header across the page; family on the left (7/12); saved muhurtas, profile, home place,
+   devices and the danger zone on the right (5/12).
+   ============================================================ */
+.fv { max-width: 1280px; }
+.fv-hero { position: relative; overflow: hidden; display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap;
+  padding: 22px 24px; border-radius: 18px; background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-sm); }
+.fv-hero::after { content: ""; position: absolute; right: -60px; top: -80px; width: 260px; height: 260px; border-radius: 50%;
+  background: rgba(255, 224, 136, 0.35); filter: blur(48px); pointer-events: none; }
+.fv-hero > * { position: relative; z-index: 1; }
+.fv-hero__avatar { width: 64px; height: 64px; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--color-primary-strong); color: var(--color-gold-soft); box-shadow: var(--shadow-gold); }
+.fv-hero__avatar svg { width: 30px; height: 30px; }
+.fv-hero__text { flex: 1; min-width: 14rem; display: grid; gap: 4px; }
+.fv-hero__line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.fv-hero__name { margin: 0; font-family: var(--font-serif); font-size: 24px; color: var(--color-primary-strong); }
+.fv-hero__meta { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 14px; color: var(--color-text-muted); }
+.fv-hero__meta span:empty { display: none; }
+.fv-hero__note { margin: 0; display: inline-flex; align-items: center; gap: 6px; max-width: 26rem; padding: 10px 14px; border-radius: 12px;
+  background: var(--color-surface-muted); border: 1px solid var(--color-border); font-size: 12px; color: var(--color-text-muted); }
+.fv-hero__note svg { width: 16px; height: 16px; color: var(--color-primary); flex: none; }
+
+.fv-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--space-6); align-items: start; }
+.fv-col { display: grid; gap: var(--space-4); min-width: 0; }
+.fv-card__head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.fv-card__head h2 { margin: 0; }
+.fv .portal-card { padding: 20px; }
+.fv .portal-form { max-width: none; }
+
+/* Family members as cards */
+.fv-family .fam-list > li { border-radius: 14px; padding: 16px; background: var(--color-surface); }
+.fv-family .fam-list > li:hover { border-color: var(--color-primary); }
+.fv-family .fam-list strong { font-family: var(--font-serif); font-size: 17px; color: var(--color-primary-strong); }
+
+/* Saved muhurtas: a scroll box so the right column stays short */
+.fv #svList { max-height: 420px; overflow-y: auto; }
+
+@media (max-width: 1100px) { .fv-grid { grid-template-columns: 1fr; } }

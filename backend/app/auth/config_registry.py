@@ -75,7 +75,7 @@ class Theme(_Strict):
 
 
 class NavItem(_Strict):
-    href: str = Field(..., pattern=r"^[a-z0-9-]+\.html$")
+    href: str = Field(..., pattern=r"^[a-z0-9-]+\.html(#[a-z-]+)?$")
     show: bool = True
     en: str = Field(..., min_length=1, max_length=40)
     te: str = Field(..., min_length=1, max_length=40)
@@ -193,14 +193,16 @@ class AdminDashboard(_Strict):
 
 
 # ── Defaults ─────────────────────────────────────────────────────────────────────────────────────────
-DEFAULT_NAV = [
+DEFAULT_NAV = [   # the Stitch design's five items first (19 Nov 2026); the rest hidden until shown here
     {"href": "panchang-lookup.html", "show": True, "en": "Today's Panchang", "te": "నేటి పంచాంగం"},
-    {"href": "panchang-month.html", "show": True, "en": "Monthly Panchang", "te": "మాస పంచాంగం"},
-    {"href": "home.html", "show": True, "en": "Home", "te": "హోమ్"},
+    {"href": "muhurta-finder.html", "show": True, "en": "Muhurta Darshini", "te": "ముహూర్త దర్శిని"},
+    {"href": "muhurtas.html", "show": True, "en": "All muhurtas", "te": "అన్ని ముహూర్తాలు"},
+    {"href": "muhurta-finder.html#parishilana", "show": True, "en": "Muhurta Parishilana", "te": "ముహూర్త పరిశీలన"},
+    {"href": "family.html", "show": True, "en": "Family vault & settings", "te": "కుటుంబ ఖజానా & సెట్టింగ్స్"},
     {"href": "admin.html", "show": True, "en": "Dashboard", "te": "డాష్‌బోర్డ్"},
-    {"href": "muhurta-finder.html", "show": True, "en": "Muhurta Finder", "te": "ముహూర్త శోధన"},
-    {"href": "family.html", "show": True, "en": "My family", "te": "నా కుటుంబం"},
-    {"href": "saved.html", "show": True, "en": "My muhurtas", "te": "నా ముహూర్తాలు"},
+    {"href": "panchang-month.html", "show": False, "en": "Monthly Panchang", "te": "మాస పంచాంగం"},
+    {"href": "home.html", "show": False, "en": "Home", "te": "హోమ్"},
+    {"href": "saved.html", "show": False, "en": "My muhurtas", "te": "నా ముహూర్తాలు"},
     {"href": "admin-users.html", "show": True, "en": "Users", "te": "వినియోగదారులు"},
     {"href": "admin-content.html", "show": True, "en": "Content", "te": "విషయాలు"},
     {"href": "admin-muhurtas.html", "show": True, "en": "Muhurtas", "te": "ముహూర్తాలు"},
@@ -301,6 +303,11 @@ def _readable(e: ValidationError) -> str:
 def merged(key: str, stored: Any) -> Any:
     """A stored value laid over the default, so settings added later get their defaults."""
     default = REGISTRY[key]["default"]
+    if key == "nav" and isinstance(stored, dict) and isinstance(stored.get("items"), list):
+        known = {i["href"] for i in DEFAULT_NAV}
+        kept = [i for i in stored["items"] if isinstance(i, dict) and i.get("href") in known]
+        have = {i["href"] for i in kept}
+        return {"items": kept + [dict(i) for i in DEFAULT_NAV if i["href"] not in have]}
     if isinstance(default, dict) and isinstance(stored, dict):
         out = dict(default)
         for k, v in stored.items():

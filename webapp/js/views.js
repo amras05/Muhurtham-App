@@ -50,6 +50,7 @@ var Views = (function () {
         "</div>" +
         '<div class="pd-col pd-col--mid">' +
           '<section class="pd-card" id="pdTimes"></section>' +
+          '<section class="pd-card" id="pdPanchaka"></section>' +
           '<section class="pd-card" id="pdChandrabalam"></section>' +
         "</div>" +
         '<div class="pd-col pd-col--right">' +

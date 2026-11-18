@@ -9,103 +9,142 @@
     href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="css/common.css?v=20261114c">
-  <link rel="stylesheet" href="css/auth.css?v=20261113j">
+  <link rel="stylesheet" href="css/auth.css?v=20261119a">
 </head>
 
-<body data-no-account-menu>
+<body data-no-account-menu class="auth-body">
   <a class="skip-link" href="#mainContent">Skip to main content</a>
-  <nav class="app-shell__nav auth-nav" aria-label="Primary navigation">
+  <!-- Sign-in page, Stitch "desktop_portal" design (19 Nov 2026). Every element id used by js/login.js is kept.
+       Left out on purpose: claims and features the app doesn't have (user counts, email login, demo account,
+       OTP-only login, "remember me"), and links to pages that don't exist yet. -->
+  <header class="auth-top">
     <a class="app-shell__brand" href="panchang-lookup.html"><span class="brand-mark" data-icon="sun"></span><span class="brand-text"><span class="brand-name">గాయత్రి జ్యోతిర్నిధి</span><span class="brand-tag">వేద ముహూర్త &amp; దృక్సిద్ధాంత దర్శిని</span></span></a>
-    <div class="app-shell__links">
-      <a class="app-shell__link" href="panchang-lookup.html">Panchang</a>
-      <a class="app-shell__link" href="muhurta-finder.html">Muhurta Finder</a>
-    </div>
     <div class="lang-toggle">
-      <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
       <button class="lang-btn" id="langTe" onclick="setLang('te')">తెలుగు</button>
+      <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
     </div>
-  </nav>
+  </header>
 
   <main id="mainContent" class="auth-page">
-    <section class="auth-card" aria-labelledby="authTitle">
-      <h1 id="authTitle" class="auth-card__title">Sign in</h1>
-      <p id="authLede" class="auth-card__lede">Use the mobile number you signed up with.</p>
+    <div class="auth-shell">
+      <!-- Left: what the app is (true statements only) -->
+      <section class="auth-hero" aria-labelledby="heroTitle">
+        <svg class="auth-hero__yantra" viewBox="0 0 200 200" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="0.8">
+          <circle cx="100" cy="100" r="95" stroke-dasharray="3 3"/><polygon points="100,10 180,145 20,145"/><polygon points="100,190 20,55 180,55"/>
+          <polygon points="100,28 165,135 35,135"/><polygon points="100,172 35,65 165,65"/><circle cx="100" cy="100" r="45"/><circle cx="100" cy="100" r="22"/><circle cx="100" cy="100" r="4" fill="currentColor"/>
+        </svg>
+        <span class="auth-hero__pill"><span class="auth-hero__dot"></span><span data-en="Vedic panchang and muhurta, by the book" data-te="గ్రంథోక్త వేద పంచాంగం, ముహూర్త నిర్ణయం">Vedic panchang and muhurta, by the book</span></span>
+        <h2 id="heroTitle" class="auth-hero__title" data-en="Timeless wisdom, precise astronomy" data-te="సనాతన జ్ఞానం, నూతన ఖగోళ ఖచ్చితత్వం">Timeless wisdom, precise astronomy</h2>
+        <p class="auth-hero__lede" data-en="Drik panchang from the Swiss Ephemeris, muhurtas checked against every rule of the book, and your family's birth details kept safe in one place." data-te="స్విస్ ఎఫిమెరిస్‌తో దృక్ పంచాంగం, గ్రంథంలోని ప్రతి నియమంతో పరిశీలించిన ముహూర్తాలు, మీ కుటుంబ జనన వివరాలు ఒకే చోట భద్రంగా.">Drik panchang from the Swiss Ephemeris, muhurtas checked against every rule of the book, and your family's birth details kept safe in one place.</p>
+        <figure class="auth-hero__verse">
+          <blockquote lang="sa">గురుర్బ్రహ్మా గురుర్విష్ణుః గురుర్దేవో మహేశ్వరః ।<br>గురుః సాక్షాత్ పరబ్రహ్మ తస్మై శ్రీగురవే నమః ॥</blockquote>
+          <figcaption data-en="Guru stotram" data-te="గురు స్తోత్రం">Guru stotram</figcaption>
+        </figure>
+        <ul class="auth-hero__points">
+          <li><span class="auth-hero__icon" data-icon="sun"></span><div><strong data-en="Swiss Ephemeris precision" data-te="స్విస్ ఎఫిమెరిస్ ఖచ్చితత్వం">Swiss Ephemeris precision</strong><span data-en="Drik siddhanta, Lahiri ayanamsa, for your exact place" data-te="దృక్సిద్ధాంతం, లాహిరి అయనాంశ, మీ ప్రదేశానికే">Drik siddhanta, Lahiri ayanamsa, for your exact place</span></div></li>
+          <li><span class="auth-hero__icon" data-icon="shield"></span><div><strong data-en="AES-256 GCM encryption" data-te="AES-256 GCM రక్షణ">AES-256 GCM encryption</strong><span data-en="Your family's birth details are stored encrypted" data-te="మీ కుటుంబ జనన వివరాలు ఎన్‌క్రిప్ట్ చేసి భద్రపరుస్తాం">Your family's birth details are stored encrypted</span></div></li>
+          <li><span class="auth-hero__icon" data-icon="scroll"></span><div><strong data-en="All 21 mahadoshas checked" data-te="21 మహాదోషాల శోధన">All 21 mahadoshas checked</strong><span data-en="Kartari, lagna ashtama, jamitra and the rest, each with its reason" data-te="కర్తరి, లగ్నాష్టమ, జామిత్ర మొదలైన దోషాలు, కారణాలతో సహా">Kartari, lagna ashtama, jamitra and the rest, each with its reason</span></div></li>
+          <li><span class="auth-hero__icon" data-icon="lamp"></span><div><strong data-en="100+ events and samskaras" data-te="100 కి పైగా కార్యాలు, సంస్కారాలు">100+ events and samskaras</strong><span data-en="Marriage, griha pravesha, upanayana, business, travel and more" data-te="వివాహం, గృహప్రవేశం, ఉపనయనం, వ్యాపారం, ప్రయాణం మొదలైనవి">Marriage, griha pravesha, upanayana, business, travel and more</span></div></li>
+        </ul>
+      </section>
 
-      <div class="auth-tabs" role="tablist" aria-label="Sign in or create an account">
-        <button type="button" role="tab" id="tabLogin" class="auth-tab active" aria-selected="true" onclick="showView('login')" data-en="Log in" data-te="లాగిన్">Log in</button>
-        <button type="button" role="tab" id="tabSignup" class="auth-tab" aria-selected="false" onclick="showView('signup')" data-en="Create account" data-te="కొత్త ఖాతా">Create account</button>
-      </div>
+      <!-- Right: sign in / create account -->
+      <section class="auth-card" aria-labelledby="authTitle">
+        <div class="auth-tabs" role="tablist" aria-label="Sign in or create an account">
+          <button type="button" role="tab" id="tabLogin" class="auth-tab active" aria-selected="true" onclick="showView('login')"><span data-icon="user"></span> <span data-en="Sign in" data-te="ప్రవేశించండి">Sign in</span></button>
+          <button type="button" role="tab" id="tabSignup" class="auth-tab" aria-selected="false" onclick="showView('signup')"><span data-icon="users"></span> <span data-en="Create account" data-te="కొత్త ఖాతా నమోదు">Create account</span></button>
+        </div>
 
-      <div id="authError" class="auth-alert auth-alert--error" role="alert" hidden></div>
-      <div id="authInfo" class="auth-alert auth-alert--info" role="status" hidden></div>
+        <div class="auth-card__head">
+          <h1 id="authTitle" class="auth-card__title">Sign in</h1>
+          <p id="authLede" class="auth-card__lede">Use the mobile number you signed up with.</p>
+        </div>
 
-      <!-- Log in -->
-      <form id="viewLogin" class="auth-form" novalidate>
-        <div class="field"><label for="loginPhone" data-en="Mobile number" data-te="మొబైల్ నంబర్">Mobile number</label>
-          <div class="auth-mobile"><span class="auth-mobile__code">+91</span>
-            <input id="loginPhone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="98480 12345" required></div></div>
-        <div class="field"><label for="loginPassword" data-en="Password" data-te="పాస్‌వర్డ్">Password</label>
-          <input id="loginPassword" type="password" autocomplete="current-password" required></div>
-        <button type="submit" class="btn auth-submit" data-en="Log in" data-te="లాగిన్">Log in</button>
-        <button type="button" class="auth-link" onclick="showView('forgot')" data-en="Forgot password?" data-te="పాస్‌వర్డ్ మర్చిపోయారా?">Forgot password?</button>
-        <p class="auth-note" data-en="Added by an administrator? Choose &quot;Forgot password?&quot; to get a code and set your password." data-te="నిర్వాహకులు మిమ్మల్ని జోడించారా? కోడ్ పొంది పాస్‌వర్డ్ పెట్టుకోవడానికి 'పాస్‌వర్డ్ మర్చిపోయారా?' ఎంచుకోండి.">Added by an administrator? Choose "Forgot password?" to get a code and set your password.</p>
-      </form>
+        <div id="authError" class="auth-alert auth-alert--error" role="alert" hidden></div>
+        <div id="authInfo" class="auth-alert auth-alert--info" role="status" hidden></div>
 
-      <!-- Create account -->
-      <form id="viewSignup" class="auth-form" novalidate hidden>
-        <div class="field"><label for="signupName" data-en="Your name" data-te="మీ పేరు">Your name</label>
-          <input id="signupName" type="text" autocomplete="name" minlength="2" maxlength="80" required></div>
-        <div class="field"><label for="signupPhone" data-en="Mobile number (WhatsApp)" data-te="మొబైల్ నంబర్ (వాట్సాప్)">Mobile number (WhatsApp)</label>
-          <div class="auth-mobile"><span class="auth-mobile__code">+91</span>
-            <input id="signupPhone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="98480 12345" required></div></div>
-        <div class="field"><label for="signupPassword" data-en="Password (at least 8 characters)" data-te="పాస్‌వర్డ్ (కనీసం 8 అక్షరాలు)">Password (at least 8 characters)</label>
-          <input id="signupPassword" type="password" autocomplete="new-password" minlength="8" required></div>
-        <div class="field"><label for="signupConfirm" data-en="Type the password again" data-te="పాస్‌వర్డ్ మళ్లీ టైప్ చేయండి">Type the password again</label>
-          <input id="signupConfirm" type="password" autocomplete="new-password" minlength="8" required></div>
-        <label class="auth-consent"><input id="signupConsent" type="checkbox" required>
-          <span data-en="I agree that Gayatri Jyotirnidhi stores my name and mobile number, and the birth details I add for my family, only to find muhurtas for me. I can delete my account at any time."
-            data-te="ముహూర్తాలు కనుగొనడానికి మాత్రమే నా పేరు, మొబైల్ నంబర్, నేను నమోదు చేసే కుటుంబ జనన వివరాలు భద్రపరచడానికి అంగీకరిస్తున్నాను. నా ఖాతాను ఎప్పుడైనా తొలగించవచ్చు.">I agree that Gayatri Jyotirnidhi stores my name and mobile number, and the birth details I add for my family, only to find muhurtas for me. I can delete my account at any time.</span></label>
-        <button type="submit" class="btn auth-submit" data-en="Send code on WhatsApp" data-te="వాట్సాప్‌లో కోడ్ పంపండి">Send code on WhatsApp</button>
-      </form>
+        <!-- Log in -->
+        <form id="viewLogin" class="auth-form" novalidate>
+          <div class="field"><label for="loginPhone"><span data-en="Mobile number" data-te="మొబైల్ సంఖ్య">Mobile number</span> <span class="auth-req" aria-hidden="true">*</span></label>
+            <div class="auth-mobile"><span class="auth-mobile__code">+91</span>
+              <input id="loginPhone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="98480 12345" required></div></div>
+          <div class="field">
+            <div class="auth-label-row"><label for="loginPassword"><span data-en="Password" data-te="రహస్య సంకేతం (Password)">Password</span> <span class="auth-req" aria-hidden="true">*</span></label>
+              <button type="button" class="auth-link auth-link--inline" onclick="showView('forgot')" data-en="Forgot password?" data-te="పాస్‌వర్డ్ మర్చిపోయారా?">Forgot password?</button></div>
+            <div class="auth-pass"><input id="loginPassword" type="password" autocomplete="current-password" required>
+              <button type="button" class="auth-eye" data-show-pass="loginPassword" aria-label="Show password" aria-pressed="false"></button></div></div>
+          <button type="submit" class="btn btn--primary auth-submit"><span data-en="Sign in" data-te="ప్రవేశించండి">Sign in</span> <span aria-hidden="true">→</span></button>
+          <p class="auth-note" data-en="Added by an administrator? Choose &quot;Forgot password?&quot; to get a code and set your password." data-te="నిర్వాహకులు మిమ్మల్ని జోడించారా? కోడ్ పొంది పాస్‌వర్డ్ పెట్టుకోవడానికి 'పాస్‌వర్డ్ మర్చిపోయారా?' ఎంచుకోండి.">Added by an administrator? Choose "Forgot password?" to get a code and set your password.</p>
+        </form>
 
-      <!-- Enter the code (sign-up) -->
-      <form id="viewOtp" class="auth-form" novalidate hidden>
-        <p class="auth-hint" id="otpHint"></p>
-        <div class="field"><label for="otpCode" data-en="6-digit code" data-te="6 అంకెల కోడ్">6-digit code</label>
-          <input id="otpCode" class="auth-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required></div>
-        <button type="submit" class="btn auth-submit" data-en="Verify and continue" data-te="ధృవీకరించి కొనసాగండి">Verify and continue</button>
-        <button type="button" class="auth-link" id="resendBtn" onclick="resendCode()" data-en="Send the code again" data-te="కోడ్ మళ్లీ పంపండి">Send the code again</button>
-      </form>
+        <!-- Create account -->
+        <form id="viewSignup" class="auth-form" novalidate hidden>
+          <div class="field"><label for="signupName"><span data-en="Your name" data-te="మీ పూర్తి పేరు">Your name</span> <span class="auth-req" aria-hidden="true">*</span></label>
+            <input id="signupName" type="text" autocomplete="name" minlength="2" maxlength="80" required></div>
+          <div class="field"><label for="signupPhone"><span data-en="Mobile number (WhatsApp)" data-te="మొబైల్ సంఖ్య (వాట్సాప్)">Mobile number (WhatsApp)</span> <span class="auth-req" aria-hidden="true">*</span></label>
+            <div class="auth-mobile"><span class="auth-mobile__code">+91</span>
+              <input id="signupPhone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="98480 12345" required></div></div>
+          <div class="auth-two">
+            <div class="field"><label for="signupPassword"><span data-en="Password (8+ characters)" data-te="పాస్‌వర్డ్ (కనీసం 8 అక్షరాలు)">Password (8+ characters)</span> <span class="auth-req" aria-hidden="true">*</span></label>
+              <div class="auth-pass"><input id="signupPassword" type="password" autocomplete="new-password" minlength="8" required>
+                <button type="button" class="auth-eye" data-show-pass="signupPassword" aria-label="Show password" aria-pressed="false"></button></div></div>
+            <div class="field"><label for="signupConfirm"><span data-en="Type it again" data-te="మళ్లీ టైప్ చేయండి">Type it again</span> <span class="auth-req" aria-hidden="true">*</span></label>
+              <input id="signupConfirm" type="password" autocomplete="new-password" minlength="8" required></div>
+          </div>
+          <label class="auth-consent"><input id="signupConsent" type="checkbox" required>
+            <span data-en="I agree that Gayatri Jyotirnidhi stores my name and mobile number, and the birth details I add for my family, only to find muhurtas for me. I can delete my account at any time."
+              data-te="ముహూర్తాలు కనుగొనడానికి మాత్రమే నా పేరు, మొబైల్ నంబర్, నేను నమోదు చేసే కుటుంబ జనన వివరాలు భద్రపరచడానికి అంగీకరిస్తున్నాను. నా ఖాతాను ఎప్పుడైనా తొలగించవచ్చు.">I agree that Gayatri Jyotirnidhi stores my name and mobile number, and the birth details I add for my family, only to find muhurtas for me. I can delete my account at any time.</span></label>
+          <button type="submit" class="btn btn--primary auth-submit"><span data-en="Send code on WhatsApp" data-te="వాట్సాప్‌లో కోడ్ పంపండి">Send code on WhatsApp</span> <span aria-hidden="true">→</span></button>
+        </form>
 
-      <!-- Forgot password -->
-      <form id="viewForgot" class="auth-form" novalidate hidden>
-        <div class="field"><label for="forgotPhone" data-en="Mobile number" data-te="మొబైల్ నంబర్">Mobile number</label>
-          <div class="auth-mobile"><span class="auth-mobile__code">+91</span>
-            <input id="forgotPhone" type="tel" inputmode="tel" autocomplete="tel-national" required></div></div>
-        <button type="submit" class="btn auth-submit" data-en="Send reset code" data-te="రీసెట్ కోడ్ పంపండి">Send reset code</button>
-        <button type="button" class="auth-link" onclick="showView('login')" data-en="Back to log in" data-te="లాగిన్‌కు తిరిగి">Back to log in</button>
-      </form>
+        <!-- Enter the code (sign-up) -->
+        <form id="viewOtp" class="auth-form" novalidate hidden>
+          <p class="auth-hint" id="otpHint"></p>
+          <div class="field"><label for="otpCode" data-en="6-digit code" data-te="6 అంకెల కోడ్">6-digit code</label>
+            <input id="otpCode" class="auth-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required></div>
+          <button type="submit" class="btn btn--primary auth-submit" data-en="Verify and continue" data-te="ధృవీకరించి కొనసాగండి">Verify and continue</button>
+          <button type="button" class="auth-link" id="resendBtn" onclick="resendCode()" data-en="Send the code again" data-te="కోడ్ మళ్లీ పంపండి">Send the code again</button>
+        </form>
 
-      <!-- New password -->
-      <form id="viewReset" class="auth-form" novalidate hidden>
-        <div class="field"><label for="resetCode" data-en="Code from WhatsApp" data-te="వాట్సాప్ కోడ్">Code from WhatsApp</label>
-          <input id="resetCode" class="auth-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required></div>
-        <div class="field"><label for="resetPassword" data-en="New password (at least 8 characters)" data-te="కొత్త పాస్‌వర్డ్ (కనీసం 8 అక్షరాలు)">New password (at least 8 characters)</label>
-          <input id="resetPassword" type="password" autocomplete="new-password" minlength="8" required></div>
-        <div class="field"><label for="resetConfirm" data-en="Type it again" data-te="మళ్లీ టైప్ చేయండి">Type it again</label>
-          <input id="resetConfirm" type="password" autocomplete="new-password" minlength="8" required></div>
-        <button type="submit" class="btn auth-submit" data-en="Set new password" data-te="కొత్త పాస్‌వర్డ్ సెట్ చేయండి">Set new password</button>
-      </form>
-    </section>
+        <!-- Forgot password -->
+        <form id="viewForgot" class="auth-form" novalidate hidden>
+          <div class="field"><label for="forgotPhone" data-en="Mobile number" data-te="మొబైల్ సంఖ్య">Mobile number</label>
+            <div class="auth-mobile"><span class="auth-mobile__code">+91</span>
+              <input id="forgotPhone" type="tel" inputmode="tel" autocomplete="tel-national" required></div></div>
+          <button type="submit" class="btn btn--primary auth-submit" data-en="Send reset code" data-te="రీసెట్ కోడ్ పంపండి">Send reset code</button>
+          <button type="button" class="auth-link" onclick="showView('login')" data-en="Back to sign in" data-te="ప్రవేశానికి తిరిగి">Back to sign in</button>
+        </form>
+
+        <!-- New password -->
+        <form id="viewReset" class="auth-form" novalidate hidden>
+          <div class="field"><label for="resetCode" data-en="Code from WhatsApp" data-te="వాట్సాప్ కోడ్">Code from WhatsApp</label>
+            <input id="resetCode" class="auth-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required></div>
+          <div class="field"><label for="resetPassword" data-en="New password (at least 8 characters)" data-te="కొత్త పాస్‌వర్డ్ (కనీసం 8 అక్షరాలు)">New password (at least 8 characters)</label>
+            <div class="auth-pass"><input id="resetPassword" type="password" autocomplete="new-password" minlength="8" required>
+              <button type="button" class="auth-eye" data-show-pass="resetPassword" aria-label="Show password" aria-pressed="false"></button></div></div>
+          <div class="field"><label for="resetConfirm" data-en="Type it again" data-te="మళ్లీ టైప్ చేయండి">Type it again</label>
+            <input id="resetConfirm" type="password" autocomplete="new-password" minlength="8" required></div>
+          <button type="submit" class="btn btn--primary auth-submit" data-en="Set new password" data-te="కొత్త పాస్‌వర్డ్ సెట్ చేయండి">Set new password</button>
+        </form>
+
+        <p class="auth-trust"><span data-icon="shield"></span> <span data-en="Your details are used only to find muhurtas for you." data-te="మీ వివరాలు మీ ముహూర్తాల కోసం మాత్రమే వాడతాం.">Your details are used only to find muhurtas for you.</span></p>
+      </section>
+    </div>
   </main>
+
+  <footer class="auth-foot">
+    <span class="auth-foot__brand">గాయత్రి జ్యోతిర్నిధి</span>
+    <span>© 2026</span><span aria-hidden="true">•</span>
+    <span data-en="Drik panchang · Swiss Ephemeris · Lahiri ayanamsa" data-te="దృక్ పంచాంగం · స్విస్ ఎఫిమెరిస్ · లాహిరి అయనాంశ">Drik panchang · Swiss Ephemeris · Lahiri ayanamsa</span>
+  </footer>
 
   <script src="js/config.js"></script>
   <script src="js/site-config.js?v=20261114c"></script>
   <script src="js/icons.js?v=20261110"></script>
   <script src="js/app-shell.js?v=20261110"></script>
   <script src="js/i18n.js?v=20261114c"></script>
-  <script src="js/auth.js?v=20261114a"></script>
-  <script src="js/login.js?v=20261114c"></script>
+  <script src="js/auth.js?v=20261119a"></script>
+  <script src="js/login.js?v=20261119a"></script>
 </body>
 
 </html>

@@ -708,3 +708,22 @@ The super admin changes how the app looks and behaves on **Settings** (`admin-se
 3. Draw its card in `admin-config.js` (`TABS` and `BODIES`).
 4. Add a row to the table above.
 
+---
+
+## 15. Stitch web designs (19 Nov 2026)
+
+The web pages follow the Stitch export (`~/Downloads/stitch`, `desktop_*` screens). The phone screens were left out on purpose.
+
+**Rule for every design:** anything the app can't back with real data or a real feature is left out (user counts, email login, demo account, dark theme, alert switches, an invented "best muhurta").
+
+| Menu item | Page | Stitch screen | Notes |
+|---|---|---|---|
+| Today's Panchang | `panchang-lookup.html` | `desktop_panchangam` | Header row; live cards with a coloured edge; angas with pada navamsa; Sun/Moon 2×2; five-panchaka card; 4-column rashi grid; "Month view" opens `panchang-month.html` |
+| Muhurta Darshini | `muhurta-finder.html` | `desktop_muhurtha_finder` | Category chips across the top; form as 4 numbered step cards (left, sticky); results right. Every id unchanged |
+| Muhurta Parishilana | `muhurta-finder.html#parishilana` | `desktop_audit` | The detail view, full screen: back, previous / next, a two-column body. The hash reopens the last muhurta viewed (sessionStorage) |
+| All muhurtas | `muhurtas.html` | `desktop_catalog` | Every event from `/muhurta/catalog`, one card per tab; an event opens the Finder with `?activity=<id>` |
+| Family vault & settings | `family.html` | `desktop_settings_vault` | Profile header (`vault.js`), then family (`family.js`), saved muhurtas (`saved.js`) and account (`account.js`) on one page; an `onLangChange` shim keeps all three handlers |
+| (sign-in) | `login.html` | `desktop_portal` | Two panels; true statements only; show/hide password |
+
+**Hidden from the menu by default** (Settings › Menu can show them): Monthly Panchang, Home, My muhurtas. `account.html` and `saved.html` still work as pages.
+

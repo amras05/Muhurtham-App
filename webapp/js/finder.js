@@ -1536,7 +1536,7 @@ function renderResults(data) {
         ${reasonsHtml}
         <div style="margin-top: 12px; text-align: right;">
           <button type="button" onclick="event.stopPropagation(); openDayModal(${idx})" class="btn btn--primary btn--sm" style="font-size: 12px; padding: 6px 14px;">
-            ${Icon("search")} ${currentLang === "te" ? "సమగ్ర విశ్లేషణ & D1 చక్రం చూడండి →" : "View Full Analysis & D1 Chart Popup →"}
+            ${Icon("search")} ${currentLang === "te" ? "వివరాలు & లగ్న కుండలి →" : "Details and lagna chart →"}
           </button>
         </div>
       </div>
@@ -1550,6 +1550,8 @@ function openDayModal(idx) {
   openDayIdx = idx;
   const r = lastData.results[idx];
   const d = r.detailed_eval;
+  paRemember(r);
+  paNavState();
 
   const vaaraTe = VAARA_NAMES[currentLang][r.panchang?.vaara] || r.panchang?.vaara;
   const rawNak = typeof r.panchang?.nakshatra === 'object' ? r.panchang.nakshatra.name : (r.panchang?.nakshatra || "");
@@ -1991,12 +1993,52 @@ function buildRuleCard(title, pass, desc) {
     </div>`;
 }
 
-function closeModal() { el("mfModal").style.display = "none"; }
+function closeModal() {
+  el("mfModal").style.display = "none";
+  document.body.classList.remove("pa-open");
+  if (location.hash === "#parishilana") history.replaceState(null, "", location.pathname + location.search);
+}
+
+// ---- Muhurta Parishilana (19 Nov 2026): previous / next among the results, and reopening the last one ----
+const PA_KEY = "gj_parishilana_v1";
+function paRemember(r) {
+  document.body.classList.add("pa-open");
+  try { sessionStorage.setItem(PA_KEY, JSON.stringify({ r, birth_details: lastData && lastData.birth_details })); }
+  catch (e) { console.warn("Could not keep this muhurta for the Parishilana menu item:", e && e.name); }
+}
+function paNavState() {
+  const n = (lastData && lastData.results) ? lastData.results.length : 0;
+  if (el("paPrev")) el("paPrev").disabled = openDayIdx <= 0;
+  if (el("paNext")) el("paNext").disabled = openDayIdx >= n - 1;
+  if (el("paCount")) el("paCount").textContent = n > 1 ? T(`${openDayIdx + 1} of ${n}`, `${n} లో ${openDayIdx + 1}`) : "";
+}
+function stepParishilana(delta) {
+  const i = openDayIdx + delta;
+  if (lastData && lastData.results && i >= 0 && i < lastData.results.length) {
+    openDayModal(i);
+    const box = document.querySelector("#mfModal .modal-content");
+    if (box) box.scrollTop = 0;
+  }
+}
+// muhurta-finder.html#parishilana: show the last muhurta looked at in this browser tab, or say how to pick one.
+function paRestore() {
+  if (location.hash !== "#parishilana") return;
+  let saved = null;
+  try { saved = JSON.parse(sessionStorage.getItem(PA_KEY) || "null"); } catch (e) { saved = null; }
+  if (saved && saved.r) {
+    lastData = Object.assign({}, lastData || {}, { results: [saved.r], birth_details: saved.birth_details || null });
+    openDayModal(0);
+  } else {
+    AppShell.toast(T("Search for muhurtas first, then open one to see it in full here.", "ముందుగా ముహూర్తాలు వెతకండి, ఆపై ఒకదాన్ని తెరిస్తే ఇక్కడ పూర్తిగా చూపిస్తాం."), "info");
+  }
+}
 
 // ---- Init ----
 el("startDate").valueAsDate = new Date();
 
 el("findBtn").addEventListener("click", findMuhurtas);
+window.addEventListener("hashchange", paRestore);
+setTimeout(paRestore, 0);
 el("mfSearchPlaceBtn").addEventListener("click", findMuhurtas);
 
 // Region dropdown toggle + place autocomplete (shared components)

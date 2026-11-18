@@ -11,7 +11,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="css/common.css?v=20261114c">
   <link rel="stylesheet" href="css/components.css?v=20261110e">
-  <link rel="stylesheet" href="css/muhurta-finder.css?v=20261113j">
+  <link rel="stylesheet" href="css/muhurta-finder.css?v=20261119b">
 </head>
 
 <body>
@@ -26,16 +26,24 @@
     <div class="account-slot" id="accountSlot"></div>
   </nav>
   <main id="mainContent">
-  <div class="wrap">
-    <header>
-      <div class="eyebrow" data-en="30-Day Muhurta Scanner" data-te="30 రోజుల ముహూర్త శోధన">30-Day Muhurta Scanner</div>
-      <h1>ముహూర్త శోధన · Muhurta Finder</h1>
-      <p data-en="Scan 30 days of Panchang with Pushkara Bhaga, Lagna Shuddhi & Ashtama Shuddhi analysis"
-        data-te="పుష్కర భాగ, లగ్న శుద్ధి & అష్టమ శుద్ధి విశ్లేషణతో 30 రోజుల పంచాంగం శోధన">
-        Scan 30 days of Panchang with Pushkara Bhaga, Lagna Shuddhi & Ashtama Shuddhi analysis
-      </p>
+  <div class="wrap wrap--wide">
+    <!-- Muhurta Darshini (Stitch "desktop_muhurtha_finder", 19 Nov 2026): title bar, category chips across the
+         page, then the form as numbered steps on the left and the results on the right. Every id is unchanged. -->
+    <header class="mf-title">
+      <span class="mf-title__icon" data-icon="search"></span>
+      <div>
+        <h1 data-en="Muhurta Darshini" data-te="ముహూర్త దర్శిని">Muhurta Darshini</h1>
+        <p data-en="Every window checked against the book's rules: tithi, nakshatra, lagna, the 21 mahadoshas and your birth details." data-te="ప్రతి సమయం గ్రంథ నియమాలతో పరిశీలన: తిథి, నక్షత్రం, లగ్నం, 21 మహాదోషాలు, మీ జన్మ వివరాలు.">Every window checked against the book's rules: tithi, nakshatra, lagna, the 21 mahadoshas and your birth details.</p>
+      </div>
+      <span class="mf-title__chip"><span data-icon="sun"></span> <span data-en="Swiss Ephemeris · Lahiri" data-te="స్విస్ ఎఫిమెరిస్ · లాహిరి">Swiss Ephemeris · Lahiri</span></span>
     </header>
 
+    <!-- Category tabs (built from /muhurta/catalog) -->
+    <div class="tab-container" id="mfCategoryTabs" role="tablist" aria-label="Muhurta categories"></div>
+
+
+    <div class="mf-layout">
+    <aside class="mf-form" aria-label="Search">
     <!-- Two ways to search (11 Nov 2026): for a person, or the muhurtas of an event by lunar month -->
     <div class="finder-modes" role="tablist" aria-label="How to search">
       <button type="button" role="tab" class="finder-mode active" id="mfModePerson" aria-selected="true" data-en="Find for a person" data-te="వ్యక్తి కోసం ముహూర్తం">Find for a person</button>
@@ -43,11 +51,9 @@
     </div>
     <p class="pool-intro" id="mfPoolIntro" hidden data-en="Choose an event, a year and the lunar months: every suitable muhurta is listed month by month. No personal details are needed." data-te="కార్యం, సంవత్సరం, చాంద్రమాన మాసాలు ఎంచుకోండి: అనువైన ముహూర్తాలన్నీ మాసాల వారీగా చూపిస్తాము. వ్యక్తిగత వివరాలు అవసరం లేదు.">Choose an event, a year and the lunar months: every suitable muhurta is listed month by month. No personal details are needed.</p>
 
-    <!-- Category tabs (built from /muhurta/catalog) -->
-    <div class="tab-container" id="mfCategoryTabs" role="tablist" aria-label="Muhurta categories"></div>
-
     <!-- Input Form -->
     <div class="controls" id="mfControls">
+      <div class="mf-step" id="mfStepEvent"><h2 class="mf-step__title"><span class="mf-step__num">1</span> <span data-en="Choose the event" data-te="ముహూర్త కార్యము ఎంపిక">Choose the event</span></h2>
       <div class="field field--activity">
         <label for="mfActivitySelect" data-en="Muhurtha Event" data-te="ముహూర్త కార్యము">Muhurtha Event</label>
         <select id="mfActivitySelect" onchange="onActivityChange()">
@@ -67,6 +73,8 @@
         <label for="mfVariantSelect" data-en="Rule list" data-te="నియమ జాబితా">Rule list</label>
         <select id="mfVariantSelect"></select>
       </div>
+      </div>
+      <div class="mf-step" id="mfStepSearch"><h2 class="mf-step__title"><span class="mf-step__num">2</span> <span data-en="Dates, place and options" data-te="శోధన పరిమితులు & ప్రదేశం">Dates, place and options</span></h2>
       <div class="field field--start-date">
         <label for="startDate" data-en="Start Date" data-te="ప్రారంభ తేదీ">Start Date</label>
         <input type="date" id="startDate">
@@ -133,9 +141,13 @@
         <small class="lunar-months__hint" data-en="None ticked: every month. Months are amanta. Results cover one year from the start date." data-te="ఏదీ ఎంచుకోకపోతే: అన్ని మాసాలు. మాసాలు అమాంత పద్ధతి. ఫలితాలు ప్రారంభ తేదీ నుండి ఒక సంవత్సరం.">None ticked: every month. Months are amanta. Results cover one year from the start date.</small>
       </fieldset>
       <div id="mfInfoBanner" class="info-banner" role="note" hidden></div>
+      </div>
 
       <!-- People taking part (built per event from the catalog) -->
+      <div class="mf-step" id="mfStepPeople"><h2 class="mf-step__title"><span class="mf-step__num">3</span> <span data-en="Who it is for" data-te="కర్త / యజమాని వివరాలు">Who it is for</span></h2>
       <section id="mfParticipants" class="participants" aria-label="People taking part"></section>
+      </div>
+      <div class="mf-step" id="mfStepDetails"><h2 class="mf-step__title"><span class="mf-step__num">4</span> <span data-en="Event details" data-te="కార్య ప్రత్యేక వివరాలు">Event details</span></h2>
 
       <!-- Pitru tab: switch between a rite's muhurta and the shraddha calendar -->
       <section id="mfPitruPanel" class="yoga-panel" hidden>
@@ -416,6 +428,8 @@
         </div>
       </div>
 
+      </div>
+
       <!-- Custom place search -->
       <div id="mfCustomPlaceField" class="custom-place-section" style="display:none;">
         <label for="mfCustomPlaceInput" class="custom-place-label"
@@ -431,6 +445,9 @@
 
       <button id="findBtn" data-en="Find muhurtas" data-te="ముహూర్తాలు వెతుకు">Find muhurtas</button>
     </div>
+    </aside>
+
+    <section class="mf-out" aria-label="Results">
 
     <!-- Progress -->
     <div id="progressSection" style="display: none;">
@@ -461,19 +478,33 @@
       <!-- One year from the start date, loaded 60 days at a time as the list scrolls (11 Nov 2026) -->
       <div class="load-more" id="mfMore" aria-live="polite" hidden></div>
     </div>
+    <div class="mf-empty" id="mfEmptyHint">
+      <span data-icon="lamp"></span>
+      <h2 data-en="Your muhurtas appear here" data-te="ముహూర్తాలు ఇక్కడ కనిపిస్తాయి">Your muhurtas appear here</h2>
+      <p data-en="Choose the event, the place and who it is for, then press Find muhurtas." data-te="కార్యం, ప్రదేశం, కర్త వివరాలు ఎంచుకుని 'ముహూర్తాలు వెతుకు' నొక్కండి.">Choose the event, the place and who it is for, then press Find muhurtas.</p>
+    </div>
+    </section>
+    </div>
   </div>
   </main>
 
   <!-- Modal -->
-  <div id="mfModal" class="modal-overlay" style="display:none;" onclick="if(event.target === this) closeModal()">
+  <!-- Muhurta Parishilana (Stitch "desktop_audit", 19 Nov 2026): one muhurta in full, as a full-screen view.
+       The menu item opens muhurta-finder.html#parishilana, which shows the last muhurta looked at. -->
+  <div id="mfModal" class="modal-overlay pa-view" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="mfModalTitle">
     <div class="modal-content">
       <div class="modal-header">
-        <div id="mfModalTitle" class="modal-title"></div>
+        <button type="button" class="btn btn--outline btn--sm no-print" onclick="closeModal()"><span aria-hidden="true">←</span> <span data-en="Back to results" data-te="ఫలితాలకు తిరిగి">Back to results</span></button>
+        <div class="pa-nav no-print">
+          <button type="button" class="pa-nav__btn" id="paPrev" onclick="stepParishilana(-1)" aria-label="Previous muhurta">‹</button>
+          <div class="pa-nav__title"><span class="pa-kicker" data-en="Muhurta Parishilana" data-te="ముహూర్త పరిశీలన">Muhurta Parishilana</span><div id="mfModalTitle" class="modal-title"></div><span class="pa-count" id="paCount"></span></div>
+          <button type="button" class="pa-nav__btn" id="paNext" onclick="stepParishilana(1)" aria-label="Next muhurta">›</button>
+        </div>
         <div class="modal-header__actions">
           <button type="button" class="btn btn--sm btn--ghost no-print" onclick="saveSearch(this, true)"><span data-en="Save this muhurta" data-te="ఈ ముహూర్తం భద్రపరచండి">Save this muhurta</span></button>
           <button type="button" class="btn btn--sm btn--ghost no-print" onclick="addWindowToFamily(this)"><span data-en="Add to family events" data-te="కుటుంబ కార్యక్రమాల్లో చేర్చండి">Add to family events</span></button>
           <button type="button" class="btn btn--sm btn--ghost no-print" onclick="downloadDetailPdf(this)" data-share-kind="pdf" hidden><!-- shown by Settings › sharing --><span data-en="Download PDF" data-te="PDF డౌన్‌లోడ్">Download PDF</span></button>
-          <button class="modal-close no-print" onclick="closeModal()">&times;</button>
+          <button class="modal-close no-print" onclick="closeModal()" aria-label="Close">&times;</button>
         </div>
       </div>
       <div class="modal-body" id="mfModalBody"></div>
@@ -486,11 +517,11 @@
   <script src="js/icons.js?v=20261110"></script>
   <script src="js/app-shell.js?v=20261110"></script>
   <script src="js/i18n.js?v=20261114c"></script>
-  <script src="js/auth.js?v=20261114a"></script>
+  <script src="js/auth.js?v=20261119a"></script>
   <script src="js/regions.js"></script>
   <script src="js/pdf-download.js?v=20261110b"></script>
   <script src="js/stars.js"></script>
-  <script src="js/finder.js?v=20261114b"></script>
+  <script src="js/finder.js?v=20261119a"></script>
 </body>
 
 </html>

@@ -6,7 +6,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/common.css?v=20261114c">
   <link rel="stylesheet" href="css/portal.css?v=20261113p">
-  <title>My family · Gayatri Jyotirnidhi</title>
+  <link rel="stylesheet" href="css/vault.css?v=20261119a">
+  <title>Family vault and settings · Gayatri Jyotirnidhi</title>
 </head>
 <body>
   <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -19,10 +20,27 @@
     </div>
     <div class="account-slot" id="accountSlot"></div>
   </nav>
-  <main id="mainContent" class="portal">
-    <div class="users-bar">
-      <h1 class="portal__title" data-en="My family" data-te="నా కుటుంబం">My family</h1>
-      <button type="button" class="btn" id="famAdd" data-en="Add a person" data-te="వ్యక్తిని జోడించండి">Add a person</button>
+  <main id="mainContent" class="portal fv">
+    <!-- Family Vault & Settings (Stitch "desktop_settings_vault", 19 Nov 2026): My family, My muhurtas and
+         My account on one page. The three blocks keep their own ids and scripts (family.js, saved.js,
+         account.js); vault.js draws the profile header. Left out on purpose: features the app doesn't have
+         (dark theme, alert switches, WhatsApp summary). -->
+    <section class="fv-hero" aria-labelledby="fvName">
+      <span class="fv-hero__avatar" data-icon="user"></span>
+      <div class="fv-hero__text">
+        <div class="fv-hero__line"><h1 id="fvName" class="fv-hero__name">…</h1><span class="pd-chip pd-chip--gold" id="fvRole"></span></div>
+        <p class="fv-hero__meta"><span id="fvPhone"></span><span id="fvHome"></span></p>
+      </div>
+      <p class="fv-hero__note"><span data-icon="shield"></span> <span data-en="Birth details are stored encrypted (AES-256 GCM) and only you can see them." data-te="జన్మ వివరాలు ఎన్‌క్రిప్ట్ చేసి (AES-256 GCM) భద్రపరుస్తాం; మీరు మాత్రమే చూడగలరు.">Birth details are stored encrypted (AES-256 GCM) and only you can see them.</span></p>
+    </section>
+
+    <div class="fv-grid">
+      <div class="fv-col">
+        <section class="portal-card fv-family" aria-label="Family">
+
+    <div class="fv-card__head">
+      <div><h2 data-en="Family birth details" data-te="కుటుంబ జాతక ఖజానా">Family birth details</h2></div>
+      <button type="button" class="btn btn--primary" id="famAdd"><span data-icon="users"></span> <span data-en="Add a person" data-te="కుటుంబ సభ్యుని చేర్చండి">Add a person</span></button>
     </div>
     <p class="portal-hint" data-en="Enter each person once, then pick them on any Muhurta Finder card. Birth details are encrypted and only you can see them." data-te="ప్రతి వ్యక్తిని ఒకసారి నమోదు చేయండి; తర్వాత ముహూర్త శోధనలో ఎంచుకోండి. జన్మ వివరాలు గుప్తీకరించబడతాయి; మీకు మాత్రమే కనిపిస్తాయి.">Enter each person once, then pick them on any Muhurta Finder card. Birth details are encrypted and only you can see them.</p>
     <div id="famMsg" class="auth-alert auth-alert--info" role="status" hidden></div>
@@ -65,15 +83,81 @@
     </form>
 
     <ul class="fam-list" id="famList"><li><span class="skeleton" role="status" aria-label="Loading"></span></li></ul>
+  
+        </section>
+      </div>
+      <div class="fv-col">
+        <section class="portal-card" aria-labelledby="svTitle">
+          <div class="fv-card__head"><h2 id="svTitle" data-en="Saved muhurtas" data-te="భద్రపరచిన ముహూర్తాలు">Saved muhurtas</h2></div>
+
+    <p class="portal-hint" data-en="Searches and muhurtas you saved from the Muhurta Finder, Special Yogas and the Shraddha calendar. Run one again to get today's results; starred ones stay at the top." data-te="ముహూర్త శోధన, విశేష యోగాలు, శ్రాద్ధ పంచాంగంలో మీరు భద్రపరిచినవి. మళ్లీ శోధించి తాజా ఫలితాలు చూడండి; నక్షత్రం గుర్తు ఉన్నవి పైన ఉంటాయి.">Searches and muhurtas you saved from the Muhurta Finder, Special Yogas and the Shraddha calendar. Run one again to get today's results; starred ones stay at the top.</p>
+    <div id="svMsg" class="auth-alert auth-alert--info" role="status" hidden></div>
+    <ul class="fam-list" id="svList"><li><span class="skeleton" role="status" aria-label="Loading"></span></li></ul>
+  
+        </section>
+
+    <div id="acctMsg" class="auth-alert auth-alert--info" role="status" hidden></div>
+
+    <section class="portal-card" aria-labelledby="pTitle">
+      <h2 id="pTitle" data-en="Profile" data-te="వివరాలు">Profile</h2>
+      <form id="profileForm" class="portal-form">
+        <div class="field"><label for="acName" data-en="Name" data-te="పేరు">Name</label><input id="acName" minlength="2" maxlength="80" required autocomplete="name"></div>
+        <div class="field"><label data-en="Mobile" data-te="మొబైల్">Mobile</label><p id="acPhone" class="portal-static"></p></div>
+        <div class="field"><label for="acLang" data-en="Language" data-te="భాష">Language</label>
+          <select id="acLang"><option value="te">తెలుగు</option><option value="en">English</option></select></div>
+        <button type="submit" class="btn" data-en="Save" data-te="భద్రపరచండి">Save</button>
+      </form>
+    </section>
+
+    <section class="portal-card" id="home" aria-labelledby="hTitle">
+      <h2 id="hTitle" data-en="Home place" data-te="ఇంటి ప్రదేశం">Home place</h2>
+      <p class="portal-hint" data-en="Used for the Today card on your home page." data-te="హోమ్ పేజీలో నేటి పంచాంగానికి వాడతాము.">Used for the Today card on your home page.</p>
+      <form id="homeForm" class="portal-form">
+        <div class="field"><label for="acPlace" data-en="Place" data-te="ప్రదేశం">Place</label><select id="acPlace" required></select></div>
+        <button type="submit" class="btn" data-en="Save home place" data-te="ఇంటి ప్రదేశం భద్రపరచండి">Save home place</button>
+      </form>
+    </section>
+
+    <section class="portal-card" aria-labelledby="dTitle">
+      <h2 id="dTitle" data-en="Signed-in devices" data-te="లాగిన్ అయిన పరికరాలు">Signed-in devices</h2>
+      <ul id="devices" class="portal-list"><li data-en="Loading…" data-te="లోడ్ అవుతోంది…"><span class="skeleton" role="status" aria-label="Loading"></span></li></ul>
+    </section>
+
+    <section class="portal-card" aria-labelledby="yTitle">
+      <h2 id="yTitle" data-en="Your data" data-te="మీ సమాచారం">Your data</h2>
+      <p class="portal-hint" data-en="Download everything stored about you: your account, family (with birth details), family events, saved muhurtas and your activity." data-te="మీ గురించి నిల్వ ఉన్నదంతా డౌన్‌లోడ్ చేసుకోండి: ఖాతా, కుటుంబం (జన్మ వివరాలతో), కుటుంబ కార్యక్రమాలు, భద్రపరిచిన ముహూర్తాలు, మీ కార్యకలాపాలు.">Download everything stored about you: your account, family (with birth details), family events, saved muhurtas and your activity.</p>
+      <div class="row-form"><button type="button" class="btn btn--ghost" id="exportBtn" data-en="Download my data" data-te="నా సమాచారం డౌన్‌లోడ్">Download my data</button></div>
+      <details class="danger-zone">
+        <summary data-en="Delete my account" data-te="నా ఖాతా తొలగించండి">Delete my account</summary>
+        <form id="deleteForm" class="portal-form">
+          <p class="portal-hint" data-en="This removes your name, mobile, family, family events and saved muhurtas, and signs you out everywhere. It can't be undone. The activity log keeps only that an account existed." data-te="ఇది మీ పేరు, మొబైల్, కుటుంబం, కుటుంబ కార్యక్రమాలు, భద్రపరిచిన ముహూర్తాలను తొలగించి అన్ని పరికరాల నుండి సైన్ అవుట్ చేస్తుంది. తిరిగి పొందలేము. ఖాతా ఉండేదని మాత్రమే లాగ్‌లో ఉంటుంది.">This removes your name, mobile, family, family events and saved muhurtas, and signs you out everywhere. It can't be undone. The activity log keeps only that an account existed.</p>
+          <div class="field"><label for="delPassword" data-en="Your password" data-te="మీ పాస్‌వర్డ్">Your password</label><input type="password" id="delPassword" required autocomplete="current-password"></div>
+          <label class="switch"><input type="checkbox" id="delSure" required> <span data-en="I understand my account and data will be deleted for good." data-te="నా ఖాతా, సమాచారం శాశ్వతంగా తొలగిపోతాయని అర్థమైంది.">I understand my account and data will be deleted for good.</span></label>
+          <button type="submit" class="btn btn--danger" data-en="Delete my account" data-te="నా ఖాతా తొలగించండి">Delete my account</button>
+        </form>
+      </details>
+    </section>
+  
+      </div>
+    </div>
   </main>
   <script src="js/config.js"></script>
   <script src="js/site-config.js?v=20261114c"></script>
   <script src="js/icons.js?v=20261110"></script>
   <script src="js/app-shell.js?v=20261110"></script>
   <script src="js/i18n.js?v=20261114c"></script>
-  <script src="js/auth.js?v=20261114a"></script>
+  <script src="js/auth.js?v=20261119a"></script>
+  <script>
+    // Three page scripts share this page; each sets window.onLangChange. Keep them all (19 Nov 2026).
+    (function () { var fns = []; Object.defineProperty(window, "onLangChange", { configurable: true,
+      get: function () { return function () { fns.forEach(function (f) { try { f(); } catch (e) { console.error(e); } }); }; },
+      set: function (f) { if (typeof f === "function") fns.push(f); } }); })();
+  </script>
   <script src="js/regions.js"></script>
   <script src="js/stars.js"></script>
   <script src="js/family.js?v=20261110"></script>
+  <script src="js/saved.js?v=20261110b"></script>
+  <script src="js/account.js?v=20261110"></script>
+  <script src="js/vault.js?v=20261119a"></script>
 </body>
 </html>
