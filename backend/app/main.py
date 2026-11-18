@@ -27,6 +27,7 @@ from app.routers.content import router as content_router
 from app.routers.pdf import router as pdf_router
 from app.routers.family import router as family_router
 from app.routers.saved import router as saved_router
+from app.routers.app_config import router as app_config_router
 
 settings = get_settings()
 
@@ -85,6 +86,7 @@ app.include_router(content_router)
 app.include_router(pdf_router)
 app.include_router(family_router)
 app.include_router(saved_router)
+app.include_router(app_config_router)
 
 
 # Root endpoints

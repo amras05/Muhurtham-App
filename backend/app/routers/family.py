@@ -214,7 +214,7 @@ def profile_for_search(profile_id: str, owner_id: str) -> Dict[str, Any]:
 # ── Family events (plan R2) ───────────────────────────────────────────────────────
 # Past and planned events per person. Used for the sibling-marriage warning (decision E2).
 
-MARRIAGE_EVENTS = {"vivaha"}
+MARRIAGE_EVENTS = {"vivaha", "dvitiya_vivaha"}
 SIBLING_GAP_DAYS = 183            # "6 months" (E2): warn only; the window is still to be confirmed by the author
 # Who counts as a sibling of whom, from the relations the owner gave (grandchildren may be cousins: not used).
 _SIBLINGS = {"self": {"brother", "sister"}, "brother": {"self", "brother", "sister"}, "sister": {"self", "brother", "sister"},

@@ -15,11 +15,11 @@ manvadi:          # 14 Manvadi tithis
     - {masa: 8, tithi: 12}    # Kartika shukla dvadashi
     - {masa: 1, tithi: 3}     # Chaitra shukla tritiya
     - {masa: 6, tithi: 3}     # Bhadrapada shukla tritiya
-    - {masa: 12, tithi: 30}   # Phalguna amavasya
+    - {masa: 5, tithi: 30}    # Shravana amavasya (book; corrected 12 Nov 2026)
     - {masa: 10, tithi: 11}   # Pushya shukla ekadashi
     - {masa: 4, tithi: 10}    # Ashadha shukla dashami
     - {masa: 11, tithi: 7}    # Magha shukla saptami
-    - {masa: 5, tithi: 23}    # Shravana krishna ashtami
+    - {masa: 6, tithi: 23}    # Bhadrapada krishna ashtami (book; corrected 12 Nov 2026)
     - {masa: 4, tithi: 15}    # Ashadha purnima
     - {masa: 8, tithi: 15}    # Kartika purnima
     - {masa: 12, tithi: 15}   # Phalguna purnima

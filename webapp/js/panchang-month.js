@@ -4,7 +4,7 @@
 // tapping a date shows that day's panchang below the calendar. The Day tab is unchanged.
 // ============================================================
 
-let activePanchangTab = "day";
+let activePanchangTab = "month";   // the Monthly Panchang page opens on the calendar
 let monthData = null;      // last /panchang/month response
 let monthLoadedKey = "";   // month + place the calendar was drawn for
 let monthSelected = null;  // "YYYY-MM-DD" of the open day
@@ -39,6 +39,7 @@ function showPanchangTab(name) {
   el("dayView").hidden = isMonth;
   el("monthView").hidden = !isMonth;
   [["tabDayBtn", !isMonth], ["tabMonthBtn", isMonth]].forEach(([id, on]) => {
+    if (!el(id)) return;   // the Monthly Panchang page has no tab buttons (13 Nov 2026)
     el(id).classList.toggle("active", on);
     el(id).setAttribute("aria-selected", on ? "true" : "false");
   });
@@ -160,6 +161,7 @@ function renderMonthDetail() {
   el("monthOpenDay").addEventListener("click", () => {
     el("dateInput").value = d.date;
     showPanchangTab("day");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
   bindPanchangShare(box, {
     getSections: () => panchangDaySections(d, monthData.place),
@@ -168,8 +170,9 @@ function renderMonthDetail() {
 }
 
 function initMonthTab() {
-  el("tabDayBtn").addEventListener("click", () => showPanchangTab("day"));
-  el("tabMonthBtn").addEventListener("click", () => showPanchangTab("month"));
+  if (el("tabDayBtn")) el("tabDayBtn").addEventListener("click", () => showPanchangTab("day"));
+  if (el("tabMonthBtn")) el("tabMonthBtn").addEventListener("click", () => showPanchangTab("month"));
+  if (el("backToMonth")) el("backToMonth").addEventListener("click", () => showPanchangTab("month"));
   el("monthPrev").addEventListener("click", () => shiftMonth(-1));
   el("monthNext").addEventListener("click", () => shiftMonth(1));
 

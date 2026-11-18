@@ -17,14 +17,16 @@ def get_panchang_data(
     tz_offset: float,
     place_name: str = "Location",
     hour: int = 6,
+    minute: int = 0,
 ) -> Dict[str, Any]:
-    """Calculate complete panchang for a given date, location, and hour."""
+    """Calculate complete panchang for a given date, location, hour and minute."""
     y, m, d = parse_date_str(date_str)
     try:
         hour_val = int(hour)
     except (TypeError, ValueError):
         hour_val = 6
-    return compute_drik_panchang(y, m, d, lat, lon, tz_offset, place_name, hour=hour_val)
+    minute_val = int(minute) if isinstance(minute, int) and 0 <= minute <= 59 else 0
+    return compute_drik_panchang(y, m, d, lat, lon, tz_offset, place_name, hour=hour_val, minute=minute_val)
 
 
 def get_day_summary_data(

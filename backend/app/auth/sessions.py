@@ -26,9 +26,24 @@ OTP_PER_MOBILE_DAY = 10
 OTP_PER_IP_HOUR = 20
 OTP_RESEND_WAIT_SECONDS = 30
 
-# Password login
+# Password login (defaults; the live values come from security_setting below)
 LOGIN_FAILS_BEFORE_LOCK = 5
 LOGIN_LOCK_MINUTES = 15
+
+# Settings › Accounts and security (Super Admin Control Plan D9, 13 Nov 2026). Each value is clamped to
+# its safe range here too, so even a bad stored value can't weaken security.
+_SECURITY_BOUNDS = {"session_days": (30, 1, 90), "login_fails_before_lock": (5, 3, 10),
+                    "lock_minutes": (15, 5, 1440), "otp_attempts": (5, 3, 10)}
+
+
+def security_setting(key: str) -> int:
+    default, lo, hi = _SECURITY_BOUNDS[key]
+    try:
+        from app.auth.app_settings import get_setting
+        v = int((get_setting("security") or {}).get(key, default))
+    except Exception:
+        v = default
+    return max(lo, min(hi, v))
 LOGIN_PER_IP_15MIN = 30
 
 
@@ -66,7 +81,7 @@ def create_session(user_id: str, user_agent: Optional[str], ip: Optional[str]) -
             VALUES (CAST(:u AS uuid), :h, :d, :ua, CAST(:ip AS inet), now(), now() + make_interval(days => :days))
             RETURNING id::text"""),
             {"u": user_id, "h": _hash(refresh), "d": _device_label(user_agent), "ua": (user_agent or "")[:255],
-             "ip": ip, "days": SESSION_DAYS}).scalar()
+             "ip": ip, "days": security_setting("session_days")}).scalar()
     return sid, refresh
 
 
@@ -104,7 +119,7 @@ def rotate_refresh(refresh_token: str) -> Optional[Tuple[str, str, str]]:
         c.execute(text("""UPDATE app.sessions SET previous_refresh_hash = refresh_hash, refresh_hash = :nh,
                           last_used_at = now(), expires_at = now() + make_interval(days => :days)
                           WHERE id = CAST(:s AS uuid)"""),
-                  {"nh": _hash(new_refresh), "s": row.sid, "days": SESSION_DAYS})
+                  {"nh": _hash(new_refresh), "s": row.sid, "days": security_setting("session_days")})
     return row.uid, row.sid, new_refresh
 
 
@@ -212,11 +227,11 @@ def record_failed_login(user_id: str) -> None:
             UPDATE app.users SET failed_logins = failed_logins + 1,
                    locked_until = CASE WHEN failed_logins + 1 >= :n
                                        THEN now() + make_interval(mins => :mins) ELSE locked_until END
-            WHERE id = CAST(:u AS uuid)"""), {"u": user_id, "n": LOGIN_FAILS_BEFORE_LOCK, "mins": LOGIN_LOCK_MINUTES})
+            WHERE id = CAST(:u AS uuid)"""), {"u": user_id, "n": security_setting("login_fails_before_lock"), "mins": security_setting("lock_minutes")})
         c.execute(text("UPDATE app.users SET failed_logins = 0 WHERE id = CAST(:u AS uuid) AND locked_until > now()"),
                   {"u": user_id})
 
 
 def lock_minutes() -> int:
-    return LOGIN_LOCK_MINUTES
+    return security_setting("lock_minutes")
 

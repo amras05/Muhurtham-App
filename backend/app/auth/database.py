@@ -178,11 +178,13 @@ def check_otp(phone: str, code: str, purpose: str = "signup") -> str:
         if row.expires_at <= _now():
             c.execute(text("UPDATE app.otp_requests SET consumed_at = now() WHERE id = :i"), {"i": row.id})
             return "expired"
-        if row.attempts >= MAX_OTP_ATTEMPTS:
+        from app.auth.sessions import security_setting   # lazy: sessions imports this module
+        max_attempts = security_setting("otp_attempts")   # Settings › Accounts and security
+        if row.attempts >= max_attempts:
             return "locked"
         if not hmac.compare_digest(row.code_hash, _code_hash(phone, (code or "").strip())):
             c.execute(text("UPDATE app.otp_requests SET attempts = attempts + 1 WHERE id = :i"), {"i": row.id})
-            return "locked" if row.attempts + 1 >= MAX_OTP_ATTEMPTS else "wrong"
+            return "locked" if row.attempts + 1 >= max_attempts else "wrong"
         c.execute(text("UPDATE app.otp_requests SET consumed_at = now() WHERE id = :i"), {"i": row.id})
         return "ok"
 

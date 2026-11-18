@@ -1,0 +1,48 @@
+id: dvitiya_vivaha
+category: vivaha
+tab: vivaha
+title_en: "Second Marriage (Dvitiya Vivaha)"
+title_te: "ద్వితీయ వివాహము"
+description_en: "A second marriage: the wedding rules, with Monday counted as good (book p.127-129)."
+description_te: "ద్వితీయ వివాహం: వివాహ నియమాలతో, సోమవారం అనుకూలం (గ్రంథం పేజీ 127-129)."
+tab_inputs: [vivaha_couple]
+source:
+  part: 5
+  section: "వివాహ ప్రకరణము"
+  page: "Part 5, Section 2"
+  notes: >-
+    Added 12 Nov 2026 from the book p.127-129 on top of the Vivaha rules. Monday is good for a
+    second marriage (p.129), so it scores +3 here instead of -2. Not modelled yet: the year rule
+    (p.127-128) - in odd years counted from the first marriage while the first wife lives, or from
+    the year before her death - because the app does not ask for those dates yet.
+hard_filters:
+  common:
+    mahadoshas_21: true
+    dashavidha_10: true
+    panchaka_rahita: true
+    avoid_rahu_kalam: true
+    avoid_yamagandam: true
+    avoid_varjyam: true
+    avoid_durmuhurta: true
+    masa_shubha: true
+  vaara_exclude: [tuesday]
+  tithi_exclude: [rikta, ashtami, dwadashi, shashti, saptami, trayodashi, shukla_pratipada,
+                  krishna_ekadashi, krishna_dwadashi, krishna_trayodashi, krishna_chaturdashi, amavasya]
+  yoga_exclude: [parigha]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [rohini, mrigashira, magha, uttara_phalguni, hasta, swati, anuradha, mula, uttara_ashadha, uttara_bhadrapada, revati]
+  sun_sign_allow: [mesha, vrishabha, mithuna, tula, kumbha, dhanus, makara]
+  masa_sun_exclude:
+    - {masa: pushya, sun_signs: [dhanus, makara]}
+    - {masa: ashadha, sun_signs: [mithuna, karkataka]}
+  exclude_periods: [third_yama, ghati_26_30, dawn, midnight, pradosha]
+  no_moudhya: [jupiter, venus]
+  simha_guru: true
+  guru_bala_couple: true
+  trijyeshtha: true
+  tarabala_for: [groom, bride]
+  house_rules:
+    - house: 8
+      planets: none
+soft_scoring:
+  vaara_weights: {wednesday: 4, thursday: 4, friday: 4, sunday: 1, saturday: 1, monday: 3}

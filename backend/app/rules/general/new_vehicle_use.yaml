@@ -1,0 +1,28 @@
+id: new_vehicle_use
+category: general
+tab: finance
+title_en: "New Vehicle First Use (Delivery)"
+title_te: "నూతన వాహన ఉపయోగం"
+description_en: "Starting to use a new bicycle, car, lorry or other vehicle: good stars, weekdays and lagnas, daytime only."
+description_te: "సైకిళ్ళు, కార్లు, లారీలు మొదలైన కొత్త వాహనాలు వాడుటకు: శుభ నక్షత్ర, వార, లగ్నాలు, పగటి సమయం మాత్రమే."
+tab_inputs: [vehicle]
+source:
+  part: 7
+  section: "కొత్త వాహనములు వాడుటకు"
+  notes: >-
+    Dr. Nemani's ruling, 13 Nov 2026 (follow-up Q4): Rohini, Punarvasu, Pushya, the three Uttaras,
+    Hasta, Chitra, Swati, Anuradha, Jyeshtha, Shravana, Revati; Monday, Wednesday, Thursday,
+    Friday; Vrishabha, Mithuna, Karkataka, Kanya, Tula, Dhanus, Meena lagnas; ashtama shuddhi;
+    daytime only, never at night. Buying a vehicle is a separate event (buying_vehicles).
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true}
+  vaara_allow: [monday, wednesday, thursday, friday]
+  nakshatra_allow: [rohini, punarvasu, pushya, uttara_phalguni, uttara_ashadha, uttara_bhadrapada,
+                    hasta, chitra, swati, anuradha, jyeshtha, shravana, revati]
+  lagna_allow: [vrishabha, mithuna, karkataka, kanya, tula, dhanus, meena]
+  time_of_day: daytime
+  house_rules:
+    - house: 8
+      planets: none
+soft_scoring:
+  vaara_weights: {thursday: 3, friday: 3, wednesday: 2, monday: 2}

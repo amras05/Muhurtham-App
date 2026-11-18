@@ -40,15 +40,29 @@ REGIONS = {
 }
 
 
+def _places() -> dict:
+    """The places list: the super admin's (Settings › Places, plan D5) if set, else REGIONS above."""
+    try:
+        from app.auth.app_settings import get_setting   # lazy: settings import this module for the defaults
+        items = (get_setting("places") or {}).get("items")
+        if items:
+            return {p["id"]: {k: p[k] for k in ("label", "lat", "lon", "tz_offset")} for p in items}
+    except Exception as ex:   # settings unreadable: fall back to the built-in list, and say so
+        import logging
+        logging.getLogger("muhurtham").warning(f"Places setting unavailable, using built-in list: {type(ex).__name__}")
+    return REGIONS
+
+
 def get_region(key: str) -> dict:
-    r = REGIONS.get(key.lower())
+    places = _places()
+    r = places.get(key.lower())
     if not r:
-        raise KeyError(f"Unknown region '{key}'. Available: {', '.join(REGIONS.keys())}")
+        raise KeyError(f"Unknown region '{key}'. Available: {', '.join(places.keys())}")
     return r
 
 
 def list_regions() -> list:
-    return [{"id": k, "label": v["label"], "lat": v["lat"], "lon": v["lon"], "tz_offset": v["tz_offset"]} for k, v in REGIONS.items()]
+    return [{"id": k, "label": v["label"], "lat": v["lat"], "lon": v["lon"], "tz_offset": v["tz_offset"]} for k, v in _places().items()]
 
 
 def geocode_place_name(place_name: str, for_date=None) -> dict:

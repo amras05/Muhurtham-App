@@ -20,6 +20,7 @@ default:
     mrityu: {severity: serious}
     dagdha: {severity: serious}
     yamaghanta: {severity: serious}
+    adhama: {severity: serious}
   extra_checks:
     paksharandhra: "off"
     kshaya_tithi: "off"
@@ -31,9 +32,9 @@ default:
 
 tabs:
   vivaha:
-    extra_checks: {paksharandhra: serious, kshaya_tithi: serious, papa_drishti: serious}
+    extra_checks: {paksharandhra: serious, kshaya_tithi: serious, papa_drishti: serious, mahapata: serious}
   upanayana:
-    extra_checks: {paksharandhra: serious, kshaya_tithi: serious, papa_drishti: serious}
+    extra_checks: {paksharandhra: serious, kshaya_tithi: serious, papa_drishti: serious, mahapata: serious}
   griha:
     extra_checks: {paksharandhra: serious, kshaya_tithi: serious, papa_drishti: mild}
   shishu:
@@ -56,6 +57,22 @@ tabs:
       sarvartha_siddhi: {points: 0}
 
 events:
+  # Vrishabha and Kalasha chakras (book p.162-163, 12 Nov 2026): the book names new-house entry for
+  # both, return journeys for Vrishabha, and temples for Kalasha.
+  griha_pravesha:
+    extra_checks: {vrishabha_chakra: serious, kalasha_chakra: serious, mahapata: mild}
+  return_journey:
+    extra_checks: {vrishabha_chakra: serious}
+  temple_construction:
+    extra_checks: {kalasha_chakra: serious}
+  # Mahapata (Dr. Nemani, 13 Nov 2026): must be checked for marriage, should for upanayana and deity
+  # consecration, good to for griha pravesha.
+  all_deity_pratishtha:
+    extra_checks: {mahapata: serious}
+  idol_consecration:
+    extra_checks: {mahapata: serious}
+  kumbhabhishekam:
+    extra_checks: {mahapata: serious}
   borrowing_money:
     yogas: {dvipushkara: {severity: serious}, tripushkara: {severity: serious}}
   demolition:

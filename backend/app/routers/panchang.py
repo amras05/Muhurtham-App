@@ -22,6 +22,7 @@ def get_panchang(
     tz_offset: float = Query(..., description="e.g. 5.5 for IST"),
     place_name: str = Query("Location"),
     hour: int = Query(6, description="Hour of day to evaluate panchang at (0-23)"),
+    minute: int = Query(0, ge=0, le=59, description="Minute within that hour (the Panchang page's live view)"),
 ):
     """Full panchang for a given date/place — powers the 'Date Lookup' screen."""
     try:
@@ -32,6 +33,7 @@ def get_panchang(
             tz_offset=tz_offset,
             place_name=place_name,
             hour=hour,
+            minute=minute,
         )
     except ValueError as e:
         raise HTTPException(400, "date must be in YYYY-MM-DD format") from e

@@ -262,6 +262,31 @@ def pitru_calendar(req: PitruCalendarRequest, current_user: dict = Depends(get_c
     return out
 
 
+class RajaswalaRequest(BaseModel):
+    date: str = Field(..., description="YYYY-MM-DD of the first period")
+    time: str = Field(..., description="HH:MM, local time")
+    lat: float
+    lon: float
+    tz_offset: float
+    place_name: str = "Location"
+    janma_nak_idx: Optional[int] = Field(None, ge=1, le=27, description="Her janma nakshatra (for nidhana tara)")
+    husband_rasi_idx: Optional[int] = Field(None, ge=1, le=12, description="Husband's janma rashi (for the 8th Moon)")
+
+
+@router.post("/rajaswala")
+def rajaswala_record(req: RajaswalaRequest, current_user: dict = Depends(get_current_user)):
+    """Rate the moment of a first period by the book's rules (Part 4, p.106-108). Health data: the moment
+    is neither logged, stored nor echoed back."""
+    if not visibility.is_tool_allowed("rajaswala", current_user):
+        raise HTTPException(status_code=404, detail=visibility.NOT_AVAILABLE)
+    try:
+        moment = datetime.strptime(f"{req.date} {req.time}", "%Y-%m-%d %H:%M")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date or time. Expected YYYY-MM-DD and HH:MM.")
+    from app.engines.rajaswala import rate_first_period
+    return rate_first_period(moment, req.lat, req.lon, req.tz_offset, req.janma_nak_idx, req.husband_rasi_idx)
+
+
 @router.get("/rule/{activity_id}")
 def get_rule_details(activity_id: str, current_user: dict = Depends(get_current_user)):
     """
@@ -545,7 +570,7 @@ def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None,
     if isinstance(result.get("activity_params"), dict):
         result["activity_params"].pop("period_start_date", None)     # health data: not echoed back (plan R6b)
     # Sibling marriage (plan R2, decision E2): warn only, from the signed-in person's family events.
-    if isinstance(current_user, dict) and req.activity_id in ("vivaha",):
+    if isinstance(current_user, dict) and req.activity_id in ("vivaha", "dvitiya_vivaha"):
         pids = [p.get("profile_id") for p in given if p.get("profile_id")]
         if pids:
             from app.routers.family import sibling_marriage_warnings

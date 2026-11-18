@@ -17,10 +17,13 @@
 
   function applyTitles() {
     var t = TITLES[currentView];
-    $("authTitle").textContent = tr(t[0], t[1]);
-    $("authLede").textContent = tr(t[2], t[3]);
+    var S = window.SiteConfig;
+    var own = currentView === "login" && S;   // the super admin may reword the sign-in view (plan D8)
+    $("authTitle").textContent = own ? S.text("login_title", t[0], t[1]) : tr(t[0], t[1]);
+    $("authLede").textContent = own ? S.text("login_lede", t[2], t[3]) : tr(t[2], t[3]);
   }
   window.onLangChange = applyTitles;
+  if (window.SiteConfig) SiteConfig.onChange(function () { applyTitles(); });
 
   function tr(en, te) { return currentLang === "te" ? te : en; }
   function $(id) { return document.getElementById(id); }

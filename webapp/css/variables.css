@@ -1,31 +1,41 @@
 /* ============================================================
-   Muhurtham App · Design Tokens & CSS Custom Properties
+   Gayatri Jyotirnidhi · Design Tokens & CSS Custom Properties
+   "Vedic Sanctuary" theme (13 Nov 2026): Tulasi green, Swarna gold and lotus pink on a
+   pale parchment ground. Values follow the user's DESIGN.md palette.
    ============================================================ */
 :root {
   /* Semantic palette */
-  --color-primary: #6f1725;
-  --color-primary-strong: #4d0d17;
-  --color-accent: #b98219;
-  --color-success: #1f7a45;
-  --color-warning: #a65b00;
-  --color-danger: #b42318;
+  --color-primary: #3c6600;          /* Tulasi green: actions, brand */
+  --color-primary-strong: #2c4c00;   /* headings, strong text, hover */
+  --color-accent: #735c00;           /* gold for text on light grounds */
+  --color-gold: #d4af37;             /* metallic gold for fills and rules */
+  --color-gold-soft: #fed65b;        /* gold container (ceremonial buttons, highlights) */
+  --color-gold-bg: #fff4d6;
+  --color-tertiary: #a92555;         /* lotus pink: devotional markers */
+  --color-tertiary-bg: #ffd9e0;
+  --color-success: #2e6e00;          /* Uttama */
+  --color-warning: #a05a00;          /* Madhyama */
+  --color-danger: #b42318;           /* Nishiddha */
   --color-info: #175cd3;
-  --color-bg: #fbfaf8;
+  --color-bg: #f6fce8;               /* parchment canvas */
   --color-surface: #ffffff;
-  --color-surface-muted: #f5f1ea;
-  --color-text: #211a18;
-  --color-text-muted: #655c57;
-  --color-border: #ded6cc;
+  --color-surface-muted: #f0f6e2;
+  --color-surface-strong: #e5ebd7;
+  --color-text: #181d12;
+  --color-text-muted: #43493a;
+  --color-text-faint: #737969;
+  --color-border: #dfe5d2;
+  --color-border-strong: #c3c9b6;
 
   /* Tints for status boxes and text on a strong colour (Experience Plan U2).
      Green, amber and red mean the same on every page: use these, not hand-written shades. */
-  --color-success-bg: #edf6f0;
-  --color-success-border: #bfdcc6;
-  --color-danger-bg: #fdecea;
+  --color-success-bg: #ebf7e1;
+  --color-success-border: #bfe0a3;
+  --color-danger-bg: #feeceb;
   --color-danger-border: #f5c2bd;
   --color-on-strong: #ffffff;
-  --color-warning-bg: #fff8e1;
-  --color-warning-border: #ffe082;
+  --color-warning-bg: #fff4e0;
+  --color-warning-border: #f3d29a;
   --color-info-bg: #eaf1fd;
   --color-info-border: #b6cdf7;
   /* Remedies (pariharam) have their own colour, purple, so they are not read as good or bad. */
@@ -37,10 +47,10 @@
   --ivory: var(--color-bg);
   --ink: var(--color-text);
   --maroon: var(--color-primary);
-  --maroon-accent: #8a2434;
+  --maroon-accent: #4f7d12;
   --deep-maroon: var(--color-primary-strong);
-  --gold: #c59b27;
-  --gold-light: #fff8e1;
+  --gold: var(--color-gold);
+  --gold-light: var(--color-gold-bg);
   --line: var(--color-border);
   --card-bg: var(--color-surface);
   --marigold: var(--color-accent);
@@ -52,14 +62,16 @@
   --info: var(--color-info);
 
   /* Elevation & Shadows */
-  --shadow-sm: 0 2px 8px rgba(74, 14, 23, 0.06);
-  --shadow-md: 0 6px 20px rgba(74, 14, 23, 0.1);
-  --shadow-lg: 0 12px 32px rgba(74, 14, 23, 0.15);
+  --shadow-sm: 0 1px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px -2px rgba(60, 102, 0, 0.08);
+  --shadow-lg: 0 12px 32px rgba(60, 102, 0, 0.12);
+  --shadow-gold: 0 2px 10px rgba(212, 175, 55, 0.15);
 
   /* Radii */
   --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 14px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
   --radius-pill: 9999px;
 
   /* Spacing */
@@ -72,8 +84,9 @@
   --space-12: 3rem;
 
   /* Typography */
-  --font-sans: "Outfit", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-telugu: "Noto Sans Telugu", "Outfit", Georgia, serif;
+  --font-sans: "Noto Sans", "Noto Sans Telugu", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Noto Serif", "Noto Serif Telugu", Georgia, serif;     /* headings, shlokas */
+  --font-telugu: "Noto Sans Telugu", "Noto Sans", sans-serif;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;

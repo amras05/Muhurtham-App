@@ -43,6 +43,8 @@ def tool_hidden(tool: str, vis: Dict[str, Set[str]]) -> bool:
         return "yogas" in vis["hidden_tabs"]
     if tool == "pitru_calendar":
         return tool in vis["hidden_tools"] or "pitru" in vis["hidden_tabs"]
+    if tool == "rajaswala":
+        return tool in vis["hidden_tools"] or "garbha" in vis["hidden_tabs"]
     return False
 
 

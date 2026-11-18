@@ -27,6 +27,9 @@ DEFAULTS: Dict[str, Any] = {
     "otp_language": "en",         # language of the WhatsApp code template; Meta must have approved it
     "admin_alerts": {"signup": True, "locked": True, "disabled": True, "daily_summary": True},
 }
+# Super admin settings (Super Admin Control Plan, 13 Nov 2026): defaults from the registry.
+from app.auth.config_registry import REGISTRY, merged   # noqa: E402
+DEFAULTS.update({k: spec["default"] for k, spec in REGISTRY.items()})
 _TTL = 15.0
 _cache: Dict[str, Any] = {}
 _loaded_at = 0.0
@@ -40,7 +43,9 @@ def all_settings(fresh: bool = False) -> Dict[str, Any]:
     try:
         with app_engine().connect() as c:
             for key, val in c.execute(text("SELECT setting_key, value_json FROM app.app_settings")):
-                if key in DEFAULTS:
+                if key in REGISTRY:
+                    values[key] = merged(key, val)
+                elif key in DEFAULTS:
                     values[key] = val
     except Exception as ex:   # database down: keep serving with the last known (or default) values
         logger.warning(f"Settings unavailable, using last known values: {type(ex).__name__}")
@@ -62,4 +67,11 @@ def save_settings(changes: Dict[str, Any], user_id: Optional[str]) -> Dict[str, 
                 ON CONFLICT (setting_key) DO UPDATE SET value_json = EXCLUDED.value_json,
                     updated_by = EXCLUDED.updated_by, updated_at = now()"""),
                 {"k": key, "v": json.dumps(val), "u": user_id})
+    return all_settings(fresh=True)
+
+
+def reset_setting(key: str) -> Dict[str, Any]:
+    """Back to the default: the stored row is removed (plan D2)."""
+    with app_engine().begin() as c:
+        c.execute(text("DELETE FROM app.app_settings WHERE setting_key = :k"), {"k": key})
     return all_settings(fresh=True)

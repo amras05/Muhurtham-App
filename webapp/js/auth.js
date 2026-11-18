@@ -110,27 +110,55 @@ window.Auth = (function () {
 
   // Header links for this role (the server enforces the same rules).
   var NAV = [
+    // Panchang first: it is the users' landing page (13 Nov 2026).
+    { href: "panchang-lookup.html", en: "Today's Panchang", te: "నేటి పంచాంగం" },
+    { href: "panchang-month.html", en: "Monthly Panchang", te: "మాస పంచాంగం" },
     { href: "home.html", en: "Home", te: "హోమ్", roles: ["user"] },
     { href: "admin.html", en: "Dashboard", te: "డాష్‌బోర్డ్", roles: ["admin", "super_admin"] },
-    { href: "panchang-lookup.html", en: "Panchang", te: "పంచాంగం" },
     { href: "muhurta-finder.html", en: "Muhurta Finder", te: "ముహూర్త శోధన" },
     { href: "family.html", en: "My family", te: "నా కుటుంబం" },
     { href: "saved.html", en: "My muhurtas", te: "నా ముహూర్తాలు" },
     // group "admin": shown together under one "Admin" menu (Experience Plan U1)
-    { href: "admin-users.html", en: "Users", te: "వినియోగదారులు", roles: ["admin", "super_admin"], group: "admin" },
-    { href: "admin-content.html", en: "Content", te: "విషయాలు", roles: ["admin", "super_admin"], group: "admin" },
+    { href: "admin-users.html", perm: "users.view", en: "Users", te: "వినియోగదారులు", roles: ["admin", "super_admin"], group: "admin" },
+    { href: "admin-content.html", perm: "content.edit", en: "Content", te: "విషయాలు", roles: ["admin", "super_admin"], group: "admin" },
     { href: "admin-muhurtas.html", en: "Muhurtas", te: "ముహూర్తాలు", roles: ["super_admin"], group: "admin" },
-    { href: "admin-stats.html", en: "Statistics", te: "గణాంకాలు", roles: ["super_admin"], group: "admin" },
+    { href: "admin-stats.html", perm: "system.view", en: "Statistics", te: "గణాంకాలు", roles: ["super_admin"], group: "admin" },
     { href: "admin-settings.html", en: "Settings", te: "సెట్టింగులు", roles: ["super_admin"], group: "admin" },
   ];
-  var BUILT = ["saved.html", "family.html", "home.html", "admin.html", "panchang-lookup.html", "muhurta-finder.html", "admin-users.html", "admin-content.html", "admin-muhurtas.html", "admin-stats.html", "admin-settings.html"];   // add admin pages as they are built
+  var BUILT = ["saved.html", "family.html", "home.html", "admin.html", "panchang-lookup.html", "panchang-month.html", "muhurta-finder.html", "admin-users.html", "admin-content.html", "admin-muhurtas.html", "admin-stats.html", "admin-settings.html"];   // add admin pages as they are built
+
+  // The super admin's menu settings (order, shown, names; plan D4) laid over NAV. Who may see a page
+  // (roles) stays in NAV and on the server.
+  function navItems() {
+    var cfg = window.SiteConfig && SiteConfig.data && SiteConfig.data.nav;
+    if (!cfg || !cfg.items) return NAV;
+    var byHref = {};
+    NAV.forEach(function (n) { byHref[n.href] = n; });
+    var out = [];
+    cfg.items.forEach(function (c) {
+      var n = byHref[c.href];
+      if (!n) return;
+      if (c.show === false && n.href !== "admin-settings.html") return;
+      out.push(Object.assign({}, n, { en: c.en || n.en, te: c.te || n.te }));
+      delete byHref[c.href];
+    });
+    Object.keys(byHref).forEach(function (h) { out.push(byHref[h]); });   // pages added to the code later
+    return out;
+  }
+  // Admin pages also follow the admin's powers (plan D10); the server checks the same permissions.
+  function hasPerm(p) {
+    var perms = currentUser && currentUser.permissions;
+    return !Array.isArray(perms) || perms.indexOf(p) !== -1;
+  }
+  if (window.SiteConfig) SiteConfig.onChange(function () { if (currentUser) renderNav(); });
 
   function renderNav() {
     var links = document.querySelector(".app-shell__nav .app-shell__links");
     if (!links || !currentUser) return;
     var here = window.location.pathname.split("/").pop() || "";
-    var allowed = NAV.filter(function (n) {
-      return (!n.roles || n.roles.indexOf(currentUser.role) !== -1) && BUILT.indexOf(n.href) !== -1;
+    var allowed = navItems().filter(function (n) {
+      return (!n.roles || n.roles.indexOf(currentUser.role) !== -1) && BUILT.indexOf(n.href) !== -1 &&
+             (!n.perm || hasPerm(n.perm));
     });
     var link = function (cls) {
       return function (n) {

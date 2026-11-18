@@ -332,10 +332,14 @@ def evaluate_21_maha_doshas(
     # 16. Krura yugdhishnya
     out.append(_krura_viddha(ch, ref))
 
-    # 17. Ashubha viddha (vedha) — chakra not in the book
-    out.append(_row(17, "ashubha_vedha", "Ashubha Viddha (Vedha)", "అశుభవిద్ధము", "not_evaluated", "serious",
-                    "Not evaluated: the book does not give the shalaka (vedha) chakra; awaiting the author.",
-                    "శలాకా వేధ చక్రం గ్రంథంలో లేదు; రచయిత నుండి రావలసి ఉంది.", f"{ref} #17"))
+    # 17. Ashubha viddha: akranta, sapta-shalaka and pancha-shalaka vedha (13-13 Nov 2026)
+    v = _ashubha_viddha(ch)
+    if v is None:
+        out.append(_row(17, "ashubha_vedha", "Ashubha Viddha (Vedha)", "అశుభవిద్ధము", "not_evaluated", "serious",
+                        _NE_EN, _NE_TE, f"{ref} #17"))
+    else:
+        out.append(_row(17, "ashubha_vedha", "Ashubha Viddha (Vedha)", "అశుభవిద్ధము", v[0], "serious",
+                        v[1], v[2], f"{ref} #17; Part 2 p.96"))
 
     # 18. Vishayuta lagna (varjyam touches the lagna)
     if lw is None or ctx.get("varjyam") is None:
@@ -556,6 +560,63 @@ def _krura_viddha(ch: _Chart, ref: str) -> Dict[str, Any]:
                 f"{nak} క్రూర వేధ రహితం.", f"{ref} #16")
 
 
+# Sapta-shalaka (7-line) vedha chakra, 28 nakshatras with Abhijit ("A"). The two nakshatras at the ends
+# of one line pierce each other. Dr. Nemani, 13 Nov 2026: use both the sapta- and pancha-shalaka chakras
+# (book p.96: pancha-shalaka vedha is the stronger).
+SAPTA_SHALAKA_PAIRS = [(3, 22), (4, "A"), (5, 21), (6, 20), (7, 19), (8, 18), (9, 17),
+                       (10, 2), (11, 1), (12, 27), (13, 26), (14, 25), (15, 24), (16, 23)]
+_SAPTA_VEDHA = {**{a: b for a, b in SAPTA_SHALAKA_PAIRS}, **{b: a for a, b in SAPTA_SHALAKA_PAIRS}}
+# Pancha-shalaka (5-line) vedha chakra from Dr. Nemani's chakra.pdf (13 Nov 2026): five vertical and five
+# horizontal lines plus two slanting lines in each corner, 28 line ends; Krittika at the north-east (top-left)
+# corner, then clockwise. The straight lines give the same pairs as sapta-shalaka; the four corner lines give
+# Krittika-Anuradha, Ashlesha-Shravana, Magha-Dhanishtha and Bharani-Vishakha. The PDF says "27 nakshatras",
+# but its drawing has 28 ends, so Abhijit is counted (as in sapta-shalaka).
+PANCHA_SHALAKA_PAIRS = [(3, 17), (4, "A"), (5, 21), (6, 20), (7, 19), (8, 18), (9, 22),
+                        (10, 23), (2, 16), (1, 11), (27, 12), (26, 13), (25, 14), (24, 15)]
+_PANCHA_VEDHA = {**{a: b for a, b in PANCHA_SHALAKA_PAIRS}, **{b: a for a, b in PANCHA_SHALAKA_PAIRS}}
+ABHIJIT_SPAN = (276.0 + 40.0 / 60.0, 280.0 + 53.0 / 60.0 + 20.0 / 3600.0)    # Makara 6°40′ – 10°53′20″ (book p.48)
+
+
+def _nak28(lon: float):
+    """Nakshatra in the 28-nakshatra scheme: 1-27, or "A" inside Abhijit's span."""
+    if ABHIJIT_SPAN[0] <= lon % 360.0 < ABHIJIT_SPAN[1]:
+        return "A"
+    return int((lon % 360.0) // (360.0 / 27.0)) + 1
+
+
+def _nak28_name(n) -> str:
+    return "Abhijit" if n == "A" else NAKSHATRA_CANONICAL[n]
+
+
+def _ashubha_viddha(ch: _Chart) -> Optional[Tuple[str, str, str]]:
+    """(status, desc_en, desc_te) for Mahadosha #17 / Dashavidha Vedha, or None if the Moon is unknown.
+    Book p.96: a malefic occupying the muhurta nakshatra (akranta) or piercing it (vedha) is to be avoided."""
+    if not ch.has(1):
+        return None
+    n = _nak28(ch.lon[1])
+    occupied = [PLANET_NAME[p] for p in ch.lon if p in NATURAL_MALEFICS and _nak28(ch.lon[p]) == n]
+    nak = _nak28_name(n)
+    parts, parts_te, partners = [], [], []
+    if occupied:
+        parts.append(f"occupied by {', '.join(occupied)}")
+        parts_te.append("పాపగ్రహ ఆక్రాంతం")
+    for chakra_en, chakra_te, table in (("sapta-shalaka", "సప్తశలాక", _SAPTA_VEDHA),
+                                        ("pancha-shalaka", "పంచశలాక", _PANCHA_VEDHA)):
+        partner = table.get(n)
+        if partner is None:
+            continue
+        partners.append(f"{_nak28_name(partner)} ({chakra_en})")
+        piercing = [PLANET_NAME[p] for p in ch.lon if p in NATURAL_MALEFICS and _nak28(ch.lon[p]) == partner]
+        if piercing:
+            parts.append(f"pierced from {_nak28_name(partner)} by {', '.join(piercing)} ({chakra_en} vedha)")
+            parts_te.append(f"{chakra_te} వేధ ({_nak28_name(partner)})")
+    if parts:
+        return ("fail", f"{nak} is {' and '.join(parts)} (book p.96).",
+                f"{nak}: {', '.join(parts_te)} (గ్రంథం పేజీ 96).")
+    return ("pass", f"{nak} has no malefic in it or in its vedha partners {', '.join(partners)}.",
+            f"{nak}కు సప్తశలాక, పంచశలాక వేధలు లేవు.")
+
+
 def _lagnasta(ch: _Chart, is_vivaha: bool, ref: str) -> Dict[str, Any]:
     num, did, en, te = 19, "lagnastra_dosham", "Lagnasta (Astamsa)", "లగ్నాస్త దోషము"
     if not is_vivaha:
@@ -587,16 +648,17 @@ def _gandanta(ch: _Chart, ctx: Dict[str, Any], lb, ref: str) -> Dict[str, Any]:
     from app.engines.limb_timeline import jd_to_local, nakshatra_bounds, tithi_bounds
     tz = ctx["tz_offset"]
     hits_en, hits_te = [], []
-    g4 = timedelta(hours=4 * GHATI_HOURS)
+    g2 = timedelta(hours=2 * GHATI_HOURS)
 
-    # Nakshatra gandanta: last 4 ghatis of Ashlesha/Jyeshtha/Revati, first 4 of Magha/Mula/Ashwini
+    # Nakshatra gandanta (Dr. Nemani, 13 Nov 2026): 4 ghatis in all, the last 2 ghatis (48 minutes) of
+    # Ashlesha/Jyeshtha/Revati and the first 2 of Magha/Mula/Ashwini.
     ns, ne = (jd_to_local(x, tz) for x in nakshatra_bounds(jd))
-    if lb.nakshatra in (9, 18, 27) and _overlaps(win, [(ne - g4, ne)]):
-        hits_en.append(f"last 4 ghatis of {lb.nakshatra_name}")
-        hits_te.append(f"{lb.nakshatra_name} చివరి 4 ఘటికలు")
-    if lb.nakshatra in (10, 19, 1) and _overlaps(win, [(ns, ns + g4)]):
-        hits_en.append(f"first 4 ghatis of {lb.nakshatra_name}")
-        hits_te.append(f"{lb.nakshatra_name} మొదటి 4 ఘటికలు")
+    if lb.nakshatra in (9, 18, 27) and _overlaps(win, [(ne - g2, ne)]):
+        hits_en.append(f"last 2 ghatis of {lb.nakshatra_name}")
+        hits_te.append(f"{lb.nakshatra_name} చివరి 2 ఘటికలు")
+    if lb.nakshatra in (10, 19, 1) and _overlaps(win, [(ns, ns + g2)]):
+        hits_en.append(f"first 2 ghatis of {lb.nakshatra_name}")
+        hits_te.append(f"{lb.nakshatra_name} మొదటి 2 ఘటికలు")
 
     # Rashi (lagna) gandanta: last half-ghati of Karkataka/Vrischika/Meena, first of Simha/Dhanus/Mesha
     half = timedelta(hours=0.5 * GHATI_HOURS)
@@ -697,9 +759,9 @@ def evaluate_10_dashavidha_doshas(
     out.append(y)
 
     # 4. Vedha (= Mahadosha #17)
-    out.append(row(4, "vedha_dosham", "Vedha", "వేధ దోషము", "not_evaluated",
-                   "Not evaluated: the shalaka (vedha) chakra is awaited from the author.",
-                   "శలాకా వేధ చక్రం రచయిత నుండి రావలసి ఉంది."))
+    v = _ashubha_viddha(ch)
+    out.append(row(4, "vedha_dosham", "Vedha", "వేధ దోషము", v[0] if v else "not_evaluated",
+                   v[1] if v else _NE_EN, v[2] if v else _NE_TE))
 
     # 5. Jamitra: any planet in the 7th from the lagna or from the Moon
     from_lagna = [p for p in ch.in_house(7)]

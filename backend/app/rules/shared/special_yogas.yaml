@@ -86,26 +86,44 @@ yogas:
     table:
       sunday: [1, 6, 11]
       tuesday: [1, 6, 11]
-      monday: [2, 7, 12]
-      friday: [2, 7, 12]
+      monday: [7, 12]       # book p.60: saptami, dvadashi only (vidiya removed 12 Nov 2026)
+      friday: [7, 12]
       wednesday: [3, 8, 13]
       thursday: [4, 9, 14]
       saturday: [5, 10, 15]
+
+  adhama:
+    name_en: Adhama yoga
+    name_te: అధమ యోగం
+    type: bad
+    # Book, Part 1 "అధమ యోగం" (p.60-61), added 12 Nov 2026. Tithis 1-15 in each paksha.
+    basis: vara_tithi
+    confirmed: true
+    table:
+      sunday: [7, 12]
+      monday: [11]
+      tuesday: [10]
+      wednesday: [1, 9]
+      thursday: [8]
+      friday: [7]
+      saturday: [6]
 
   dagdha:
     name_en: Dagdha yoga
     name_te: దగ్ధ యోగం
     type: bad
-    basis: vara_tithi
-    confirmed: false
+    # Weekday + nakshatra (book, Part 1 "దగ్ధ యోగం"; corrected in the questionnaire, 12 Nov 2026).
+    # The earlier weekday + tithi table was wrong.
+    basis: vara_nakshatra
+    confirmed: true
     table:
-      sunday: [12]
-      monday: [11]
-      tuesday: [5]
-      wednesday: [3]
-      thursday: [6]
-      friday: [8]
-      saturday: [9]
+      sunday: [Bharani]
+      monday: [Chitra]
+      tuesday: [Uttara Ashadha]
+      wednesday: [Dhanishta]
+      thursday: [Uttara Phalguni]
+      friday: [Jyeshtha]
+      saturday: [Revati]
 
   yamaghanta:
     name_en: Yamaghanta yoga

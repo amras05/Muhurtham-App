@@ -450,3 +450,25 @@ def moudhya_status(day_jd: int, planet: str) -> Dict[str, Any]:
     if until is not None and until <= old_lim:
         return {"state": "vriddha", "planet": planet, "days": until, "side": side}
     return {"state": "clear", "planet": planet}
+
+
+# ── Mahapata / kranti samya (Dr. Nemani, 13 Nov 2026) ─────────────────────────
+# The Sun and the Moon have the same declination (kranti). Equal size of declination also happens near
+# every new and full moon, which is not mahapata, so it counts only near Vyatipata or Vaidhriti: the
+# tropical longitudes of the two add up to about 180° or 360°. "Equal" = within the sum of the two
+# discs' half-widths (about 0.53°), which gives a mahapata of a few hours.
+MAHAPATA_DECL_TOL = 0.53
+MAHAPATA_SUM_TOL = 20.0
+
+
+def mahapata_at(jd: float) -> Dict[str, Any]:
+    flags = swe.FLG_SWIEPH | swe.FLG_EQUATORIAL
+    ds = swe.calc_ut(jd, swe.SUN, flags)[0][1]
+    dm = swe.calc_ut(jd, swe.MOON, flags)[0][1]
+    ls = swe.calc_ut(jd, swe.SUN, swe.FLG_SWIEPH)[0][0]
+    lm = swe.calc_ut(jd, swe.MOON, swe.FLG_SWIEPH)[0][0]
+    total = (ls + lm) % 360.0
+    kind = ("vyatipata" if abs(total - 180.0) <= MAHAPATA_SUM_TOL
+            else "vaidhriti" if min(total, 360.0 - total) <= MAHAPATA_SUM_TOL else None)
+    equal = abs(abs(dm) - abs(ds)) <= MAHAPATA_DECL_TOL
+    return {"in_mahapata": bool(kind and equal), "kind": kind, "sun_decl": round(ds, 2), "moon_decl": round(dm, 2)}

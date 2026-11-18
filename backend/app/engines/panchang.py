@@ -5,7 +5,7 @@ drik module (modern astronomical Drik Siddhanta, Lahiri/Chitrapaksha ayanamsa).
 Region-based: pass lat/lon/tz_offset for any location and get accurate,
 location-specific timings for sunrise, sunset, tithi, nakshatra, etc.
 """
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from jhora.panchanga import drik, drik1
 from jhora import utils, const
@@ -264,6 +264,43 @@ def _format_pair(pair) -> dict:
     end = b if isinstance(b, str) else _decimal_hours_to_hms(b)
     return {"start": start, "end": end}
 
+
+def compute_luminaries(year: int, month: int, day: int, tz_offset: float, sr_hrs: float, jd, place) -> dict:
+    """The Sun's and Moon's sidereal rashi at sunrise, when the Moon moves to its next rashi (if before the
+    next sunrise), and moonrise / moonset. Added 13 Nov 2026 for the Panchang day view."""
+    swe.set_sid_mode(swe.SIDM_LAHIRI)
+    flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL
+    jd_ut0 = swe.julday(year, month, day, 0.0)
+
+    def lon_at(body, h):
+        return swe.calc_ut(jd_ut0 + (h - tz_offset) / 24.0, body, flags)[0][0] % 360.0
+
+    sun_rasi = int(lon_at(swe.SUN, sr_hrs) // 30) + 1
+    moon_rasi = int(lon_at(swe.MOON, sr_hrs) // 30) + 1
+    moon_change = None
+    if int(lon_at(swe.MOON, sr_hrs + 24.0) // 30) + 1 != moon_rasi:
+        a, b = sr_hrs, sr_hrs + 24.0
+        for _ in range(30):
+            mid = (a + b) / 2.0
+            if int(lon_at(swe.MOON, mid) // 30) + 1 == moon_rasi:
+                a = mid
+            else:
+                b = mid
+        moon_change = _decimal_hours_to_hms(b)
+    out = {
+        "sun_rasi_index": sun_rasi, "sun_rasi_en": RASI_NAMES[sun_rasi], "sun_rasi_te": RASI_NAMES_TE[sun_rasi],
+        "moon_rasi_index": moon_rasi, "moon_rasi_en": RASI_NAMES[moon_rasi], "moon_rasi_te": RASI_NAMES_TE[moon_rasi],
+        "moon_rasi_end_time": moon_change,
+        "next_moon_rasi_index": (moon_rasi % 12) + 1 if moon_change else None,
+        "moonrise": None, "moonset": None,
+    }
+    for key, fn in (("moonrise", drik.moonrise), ("moonset", drik.moonset)):
+        try:
+            out[key] = _decimal_hours_to_hms(fn(jd, place)[0])
+        except Exception as ex:
+            logger.error(f"Error calculating {key}: {ex}")
+    return out
+
 def parse_hms_to_hours(hms_str: str):
     if not hms_str:
         return None
@@ -510,6 +547,11 @@ def compute_day_panchang(year: int, month: int, day: int,
     gulika_kalam = drik.gulikai_kaalam(jd_noon, place)
 
     dur_raw = drik.durmuhurtam(jd_noon, place)
+    if drik.vaara(jd_noon, place) == 6:
+        # Saturday: the book (Dr. Nemani's chakra.pdf, 13 Nov 2026) and Telugu panchangams forbid the 1st and
+        # 2nd day muhurtas (Rudra, Ahi), sunrise to about 7:36. PyJHora gives only the 3rd muhurta.
+        sat_sr = drik.sunrise(jd_noon, place)[0]
+        dur_raw = [utils.to_dms(sat_sr), utils.to_dms(sat_sr + drik.day_length(jd_noon, place) * 1.6 / 12)]
     durmuhurtam_list = []
     if dur_raw:
         for i in range(0, len(dur_raw), 2):
@@ -534,11 +576,25 @@ def compute_day_panchang(year: int, month: int, day: int,
         if gm and len(gm) >= 2: godhuli = _format_pair(gm)
     except Exception: pass
 
-    varjyam = None
+    # Varjyam from sunrise to the next sunrise (13 Nov 2026). PyJHora's drik.varjyam is wrong when the
+    # nakshatra began on the previous day (it adds hours to its "-HH previous day" marker), so this uses the
+    # muhurta search's own varjyam_windows, which works from the real nakshatra start and end.
+    varjyam, varjyam_all = None, []
     try:
-        vj = drik.varjyam(jd, place)
-        if vj and len(vj) >= 2: varjyam = _format_pair(vj)
-    except Exception: pass
+        from app.engines.limb_timeline import varjyam_windows
+        day0 = datetime(year, month, day)
+        sr_dt = day0 + timedelta(hours=sr_hrs)
+
+        def _rel(dt):
+            delta = dt - day0
+            return _decimal_hours_to_hms(delta.days * 24.0 + delta.seconds / 3600.0)
+
+        varjyam_all = [{"start": _rel(v["start"]), "end": _rel(v["end"]), "nakshatra": v["nakshatra"]}
+                       for v in varjyam_windows(sr_dt, sr_dt + timedelta(days=1), tz_offset)]
+        if varjyam_all:
+            varjyam = {"start": varjyam_all[0]["start"], "end": varjyam_all[0]["end"]}
+    except Exception as ex:
+        logger.error(f"Error calculating varjyam: {ex}")
 
     amrit_kalam = None
     try:
@@ -589,8 +645,8 @@ def compute_day_panchang(year: int, month: int, day: int,
                     for i in range(0, len(dur_raw), 2):
                         if i + 1 < len(dur_raw):
                             add_block([dur_raw[i], dur_raw[i+1]])
-                if vj:
-                    add_block(vj)
+                for v in varjyam_all:            # the corrected varjyam (13 Nov 2026)
+                    add_block([v["start"], v["end"]])
 
                 # Subtract blocked intervals
                 active = [(am_start, am_end)]
@@ -693,6 +749,12 @@ def compute_day_panchang(year: int, month: int, day: int,
     # Lagna Schedule (All 12 Lagnas for the day)
     lagna_schedule = compute_all_12_lagnas(year, month, day, lat, lon, tz_offset, sr_hrs)
 
+    luminaries = {}
+    try:
+        luminaries = compute_luminaries(year, month, day, tz_offset, sr_hrs, jd, place)
+    except Exception as ex:
+        logger.error(f"Error calculating luminaries: {ex}")
+
     return {
         "place": place_name,
         "date": f"{year:04d}-{month:02d}-{day:02d}",
@@ -743,6 +805,7 @@ def compute_day_panchang(year: int, month: int, day: int,
         "brahma_muhurta": brahma,
         "godhuli_muhurta": godhuli,
         "varjyam": varjyam,
+        "varjyam_all": varjyam_all,
         "amrit_kalam": amrit_kalam,
 
         "special_yogas": special_yogas,
@@ -752,6 +815,7 @@ def compute_day_panchang(year: int, month: int, day: int,
         "panchaka_rahitam": panchaka,
         "lagna_schedule": lagna_schedule,
         "lagna_rasi": lagna_rasi,
+        "luminaries": luminaries,
 
         "tithi_name": tithi_name,
         "tithi_number": tithi_num,

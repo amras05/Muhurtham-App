@@ -140,7 +140,7 @@ def evaluate_panchaka(
     method_key = (method or "standard").lower().strip()
     if method_key == "dhruvaka" and l_val not in DHRUVAKA_CONSTANTS:
         method_key = "standard"
-        note = "Book gives no dhruvaka constant for Mithuna; standard method used."
+        note = "The dhruvaka method is not used for Mithuna lagna (Dr. Nemani, 13 Nov 2026); standard method used."
     if method_key == "dhruvaka":
         dh = DHRUVAKA_CONSTANTS[l_val]
         total = t_val + v_val + n_val + l_val + dh

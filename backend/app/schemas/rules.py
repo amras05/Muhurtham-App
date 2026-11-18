@@ -122,6 +122,8 @@ class HardFilters(BaseModel):
     exclude_dagdha_tithi: bool = Field(False, description="Reject the dagdha tithi for the Sun's sign")
     monday_needs_waxing_moon: bool = Field(False, description="Monday allowed only with a waxing Moon")
     travel_checks: bool = Field(False, description="Vara/nakshatra shula, Dhanishta panchaka and Shukra sammukha for the travel direction")
+    return_journey: bool = Field(False, description="Return journey (book p.144): Mercury must not face the traveller "
+                                                    "and must not be combust (wait until it rises again)")
     moon_free_of_malefics: bool = Field(False, description="No malefic in the Moon's sign")
     mars_saturn_not_opposed: bool = Field(False, description="Mars and Saturn not in mutual 7th")
     upanayana_strength: bool = Field(False, description="Varnesha and vedadhipati strong; Guru bala for the vatu")

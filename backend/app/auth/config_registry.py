@@ -1,0 +1,322 @@
+"""
+Super admin settings registry (Super Admin Control Plan, step S1, 13 Nov 2026).
+
+Every adjustable setting is listed here once: its default, how a new value is checked, whether pages may
+read it without signing in ("public"), and its Telugu and English label. Values are stored in the existing
+app.app_settings table (one row per key, JSON), so adding a setting needs no database migration.
+
+What stays in the code (plan D1): astrology rules and calculation methods, Dr. Nemani's rulings, secrets
+(they stay in the environment) and safety floors (the bounds below).
+"""
+from typing import Any, Callable, Dict, List, Optional
+
+from pydantic import BaseModel, Field, ValidationError, field_validator
+
+from app.geo.regions import REGIONS
+
+PAGE_CHOICES = ["/panchang-lookup.html", "/panchang-month.html", "/home.html", "/muhurta-finder.html",
+                "/admin.html", "/family.html", "/saved.html"]
+ICON_CHOICES = ["sun", "lamp", "flame", "sparkle", "leaf", "moon", "star", "wheel", "landmark"]
+THEME_PRESETS = ["sanctuary", "classic", "saffron"]
+HEX = r"^#[0-9a-fA-F]{6}$"
+
+
+# ── Value shapes (pydantic checks every save; out-of-range values are refused) ─────────────────────────
+class _Strict(BaseModel):
+    model_config = {"extra": "forbid"}
+
+
+class Brand(_Strict):
+    name_te: str = Field(..., min_length=2, max_length=60)
+    name_en: str = Field(..., min_length=2, max_length=60)
+    tagline_te: str = Field("", max_length=90)
+    tagline_en: str = Field("", max_length=90)
+    icon: str = "sun"
+
+    @field_validator("icon")
+    @classmethod
+    def _icon(cls, v):
+        if v not in ICON_CHOICES:
+            raise ValueError(f"icon must be one of {', '.join(ICON_CHOICES)}")
+        return v
+
+
+THEME_COLOURS = {"sanctuary": ("#3c6600", "#d4af37"), "classic": ("#6f1725", "#c59b27"), "saffron": ("#a14a00", "#e0a526")}
+
+
+def _contrast(a: str, b: str) -> float:
+    def lum(h):
+        c = [int(h[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+        c = [v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4 for v in c]
+        return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+    x, y = lum(a), lum(b)
+    return (max(x, y) + 0.05) / (min(x, y) + 0.05)
+
+
+class Theme(_Strict):
+    preset: str = "sanctuary"
+    primary: Optional[str] = Field(None, pattern=HEX)     # main colour (buttons, brand); None = the preset's
+    gold: Optional[str] = Field(None, pattern=HEX)        # accent colour; None = the preset's
+
+    @field_validator("preset")
+    @classmethod
+    def _preset(cls, v):
+        if v not in THEME_PRESETS:
+            raise ValueError(f"preset must be one of {', '.join(THEME_PRESETS)}")
+        return v
+
+    def readable(self) -> None:
+        """Refuse colours that make text hard to read (WCAG 4.5:1): white on the main colour, dark on the gold."""
+        p, g = THEME_COLOURS[self.preset]
+        if _contrast(self.primary or p, "#ffffff") < 4.5:
+            raise ValueError("white text would be hard to read on that main colour; pick a darker one")
+        if _contrast(self.gold or g, "#241a00") < 4.5:
+            raise ValueError("dark text would be hard to read on that accent colour; pick a lighter one")
+
+
+class NavItem(_Strict):
+    href: str = Field(..., pattern=r"^[a-z0-9-]+\.html$")
+    show: bool = True
+    en: str = Field(..., min_length=1, max_length=40)
+    te: str = Field(..., min_length=1, max_length=40)
+
+
+class Nav(_Strict):
+    items: List[NavItem]
+
+
+class Landing(_Strict):
+    user: str = "/panchang-lookup.html"
+    admin: str = "/admin.html"
+    super_admin: str = "/admin.html"
+
+    @field_validator("user", "admin", "super_admin")
+    @classmethod
+    def _page(cls, v):
+        if v not in PAGE_CHOICES:
+            raise ValueError(f"landing page must be one of {', '.join(PAGE_CHOICES)}")
+        return v
+
+
+class Place(_Strict):
+    id: str = Field(..., pattern=r"^[a-z0-9_-]{2,40}$")
+    label: str = Field(..., min_length=2, max_length=80)
+    lat: float = Field(..., ge=-90, le=90)
+    lon: float = Field(..., ge=-180, le=180)
+    tz_offset: float = Field(..., ge=-12, le=14)
+
+
+class DefaultPlace(_Strict):
+    name: str = Field(..., min_length=2, max_length=80)
+    lat: float = Field(..., ge=-90, le=90)
+    lon: float = Field(..., ge=-180, le=180)
+    tz: float = Field(..., ge=-12, le=14)
+
+
+PANCHANG_SECTIONS = ["live", "timeline", "times", "yogas_panchaka", "chandrabalam", "lagnas", "dos", "shloka", "cta", "more"]
+
+
+class Panchang(_Strict):
+    sections: Dict[str, bool]
+    refresh_seconds: int = Field(30, ge=15, le=300)
+    default_place: DefaultPlace
+
+    @field_validator("sections")
+    @classmethod
+    def _sections(cls, v):
+        bad = [k for k in v if k not in PANCHANG_SECTIONS]
+        if bad:
+            raise ValueError(f"unknown sections: {', '.join(bad)}")
+        return {k: bool(v.get(k, True)) for k in PANCHANG_SECTIONS}
+
+
+class Places(_Strict):
+    items: List[Place] = Field(..., min_length=1, max_length=200)
+
+    @field_validator("items")
+    @classmethod
+    def _unique(cls, v):
+        ids = [p.id for p in v]
+        if len(ids) != len(set(ids)):
+            raise ValueError("each place needs its own id")
+        return v
+
+
+class Finder(_Strict):
+    search_days: int = Field(366, ge=60, le=730)     # how far a person search looks ahead
+    chunk_days: int = Field(60, ge=15, le=120)       # how many days load at a time
+
+
+class Sharing(_Strict):
+    pdf: bool = False
+    image: bool = True
+    text: bool = True
+
+
+class Godavari(_Strict):
+    enabled: bool = True
+    km: float = Field(30.0, ge=10, le=100)
+
+
+class TextPair(_Strict):
+    en: str = Field("", max_length=400)
+    te: str = Field("", max_length=400)
+
+
+class Security(_Strict):
+    session_days: int = Field(30, ge=1, le=90)
+    login_fails_before_lock: int = Field(5, ge=3, le=10)
+    lock_minutes: int = Field(15, ge=5, le=1440)
+    otp_attempts: int = Field(5, ge=3, le=10)
+
+
+ADMIN_POWERS = {   # power -> the permission it grants the admin role
+    "users_view": "users.view", "users_view_mobile": "users.view_mobile", "users_disable": "users.disable",
+    "content_edit": "content.edit", "audit_view_users": "audit.view_users", "stats_view": "system.view",
+}
+
+
+class AdminPowers(_Strict):
+    users_view: bool = True
+    users_view_mobile: bool = True
+    users_disable: bool = True
+    content_edit: bool = True
+    audit_view_users: bool = True
+    stats_view: bool = False
+
+
+class AdminDashboard(_Strict):
+    stats: bool = True
+    attention: bool = True
+    activity: bool = True
+    tools: bool = True
+
+
+# ── Defaults ─────────────────────────────────────────────────────────────────────────────────────────
+DEFAULT_NAV = [
+    {"href": "panchang-lookup.html", "show": True, "en": "Today's Panchang", "te": "నేటి పంచాంగం"},
+    {"href": "panchang-month.html", "show": True, "en": "Monthly Panchang", "te": "మాస పంచాంగం"},
+    {"href": "home.html", "show": True, "en": "Home", "te": "హోమ్"},
+    {"href": "admin.html", "show": True, "en": "Dashboard", "te": "డాష్‌బోర్డ్"},
+    {"href": "muhurta-finder.html", "show": True, "en": "Muhurta Finder", "te": "ముహూర్త శోధన"},
+    {"href": "family.html", "show": True, "en": "My family", "te": "నా కుటుంబం"},
+    {"href": "saved.html", "show": True, "en": "My muhurtas", "te": "నా ముహూర్తాలు"},
+    {"href": "admin-users.html", "show": True, "en": "Users", "te": "వినియోగదారులు"},
+    {"href": "admin-content.html", "show": True, "en": "Content", "te": "విషయాలు"},
+    {"href": "admin-muhurtas.html", "show": True, "en": "Muhurtas", "te": "ముహూర్తాలు"},
+    {"href": "admin-stats.html", "show": True, "en": "Statistics", "te": "గణాంకాలు"},
+    {"href": "admin-settings.html", "show": True, "en": "Settings", "te": "సెట్టింగులు"},
+]
+
+TEXT_KEYS = {   # the set list of editable texts (plan D8); empty means "use the page's own wording"
+    "today_cta_title": "Today's Panchang: banner title",
+    "today_cta_text": "Today's Panchang: banner line",
+    "month_title": "Monthly Panchang: page title",
+    "login_title": "Sign-in: title",
+    "login_lede": "Sign-in: line under the title",
+    "dash_admin_lede": "Admin dashboard: line under the title",
+    "dash_super_lede": "Super admin dashboard: line under the title",
+    "site_footer": "Footer line on every page",
+}
+
+
+def _setting(default, model: Optional[type], label_en: str, label_te: str, group: str, public: bool,
+             wrap: Optional[str] = None) -> Dict[str, Any]:
+    return {"default": default, "model": model, "label_en": label_en, "label_te": label_te,
+            "group": group, "public": public, "wrap": wrap}
+
+
+REGISTRY: Dict[str, Dict[str, Any]] = {
+    "brand": _setting({"name_te": "గాయత్రి జ్యోతిర్నిధి", "name_en": "Gayatri Jyotirnidhi",
+                       "tagline_te": "వేద ముహూర్త & దృక్సిద్ధాంత దర్శిని", "tagline_en": "Vedic muhurta & Drik panchang",
+                       "icon": "sun"}, Brand, "Name and tagline", "పేరు, ఉపశీర్షిక", "brand", True),
+    "theme": _setting({"preset": "sanctuary", "primary": None, "gold": None}, Theme,
+                      "Theme and colours", "థీమ్, రంగులు", "brand", True),
+    "nav": _setting({"items": DEFAULT_NAV}, Nav, "Menu items", "మెనూ అంశాలు", "menu", True),
+    "landing": _setting({"user": "/panchang-lookup.html", "admin": "/admin.html", "super_admin": "/admin.html"},
+                        Landing, "Landing page after sign-in", "లాగిన్ తర్వాత మొదటి పేజీ", "menu", False),
+    "panchang": _setting({"sections": {k: True for k in PANCHANG_SECTIONS}, "refresh_seconds": 30,
+                          "default_place": {"name": "Hyderabad, Telangana", "lat": 17.385, "lon": 78.4867, "tz": 5.5}},
+                         Panchang, "Panchang pages", "పంచాంగ పేజీలు", "panchang", True),
+    "places": _setting({"items": [{"id": k, **v} for k, v in REGIONS.items()]}, Places,
+                       "Places list", "ప్రదేశాల జాబితా", "places", True),
+    "finder": _setting({"search_days": 366, "chunk_days": 60}, Finder, "Muhurta Finder", "ముహూర్త శోధన", "finder", True),
+    "sharing": _setting({"pdf": False, "image": True, "text": True}, Sharing,
+                        "PDF, image and text sharing", "PDF, చిత్రం, పాఠ్యం పంచుకోవడం", "finder", True),
+    "godavari": _setting({"enabled": True, "km": 30.0}, Godavari,
+                         "Godavari Pushkaralu", "గోదావరి పుష్కరాలు", "finder", False),
+    "texts": _setting({k: {"en": "", "te": ""} for k in TEXT_KEYS}, None, "Texts", "పాఠ్యాలు", "texts", True),
+    "security": _setting({"session_days": 30, "login_fails_before_lock": 5, "lock_minutes": 15, "otp_attempts": 5},
+                         Security, "Accounts and security", "ఖాతాలు, భద్రత", "security", False),
+    "admin_powers": _setting({k: v for k, v in AdminPowers().model_dump().items()}, AdminPowers,
+                             "What admins may do", "నిర్వాహకులు చేయగలిగేవి", "admins", False),
+    "admin_dashboard": _setting(AdminDashboard().model_dump(), AdminDashboard,
+                                "Admin dashboard", "నిర్వాహక డాష్‌బోర్డ్", "admins", True),
+}
+
+
+def validate(key: str, value: Any) -> Any:
+    """The checked value to store for `key`, or ValueError with a readable reason."""
+    spec = REGISTRY.get(key)
+    if spec is None:
+        raise ValueError(f"'{key}' is not an adjustable setting")
+    if key == "texts":
+        if not isinstance(value, dict):
+            raise ValueError("texts must be a set of {en, te} pairs")
+        bad = [k for k in value if k not in TEXT_KEYS]
+        if bad:
+            raise ValueError(f"unknown texts: {', '.join(bad)}")
+        try:
+            return {k: TextPair(**(value.get(k) or {})).model_dump() for k in TEXT_KEYS}
+        except ValidationError as e:
+            raise ValueError(_readable(e))
+    try:
+        obj = spec["model"](**value) if isinstance(value, dict) else None
+    except ValidationError as e:
+        raise ValueError(_readable(e))
+    if obj is not None and hasattr(obj, "readable"):
+        obj.readable()
+    checked = obj.model_dump() if obj is not None else None
+    if checked is None:
+        raise ValueError(f"{key} must be an object")
+    if key == "nav":   # every page of the default menu stays listed (hidden is fine), and Settings stays shown
+        hrefs = {i["href"] for i in checked["items"]}
+        missing = [i["href"] for i in DEFAULT_NAV if i["href"] not in hrefs]
+        unknown = [h for h in hrefs if h not in {i["href"] for i in DEFAULT_NAV}]
+        if missing or unknown:
+            raise ValueError("the menu must list exactly the app's pages (hide a page instead of removing it)")
+        if not next(i for i in checked["items"] if i["href"] == "admin-settings.html")["show"]:
+            raise ValueError("the Settings link can't be hidden, or the super admin could be locked out")
+    return checked
+
+
+def _readable(e: ValidationError) -> str:
+    parts = []
+    for err in e.errors()[:4]:
+        where = ".".join(str(x) for x in err.get("loc", ()))
+        parts.append(f"{where}: {err.get('msg')}" if where else str(err.get("msg")))
+    return "; ".join(parts)
+
+
+def merged(key: str, stored: Any) -> Any:
+    """A stored value laid over the default, so settings added later get their defaults."""
+    default = REGISTRY[key]["default"]
+    if isinstance(default, dict) and isinstance(stored, dict):
+        out = dict(default)
+        for k, v in stored.items():
+            out[k] = {**default[k], **v} if isinstance(default.get(k), dict) and isinstance(v, dict) and k != "items" else v
+        return out
+    return stored if stored is not None else default
+
+
+def public_view(values: Dict[str, Any]) -> Dict[str, Any]:
+    """What any page may read: no security, landing, admin powers or rule settings."""
+    return {k: values[k] for k, spec in REGISTRY.items() if spec["public"] and k in values}
+
+
+def meta() -> Dict[str, Any]:
+    """Labels and groups for the Settings page."""
+    return {k: {"label_en": s["label_en"], "label_te": s["label_te"], "group": s["group"], "public": s["public"],
+                "default": s["default"]} for k, s in REGISTRY.items()} | {
+        "_choices": {"pages": PAGE_CHOICES, "icons": ICON_CHOICES, "themes": THEME_PRESETS,
+                     "panchang_sections": PANCHANG_SECTIONS, "texts": TEXT_KEYS, "admin_powers": list(ADMIN_POWERS)}}

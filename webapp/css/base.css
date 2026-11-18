@@ -1,5 +1,5 @@
 /* ============================================================
-   Muhurtham App · Base Styles & Reset
+   Gayatri Jyotirnidhi · Base Styles & Reset
    ============================================================ */
 * {
   box-sizing: border-box;
@@ -11,13 +11,15 @@ body {
   margin: 0;
   background: var(--ivory);
   color: var(--ink);
-  font-family: Inter, "Noto Sans Telugu", "Palatino Linotype", Georgia, serif;
+  font-family: var(--font-sans);
   padding: 32px 16px 80px;
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
 }
 
 button, input, select { font: inherit; }
+
+h1, h2, h3, h4 { font-family: var(--font-serif); }
 
 :focus-visible {
   outline: 3px solid var(--color-info);
@@ -90,3 +92,7 @@ footer code {
 html[lang="te"] body { line-height: 1.75; }
 html[lang="te"] body * { letter-spacing: normal; }
 html[lang="te"] :is(label, th, td, button, select, input, small, .btn, .label, .kname, .ktime, .kaala-title, .chip, .badge) { line-height: 1.6; }
+
+/* Footer line from Settings › Texts (13 Nov 2026); shown only when the super admin writes one. */
+.site-footer { max-width: 1120px; margin: var(--space-12) auto 0; padding: var(--space-4); text-align: center;
+  font-size: var(--text-sm); color: var(--color-text-muted); border-top: 1px solid var(--color-border); }

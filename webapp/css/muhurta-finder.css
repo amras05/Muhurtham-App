@@ -190,21 +190,23 @@ header h1 {
 }
 .custom-place-input {
   flex: 1;
-  padding: 9px 10px;
+  min-height: 44px;
+  padding: 10px 14px;
   font-size: 15px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--card-bg);
-  color: var(--ink);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 .btn-search-place {
   width: auto;
+  min-height: 44px;
   padding: 0 20px;
-  background: var(--marigold);
-  color: white;
+  background: var(--color-gold-soft);
+  color: #233b00;
   font-weight: 600;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -957,6 +959,15 @@ button#findBtn:disabled {
 .mode-pitrucal .field--timepref, .mode-pitrucal .field--masa, .mode-pitrucal .field--start-date,
 .mode-pitrucal .field--days, .mode-pitrucal #mfInfoBanner, .mode-pitrucal #mfParticipants,
 .mode-pitrucal #mfContextualSection { display: none !important; }
+/* Rajaswala record (garbha tab): the moment is health data, so no event fields and no save or PDF */
+.mode-raja .field--activity, .mode-raja .field--variant, .mode-raja .field--strictness,
+.mode-raja .field--timepref, .mode-raja .field--masa, .mode-raja .field--start-date,
+.mode-raja .field--days, .mode-raja #mfParticipants, .mode-raja #mfContextualSection,
+.mode-raja .results-actions, .mode-raja .results-view { display: none !important; }
+.raja-verdict { display: grid; gap: 4px; padding: 12px 14px; border-radius: var(--radius-md); font-weight: 600; }
+.raja-verdict--good { background: var(--color-success-bg); color: var(--color-success); border: 1px solid var(--color-success-border); }
+.raja-verdict--bad { background: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-border); }
+.raja-verdict small { color: var(--color-text-muted); font-weight: 400; }
 .yoga-row { display: grid; grid-template-columns: minmax(130px, auto) 1fr; gap: 4px 14px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
 .yoga-row__when { font-weight: 700; color: var(--maroon); font-variant-numeric: tabular-nums; }
 .yoga-row__chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }

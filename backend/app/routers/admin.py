@@ -599,8 +599,8 @@ def notifications(boss: dict = Depends(require("settings.edit"))) -> Dict[str, A
         "template": WHATSAPP_TEMPLATE_NAME, "dev_echo": OTP_DEV_ECHO, "sms_available": False,
         "limits": {"per_mobile_15min": S.OTP_PER_MOBILE_15MIN, "per_mobile_day": S.OTP_PER_MOBILE_DAY,
                    "per_ip_hour": S.OTP_PER_IP_HOUR, "resend_wait_seconds": S.OTP_RESEND_WAIT_SECONDS,
-                   "code_minutes": 5, "wrong_passwords_before_lock": S.LOGIN_FAILS_BEFORE_LOCK,
-                   "lock_minutes": S.LOGIN_LOCK_MINUTES},
+                   "code_minutes": 5, "wrong_passwords_before_lock": S.security_setting("login_fails_before_lock"),
+                   "lock_minutes": S.security_setting("lock_minutes")},
     }
 
 

@@ -418,6 +418,73 @@ function onCategoryChange(catId) {
   const pp = el("mfPitruPanel");
   if (pp) pp.hidden = catId !== "pitru";
   setPitruMode(catId === "pitru" && pitruCalendarOn);
+  const rp = el("mfRajaPanel");
+  if (rp) rp.hidden = catId !== "garbha";
+  setRajaMode(catId === "garbha" && rajaOn);
+}
+
+// ---- Garbha tab: rajaswala record (book p.106-108, 12 Nov 2026) ----
+// The moment is health data: it is not saved, not added to the URL and not offered as a PDF.
+var rajaOn = false;
+function setRajaMode(on) {
+  if (currentCategory === "garbha") rajaOn = on;
+  document.body.classList.toggle("mode-raja", on);
+  const f = el("mfRajaFields");
+  if (f) f.hidden = !on;
+  [["mfRajaTabRite", !on], ["mfRajaTabRec", on]].forEach(([id, active]) => {
+    const b = el(id);
+    if (b) { b.classList.toggle("active", active); b.setAttribute("aria-selected", active); }
+  });
+  if (on) {
+    const nak = el("mfRajaNak"), rasi = el("mfRajaRasi");
+    if (nak && !nak.options.length) nak.innerHTML = optionList(NAKSHATRAS_27, T("— Not given —", "— ఇవ్వలేదు —"), "");
+    if (rasi && !rasi.options.length) rasi.innerHTML = optionList(RASIS_12, T("— Not given —", "— ఇవ్వలేదు —"), "");
+    el("mfResults").style.display = "none";
+  }
+}
+
+async function runRajaswala(loc) {
+  const date = el("mfRajaDate").value, time = el("mfRajaTime").value;
+  if (!date || !time) {
+    setStatus(T("Enter the date and time of the first period.", "తొలి రజస్వల తేదీ, సమయం నమోదు చేయండి."), true);
+    return;
+  }
+  const body = { date, time, lat: loc.lat, lon: loc.lon, tz_offset: loc.tz_offset, place_name: loc.place_name,
+                 janma_nak_idx: parseInt(el("mfRajaNak").value) || null, husband_rasi_idx: parseInt(el("mfRajaRasi").value) || null };
+  el("findBtn").disabled = true;
+  setStatus(T("Reading the moment…", "సమయాన్ని పరిశీలిస్తున్నాం…"));
+  try {
+    const res = await fetch(`${API_BASE}/muhurta/rajaswala`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
+    renderRajaswala(await res.json());
+    lastToolSearch = null;
+    lastData = null;
+  } catch (e) {
+    console.error("Rajaswala record failed:", e.message);
+    setStatus(T(`Couldn't read the moment: ${e.message}`, `సమయాన్ని పరిశీలించలేకపోయాం: ${e.message}`), true);
+  } finally {
+    el("findBtn").disabled = false;
+  }
+}
+
+function renderRajaswala(d) {
+  const m = d.moment;
+  setStatus(T("A traditional reading from the book (p.106-108); it is not medical advice.",
+              "గ్రంథంలోని సంప్రదాయ పరిశీలన (పేజీ 106-108) మాత్రమే; వైద్య సలహా కాదు."));
+  const good = d.verdict === "good";
+  el("summaryBar").innerHTML = `<div class="raja-verdict raja-verdict--${good ? "good" : "bad"}" role="status">
+    ${escapeHtml(good ? T("Auspicious: none of the book's bad times apply", "శుభం: గ్రంథంలోని దుష్ట కాలాలు ఏవీ లేవు")
+                      : T(`${d.bad.length} of the book's bad signs apply`, `గ్రంథంలోని ${d.bad.length} దుష్ట లక్షణాలు ఉన్నాయి`))}
+    <small>${escapeHtml(T(`${m.weekday_en} · ${m.tithi} · ${m.nakshatra} · ${m.yoga} yoga · ${m.karana} · ${m.lagna} lagna · ${m.hora} hora`,
+                          `${m.weekday_te} · ${m.tithi} · ${m.nakshatra_te} · ${m.yoga} యోగం · ${m.karana} · ${m.lagna_te} లగ్నం · ${m.hora === "Chandra" ? "చంద్ర" : "సూర్య"} హోర`))}</small></div>`;
+  const row = (r, cls, mark) => `<div class="yoga-row"><div class="yoga-row__when"><span class="pill pill--${cls}">${mark}</span></div>
+    <div>${escapeHtml(T(r.en, r.te))}</div></div>`;
+  el("dayGrid").innerHTML =
+    d.bad.map(r => row(r, "fail", T("✕ Bad", "✕ దుష్టం"))).join("") +
+    d.good.map(r => row(r, "pass", T("✓ Good", "✓ శుభం"))).join("") +
+    d.not_evaluated.map(r => row(r, "muted", T("Not checked", "పరిశీలించలేదు"))).join("");
+  el("mfResults").style.display = "block";
 }
 
 // ---- Pitru tab: shraddha calendar ----
@@ -626,7 +693,13 @@ function missingRequired() {
 // ---- One year of muhurtas, 60 days at a time (11 Nov 2026) ----
 // The first search covers 60 days; when the end of the list comes into view the next 60 days load,
 // up to one year from the start date. Results are listed by date so new ones always follow on.
-const YEAR_DAYS = 366, CHUNK_DAYS = 60;
+// Search length and load size from Settings › Finder and sharing (plan D6); 366 and 60 by default.
+let YEAR_DAYS = 366, CHUNK_DAYS = 60;
+if (window.SiteConfig) SiteConfig.onChange((c) => {
+  const f = c && c.finder;
+  if (f && f.search_days >= 60 && f.search_days <= 730) YEAR_DAYS = f.search_days;
+  if (f && f.chunk_days >= 15 && f.chunk_days <= 120) CHUNK_DAYS = f.chunk_days;
+});
 let paging = null;        // { payload, scanned, done, loading, error, rejections }
 let moreObserver = null;
 
@@ -667,6 +740,10 @@ async function loadMore() {
     if (!res.ok) { const d = await res.json().catch(() => null); throw new Error((d && typeof d.detail === "string" && d.detail) || `HTTP ${res.status}`); }
     const data = await res.json();
     lastData.results = lastData.results.concat(chunkResults(data).slice().sort(byDateTime));
+    (data.notices || []).forEach(n => {           // e.g. a Godavari Pushkaralu period further into the year
+      lastData.notices = lastData.notices || [];
+      if (!lastData.notices.some(m => m.en === n.en)) lastData.notices.push(n);
+    });
     lastData.candidates = lastData.results;
     mergeRejections(data);
     paging.scanned += days;
@@ -971,7 +1048,7 @@ async function findMuhurtas() {
   if (poolMode) return runPool({ lat, lon, tz_offset, place_name });
 
   lastToolSearch = null;    // set again once a yoga or shraddha search succeeds
-  if (currentCategory !== "yogas" && !(currentCategory === "pitru" && pitruCalendarOn)) {
+  if (currentCategory !== "yogas" && !(currentCategory === "pitru" && pitruCalendarOn) && !(currentCategory === "garbha" && rajaOn)) {
     const missing = missingRequired();
     if (missing.length) {
       const go = await AppShell.confirm(
@@ -990,6 +1067,9 @@ async function findMuhurtas() {
   }
   if (currentCategory === "pitru" && pitruCalendarOn) {
     return runPitruCalendar({ lat, lon, tz_offset, place_name });
+  }
+  if (currentCategory === "garbha" && rajaOn) {
+    return runRajaswala({ lat, lon, tz_offset, place_name });
   }
 
   el("findBtn").disabled = true;
@@ -1250,7 +1330,10 @@ function renderResults(data) {
       <span class="num ${numCls}">${n}</span>
       <span class="label">${escapeHtml(T(en, te))}</span>
     </button>`;
-  el("summaryBar").innerHTML =
+  // Notices the search must show, e.g. Godavari Pushkaralu (13 Nov 2026): no muhurtas near the river then.
+  const notices = (data.notices || []).map(n =>
+    `<div class="info-banner notice-banner" role="note">${escapeHtml(T(n.en, n.te))}</div>`).join("");
+  el("summaryBar").innerHTML = notices +
     tile("excellent", count("excellent"), "num--excellent", "Excellent", "ఉత్తమ ముహూర్తములు") +
     tile("medium", count("medium"), "num--favorable", "Medium", "మధ్యమ ముహూర్తములు") +
     tile("avoid", count("avoid"), "num--unfavorable", "Avoid", "నిషిద్ధములు") +

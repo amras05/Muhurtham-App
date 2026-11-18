@@ -5,29 +5,39 @@
   padding-inline: var(--space-4);
 }
 
+/* Vedic Sanctuary look (13 Nov 2026): the card sits on soft gold and green glows, with a gold top rule. */
 .auth-page {
+  position: relative;
   display: grid;
   place-items: start center;
   min-height: 70vh;
   padding: var(--space-8) var(--space-4) var(--space-12);
+  overflow: hidden;
 }
+.auth-page::before, .auth-page::after { content: ""; position: absolute; border-radius: 50%; filter: blur(60px); pointer-events: none; z-index: 0; }
+.auth-page::before { width: 320px; height: 320px; top: 0; left: 50%; transform: translateX(-90%); background: rgba(255, 224, 136, 0.35); }
+.auth-page::after { width: 360px; height: 360px; top: 160px; left: 50%; transform: translateX(-10%); background: rgba(190, 242, 131, 0.25); }
 
 .auth-card {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 26rem;
+  max-width: 28rem;
   display: grid;
   gap: var(--space-4);
-  padding: var(--space-6);
+  padding: 28px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-top: 3px solid var(--color-gold);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
 }
 
 .auth-card__title {
   margin: 0;
   color: var(--color-primary-strong);
-  font-size: var(--text-xl, 1.4rem);
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
 }
 
 .auth-card__lede { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
@@ -36,16 +46,17 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2px;
-  padding: 3px;
+  padding: 4px;
   background: var(--color-surface-muted);
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
 }
 .auth-tabs[hidden] { display: none; }
 
 .auth-tab {
   padding: var(--space-2);
+  min-height: 40px;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--color-text-muted);
   font: inherit;
@@ -55,10 +66,10 @@
 .auth-tab.active { background: var(--color-surface); color: var(--color-primary-strong); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
 .auth-tab:focus-visible, .auth-link:focus-visible, .auth-submit:focus-visible { outline: 2px solid var(--color-primary-strong); outline-offset: 2px; }
 
-.auth-form { display: grid; gap: var(--space-3); }
+.auth-form { display: grid; gap: var(--space-4); }
 .auth-form[hidden], .auth-alert[hidden] { display: none; }   /* "display: grid" above would otherwise show every form */
-.auth-form .field { display: grid; gap: var(--space-1); }
-.auth-form label { font-size: var(--text-sm); font-weight: 600; }
+.auth-form .field { display: grid; gap: 6px; }
+.auth-form label { font-size: var(--text-sm); font-weight: 600; color: var(--color-text-muted); }
 .auth-form input[type="text"], .auth-form input[type="tel"], .auth-form input[type="password"] { width: 100%; }
 
 .auth-mobile { display: flex; align-items: stretch; }
@@ -66,21 +77,22 @@
   display: grid;
   place-items: center;
   padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-right: 0;
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
   font-weight: 600;
 }
-.auth-mobile input { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.auth-mobile input { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+.auth-mobile:focus-within .auth-mobile__code { border-color: var(--color-primary); }
 
 .auth-otp { font-size: 1.4rem; letter-spacing: 0.4em; text-align: center; font-variant-numeric: tabular-nums; }
 
 .auth-consent { display: flex; gap: var(--space-2); align-items: flex-start; font-size: var(--text-xs, 0.8rem); font-weight: 400 !important; color: var(--color-text-muted); }
 .auth-consent input { margin-top: 3px; }
 
-.auth-submit { width: 100%; justify-content: center; }
+.auth-submit { width: 100%; justify-content: center; min-height: 48px; font-size: 15px; }
 .auth-submit:disabled { opacity: 0.6; cursor: wait; }
 
 .auth-link {
@@ -97,7 +109,7 @@
 
 .auth-hint { margin: 0; font-size: var(--text-sm); }
 
-.auth-alert { padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); font-size: var(--text-sm); }
+.auth-alert { padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); font-size: var(--text-sm); }
 .auth-alert--error { background: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-border); }
 .auth-alert--info { background: var(--color-success-bg); color: var(--color-success); border: 1px solid var(--color-success-border); }
 .auth-note { margin: 0; font-size: var(--text-sm); color: var(--color-text-muted); }

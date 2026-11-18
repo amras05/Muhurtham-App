@@ -4,20 +4,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Muhurta Finder · Muhurtham</title>
+  <title>Muhurta Finder · Gayatri Jyotirnidhi</title>
   <meta name="description" content="Find auspicious Muhurta windows across 30 days with Pushkara Bhaga, Lagna Shuddhi, and Ashtama Shuddhi analysis.">
   <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261111">
+  <link rel="stylesheet" href="css/common.css?v=20261114c">
   <link rel="stylesheet" href="css/components.css?v=20261110e">
-  <link rel="stylesheet" href="css/muhurta-finder.css?v=20261111h">
+  <link rel="stylesheet" href="css/muhurta-finder.css?v=20261113j">
 </head>
 
 <body>
   <a class="skip-link" href="#mainContent">Skip to main content</a>
   <nav class="app-shell__nav portal-nav" aria-label="Primary navigation">
-    <a class="app-shell__brand" href="/">ముహూర్తం</a>
+    <a class="app-shell__brand" href="/"><span class="brand-mark" data-icon="sun"></span><span class="brand-text"><span class="brand-name">గాయత్రి జ్యోతిర్నిధి</span><span class="brand-tag">వేద ముహూర్త &amp; దృక్సిద్ధాంత దర్శిని</span></span></a>
     <div class="app-shell__links"></div>
     <div class="lang-toggle">
       <button class="lang-btn active" id="langEn" onclick="setLang('en')">English</button>
@@ -156,6 +156,26 @@
           <div class="field pitru-death"><label for="mfPitruDeathTime" data-en="Time of death (sets the tithi)" data-te="మరణ సమయం (తిథి నిర్ణయానికి)">Time of death (sets the tithi)</label><input type="time" id="mfPitruDeathTime"></div>
           <div class="field pitru-annual"><label for="mfPitruYears" data-en="Years to list" data-te="ఎన్ని సంవత్సరాలు">Years to list</label><input type="number" id="mfPitruYears" min="1" max="10" value="3"></div>
           <div class="field pitru-year" hidden><label for="mfPitruYear" data-en="Year" data-te="సంవత్సరం">Year</label><input type="number" id="mfPitruYear" min="1900" max="2200"></div>
+        </div>
+      </section>
+
+      <!-- Garbha tab: switch between a rite's muhurta and the rajaswala record (book p.106-108, 12 Nov 2026) -->
+      <section id="mfRajaPanel" class="yoga-panel" hidden>
+        <div class="nama-mode-tabs" role="tablist" aria-label="Garbha tools">
+          <button type="button" role="tab" class="nama-tab active" id="mfRajaTabRite" aria-selected="true" onclick="setRajaMode(false)"
+            data-en="Find a muhurta for a rite" data-te="కర్మకు ముహూర్తం">Find a muhurta for a rite</button>
+          <button type="button" role="tab" class="nama-tab" id="mfRajaTabRec" aria-selected="false" onclick="setRajaMode(true)"
+            data-en="First period (rajaswala)" data-te="తొలి రజస్వల">First period (rajaswala)</button>
+        </div>
+        <div id="mfRajaFields" hidden>
+          <p class="participants__hint" data-en="Give the date, time and place of the first period. The book rates that moment by its nakshatra, weekday and lagna and lists 17 bad times. Nothing you enter here is saved."
+            data-te="తొలి రజస్వల తేదీ, సమయం, స్థలం ఇవ్వండి. గ్రంథం ఆ సమయాన్ని నక్షత్ర, వార, లగ్నాలతో పరిశీలించి 17 దుష్ట కాలాలను చెబుతుంది. ఇక్కడ ఇచ్చినది ఏదీ భద్రపరచబడదు.">Give the date, time and place of the first period. The book rates that moment by its nakshatra, weekday and lagna and lists 17 bad times. Nothing you enter here is saved.</p>
+          <div class="context-grid">
+            <div class="field"><label for="mfRajaDate" data-en="Date" data-te="తేదీ">Date</label><input type="date" id="mfRajaDate"></div>
+            <div class="field"><label for="mfRajaTime" data-en="Time" data-te="సమయం">Time</label><input type="time" id="mfRajaTime"></div>
+            <div class="field"><label for="mfRajaNak" data-en="Her janma nakshatra (optional)" data-te="ఆమె జన్మ నక్షత్రం (ఐచ్ఛికం)">Her janma nakshatra (optional)</label><select id="mfRajaNak"></select></div>
+            <div class="field"><label for="mfRajaRasi" data-en="Husband's janma rashi (optional)" data-te="భర్త జన్మ రాశి (ఐచ్ఛికం)">Husband's janma rashi (optional)</label><select id="mfRajaRasi"></select></div>
+          </div>
         </div>
       </section>
 
@@ -424,7 +444,7 @@
     <div id="mfResults" style="display: none;">
       <div class="results-actions no-print">
         <button type="button" class="btn btn--sm btn--ghost" onclick="saveSearch(this, false)"><span data-en="Save this search" data-te="ఈ శోధన భద్రపరచండి">Save this search</span></button>
-        <button type="button" class="btn btn--sm btn--ghost" onclick="downloadListPdf(this)"><span data-en="Download PDF" data-te="PDF డౌన్‌లోడ్">Download PDF</span></button>
+        <button type="button" class="btn btn--sm btn--ghost" onclick="downloadListPdf(this)" data-share-kind="pdf" hidden><!-- shown by Settings › sharing --><span data-en="Download PDF" data-te="PDF డౌన్‌లోడ్">Download PDF</span></button>
       </div>
       <!-- Cards or one line per muhurta (11 Nov 2026) -->
       <div class="results-view no-print" role="group" aria-label="Result layout">
@@ -452,7 +472,7 @@
         <div class="modal-header__actions">
           <button type="button" class="btn btn--sm btn--ghost no-print" onclick="saveSearch(this, true)"><span data-en="Save this muhurta" data-te="ఈ ముహూర్తం భద్రపరచండి">Save this muhurta</span></button>
           <button type="button" class="btn btn--sm btn--ghost no-print" onclick="addWindowToFamily(this)"><span data-en="Add to family events" data-te="కుటుంబ కార్యక్రమాల్లో చేర్చండి">Add to family events</span></button>
-          <button type="button" class="btn btn--sm btn--ghost no-print" onclick="downloadDetailPdf(this)"><span data-en="Download PDF" data-te="PDF డౌన్‌లోడ్">Download PDF</span></button>
+          <button type="button" class="btn btn--sm btn--ghost no-print" onclick="downloadDetailPdf(this)" data-share-kind="pdf" hidden><!-- shown by Settings › sharing --><span data-en="Download PDF" data-te="PDF డౌన్‌లోడ్">Download PDF</span></button>
           <button class="modal-close no-print" onclick="closeModal()">&times;</button>
         </div>
       </div>
@@ -462,14 +482,15 @@
 
   <!-- Components (plain scripts: file:// compatible → no ES modules) -->
   <script src="js/config.js"></script>
+  <script src="js/site-config.js?v=20261114c"></script>
   <script src="js/icons.js?v=20261110"></script>
   <script src="js/app-shell.js?v=20261110"></script>
-  <script src="js/i18n.js?v=20261110"></script>
-  <script src="js/auth.js?v=20261110b"></script>
+  <script src="js/i18n.js?v=20261114c"></script>
+  <script src="js/auth.js?v=20261114a"></script>
   <script src="js/regions.js"></script>
   <script src="js/pdf-download.js?v=20261110b"></script>
   <script src="js/stars.js"></script>
-  <script src="js/finder.js?v=20261111n"></script>
+  <script src="js/finder.js?v=20261114b"></script>
 </body>
 
 </html>

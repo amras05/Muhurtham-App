@@ -129,6 +129,44 @@ def evaluate_yogas(vara_idx: int, tithi_30: int, nak_idx: int, tab: str, event_i
 
 # Paksharandhra: the first ghatis of these tithis are avoided (classical counts; author to confirm).
 PAKSHARANDHRA_GHATIS = {4: 8, 6: 9, 8: 14, 9: 25, 12: 10, 14: 5}
+# Tithi tyajya (visha ghatikas), Daivajna Manohara table supplied with the questionnaire answers
+# (Q15, 12 Nov 2026): after this many ghatis from the tithi's start, 4 ghatis are avoided, scaled to
+# the real tithi length. Keys 1-14 serve both pakshas; 15 = purnima, 30 = amavasya.
+TITHI_TYAJYA_START_GHATI = {1: 15, 2: 5, 3: 8, 4: 7, 5: 7, 6: 5, 7: 4, 8: 8, 9: 7, 10: 10,
+                            11: 3, 12: 10, 13: 12, 14: 7, 15: 8, 30: 8}
+TITHI_TYAJYA_LENGTH_GHATI = 4
+def _nak28_ordinal(lon: float) -> int:
+    """1-28 in the 28-nakshatra order: Ashwini..U.Ashadha = 1-21, Abhijit = 22, Shravana..Revati = 23-28.
+    Abhijit spans Makara 6°40′ to 10°53′20″ (book p.48)."""
+    lon %= 360.0
+    if 276.0 + 40.0 / 60.0 <= lon < 280.0 + 53.0 / 60.0 + 20.0 / 3600.0:
+        return 22
+    n = int(lon // (360.0 / 27.0)) + 1
+    return n if n <= 21 else n + 1
+
+
+# (nakshatras, part, part in Telugu, good?, result, result in Telugu), in the book's order.
+# Vrishabha adds up to 28: Abhijit is counted (Dr. Nemani, 13 Nov 2026). Kalasha adds up to 27.
+VRISHABHA_CHAKRA = [
+    (3, "head", "శిరస్సు", False, "fear of death", "మరణ భయం"),
+    (4, "front legs", "ముందు కాళ్ళు", False, "hardship", "దురవస్థ"),
+    (4, "hind legs", "వెనుక కాళ్ళు", True, "the house stands long", "దీర్ఘకాలం నిలవడం"),
+    (3, "tail", "తోక", False, "wandering away from home", "దేశ సంచారం"),
+    (4, "left side", "ఎడమ పార్శ్వం", True, "wealth", "ధనలాభం"),
+    (4, "right side", "కుడి పార్శ్వం", True, "grain", "ధాన్యలాభం"),
+    (3, "back", "వీపు", True, "prosperity", "సంపద"),
+    (3, "face", "ముఖం", True, "cattle wealth", "పశు సంపద"),
+]
+KALASHA_CHAKRA = [
+    (1, "top of the pot", "కలశ స్థానం", False, "grave danger to the householder", "గృహ యజమానికి తీవ్రమైన ప్రమాదం"),
+    (4, "east side", "తూర్పు భాగం", False, "going to live abroad", "పరదేశ ప్రయాణం"),
+    (4, "south side", "దక్షిణ భాగం", True, "fearlessness", "నిర్భయత్వం"),
+    (4, "west side", "పడమర భాగం", True, "grain", "ధాన్యలాభం"),
+    (4, "north side", "ఉత్తర భాగం", False, "poverty", "దారిద్ర్యం"),
+    (4, "middle", "మధ్య భాగం", False, "fear of miscarriage for the wife", "భార్యకు గర్భస్రావ భయం"),
+    (3, "neck", "కంఠస్థానం", True, "wealth", "సంపద"),
+    (3, "base", "దిగువ భాగం", True, "full life", "పూర్ణాయుష్షు"),
+]
 MALEFICS = {"Sun", "Mars", "Saturn", "Rahu", "Ketu"}
 SPECIAL_ASPECTS = {"Mars": (4, 7, 8), "Saturn": (3, 7, 10), "Jupiter": (5, 7, 9)}
 
@@ -153,10 +191,12 @@ def _level(v: Any) -> str:
 
 
 def extra_checks(tab: str, event_id: str, tithi_30: int, tithi_span: Tuple[float, float], window_jd: float,
-                 sunrise_jds: List[float], house_planets: Dict[int, List[Any]]) -> List[Dict[str, Any]]:
+                 sunrise_jds: List[float], house_planets: Dict[int, List[Any]],
+                 window_end_jd: Optional[float] = None) -> List[Dict[str, Any]]:
     """
     List C checks for one window. tithi_span is the running tithi's (start, end) JD; sunrise_jds
-    are the sunrises around it (for kshaya tithi); house_planets is the lagna chart by house.
+    are the sunrises around it (for kshaya tithi); house_planets is the lagna chart by house;
+    window_jd / window_end_jd are the window's start and end JD.
     """
     sev = {k: _level(v) for k, v in (profile_for(tab, event_id).get("extra_checks") or {}).items()}
     rows: List[Dict[str, Any]] = []
@@ -198,8 +238,63 @@ def extra_checks(tab: str, event_id: str, tithi_30: int, tithi_span: Tuple[float
                          ("Malefic aspect: " + ", ".join(hits)) if hits else "No malefic aspects the lagna or 7th",
                          ("పాపగ్రహ దృష్టి: " + ", ".join(hits)) if hits else "లగ్నం, సప్తమంపై పాపదృష్టి లేదు"))
 
-    for cid, en, te in (("bandhana_nakshatra", "Bandhana nakshatra", "బంధన నక్షత్రం"),
-                        ("tithi_tyajya", "Tithi tyajya", "తిథి త్యాజ్యం")):
+    level = sev.get("tithi_tyajya", "off")
+    if level != "off":
+        key = 30 if tithi_30 == 30 else (15 if tithi_30 == 15 else t15)
+        t0, t1 = tithi_span
+        dur = t1 - t0
+        v0 = t0 + dur * TITHI_TYAJYA_START_GHATI[key] / 60.0
+        v1 = v0 + dur * TITHI_TYAJYA_LENGTH_GHATI / 60.0
+        w1 = window_end_jd if window_end_jd is not None else window_jd
+        hit = window_jd < v1 and w1 > v0
+        g = TITHI_TYAJYA_START_GHATI[key]
+        rows.append(_row("tithi_tyajya", "Tithi tyajya (visha ghatikas)", "తిథి త్యాజ్యం (విష ఘటికలు)",
+                         "fail" if hit else "pass", level,
+                         (f"Touches the visha ghatikas: 4 ghatis after the first {g} of this tithi" if hit
+                          else f"Clear of the visha ghatikas (4 ghatis after the first {g} of this tithi)")
+                         + " (Daivajna Manohara table)",
+                         (f"విష ఘటికలను తాకుతోంది: ఈ తిథి మొదటి {g} ఘటికల తర్వాత 4 ఘటికలు" if hit
+                          else f"విష ఘటికలు లేవు (ఈ తిథి మొదటి {g} ఘటికల తర్వాత 4 ఘటికలు)")
+                         + " (దైవజ్ఞ మనోహర పట్టిక)"))
+
+    # Mahapata / kranti samya (Dr. Nemani, 13 Nov 2026): the window's start, middle or end in a mahapata.
+    level = sev.get("mahapata", "off")
+    if level != "off":
+        from app.engines.limb_timeline import mahapata_at
+        w1 = window_end_jd if window_end_jd is not None else window_jd
+        hit = next((m for m in (mahapata_at(j) for j in (window_jd, (window_jd + w1) / 2, w1)) if m["in_mahapata"]), None)
+        rows.append(_row("mahapata", "Mahapata (kranti samya)", "మహాపాతం (క్రాంతి సామ్యం)", "fail" if hit else "pass", level,
+                         (f"Mahapata ({hit['kind']}): the Sun and Moon have the same declination "
+                          f"({hit['sun_decl']}°, {hit['moon_decl']}°)") if hit else "No mahapata in this window",
+                         ("మహాపాతం: సూర్య చంద్రుల క్రాంతి సమానం" if hit else "ఈ సమయంలో మహాపాతం లేదు")))
+
+    # Vrishabha and Kalasha chakras (book p.162-163, added 12 Nov 2026): count from the Sun's nakshatra
+    # (= 1) to the Moon's; the count falls on a part of the bull or the pot, each with a result.
+    sun = next((p for pl in (house_planets or {}).values() for p in pl if p.name_en == "Sun"), None)
+    moon = next((p for pl in (house_planets or {}).values() for p in pl if p.name_en == "Moon"), None)
+    for cid, en, te, parts in (("vrishabha_chakra", "Vrishabha chakra", "వృషభ చక్రం", VRISHABHA_CHAKRA),
+                               ("kalasha_chakra", "Kalasha chakra", "కలశ చక్రం", KALASHA_CHAKRA)):
+        level = sev.get(cid, "off")
+        if level == "off":
+            continue
+        if not (sun and moon):
+            rows.append(_row(cid, en, te, "not_evaluated", "info", "Sun or Moon position missing",
+                             "సూర్య / చంద్ర స్థానం లేదు"))
+            continue
+        if cid == "vrishabha_chakra":       # Dr. Nemani, 13 Nov 2026: count Abhijit (28 nakshatras)
+            count = (_nak28_ordinal(moon.longitude) - _nak28_ordinal(sun.longitude)) % 28 + 1
+        else:
+            count = (int(moon.longitude // (360 / 27)) - int(sun.longitude // (360 / 27))) % 27 + 1
+        upto = 0
+        for n, part_en, part_te, good, res_en, res_te in parts:
+            upto += n
+            if count <= upto:
+                break
+        rows.append(_row(cid, en, te, "pass" if good else "fail", level,
+                         f"Nakshatra {count} from the Sun's falls on the {part_en}: {res_en} (book p.162-163)",
+                         f"సూర్య నక్షత్రం నుండి {count}వ నక్షత్రం {part_te} భాగంలో: {res_te} (గ్రంథం పేజీ 162-163)"))
+
+    for cid, en, te in (("bandhana_nakshatra", "Bandhana nakshatra", "బంధన నక్షత్రం"),):
         if sev.get(cid, "off") != "off":
             rows.append(_row(cid, en, te, "not_evaluated", "info",
                              "Needs the book's table (author to supply)", "గ్రంథంలోని పట్టిక కావాలి (రచయిత ఇవ్వాలి)"))

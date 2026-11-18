@@ -1,25 +1,11 @@
 // ============================================================
-// Muhurtham App · component: app bootstrap & wiring
-// (binds all panels via the shared helpers, initial load)
+// Gayatri Jyotirnidhi · component: app bootstrap & wiring
+// Two pages share this (13 Nov 2026), chosen by <body data-page>:
+//   today (panchang-lookup.html): Today's Panchang, no fields, the account's home place;
+//   month (panchang-month.html): Monthly Panchang, with the place and date fields and the calendar.
 // ============================================================
-
-// Render the full layout once on load (component architecture),
-// then wire all panels via the shared helpers — ids unchanged.
-UI.mount(Views.layoutRootId, Views.layout());
-el("apiBaseLabel").textContent = API_BASE || "same-origin";
-
-el("dateInput").valueAsDate = new Date();
-
-// Buttons (refreshPanchang loads the Day or Month tab, whichever is open)
-el("goButton").addEventListener("click", refreshPanchang);
-el("searchPlaceButton").addEventListener("click", refreshPanchang);
-initMonthTab();
-
-// Region dropdown toggles (shared helper)
-attachRegionToggle("regionSelect", "customPlaceField", "customPlaceInput");
-
-// Place autocomplete (shared helper — no duplicated logic)
-attachPlaceAutocomplete("customPlaceInput", "suggestionsList", refreshPanchang);
+const PAGE_MODE = document.body.getAttribute("data-page") === "month" ? "month" : "today";
+UI.mount(Views.layoutRootId, Views.layout(PAGE_MODE));
 
 // Old links to the retired samskara mode (#namakarana, #vivaha, …) go to the Muhurta Finder (plan R4).
 (function () {
@@ -27,8 +13,16 @@ attachPlaceAutocomplete("customPlaceInput", "suggestionsList", refreshPanchang);
   if (hash && hash !== "panchang" && hash !== "tabpanchangcontent") window.location.replace("muhurta-finder.html");
 })();
 
-// Startup: load regions, render panchang, open initial panel
-loadRegions().then(() => {
+if (PAGE_MODE === "today") {
   getPanchang();
-});
-
+} else {
+  el("apiBaseLabel").textContent = API_BASE || "same-origin";
+  el("dateInput").valueAsDate = new Date();
+  // Buttons (refreshPanchang loads the month, or the open day)
+  el("goButton").addEventListener("click", refreshPanchang);
+  el("searchPlaceButton").addEventListener("click", refreshPanchang);
+  initMonthTab();
+  attachRegionToggle("regionSelect", "customPlaceField", "customPlaceInput");
+  attachPlaceAutocomplete("customPlaceInput", "suggestionsList", refreshPanchang);
+  loadRegions().then(() => showPanchangTab("month"));
+}

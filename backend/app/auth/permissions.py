@@ -23,8 +23,8 @@ _SUPER = _ADMIN | {
 
 ROLE_PERMISSIONS: Dict[str, FrozenSet[str]] = {"user": _USER, "admin": frozenset(_ADMIN), "super_admin": frozenset(_SUPER)}
 
-# Each role's landing page after sign-in.
-ROLE_HOME = {"user": "/home.html", "admin": "/admin.html", "super_admin": "/admin.html"}
+# Each role's landing page after sign-in. Users land on the live Panchang page (user's choice, 13 Nov 2026).
+ROLE_HOME = {"user": "/panchang-lookup.html", "admin": "/admin.html", "super_admin": "/admin.html"}
 
 # Pages only some roles may open (anything else that is signed in is open to every role).
 PAGE_PERMISSIONS = {
@@ -37,8 +37,22 @@ PAGE_PERMISSIONS = {
 }
 
 
+def permissions_for(role: str) -> FrozenSet[str]:
+    """A role's permissions. The admin's come from the super admin's "What admins may do" settings
+    (Super Admin Control Plan D10, 13 Nov 2026); with the defaults they equal _ADMIN. The super admin's and
+    users' are fixed."""
+    if role != "admin":
+        return ROLE_PERMISSIONS.get(role, frozenset())
+    from app.auth.app_settings import get_setting          # lazy: settings import the database layer
+    from app.auth.config_registry import ADMIN_POWERS, AdminPowers
+    powers = {**AdminPowers().model_dump(), **(get_setting("admin_powers") or {})}
+    perms = set(_USER) | {"admin.dashboard"}
+    perms |= {perm for power, perm in ADMIN_POWERS.items() if powers.get(power)}
+    return frozenset(perms)
+
+
 def has_permission(user: dict, permission: str) -> bool:
-    return permission in ROLE_PERMISSIONS.get((user or {}).get("role", ""), frozenset())
+    return permission in permissions_for((user or {}).get("role", ""))
 
 
 def require(permission: str) -> Callable:

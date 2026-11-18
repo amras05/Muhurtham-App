@@ -35,6 +35,7 @@ class UserResponse(BaseModel):
     created_at: str
     last_login_at: Optional[str] = None
     login_count: int
+    permissions: List[str] = []      # what this account may do (menus use it; the server checks again)
 
 class LoginResponse(BaseModel):
     token: str

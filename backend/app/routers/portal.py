@@ -26,7 +26,10 @@ def _home_place(user: dict) -> Dict[str, Any]:
     if user.get("home_lat") is not None and user.get("home_lon") is not None and user.get("home_tz") is not None:
         return {"name": user.get("home_place") or "Home", "lat": float(user["home_lat"]),
                 "lon": float(user["home_lon"]), "tz": float(user["home_tz"])}
-    return dict(DEFAULT_PLACE)
+    # The super admin's default place (Settings › Panchang, plan D5), else the built-in one.
+    from app.auth.app_settings import get_setting
+    dp = (get_setting("panchang") or {}).get("default_place")
+    return dict(dp) if dp else dict(DEFAULT_PLACE)
 
 
 def _at(day: date, hms: Optional[str]) -> Optional[datetime]:

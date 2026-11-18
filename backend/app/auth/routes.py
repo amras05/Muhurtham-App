@@ -26,6 +26,7 @@ from .database import (
 )
 from .dependencies import get_current_user
 from .mobile import mask_mobile, normalize_mobile
+from .permissions import permissions_for
 from .schemas import (
     ActivityLogResponse,
     ChangeMobileRequest,
@@ -95,6 +96,7 @@ def _user_response(u: dict) -> UserResponse:
         is_verified=bool(u["is_verified"]), is_active=bool(u["is_active"]),
         created_at=u["created_at"], last_login_at=u.get("last_login_at"),
         login_count=u.get("login_count", 0),
+        permissions=sorted(permissions_for(u["role"])),
     )
 
 

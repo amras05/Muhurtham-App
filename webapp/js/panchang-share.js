@@ -57,7 +57,7 @@ function panchangDaySections(d, place) {
       name: L ? y.name_te : y.name_en,
       type: y.type === "bad" ? "bad" : (y.type === "info" ? "info" : "good"),
     })),
-    footer: _tr("Drik Panchang (Lahiri) · Muhurtham", "దృక్ పంచాంగం (లాహిరి) · ముహూర్తం"),
+    footer: _tr("Drik Panchang (Lahiri) · " + _brandName("en"), "దృక్ పంచాంగం (లాహిరి) · " + _brandName("te")),
   };
 }
 
@@ -104,8 +104,19 @@ function panchangDayText(s) {
 }
 
 // ---- PNG card ------------------------------------------------------------------
-const CARD = { w: 1080, pad: 64, maroon: "#6f1725", gold: "#c59b27", ink: "#211a18", muted: "#655c57",
-               line: "#ded6cc", bg: "#fbfaf8", good: "#1f7a45", bad: "#b42318", info: "#175cd3" };
+function _shareOn(kind) {
+  return window.SiteConfig && SiteConfig.sharingOn ? SiteConfig.sharingOn(kind) : kind !== "pdf";
+}
+
+// The app's name from the super admin's settings (13 Nov 2026), or the built-in one.
+function _brandName(lang) {
+  const b = window.SiteConfig && SiteConfig.data && SiteConfig.data.brand;
+  return (b && (lang === "te" ? b.name_te : b.name_en)) || (lang === "te" ? "గాయత్రి జ్యోతిర్నిధి" : "Gayatri Jyotirnidhi");
+}
+
+// Colours follow css/variables.css (Vedic Sanctuary theme, 13 Nov 2026). "maroon" is the brand colour key.
+const CARD = { w: 1080, pad: 64, maroon: "#2c4c00", gold: "#d4af37", ink: "#181d12", muted: "#43493a",
+               line: "#dfe5d2", bg: "#f6fce8", good: "#2e6e00", bad: "#b42318", info: "#175cd3" };
 
 function _font(weight, size) {
   return `${weight} ${size}px "Noto Sans Telugu", "Outfit", "Inter", sans-serif`;
@@ -305,18 +316,20 @@ function panchangTodaySections(d) {
       },
     ],
     yogas: (d.special_yogas || []).map(y => ({ name: _tr(y.name_en, y.name_te), type: y.type === "bad" ? "bad" : "good" })),
-    footer: _tr("Drik Panchang (Lahiri) · Muhurtham", "దృక్ పంచాంగం (లాహిరి) · ముహూర్తం"),
+    footer: _tr("Drik Panchang (Lahiri) · " + _brandName("en"), "దృక్ పంచాంగం (లాహిరి) · " + _brandName("te")),
   };
 }
 
 // The Share row (PDF · Image · Text). It is no-print, so it never appears inside the PDF.
 function panchangShareBar() {
   const L = currentLang === "te";
+  if (!_shareOn("pdf") && !_shareOn("image") && !_shareOn("text")) return "";   // every kind switched off
   return '<div class="share-bar no-print" role="group" aria-label="' + (L ? "పంచుకోండి" : "Share") + '">' +
     `<span class="share-bar__label">${L ? "పంచుకోండి" : "Share"}</span>` +
-    '<button type="button" class="btn btn--sm share-bar__btn" data-share="pdf">PDF</button>' +
-    `<button type="button" class="btn btn--sm share-bar__btn" data-share="png">${L ? "చిత్రం (PNG)" : "Image (PNG)"}</button>` +
-    `<button type="button" class="btn btn--sm share-bar__btn" data-share="text">${L ? "పాఠ్యం" : "Text"}</button>` +
+    // Each button follows Settings › Finder and sharing (plan D6); PDF is off by default.
+    (_shareOn("pdf") ? '<button type="button" class="btn btn--sm share-bar__btn" data-share="pdf">PDF</button>' : "") +
+    (_shareOn("image") ? `<button type="button" class="btn btn--sm share-bar__btn" data-share="png">${L ? "చిత్రం (PNG)" : "Image (PNG)"}</button>` : "") +
+    (_shareOn("text") ? `<button type="button" class="btn btn--sm share-bar__btn" data-share="text">${L ? "పాఠ్యం" : "Text"}</button>` : "") +
     "</div>";
 }
 
@@ -328,13 +341,13 @@ function bindPanchangShare(root, opts) {
   const title = `${_tr("Panchang", "పంచాంగం")} · ${opts.date}`;
   const btn = (kind) => root.querySelector(`[data-share="${kind}"]`);
 
-  btn("pdf").addEventListener("click", (e) => {
+  if (btn("pdf")) btn("pdf").addEventListener("click", (e) => {
     PdfDownload.fromElement(panchangPdfElement(opts.getSections()), {
       kind: "panchang", title, subtitle: opts.place || "", filename: base, share: true,
     }, e.currentTarget);
   });
 
-  btn("png").addEventListener("click", async (e) => {
+  if (btn("png")) btn("png").addEventListener("click", async (e) => {
     const b = e.currentTarget, label = b.innerHTML;
     b.disabled = true; b.textContent = _tr("Making image…", "చిత్రం తయారవుతోంది…");
     try {
@@ -347,7 +360,7 @@ function bindPanchangShare(root, opts) {
     }
   });
 
-  btn("text").addEventListener("click", async (e) => {
+  if (btn("text")) btn("text").addEventListener("click", async (e) => {
     const b = e.currentTarget, label = b.innerHTML;
     try {
       const how = await shareText(panchangDayText(opts.getSections()), title);

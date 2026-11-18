@@ -1,0 +1,30 @@
+id: return_journey
+category: travel
+tab: travel
+title_en: "Return Journey (Tirugu Prayanam)"
+title_te: "తిరుగు ప్రయాణము"
+description_en: "Coming back home: the journey rules, plus Mercury not facing you or combust, and the Vrishabha chakra."
+description_te: "ఇంటికి తిరుగు ప్రయాణం: ప్రయాణ నియమాలతో పాటు బుధ సమ్ముఖం, బుధ మౌఢ్యం, వృషభ చక్రం."
+tab_inputs: [travel]
+source:
+  part: 5
+  section: "తిరుగు ప్రయాణమునకు శుభకాలము"
+  notes: >-
+    Added 12 Nov 2026 from the book p.144 (return journey) on top of the Prayana rules (Plan M18).
+    Give the direction of home as the travel direction. Venus and Mercury must not face the
+    traveller and Mercury must not be combust; the Vrishabha chakra (p.162) applies. Mars facing
+    and "Venus on the south side is good" are not modelled yet.
+hard_filters:
+  common: {mahadoshas_21: true, panchaka_rahita: true}
+  vaara_exclude: [sunday, tuesday, saturday]
+  tithi_exclude: [rikta, parva, pratipada, ashtami, dwadashi, shashti]
+  karana_exclude: [bhadra]
+  nakshatra_allow: [ashwini, mrigashira, punarvasu, pushya, hasta, anuradha, shravana, dhanishta, revati,
+                    rohini, uttara_phalguni, mula, uttara_ashadha, shatabhisha, uttara_bhadrapada]
+  lagna_exclude: [mithuna]
+  travel_checks: true
+  return_journey: true
+soft_scoring:
+  vaara_weights: {thursday: 3, wednesday: 3, friday: 3, monday: 2}
+  nakshatra_weights: {ashwini: 2, mrigashira: 2, punarvasu: 2, pushya: 2, hasta: 2, anuradha: 2, shravana: 2, dhanishtha: 2, revati: 2}
+  lagna_weights: {mesha: 2, vrishabha: 2, karkataka: 2, tula: 2, dhanus: 2, meena: 2, makara: 1, simha: -2, kanya: -2, vrishchika: -2}

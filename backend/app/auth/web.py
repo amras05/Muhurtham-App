@@ -23,7 +23,7 @@ from .database import get_user_by_id, write_activity_log
 from .dependencies import ACCESS_COOKIE, REFRESH_COOKIE, WEB_CLIENT_HEADER, get_current_user
 from .routes import _user_response, login, verify_otp
 from .schemas import LoginRequest, LoginResponse, LogoutRequest, MessageResponse, UserResponse, VerifyOtpRequest
-from .sessions import SESSION_DAYS, refresh_just_swapped, revoke_all_sessions, revoke_session, rotate_refresh
+from .sessions import refresh_just_swapped, security_setting, revoke_all_sessions, revoke_session, rotate_refresh
 
 router = APIRouter(prefix="/auth/web", tags=["Web sign-in"])
 
@@ -46,7 +46,7 @@ def _require_web_header(req: Request) -> None:
 def _set_cookies(resp: Response, access: str, refresh: str) -> None:
     resp.set_cookie(ACCESS_COOKIE, access, max_age=ACCESS_TOKEN_MINUTES * 60, path="/",
                     httponly=True, secure=SECURE, samesite="lax")
-    resp.set_cookie(REFRESH_COOKIE, refresh, max_age=SESSION_DAYS * 86400, path=REFRESH_PATH,
+    resp.set_cookie(REFRESH_COOKIE, refresh, max_age=security_setting("session_days") * 86400, path=REFRESH_PATH,
                     httponly=True, secure=SECURE, samesite="lax")
 
 

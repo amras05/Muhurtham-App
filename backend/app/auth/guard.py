@@ -59,7 +59,12 @@ def session_user(request: Request):
 
 
 def _home_for(user: dict) -> str:
-    home = ROLE_HOME.get(user.get("role"), FALLBACK_HOME)
+    # The super admin's "Landing page after sign-in" setting (plan D4), if this role may open that page.
+    role = user.get("role")
+    home = (get_setting("landing") or {}).get(role) or ROLE_HOME.get(role, FALLBACK_HOME)
+    needed = PAGE_PERMISSIONS.get(home)
+    if needed and not has_permission(user, needed):
+        home = ROLE_HOME.get(role, FALLBACK_HOME)
     if not (get_settings().WEBAPP_DIR / home.lstrip("/")).is_file():
         return FALLBACK_HOME
     return home

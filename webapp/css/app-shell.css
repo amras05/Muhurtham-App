@@ -16,8 +16,15 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-/* The signed-in header: same width and place on every page (Experience Plan U1). */
-.portal-nav { max-width: 1120px; margin: 0 auto; padding-inline: var(--space-4); gap: var(--space-3); flex-wrap: wrap; }
+/* The signed-in header: same width and place on every page (Experience Plan U1). Since 13 Nov 2026 it is a
+   white bar that stays at the top while the page scrolls (Vedic Sanctuary theme). */
+.portal-nav {
+  max-width: 1280px; margin: -16px auto var(--space-6); padding: var(--space-3) var(--space-6);
+  gap: var(--space-3); flex-wrap: wrap;
+  position: sticky; top: 8px; z-index: 900;
+  background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(16px);
+  border-bottom: 0; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+}
 
 /* "Admin" menu inside the header links */
 .nav-group { position: relative; }
@@ -47,29 +54,42 @@
 
 @media print { .app-shell__nav, .crumbs { display: none !important; } }
 
+/* Brand: green tile with a gold sun, the Telugu name and the tagline (Vedic Sanctuary header, 13 Nov 2026). */
 .app-shell__brand {
+  display: inline-flex; align-items: center; gap: var(--space-3);
   color: var(--color-primary-strong);
-  font-family: var(--font-telugu);
-  font-size: var(--text-lg);
-  font-weight: 800;
   text-decoration: none;
 }
+.brand-mark {
+  width: 40px; height: 40px; flex: none; border-radius: 12px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--color-primary); color: var(--color-gold-soft); box-shadow: var(--shadow-gold);
+}
+.brand-mark svg { width: 24px; height: 24px; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.25; }
+.brand-name { font-family: var(--font-serif); font-size: 19px; font-weight: 700; }
+.brand-tag { font-size: 11px; font-weight: 600; color: var(--color-accent); }
 
-.app-shell__links { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.app-shell__links {
+  display: flex; flex-wrap: wrap; gap: var(--space-1);
+  padding: var(--space-1); border-radius: 12px; background: var(--color-surface-muted);
+}
 
 .app-shell__link {
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: 500;
   text-decoration: none;
 }
 
-.app-shell__link:hover,
+.app-shell__link:hover { background: var(--color-surface-strong); color: var(--color-text); }
 .app-shell__link[aria-current="page"] {
-  background: var(--color-surface-muted);
+  background: var(--color-surface);
   color: var(--color-primary-strong);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
 }
 
 .app-shell__main { display: block; }
@@ -182,7 +202,7 @@
   box-shadow: var(--shadow-lg);
 }
 .app-dialog::backdrop { background: rgba(33, 26, 24, 0.45); }
-.app-dialog__msg { margin: 0 0 var(--space-6); font-size: var(--text-base); line-height: 1.6; white-space: pre-line; }
+.app-dialog__msg { white-space: pre-line; overflow-wrap: anywhere; max-height: 60vh; overflow-y: auto; margin: 0 0 var(--space-6); font-size: var(--text-base); line-height: 1.6; white-space: pre-line; }
 .app-dialog__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
 .app-dialog__btn {
   padding: var(--space-2) var(--space-4);

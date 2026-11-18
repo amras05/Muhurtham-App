@@ -103,6 +103,7 @@ function setLang(lang) {
     populateActivityDropdown();
   }
   if (window.Auth) Auth.renderMenu();
+  if (window.SiteConfig && SiteConfig.applyTexts) SiteConfig.applyTexts();   // Settings › Texts in the new language
   if (typeof window.onLangChange === "function") window.onLangChange();
 }
 

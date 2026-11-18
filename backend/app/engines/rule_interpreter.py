@@ -17,6 +17,7 @@ against the muhurta timeline (plan M21 pipeline):
 from collections import Counter
 import dataclasses
 from datetime import date, datetime, timedelta
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -268,6 +269,38 @@ _MOON_SIGN = {                           # paras 1951-57: (good / bad / neutral,
     2: ("neutral", "the vatu marries soon"), 7: ("neutral", "the vatu marries soon")}
 
 
+_WEEKDAY_LORD = ("moon", "mars", "mercury", "jupiter", "venus", "saturn", "sun")   # date.weekday(): Mon=0
+
+
+@lru_cache(maxsize=64)
+def _ugadi(year: int, tz_offset: float) -> Optional[date]:
+    """Chaitra shukla pratipada (Ugadi) of this year: the first day from 1 March whose 6 a.m. tithi is
+    pratipada begun after a new moon with the Sun in Meena (amanta Chaitra). When that pratipada touches
+    no sunrise (kshaya), Ugadi is the day it begins. 6 a.m. stands in for sunrise. Adhika Chaitra is not
+    handled separately."""
+    from app.engines.limb_timeline import limbs_at, tithi_bounds
+    d = date(year, 3, 1)
+    while d <= date(year, 4, 30):
+        jd = local_to_jd(datetime(d.year, d.month, d.day, 6), tz_offset)
+        t = limbs_at(jd).tithi
+        if t == 1 and limbs_at(tithi_bounds(jd)[0]).sun_rasi == 12:
+            return d
+        if t == 2:                                   # pratipada may have fallen between two sunrises
+            p_start = tithi_bounds(tithi_bounds(jd)[0] - 1e-4)[0]
+            if p_start > jd - 1.0 and limbs_at(p_start).sun_rasi == 12:
+                return d - timedelta(days=1)
+        d += timedelta(days=1)
+    return None
+
+
+def samvatsara_lord(day: date, tz_offset: float) -> Optional[str]:
+    """Lord of the year (samvatsara) in force on `day`: the lord of Ugadi's weekday."""
+    u = _ugadi(day.year, round(tz_offset, 2))
+    if u is None or day < u:
+        u = _ugadi(day.year - 1, round(tz_offset, 2))
+    return _WEEKDAY_LORD[u.weekday()] if u else None
+
+
 def _upanayana_planet(pname: str, planets: Dict[str, Any], moudhya: Dict[str, str]) -> Tuple[Optional[str], Optional[str]]:
     """(why weak, why strong) for a varnesha or vedadhipati. Weak (paras 1927, 1939): combust, in its bala or
     vriddha days, debilitated, in an enemy's sign, or with an enemy. Strong (para 1928): exalted, own or
@@ -306,16 +339,35 @@ def _upanayana_strength(planets: Dict[str, Any], ap: Dict[str, Any], limbs: "Lim
     shakha = (ap.get("veda_shakha") or "").lower()
     if shakha in VEDADHIPATI:
         checks.append(("Vedadhipati", VEDADHIPATI[shakha]))
+    # Book p.117 (para 1926), added 12 Nov 2026: beside the varnesha, the Sun, Venus and Jupiter must be
+    # strong, and so must the lord of the samvatsara (year) in which the upanayana falls.
+    named = {p for _, p in checks}
+    for role, pname in (("Sun", "sun"), ("Venus", "venus"), ("Jupiter", "jupiter"),
+                        ("Year lord", ap.get("_year_lord"))):
+        if pname and pname not in named:
+            checks.append((role, pname))
+            named.add(pname)
     for role, pname in checks:
-        weak, strong = _upanayana_planet(pname, planets, moudhya)
+        if role in ("Sun", "Year lord"):
+            # p.117 asks only that they are not bala, vriddha or combust (we add debilitated); the
+            # enemy-sign rule of p.118 names the varnesha, Jupiter, Venus and the vedadhipati only.
+            weak = _planet_weak(pname, planets) or (
+                f"{pname.title()} is in its {moudhya[pname]} days" if moudhya.get(pname) in ("bala", "vriddha") else None)
+            strong = None
+        else:
+            weak, strong = _upanayana_planet(pname, planets, moudhya)
         if weak:
-            fails.append(f"{role} weak: {weak} (book paras 1927, 1939)")
+            fails.append(f"{role} weak: {weak} (book p.117, paras 1926-27, 1939)")
         else:
             notes.append(f"{role} {pname.title()} is strong" + (f" ({strong})" if strong else ""))
 
     # Guru bala (paras 1948-49): Jupiter in Vrishabha, Mithuna, Kanya, Tula or Makara (or their navamsas) is bad;
     # in Karkataka, Dhanus or Meena (or their navamsas) it is very good, even 1st, 8th or 12th from the rashi.
     jup = planets.get("jupiter")
+    if jup and jup.speed < 0:
+        # Dr. Nemani, 13 Nov 2026: retrograde Jupiter has no power (combust and debilitated are caught by
+        # the Jupiter strength check above).
+        fails.append("Guru bala: Jupiter is retrograde, so it has no power (Dr. Nemani)")
     if jup:
         js, jn = int(jup.longitude // 30) + 1, get_navamsa_sign(jup.longitude)
         good = js in _GURU_GOOD_SIGNS or (jn in _GURU_GOOD_SIGNS and js not in _GURU_BAD_SIGNS)
@@ -512,18 +564,45 @@ RITU_NIGHTS = set(range(4, 17)) - {11, 13}      # classical garbhadhana nights (
 # 1. The 21 mahadoshas are never allowed, for any event: a failed one is always fatal and no
 #    category exemption softens it (Strict drops the window; Lenient shows it only as "why not").
 # 2. Other doshas are allowed when Jupiter is in the muhurta lagna: a failed dashavidha dosha is
-#    then "excepted". Whether this also covers the extra checks and doshic yogas, and whether a
-#    combust or debilitated Jupiter still counts, is still to be confirmed by him.
+#    then "excepted". Questionnaire answers (12 Nov 2026): Q1 not when Jupiter is combust,
+#    debilitated (Makara) or retrograde; Q2 "all of them", so the exception also covers
+#    paksharandhra, kshaya tithi, papa drishti and the Mrityu / Dagdha / Yamaghanta yogas.
 AUTHOR_NOTE_EN = "Excepted: Jupiter is in the muhurta lagna (Dr. Nemani's ruling)."
-# Option A (9 Nov 2026): checks whose coded reading may be broader than the book. They are shown as
-# "To be confirmed" but do not block a window or count as a mahadosha until Dr. Nemani confirms.
-TO_CONFIRM = {"papa_shadvargamu": ("To be confirmed by Dr. Nemani: our reading fails if any one of the six varga lords is weak.",
-                                   "డా. నేమాని గారు నిర్ధారించాలి: ఆరు వర్గాధిపతుల్లో ఒక్కరు బలహీనంగా ఉన్నా దోషంగా తీసుకున్నాము.")}
+# Option A (9 Nov 2026) listed checks shown as "To be confirmed" until Dr. Nemani answered.
+# Q3 (12 Nov 2026): papa shadvarga as coded (any one weak varga lord) is correct, so it is a mahadosha.
+TO_CONFIRM: Dict[str, Tuple[str, str]] = {}
 AUTHOR_NOTE_TE = "మినహాయింపు: ముహూర్త లగ్నంలో గురుడు ఉన్నాడు (డా. నేమాని గారి నిర్ణయం)."
+JUPITER_EXCEPTS_IDS = {"paksharandhra", "kshaya_tithi", "papa_drishti", "mrityu", "dagdha", "yamaghanta"}
+
+
+def jupiter_exception(lagna: LagnaWindow) -> Tuple[bool, Optional[str]]:
+    """(Jupiter in the lagna can except doshas, why not when it is in the lagna but cannot)."""
+    planets = {p.name_en.lower(): p for plist in (lagna.house_planets or {}).values() for p in plist}
+    jup = next((p for p in (lagna.house_planets or {}).get(1, []) if p.name_en == "Jupiter"), None)
+    if not jup:
+        return False, None
+    if jup.speed < 0:
+        return False, "Jupiter in the lagna is retrograde, so it does not except doshas (Dr. Nemani, Q1)"
+    weak = _planet_weak("jupiter", planets)
+    if weak:
+        return False, f"{weak} in the lagna, so it does not except doshas (Dr. Nemani, Q1)"
+    if int(jup.longitude // 30) + 1 == 5:
+        # Dr. Nemani, 13 Nov 2026: Jupiter retrograde, combust, debilitated or in Simha has no power.
+        return False, "Jupiter in the lagna is in Simha, so it has no power to except doshas (Dr. Nemani)"
+    return True, None
+
+
+def except_by_jupiter(rows: List[Dict[str, Any]]) -> None:
+    """Mark failed rows excepted by Jupiter in the lagna (in place)."""
+    for r in rows:
+        if r.get("status") == "fail":
+            r["status"], r["severity"], r["excepted_by"] = "excepted", "info", "jupiter_in_lagna"
+            for k, note in (("desc_en", AUTHOR_NOTE_EN), ("desc_te", AUTHOR_NOTE_TE)):
+                r[k] = f"{r.get(k) or ''} {note}".strip()
 
 
 def apply_author_severity(maha: List[Dict[str, Any]], dashavidha: List[Dict[str, Any]], lagna: LagnaWindow):
-    jupiter = any(p.name_en == "Jupiter" for p in (lagna.house_planets or {}).get(1, []))
+    jupiter, _ = jupiter_exception(lagna)
     maha_out = []
     for r in maha:
         r = dict(r)
@@ -536,16 +615,9 @@ def apply_author_severity(maha: List[Dict[str, Any]], dashavidha: List[Dict[str,
             r["severity"] = "fatal"
             r.pop("exemption", None)          # no exemption for a mahadosha
         maha_out.append(r)
-    dash_out = []
-    for r in dashavidha:
-        r = dict(r)
-        if r.get("status") == "fail" and jupiter:
-            r["status"] = "excepted"
-            r["severity"] = "info"
-            r["excepted_by"] = "jupiter_in_lagna"
-            for k, note in (("desc_en", AUTHOR_NOTE_EN), ("desc_te", AUTHOR_NOTE_TE)):
-                r[k] = f"{r.get(k) or ''} {note}".strip()
-        dash_out.append(r)
+    dash_out = [dict(r) for r in dashavidha]
+    if jupiter:
+        except_by_jupiter(dash_out)
     return maha_out, dash_out, jupiter
 
 
@@ -823,6 +895,30 @@ def evaluate_window_for_rule(
                 return r
         elif msg_t:
             passed.append(msg_t)
+        if hf.return_journey:
+            # Book p.144: Venus, Mars and Mercury must not face the returning traveller; if Mercury sets
+            # (combust) during the journey, wait until it rises again. Venus is in _travel_check; Mercury,
+            # like Venus, is east as a morning star and west as an evening star. Mars faces the direction of
+            # its rashi (Dr. Nemani, 13 Nov 2026): 1/5/9 east, 2/6/10 south, 3/7/11 west, 4/8/12 north.
+            direction = ((activity_params or {}).get("travel_direction") or "").lower().strip()
+            mars_p = planets.get("mars")
+            if mars_p and direction:
+                mars_dir = ("east", "south", "west", "north")[int(mars_p.longitude // 30) % 4]
+                if mars_dir in direction:
+                    if (r := miss(f"Kuja sammukha: Mars in {RASI_NAMES_EN[int(mars_p.longitude // 30) + 1]} "
+                                  f"faces the {mars_dir}, the returning traveller's way (book p.144)")):
+                        return r
+            sun_p, mer = planets.get("sun"), planets.get("mercury")
+            if sun_p and mer:
+                gap = abs((mer.longitude - sun_p.longitude + 180.0) % 360.0 - 180.0)
+                if gap <= COMBUST_ORB["mercury"]:
+                    if (r := miss(f"Mercury is combust ({gap:.1f}° from the Sun): wait until it rises again (book p.144)")):
+                        return r
+                elif direction:
+                    evening = (mer.longitude - sun_p.longitude) % 360.0 < 180.0
+                    if (not evening and direction in VENUS_EAST_FORBIDS) or (evening and direction in VENUS_WEST_FORBIDS):
+                        if (r := miss("Budha sammukha: Mercury faces the returning traveller (book p.144)")):
+                            return r
         purpose = (activity_params or {}).get("travel_purpose")
         if purpose in TRAVEL_PURPOSE_LAGNAS and lagna.lagna_idx in TRAVEL_PURPOSE_LAGNAS[purpose]:
             score += 3
@@ -1213,6 +1309,15 @@ def find_muhurta_windows(
 
     ap = dict(activity_params or {})     # a copy: per-day helper values must not leak into the result
     warnings: List[str] = []
+    # Godavari Pushkaralu (user's rule, 13 Nov 2026): while Jupiter is in Simha, places near the Godavari get
+    # no auspicious muhurtas, and the search says so. Death rites and medical events are not affected.
+    from app.engines.godavari import jupiter_in_simha, near_godavari, pushkaralu_notice
+    pushkara_near = (rule.tab or rule.category) not in ("pitru", "health") and near_godavari(lat, lon)
+    notices: List[Dict[str, Any]] = []
+    if pushkara_near:
+        n = pushkaralu_notice(start_date, start_date + timedelta(days=max(0, days_to_scan - 1)), lat, lon)
+        if n:
+            notices.append(n)
     hf = cr.hf
 
     # Dependent muhurta (e.g. ankurarpana): scan only the nights before the main event.
@@ -1292,6 +1397,8 @@ def find_muhurta_windows(
         sunset_dt = base_dt + timedelta(hours=_hms_to_hours(panchang.get("sunset"), default=18.0))
 
         day_reject = _day_level_reject(cr, panchang, cur_date, ap, tz_offset)
+        if not day_reject and pushkara_near and jupiter_in_simha(cur_date):
+            day_reject = "Godavari Pushkaralu: Jupiter in Simha, no muhurtas near the Godavari"
         if day_reject:
             rejections[day_reject] += 1
             continue
@@ -1325,6 +1432,7 @@ def find_muhurta_windows(
             from app.engines.limb_timeline import moudhya_status as _moudhya
             day_jd = int(local_to_jd(datetime(cur_date.year, cur_date.month, cur_date.day, 12), tz_offset) - 0.5)
             ap["_moudhya"] = {pl: _moudhya(day_jd, pl)["state"] for pl in ("jupiter", "venus")}
+            ap["_year_lord"] = samvatsara_lord(cur_date, tz_offset)
 
         # 3. Lagnas across the day
         lagnas = scan_day_lagnas(cur_date.year, cur_date.month, cur_date.day, lat, lon, tz_offset, sr_h)
@@ -1440,6 +1548,7 @@ def find_muhurta_windows(
         "windows": sorted_results,
         "rejection_summary": [{"reason": r, "count": c} for r, c in rejections.most_common(10)],
         "warnings": warnings,
+        "notices": notices,
         "birth_details": _birth_display(birth_details),
         "activity_params": activity_params,
     }
@@ -1608,7 +1717,10 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
         hours=_hms_to_hours(panchang.get("sunrise"), default=6.0))
     sr_jd = local_to_jd(day_sunrise, tz_offset)
     extra = extra_checks(tab, rule.id, limbs.tithi, tithi_bounds(jd_mid), local_to_jd(cw.start, tz_offset),
-                         [sr_jd - 1.0, sr_jd, sr_jd + 1.0, sr_jd + 2.0], lagna.house_planets)
+                         [sr_jd - 1.0, sr_jd, sr_jd + 1.0, sr_jd + 2.0], lagna.house_planets,
+                         local_to_jd(cw.end, tz_offset))
+    if jupiter_in_lagna:            # Q2 (12 Nov 2026): Jupiter excepts these too
+        except_by_jupiter([r for r in yoga_doshas + extra if r.get("id") in JUPITER_EXCEPTS_IDS])
     # This event's own chart rules that the window misses (Show-all mode): one failed row each.
     for i, msg in enumerate((extras or {}).get("misses") or []):
         extra.append({"id": f"rule_miss_{i + 1}", "number": None,

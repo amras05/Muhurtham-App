@@ -1,5 +1,5 @@
 // ============================================================
-// Muhurtham App · Views — composed UI components for the app page
+// Gayatri Jyotirnidhi · Views — composed UI components for the app page
 // Rendered once on load by app.js → UI.mount('app', Views.layout())
 // Every DOM id matches the previous static markup, so panel logic
 // (panchang.js, pdf.js) works unchanged. The old samskara mode was retired (plan R4): use the Muhurta Finder.
@@ -9,13 +9,10 @@ var Views = (function () {
   var h = UI.h, F = UI.field, S = UI.selectInput, B = UI.button, K = UI.kaalaRow, KS = UI.kaalaSection;
 
   // ---- Header + language toggle -------------------------------------------
+  // The brand is in the site header now (13 Nov 2026), so the page keeps only its print button here.
+  // Print / Save PDF follows Settings › Finder and sharing (plan D6; off by default): site-config.js shows it.
   var header =
-    '<hgroup class="app-header">' +
-    '<div class="eyebrow" data-en="Drik Panchangam & Muhurta Engine" data-te="దృక్ పంచాంగం & ముహూర్త నిర్ణయి">Drik Panchangam & Muhurta Engine</div>' +
-    '<h1>పంచాంగం · ముహూర్తం</h1>' +
-    '<p data-en="Drik Panchang (Lahiri Ayanamsa) & Namakarana Muhurta Finder" data-te="దృక్ పంచాంగం (లాహిరి అయనాంశ) — సిద్ధాంత ముహూర్త నిర్ణయి">Drik Panchang (Lahiri Ayanamsa) & Namakarana Muhurta Finder</p>' +
-    "</hgroup>" +
-    '<div class="no-print app-actions">' +
+    '<div class="no-print app-actions" data-share-kind="pdf" hidden>' +
     B({ id: "printSmartBtn", cls: "btn btn--gold", onclick: "exportSmartPdf()", icon: Icon("printer"), en: "Print / Save PDF", te: "ప్రింట్ / PDF సేవ్", label: "Print / Save PDF" }) +
     "</div>";
   // The site header (menu, language switch, account) is in panchang-lookup.html, the same as every page.
@@ -42,45 +39,38 @@ var Views = (function () {
       "</div>" +
     "</div>" + UI.statusChip("status");
 
+  // Day view (Vedic Sanctuary redesign, 13 Nov 2026). panchang.js fills every part from the API.
   var panchangResults =
-    '<div id="results" style="display:none;">' +
-      '<div class="samvatsara">' +
-        '<div class="name" id="samvatsaraName">—</div>' +
-        '<div class="sub" id="chandraMonth">—</div>' +
-        '<span class="adhika" id="adhikaBadge" style="display:none;">Adhika Masa</span>' +
+    '<div id="results" class="pd" style="display:none;">' +
+      '<section class="pd-hero" id="pdHero" aria-live="polite"></section>' +
+      '<div class="pd-grid">' +
+        '<div class="pd-col pd-col--left">' +
+          '<section class="pd-card pd-angas" id="pdAngas"></section>' +
+          '<section class="pd-card" id="pdLuminaries"></section>' +
+        "</div>" +
+        '<div class="pd-col pd-col--mid">' +
+          '<section class="pd-card" id="pdTimes"></section>' +
+          '<section class="pd-card" id="pdChandrabalam"></section>' +
+        "</div>" +
+        '<div class="pd-col pd-col--right">' +
+          '<section class="pd-card" id="pdLagnas"></section>' +
+          '<section class="pd-card" id="pdDos"></section>' +
+          '<section class="pd-card pd-shloka" id="pdShloka"></section>' +
+        "</div>" +
       "</div>" +
-      '<div class="grid">' +
-        UI.card('<span data-en="Vaara" data-te="వారం">Vaara</span>', '<div id="vVaara">—</div>') +
-        UI.card('<span data-en="Tithi" data-te="తిథి">Tithi</span>', '<div class="small" id="vTithi">—</div><div class="small sub-time" id="vTithiEnd">—</div>') +
-        UI.card('<span data-en="Nakshatra" data-te="నక్షత్రం">Nakshatra</span>', '<div class="small" id="vNakshatra">—</div><div class="small sub-time" id="vNakshatraEnd">—</div><div id="vNakshatraPadas" class="padas"></div>', "card--wide card--gold") +
-        UI.card('<span data-en="Yoga" data-te="యోగం">Yoga</span>', '<div class="small" id="vYoga">—</div><div class="small sub-time" id="vYogaEnd">—</div>') +
-        UI.card('<span data-en="Karana" data-te="కరణం">Karana</span>', '<div class="small" id="vKarana">—</div><div class="small sub-time" id="vKaranaEnd">—</div>') +
-        UI.card('<span data-en="Lagna Rasi" data-te="లగ్న రాశి">Lagna Rasi</span>', '<div id="vLagna">—</div>') +
-        UI.card('<span data-en="Sunrise" data-te="సూర్యోదయం">Sunrise</span>', '<div id="vSunrise">—</div>') +
-        UI.card('<span data-en="Sunset" data-te="సూర్యాస్తమయం">Sunset</span>', '<div id="vSunset">—</div>') +
-      "</div>" +
-      KS("అశుభ సమయాలు", "Inauspicious Windows",
-        K("రాహు కాలం", "Rahu Kalam", "vRahu") +
-        K("యమగండం", "Yamagandam", "vYamagandam") +
-        K("గుళిక కాలం", "Gulika Kalam", "vGulika") +
-        K("దుర్ముహూర్తం", "Durmuhurtam", "vDurmuhurtam") +
-        K("వర్జ్యం", "Varjyam", "vVarjyam")) +
-      KS("శుభ సమయాలు", "Auspicious Windows",
-        K("అభిజిత్ ముహూర్తం", "Abhijit Muhurta", "vAbhijit") +
-        K("బ్రహ్మ ముహూర్తం", "Brahma Muhurta", "vBrahma") +
-        K("గోధూళి ముహూర్తం", "Godhuli Muhurta", "vGodhuli") +
-        K("అమృత కాలం", "Amrit Kalam", "vAmrit")) +
-      KS("అభిజిత్ కాల ముహూర్తం", "Abhijit Kala Muhurtham",
-        '<div class="kaala-row kaala-row--borderless">' +
-        '<span class="kname kname--gold" data-en="Auspicious Timing" data-te="శుభ సమయము">Auspicious Timing</span>' +
-        '<span class="ktime ktime--gold" id="vAbhijitKala">—</span></div>',
-        "kaala-section--highlight") +
-      '<div id="vPanchakaSection"></div>' +
-      '<div id="vKalaVibhajanaSection"></div>' +
-      '<div id="vLagnaScheduleSection"></div>' +
-      KS("విశేష యోగములు", "Special Muhurta Yogas", '<div id="vSpecialYogas" class="list-body"></div>') +
-      KS("అనుకూలమైన ముహూర్తములు", "Favorable Muhurtas", '<div id="vFavorableActivities" class="list-body"></div>') +
-      KS("నిషిద్ధ సమయాలు / పనులు", "Activities to Avoid", '<div id="vAvoidActivities" class="list-body"></div>') +
+      '<section class="pd-cta" id="pdCta"></section>' +
+      '<details class="pd-more">' +
+        '<summary data-en="More details: 5-fold day division, Abhijit check, all activities" data-te="మరిన్ని వివరాలు: పంచధా కాల విభజన, అభిజిత్ పరిశీలన, అన్ని కార్యాలు">More details: 5-fold day division, Abhijit check, all activities</summary>' +
+        '<div id="vKalaVibhajanaSection"></div>' +
+        KS("అభిజిత్ కాల ముహూర్తం", "Abhijit Kala Muhurtham",
+          '<div class="kaala-row kaala-row--borderless">' +
+          '<span class="kname kname--gold" data-en="Auspicious Timing" data-te="శుభ సమయము">Auspicious Timing</span>' +
+          '<span class="ktime ktime--gold" id="vAbhijitKala">—</span></div>',
+          "kaala-section--highlight") +
+        '<div id="vPanchakaSection"></div>' +
+        KS("అనుకూలమైన ముహూర్తములు", "Favorable Muhurtas", '<div id="vFavorableActivities" class="list-body"></div>') +
+        KS("నిషిద్ధ సమయాలు / పనులు", "Activities to Avoid", '<div id="vAvoidActivities" class="list-body"></div>') +
+      "</details>" +
     "</div>";
 
   // ---- Day / Month tabs (the place and date form above is shared) -----------
@@ -117,13 +107,30 @@ var Views = (function () {
     '<footer>Backend: <code id="apiBaseLabel"></code> — edit <code>API_BASE</code> in js/config.js if it is hosted elsewhere.</footer>';
 
   // ---- Layout -----------------------------------------------------------------
-  var layout = function (rootId) {
+  // Two pages (13 Nov 2026), chosen by <body data-page>:
+  //   "today": Today's Panchang, only today at the account's home place, no fields, live;
+  //   "month": Monthly Panchang, the place and date fields, the calendar, and the full day view of a
+  //            picked date below it ("Full day details").
+  var layout = function (mode) {
+    if (mode === "today") {
+      return (
+        '<div class="app-shell"><div class="wrap wrap--wide">' +
+          '<header id="appHeader">' + header + "</header>" + UI.statusChip("status") +
+          '<section id="tabPanchangContent"><div id="dayView">' + panchangResults + "</div></section>" +
+        "</div></div>"
+      );
+    }
     return (
-      '<div class="app-shell"><div class="wrap">' +
+      '<div class="app-shell"><div class="wrap wrap--wide">' +
+        '<h1 class="portal__title pm-title" data-text-key="month_title" data-en="Monthly Panchang" data-te="మాస పంచాంగం">Monthly Panchang</h1>' +
         '<header id="appHeader">' + header + "</header>" +
-        '<section id="tabPanchangContent">' + panchangForm + viewTabs +
-          '<div id="dayView" role="tabpanel" aria-labelledby="tabDayBtn">' + panchangResults + "</div>" +
-          monthView + taskLauncher + "</section>" +
+        '<section id="tabPanchangContent">' + panchangForm +
+          monthView +
+          '<div id="dayView" hidden>' +
+            '<div class="pm-dayhead no-print"><button type="button" class="btn btn--outline btn--sm" id="backToMonth" data-en="‹ Back to the calendar" data-te="‹ క్యాలెండర్‌కు తిరిగి">‹ Back to the calendar</button></div>' +
+            panchangResults +
+          "</div>" +
+        "</section>" +
         footer +
       "</div></div>"
     );
