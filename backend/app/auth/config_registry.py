@@ -8,10 +8,11 @@ app.app_settings table (one row per key, JSON), so adding a setting needs no dat
 What stays in the code (plan D1): astrology rules and calculation methods, Dr. Nemani's rulings, secrets
 (they stay in the environment) and safety floors (the bounds below).
 """
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
+from app.engines.muhurta_tabs import MUHURTA_TABS
 from app.geo.regions import REGIONS
 
 PAGE_CHOICES = ["/panchang-lookup.html", "/panchang-month.html", "/home.html", "/muhurta-finder.html",
@@ -147,6 +148,44 @@ class Finder(_Strict):
     chunk_days: int = Field(60, ge=15, le=120)       # how many days load at a time
 
 
+SWITCH = Literal["inherit", "on", "off"]
+# Categories that hold events (the "yogas" tab is a list of special yogas, not an event category).
+DOSHA_TABS = [t for t in MUHURTA_TABS if t["id"] != "yogas"]
+
+
+class DoshaSwitch(_Strict):
+    """Whether the 21 mahadoshas / 10 dashavidha doshas count in the score (they are always shown). "inherit" = for a category,
+    follow each event's rule file; for an event, follow its category."""
+    mahadoshas: SWITCH = "inherit"
+    dashavidha: SWITCH = "inherit"
+
+
+class DoshaScoring(_Strict):
+    main_weight: int = Field(70, ge=0, le=100)       # share of the % from the event's own checks (user, 21 Nov 2026)
+    dasha_weight: int = Field(70, ge=0, le=100)      # dashavidha's share of the dosha part; mahadoshas the rest
+    dasha_cap: int = Field(49, ge=5, le=98)          # most a window with a failed dashavidha dosha can score
+    tabs: Dict[str, DoshaSwitch] = Field(default_factory=dict)
+    events: Dict[str, DoshaSwitch] = Field(default_factory=dict)
+
+    @field_validator("tabs")
+    @classmethod
+    def _known_tabs(cls, v):
+        bad = [k for k in v if k not in {t["id"] for t in DOSHA_TABS}]
+        if bad:
+            raise ValueError(f"unknown categories: {', '.join(bad)}")
+        return v
+
+    @field_validator("events")
+    @classmethod
+    def _known_events(cls, v):
+        from app.engines.rule_interpreter import list_all_rules   # lazy: avoids an import cycle
+        known = {r["id"] for r in list_all_rules()}
+        bad = [k for k in v if k not in known]
+        if bad:
+            raise ValueError(f"unknown events: {', '.join(bad[:5])}")
+        return v
+
+
 class Sharing(_Strict):
     pdf: bool = False
     image: bool = True
@@ -247,6 +286,10 @@ REGISTRY: Dict[str, Dict[str, Any]] = {
                         "PDF, image and text sharing", "PDF, చిత్రం, పాఠ్యం పంచుకోవడం", "finder", True),
     "godavari": _setting({"enabled": True, "km": 30.0}, Godavari,
                          "Godavari Pushkaralu", "గోదావరి పుష్కరాలు", "finder", False),
+    "dosha_scoring": _setting({"main_weight": 70, "dasha_weight": 70, "dasha_cap": 49,
+                               "tabs": {t["id"]: {"mahadoshas": "inherit", "dashavidha": "inherit"} for t in DOSHA_TABS},
+                               "events": {}},
+                              DoshaScoring, "Doshas in the score", "స్కోరులో దోషాలు", "finder", False),
     "texts": _setting({k: {"en": "", "te": ""} for k in TEXT_KEYS}, None, "Texts", "పాఠ్యాలు", "texts", True),
     "security": _setting({"session_days": 30, "login_fails_before_lock": 5, "lock_minutes": 15, "otp_attempts": 5},
                          Security, "Accounts and security", "ఖాతాలు, భద్రత", "security", False),
@@ -321,9 +364,25 @@ def public_view(values: Dict[str, Any]) -> Dict[str, Any]:
     return {k: values[k] for k, spec in REGISTRY.items() if spec["public"] and k in values}
 
 
+def _dosha_events() -> List[Dict[str, Any]]:
+    """Events for the "Doshas in the score" overrides, with what their rule file says today."""
+    from app.engines.rule_interpreter import list_all_rules, load_rule   # lazy: avoids an import cycle
+    out = []
+    for r in list_all_rules():
+        try:
+            common = load_rule(r["id"]).hard_filters.common
+            maha, dasha = bool(common.mahadoshas_21), bool(common.dashavidha_10 or common.mahadoshas_21)
+        except Exception:   # an unreadable rule file still gets listed; the finder reports its own error
+            maha = dasha = None
+        out.append({"id": r["id"], "tab": r.get("tab"), "en": r.get("title_en") or r["id"],
+                    "te": r.get("title_te") or "", "file_mahadoshas": maha, "file_dashavidha": dasha})
+    return out
+
+
 def meta() -> Dict[str, Any]:
     """Labels and groups for the Settings page."""
     return {k: {"label_en": s["label_en"], "label_te": s["label_te"], "group": s["group"], "public": s["public"],
                 "default": s["default"]} for k, s in REGISTRY.items()} | {
         "_choices": {"pages": PAGE_CHOICES, "icons": ICON_CHOICES, "themes": THEME_PRESETS,
-                     "panchang_sections": PANCHANG_SECTIONS, "texts": TEXT_KEYS, "admin_powers": list(ADMIN_POWERS)}}
+                     "panchang_sections": PANCHANG_SECTIONS, "texts": TEXT_KEYS, "admin_powers": list(ADMIN_POWERS),
+                     "dosha_tabs": DOSHA_TABS, "dosha_events": _dosha_events()}}

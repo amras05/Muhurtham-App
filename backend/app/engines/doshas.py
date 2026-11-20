@@ -332,8 +332,8 @@ def evaluate_21_maha_doshas(
     # 16. Krura yugdhishnya
     out.append(_krura_viddha(ch, ref))
 
-    # 17. Ashubha viddha: akranta, sapta-shalaka and pancha-shalaka vedha (13-13 Nov 2026)
-    v = _ashubha_viddha(ch)
+    # 17. Ashubha viddha: akranta, then pada vedha in the event's chakra (21 Nov 2026)
+    v = _ashubha_viddha(ch, ctx)
     if v is None:
         out.append(_row(17, "ashubha_vedha", "Ashubha Viddha (Vedha)", "అశుభవిద్ధము", "not_evaluated", "serious",
                         _NE_EN, _NE_TE, f"{ref} #17"))
@@ -566,13 +566,12 @@ def _krura_viddha(ch: _Chart, ref: str) -> Dict[str, Any]:
 SAPTA_SHALAKA_PAIRS = [(3, 22), (4, "A"), (5, 21), (6, 20), (7, 19), (8, 18), (9, 17),
                        (10, 2), (11, 1), (12, 27), (13, 26), (14, 25), (15, 24), (16, 23)]
 _SAPTA_VEDHA = {**{a: b for a, b in SAPTA_SHALAKA_PAIRS}, **{b: a for a, b in SAPTA_SHALAKA_PAIRS}}
-# Pancha-shalaka (5-line) vedha chakra from Dr. Nemani's chakra.pdf (13 Nov 2026): five vertical and five
-# horizontal lines plus two slanting lines in each corner, 28 line ends; Krittika at the north-east (top-left)
-# corner, then clockwise. The straight lines give the same pairs as sapta-shalaka; the four corner lines give
-# Krittika-Anuradha, Ashlesha-Shravana, Magha-Dhanishtha and Bharani-Vishakha. The PDF says "27 nakshatras",
-# but its drawing has 28 ends, so Abhijit is counted (as in sapta-shalaka).
-PANCHA_SHALAKA_PAIRS = [(3, 17), (4, "A"), (5, 21), (6, 20), (7, 19), (8, 18), (9, 22),
-                        (10, 23), (2, 16), (1, 11), (27, 12), (26, 13), (25, 14), (24, 15)]
+# Pancha-shalaka (5-line) vedha chakra: the 14 pairs as written in the text the user supplied with the
+# answers (21 Nov 2026; replaces the corners read off the chakra.pdf drawing on 13 Nov). The straight-line
+# pairs are the same as sapta-shalaka; the four that differ are Krittika-Vishakha, Ashlesha-Dhanishta,
+# Magha-Shravana and Anuradha-Bharani. Abhijit is counted (confirmed 21 Nov 2026, sheet Q3c).
+PANCHA_SHALAKA_PAIRS = [(3, 16), (4, "A"), (5, 21), (6, 20), (7, 19), (8, 18), (9, 23),
+                        (10, 22), (17, 2), (11, 1), (12, 27), (13, 26), (14, 25), (15, 24)]
 _PANCHA_VEDHA = {**{a: b for a, b in PANCHA_SHALAKA_PAIRS}, **{b: a for a, b in PANCHA_SHALAKA_PAIRS}}
 ABHIJIT_SPAN = (276.0 + 40.0 / 60.0, 280.0 + 53.0 / 60.0 + 20.0 / 3600.0)    # Makara 6°40′ – 10°53′20″ (book p.48)
 
@@ -588,33 +587,84 @@ def _nak28_name(n) -> str:
     return "Abhijit" if n == "A" else NAKSHATRA_CANONICAL[n]
 
 
-def _ashubha_viddha(ch: _Chart) -> Optional[Tuple[str, str, str]]:
+# Pancha-shalaka is checked for vadhu pravesha, kanyadana, kanya varana and panigrahana; sapta-shalaka for every
+# other shubha karma ("vadhu praveshane dane varane pani-pidane / vedhah pancha-shalakakhye 'nyatra sapta-
+# shalakakah", text supplied 21 Nov 2026; replaces "both chakras for all" of 13 Nov).
+PANCHA_SHALAKA_EVENTS = {"vivaha", "dvitiya_vivaha", "nutana_vadhu_pravesha"}
+VEDHA_BENEFICS = (3, 4, 5)            # Mercury, Jupiter, Venus (the text's "shubha grahas", the Moon excluded)
+HORA_ORDER = (0, 5, 3, 1, 6, 4, 2)    # Sun, Venus, Mercury, Moon, Saturn, Jupiter, Mars
+
+
+def _pada28(lon: float) -> int:
+    """Pada 1-4 in the 28-nakshatra scheme (Abhijit's span split into four)."""
+    lon %= 360.0
+    if ABHIJIT_SPAN[0] <= lon < ABHIJIT_SPAN[1]:
+        return min(4, int((lon - ABHIJIT_SPAN[0]) / ((ABHIJIT_SPAN[1] - ABHIJIT_SPAN[0]) / 4.0)) + 1)
+    return int((lon % NAK_SPAN) // (NAK_SPAN / 4.0)) + 1
+
+
+def _vedha_apavada(ch: _Chart, ctx: Dict[str, Any]) -> List[Tuple[str, str]]:
+    """Conditions that cancel vedha (text of 21 Nov 2026): the lagna lord in the 11th; Mercury, Jupiter or
+    Venus in the lagna; the Moon aspected by Mercury, Jupiter or Venus; a benefic's hora."""
+    out = []
+    lord = SIGN_LORD.get(ch.lagna)
+    if lord in ch.lon and ch.house(lord) == 11:
+        out.append(("the lagna lord is in the 11th", "లగ్నాధిపతి ఏకాదశంలో"))
+    in_lagna = [p for p in VEDHA_BENEFICS if p in ch.lon and ch.house(p) == 1]
+    if in_lagna:
+        out.append((f"{', '.join(PLANET_NAME[p] for p in in_lagna)} in the lagna", "శుభగ్రహం లగ్నంలో"))
+    if ch.has(1):
+        asp = [p for p in VEDHA_BENEFICS if p in ch.lon and ch.aspects_sign(p, ch.sign(1))]
+        if asp:
+            out.append((f"the Moon is aspected by {', '.join(PLANET_NAME[p] for p in asp)}", "చంద్రునిపై శుభగ్రహ దృష్టి"))
+    hora = ctx.get("hora_lord")
+    if hora in VEDHA_BENEFICS:
+        out.append((f"{PLANET_NAME[hora]}'s hora", f"{PLANET_NAME_TE[hora]} హోర"))
+    return out
+
+
+def _ashubha_viddha(ch: _Chart, ctx: Optional[Dict[str, Any]] = None) -> Optional[Tuple[str, str, str]]:
     """(status, desc_en, desc_te) for Mahadosha #17 / Dashavidha Vedha, or None if the Moon is unknown.
-    Book p.96: a malefic occupying the muhurta nakshatra (akranta) or piercing it (vedha) is to be avoided."""
+    Book p.96 and the text of 21 Nov 2026:
+      - akranta: a malefic in the muhurta nakshatra itself spoils the whole nakshatra;
+      - vedha: a planet (malefic or benefic) in pada k of the partner nakshatra pierces pada 5-k of the
+        muhurta nakshatra (1<->4, 2<->3); only that pada is spoiled ("other opinion", chosen 21 Nov 2026);
+      - pancha-shalaka for the marriage events, sapta-shalaka for the rest;
+      - vedha (not akranta) is cancelled by any condition in _vedha_apavada."""
+    ctx = ctx or {}
     if not ch.has(1):
         return None
-    n = _nak28(ch.lon[1])
-    occupied = [PLANET_NAME[p] for p in ch.lon if p in NATURAL_MALEFICS and _nak28(ch.lon[p]) == n]
+    n, moon_pada = _nak28(ch.lon[1]), _pada28(ch.lon[1])
     nak = _nak28_name(n)
-    parts, parts_te, partners = [], [], []
-    if occupied:
-        parts.append(f"occupied by {', '.join(occupied)}")
-        parts_te.append("పాపగ్రహ ఆక్రాంతం")
-    for chakra_en, chakra_te, table in (("sapta-shalaka", "సప్తశలాక", _SAPTA_VEDHA),
-                                        ("pancha-shalaka", "పంచశలాక", _PANCHA_VEDHA)):
-        partner = table.get(n)
-        if partner is None:
+    pancha = ctx.get("event_id") in PANCHA_SHALAKA_EVENTS
+    chakra_en, chakra_te, table = (("pancha-shalaka", "పంచశలాక", _PANCHA_VEDHA) if pancha
+                                   else ("sapta-shalaka", "సప్తశలాక", _SAPTA_VEDHA))
+    occupied = [PLANET_NAME[p] for p in ch.lon if p != 1 and p in NATURAL_MALEFICS and _nak28(ch.lon[p]) == n]
+    partner = table.get(n)
+    hits, others = [], []
+    for p in ch.lon:
+        if p == 1 or partner is None or _nak28(ch.lon[p]) != partner:
             continue
-        partners.append(f"{_nak28_name(partner)} ({chakra_en})")
-        piercing = [PLANET_NAME[p] for p in ch.lon if p in NATURAL_MALEFICS and _nak28(ch.lon[p]) == partner]
-        if piercing:
-            parts.append(f"pierced from {_nak28_name(partner)} by {', '.join(piercing)} ({chakra_en} vedha)")
-            parts_te.append(f"{chakra_te} వేధ ({_nak28_name(partner)})")
-    if parts:
-        return ("fail", f"{nak} is {' and '.join(parts)} (book p.96).",
-                f"{nak}: {', '.join(parts_te)} (గ్రంథం పేజీ 96).")
-    return ("pass", f"{nak} has no malefic in it or in its vedha partners {', '.join(partners)}.",
-            f"{nak}కు సప్తశలాక, పంచశలాక వేధలు లేవు.")
+        pierced = 5 - _pada28(ch.lon[p])
+        kind = "malefic" if p in NATURAL_MALEFICS else "benefic"
+        (hits if pierced == moon_pada else others).append(f"{PLANET_NAME[p]} ({kind}) pierces pada {pierced}")
+    partner_txt = f"{_nak28_name(partner)} ({chakra_en})" if partner is not None else chakra_en
+    note = f" Also in {_nak28_name(partner)}: {'; '.join(others)}; the muhurta is in pada {moon_pada}." if others else ""
+    apavada = _vedha_apavada(ch, ctx) if hits else []
+    if occupied:
+        extra = f" Vedha: {'; '.join(hits)} from {partner_txt}." if hits else ""
+        return ("fail", f"{nak} is occupied by {', '.join(occupied)} (akranta, book p.96).{extra}{note}",
+                f"{nak}: పాపగ్రహ ఆక్రాంతం (గ్రంథం పేజీ 96).")
+    if hits and apavada:
+        return ("excepted", f"{nak} pada {moon_pada} is pierced from {partner_txt}: {'; '.join(hits)}. "
+                            f"Cancelled: {'; '.join(a[0] for a in apavada)}.{note}",
+                f"{nak} {moon_pada}వ పాదానికి {chakra_te} వేధ ఉంది, కానీ పరిహారం: {'; '.join(a[1] for a in apavada)}.")
+    if hits:
+        return ("fail", f"{nak} pada {moon_pada} is pierced from {partner_txt}: {'; '.join(hits)}. "
+                        f"The other padas of {nak} are free.{note}",
+                f"{nak} {moon_pada}వ పాదానికి {chakra_te} వేధ ({_nak28_name(partner)}); మిగతా పాదాలు శుభం.")
+    return ("pass", f"{nak} pada {moon_pada} has no akranta and no vedha from {partner_txt}.{note}",
+            f"{nak} {moon_pada}వ పాదానికి ఆక్రాంతం, {chakra_te} వేధ లేవు.")
 
 
 def _lagnasta(ch: _Chart, is_vivaha: bool, ref: str) -> Dict[str, Any]:
@@ -648,26 +698,26 @@ def _gandanta(ch: _Chart, ctx: Dict[str, Any], lb, ref: str) -> Dict[str, Any]:
     from app.engines.limb_timeline import jd_to_local, nakshatra_bounds, tithi_bounds
     tz = ctx["tz_offset"]
     hits_en, hits_te = [], []
-    g2 = timedelta(hours=2 * GHATI_HOURS)
+    g4 = timedelta(hours=4 * GHATI_HOURS)
 
-    # Nakshatra gandanta (Dr. Nemani, 13 Nov 2026): 4 ghatis in all, the last 2 ghatis (48 minutes) of
-    # Ashlesha/Jyeshtha/Revati and the first 2 of Magha/Mula/Ashwini.
+    # Nakshatra gandanta (confirmed 21 Nov 2026, sheet Q1b; replaces 2 + 2 of 13 Nov): 8 ghatis in all, the
+    # last 4 ghatis of Ashlesha/Jyeshtha/Revati and the first 4 of Magha/Mula/Ashwini.
     ns, ne = (jd_to_local(x, tz) for x in nakshatra_bounds(jd))
-    if lb.nakshatra in (9, 18, 27) and _overlaps(win, [(ne - g2, ne)]):
-        hits_en.append(f"last 2 ghatis of {lb.nakshatra_name}")
-        hits_te.append(f"{lb.nakshatra_name} చివరి 2 ఘటికలు")
-    if lb.nakshatra in (10, 19, 1) and _overlaps(win, [(ns, ns + g2)]):
-        hits_en.append(f"first 2 ghatis of {lb.nakshatra_name}")
-        hits_te.append(f"{lb.nakshatra_name} మొదటి 2 ఘటికలు")
+    if lb.nakshatra in (9, 18, 27) and _overlaps(win, [(ne - g4, ne)]):
+        hits_en.append(f"last 4 ghatis of {lb.nakshatra_name}")
+        hits_te.append(f"{lb.nakshatra_name} చివరి 4 ఘటికలు")
+    if lb.nakshatra in (10, 19, 1) and _overlaps(win, [(ns, ns + g4)]):
+        hits_en.append(f"first 4 ghatis of {lb.nakshatra_name}")
+        hits_te.append(f"{lb.nakshatra_name} మొదటి 4 ఘటికలు")
 
-    # Rashi (lagna) gandanta: last half-ghati of Karkataka/Vrischika/Meena, first of Simha/Dhanus/Mesha
-    half = timedelta(hours=0.5 * GHATI_HOURS)
-    if ch.lagna in (4, 8, 12) and _overlaps(win, [(lw[1] - half, lw[1])]):
-        hits_en.append(f"last half-ghati of {RASI_CANONICAL[ch.lagna]} lagna")
-        hits_te.append(f"{RASI_CANONICAL[ch.lagna]} లగ్న చివరి అర ఘటిక")
-    if ch.lagna in (5, 9, 1) and _overlaps(win, [(lw[0], lw[0] + half)]):
-        hits_en.append(f"first half-ghati of {RASI_CANONICAL[ch.lagna]} lagna")
-        hits_te.append(f"{RASI_CANONICAL[ch.lagna]} లగ్న మొదటి అర ఘటిక")
+    # Rashi (lagna) gandanta, also 4 + 4 ghatis (21 Nov 2026; was half a ghati): the last 4 ghatis of the
+    # Karkataka/Vrischika/Meena lagna and the first 4 of Simha/Dhanus/Mesha.
+    if ch.lagna in (4, 8, 12) and _overlaps(win, [(lw[1] - g4, lw[1])]):
+        hits_en.append(f"last 4 ghatis of {RASI_CANONICAL[ch.lagna]} lagna")
+        hits_te.append(f"{RASI_CANONICAL[ch.lagna]} లగ్న చివరి 4 ఘటికలు")
+    if ch.lagna in (5, 9, 1) and _overlaps(win, [(lw[0], lw[0] + g4)]):
+        hits_en.append(f"first 4 ghatis of {RASI_CANONICAL[ch.lagna]} lagna")
+        hits_te.append(f"{RASI_CANONICAL[ch.lagna]} లగ్న మొదటి 4 ఘటికలు")
 
     # Tithi gandanta: last 2 ghatis of Purna tithis, first 2 of Nanda tithis
     g2 = timedelta(hours=2 * GHATI_HOURS)
@@ -759,7 +809,7 @@ def evaluate_10_dashavidha_doshas(
     out.append(y)
 
     # 4. Vedha (= Mahadosha #17)
-    v = _ashubha_viddha(ch)
+    v = _ashubha_viddha(ch, ctx)
     out.append(row(4, "vedha_dosham", "Vedha", "వేధ దోషము", v[0] if v else "not_evaluated",
                    v[1] if v else _NE_EN, v[2] if v else _NE_TE))
 

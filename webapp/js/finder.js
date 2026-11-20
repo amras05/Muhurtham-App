@@ -1289,6 +1289,11 @@ function limbName(x) {
   return x.paksha ? `${name} (${x.paksha})` : name;
 }
 
+// Shown on a dosha panel whose set the super admin left out of the score (Settings, 20 Nov 2026).
+function notScoredNote() {
+  return `<p class="portal-hint">${currentLang === "te" ? "ఈ దోషాలు సమాచారం కోసం మాత్రమే: ఈ కార్యానికి ఇవి శాతంలో లెక్కించబడవు." : "Shown for information only: these are not counted in this event's percentage."}</p>`;
+}
+
 function doshaTally(list) {
   const n = s => list.filter(m => doshaStatus(m) === s).length;
   return currentLang === "te"
@@ -1898,7 +1903,7 @@ function openDayModal(idx) {
           <span>${Icon("flame")} ${currentLang === "te" ? "ఏకవింశతి మహాదోషముల విశ్లేషణ (21 Maha Doshas)" : "21 Maha Doshas Evaluation"}</span>
           <span class="dosha-panel__score dosha-panel__score--maha">${mahaScore}</span>
         </div>
-        <div class="dosha-panel__body dosha-panel__body--maha">`;
+        <div class="dosha-panel__body dosha-panel__body--maha">${d.mahadoshas_scored === false ? notScoredNote() : ""}`;
     d.maha_doshas.forEach(m => {
       const mTitle = currentLang === "te" ? m.name_te : m.name_en;
       const mDesc = currentLang === "te" ? m.desc_te : m.desc_en;
@@ -1916,7 +1921,7 @@ function openDayModal(idx) {
           <span>${Icon("zap")} ${currentLang === "te" ? "దశవిధ దోషముల విశ్లేషణ (10 Dashavidha Doshas)" : "10 Dashavidha Doshas Evaluation"}</span>
           <span class="dosha-panel__score dosha-panel__score--dasha">${dashaScore}</span>
         </div>
-        <div class="dosha-panel__body dosha-panel__body--dasha">`;
+        <div class="dosha-panel__body dosha-panel__body--dasha">${d.dashavidha_enforced === false ? notScoredNote() : ""}`;
     d.dashavidha_doshas.forEach(m => {
       const mTitle = currentLang === "te" ? m.name_te : m.name_en;
       const mDesc = currentLang === "te" ? m.desc_te : m.desc_en;

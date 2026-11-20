@@ -256,6 +256,43 @@ def _decimal_hours_to_hms(h: float) -> str:
     suffix = f" ({day_offset:+d})" if day_offset != 0 else ""
     return f"{hh:02d}:{mm:02d}:{ss:02d}{suffix}"
 
+def _encode_rel_hours(rel: float) -> float:
+    """Hours from local midnight of the date -> PyJHora's convention read by _decimal_hours_to_hms:
+    a time on an earlier day is the negative of its clock hours, plus 24 per extra day back."""
+    if rel >= 0.0:
+        return rel
+    days_back = int(-rel // 24.0) + (0 if (-rel) % 24.0 == 0 else 1)
+    return -((rel + 24.0 * days_back) + 24.0 * (days_back - 1))
+
+
+def _decode_rel_hours(h: float) -> float:
+    """Inverse of _encode_rel_hours: hours from local midnight of the date (negative = earlier day)."""
+    if h >= 0.0:
+        return h
+    a = abs(h)
+    days_back = int(a // 24.0) + 1
+    return (a - 24.0 * (days_back - 1)) - 24.0 * days_back
+
+
+def _accurate_limb_hours(year: int, month: int, day: int, hour: int, minute: int, second: int,
+                         tz_offset: float) -> dict:
+    """Start and end of the tithi, nakshatra, yoga and karana running at the query time, from the Swiss
+    Ephemeris boundary solver in limb_timeline, as {limb: (index, start_hrs, end_hrs)} in PyJHora's hour
+    convention. PyJHora's own start/end times drift with the query time (on 19 Nov 2026 in Vijayawada,
+    Dashami "ended" 07:38 when asked at 10:00 but 07:19 when asked at 23:48; the true end is 07:16), so the
+    live panchang showed wrong times. Indexes are returned so the caller only swaps times when both agree
+    on which limb is running."""
+    from app.engines import limb_timeline as lt
+    base = datetime(year, month, day)
+    # timedelta, not datetime.replace: the finder passes fractional hours (e.g. 13.75)
+    jd_q = lt.local_to_jd(base + timedelta(hours=hour, minutes=minute, seconds=second), tz_offset)
+    jd_mid = lt.local_to_jd(base, tz_offset)
+    limbs = lt.limbs_at(jd_q)
+    idx = {"tithi": limbs.tithi, "nakshatra": limbs.nakshatra, "yoga": limbs.yoga, "karana": limbs.karana_position}
+    return {k: (idx[k], _encode_rel_hours((a - jd_mid) * 24.0), _encode_rel_hours((b - jd_mid) * 24.0))
+            for k, (a, b) in lt.limb_spans(jd_q).items()}
+
+
 def _format_pair(pair) -> dict:
     if not pair or len(pair) < 2:
         return None
@@ -469,9 +506,24 @@ def compute_day_panchang(year: int, month: int, day: int,
     nak_start_hrs = nak_raw[2]
     nak_end_hrs = nak_raw[3]
 
+    # Accurate start/end times from the boundary solver (see _accurate_limb_hours); PyJHora's are kept
+    # only if the solver fails or the two disagree on which limb is running (a query right at a boundary).
+    try:
+        accurate = _accurate_limb_hours(year, month, day, hour, minute, second, tz_offset)
+    except Exception as ex:
+        logger.warning("Limb boundary solver failed, using PyJHora times: %s", ex)
+        accurate = {}
+
+    def _times(limb, idx, start, end):
+        got = accurate.get(limb)
+        return (got[1], got[2]) if got and got[0] == idx else (start, end)
+
+    tithi_start_hrs, tithi_end_hrs = _times("tithi", tithi_idx_30, tithi_start_hrs, tithi_end_hrs)
+    nak_start_hrs, nak_end_hrs = _times("nakshatra", nak_idx, nak_start_hrs, nak_end_hrs)
+
     padas_list = []
     try:
-        h_start = abs(nak_start_hrs) - 24.0 if nak_start_hrs < 0 else nak_start_hrs
+        h_start = _decode_rel_hours(nak_start_hrs)
         h_end = nak_end_hrs
         jd_ut_mid = swe.julday(year, month, day, 0.0)
         
@@ -498,8 +550,8 @@ def compute_day_panchang(year: int, month: int, day: int,
         for p in range(1, 5):
             p_end_lon = L_start + p * (360.0 / 108.0)
             t_end = find_crossing_hour(p_end_lon, last_t, h_end)
-            t_start_val = -(24.0 + last_t) if last_t < 0.0 else last_t
-            t_end_val = -(24.0 + t_end) if t_end < 0.0 else t_end
+            t_start_val = _encode_rel_hours(last_t)
+            t_end_val = _encode_rel_hours(t_end)
             
             padas_list.append({
                 "pada": p,
@@ -536,6 +588,8 @@ def compute_day_panchang(year: int, month: int, day: int,
     karana_name = CANONICAL_KARANA.get(karana_name_raw, karana_name_raw)
     karana_start_hrs = karana_raw[1]
     karana_end_hrs = karana_raw[2] if len(karana_raw) > 2 else None
+    yoga_start_hrs, yoga_end_hrs = _times("yoga", yoga_idx, yoga_start_hrs, yoga_end_hrs)
+    karana_start_hrs, karana_end_hrs = _times("karana", karana_idx, karana_start_hrs, karana_end_hrs)
 
     # Inauspicious times. These depend on the weekday, which PyJHora reads from the time of `jd`
     # (sunrise to sunrise), so a query hour before sunrise (the 06:00 default in winter) gave the

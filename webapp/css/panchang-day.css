@@ -374,6 +374,8 @@
 .pd-pada span { font-size: 11px; font-weight: 600; color: var(--color-text); }
 .pd-pada--now span, .pd-pada--now strong { color: var(--color-on-strong); }
 .pd-pada--past { text-decoration: none; }
+/* The running pada: the white .pd-pada background above hid its green, leaving white text on white (19 Nov). */
+.pd-pada.pd-pada--now { background: var(--color-primary); border-color: var(--color-primary); }
 
 /* Sun and Moon */
 .pd-lum-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }

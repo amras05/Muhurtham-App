@@ -1670,6 +1670,62 @@ def _birth_display(birth_details: Optional[Dict[str, Any]]) -> Optional[Dict[str
     return out
 
 
+def _hora_lord(when: datetime, panchang: Dict[str, Any], day: date, vaara_idx: int) -> Optional[int]:
+    """Planet id ruling the hora at `when`: the day from sunrise to sunset and the night after it are each cut
+    into 12 horas; the first belongs to the weekday lord, then in the order Sun, Venus, Mercury, Moon,
+    Saturn, Jupiter, Mars. None if sunrise/sunset are missing or `when` is before this day's sunrise."""
+    from app.engines.doshas import HORA_ORDER
+    try:
+        base = datetime(day.year, day.month, day.day)
+        rise = base + timedelta(hours=_hms_to_hours(panchang.get("sunrise"), default=-1))
+        sset = base + timedelta(hours=_hms_to_hours(panchang.get("sunset"), default=-1))
+    except (TypeError, ValueError):
+        return None
+    if rise <= base - timedelta(hours=1) or sset <= rise or when < rise:
+        return None
+    day_len = sset - rise
+    if when < sset:
+        n = int((when - rise) / (day_len / 12))
+    else:
+        n = 12 + min(11, int((when - sset) / ((timedelta(hours=24) - day_len) / 12)))
+    start = HORA_ORDER.index(vaara_idx % 7)          # weekday index 0 = Sunday = Sun's id, ... 6 = Saturn
+    return HORA_ORDER[(start + n) % 7]
+
+
+def dosha_scoring_for(rule, common) -> Dict[str, Any]:
+    """Which dosha sets count in this event's score, and how (Settings › Finder › Doshas,
+    20 Nov 2026). Layers: the event's rule file, then its category, then the event's own override.
+    New default: the 10 dashavidha doshas count wherever the 21 mahadoshas do."""
+    maha = bool(common.mahadoshas_21)
+    dasha = bool(common.dashavidha_10 or common.mahadoshas_21)
+    weight, cap, main_weight = 70, 49, 70
+    try:
+        from app.auth.app_settings import get_setting
+        s = get_setting("dosha_scoring") or {}
+        weight, cap = int(s.get("dasha_weight", weight)), int(s.get("dasha_cap", cap))
+        main_weight = int(s.get("main_weight", main_weight))
+        for layer in ((s.get("tabs") or {}).get(rule.tab or rule.category), (s.get("events") or {}).get(rule.id)):
+            if not isinstance(layer, dict):
+                continue
+            if layer.get("mahadoshas") in ("on", "off"):
+                maha = layer["mahadoshas"] == "on"
+            if layer.get("dashavidha") in ("on", "off"):
+                dasha = layer["dashavidha"] == "on"
+    except Exception as ex:   # settings unreadable: rule-file defaults and the agreed 70 / 49
+        logger.warning(f"Dosha scoring setting unavailable, using defaults: {type(ex).__name__}")
+    return {"mahadoshas": maha, "dashavidha": dasha, "weight": max(0, min(100, weight)), "cap": max(5, min(98, cap)),
+            "main_weight": max(0, min(100, main_weight))}
+
+
+def _share(rows: List[Dict[str, Any]]) -> Optional[float]:
+    """0-1: the share of checks passed (user, 21 Nov 2026; replaced +10/-10, where each fail cancelled a
+    pass). An "excepted" dosha (cancelled by a parihara) counts as passed; "to be confirmed" is left out."""
+    rows = [d for d in rows if d["status"] in ("pass", "fail", "excepted")]
+    if not rows:
+        return None
+    return sum(1 for d in rows if d["status"] in ("pass", "excepted")) / len(rows)
+
+
 def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, d_offset, tz_offset,
                      place_obj, birth_details, participants, panchaka_method, pushkara_info,
                      sula_check, facing_dir, b_nak_idx, b_rasi_idx, score, rules_passed,
@@ -1694,12 +1750,17 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
         "durmuhurta": durmuhurta_spans,
         "tz_offset": tz_offset,
         "category": rule.category,
+        "event_id": rule.id,                                        # which vedha chakra (21 Nov 2026)
+        "hora_lord": _hora_lord(mid_dt, panchang, cur_date, vaara_idx),   # vedha doshapavada
         "kartari": _kartari_mode(rule),
         "limbs": limbs,
         "limbs_checked": cr.limbs_checked,
         "participants": participants,
     }
     common = cr.hf.common
+    # Super admin setting (20 Nov 2026): a set switched to "Don't calculate in score" is still worked out
+    # and shown on the result, but it neither lowers nor caps the percentage.
+    ds = dosha_scoring_for(rule, common)
     maha_doshas = evaluate_21_maha_doshas(seg_panchang, d1_positions, raw_d1, lagna.lagna_idx, birth_details, context=ctx)
     dashavidha = evaluate_10_dashavidha_doshas(seg_panchang, d1_positions, raw_d1, lagna.lagna_idx, birth_details, context=ctx)
     pariharas = evaluate_muhurta_pariharas(seg_panchang, raw_d1, lagna.lagna_idx,
@@ -1732,9 +1793,9 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     link_rows(dashavidha)
 
     checked = []
-    if common.mahadoshas_21:
+    if ds["mahadoshas"]:
         checked += maha_doshas
-    if common.dashavidha_10:
+    if ds["dashavidha"]:
         checked += dashavidha
     checked += yoga_doshas + extra
     # Doshapavada (book paras 1972-78): "remove all" exceptions cancel the lagna doshas (not the 21
@@ -1759,7 +1820,7 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
             checked.append(row)
     failed = [d for d in checked if d["status"] == "fail"]
     fatal = [d for d in failed if d["severity"] == "fatal"]
-    audit = dosha_audit(maha_doshas if common.mahadoshas_21 else [], dashavidha if common.dashavidha_10 else [],
+    audit = dosha_audit(maha_doshas if ds["mahadoshas"] else [], dashavidha if ds["dashavidha"] else [],
                         yoga_doshas + extra, jupiter_in_lagna)
     if strict and fatal:
         rejections[f"Fatal dosha: {fatal[0]['name_en'].split('. ', 1)[-1]}"] += 1
@@ -1797,14 +1858,38 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
         cautions.append(f"Not evaluated (data or author input missing): {', '.join(not_eval)}")
 
     serious = [d for d in failed if d["severity"] == "serious"]
-    # Percentage = the guna-dosha table (11 Nov 2026, same method as the Sri Bhaskara app): every check
-    # that applies scores +10 if it passed and -10 if it is a dosha; "excepted" and "to be confirmed"
-    # count as applying but score 0; "not applicable" and "not evaluated" are left out. The total is
-    # divided by 10 x the checks that apply. Windows with a mahadosha are listed with it marked.
+    # Percentage (user, 21 Nov 2026). Each part is the share of its checks passed ("excepted" = passed;
+    # "to be confirmed", "not applicable" and "not evaluated" left out).
+    #   main  = the event's own checks: every rule it passed (weekday, tithi, nakshatra, lagna, chart rules,
+    #           balas) and every rule it missed, plus the special-yoga doshas and the extra checks;
+    #   dosha = dashavidha `dasha_weight`% (70) + mahadoshas the rest, only the sets counted for this event;
+    #   final = main `main_weight`% (70) + dosha the rest; with no dosha set counted, final = main.
+    # E.g. main 80, dosha 30 -> 0.7 x 80 + 0.3 x 30 = 65; doshas switched off -> 80.
+    # `points` below is the old +10/-10 total, kept only in audit_points for comparison.
+    def _rows(lst):
+        return [d for d in lst if d["status"] in ("pass", "fail", "excepted", "to_confirm")]
     applicable = [d for d in checked if d["status"] in ("pass", "fail", "excepted", "to_confirm")]
     points = sum(10 if d["status"] == "pass" else -10 if d["status"] == "fail" else 0 for d in applicable)
-    pct = round(max(0, points) / (10 * len(applicable)) * 100) if applicable else 50
+    passed_rows = [{"status": "pass"} for r in rules_passed if not str(r).startswith("Pushkara navamsa")]
+    main_part = _share(passed_rows + _rows(yoga_doshas + extra))
+    dasha_rows = _rows(dashavidha) if ds["dashavidha"] else []
+    maha_rows = _rows(maha_doshas) if ds["mahadoshas"] else []
+    dasha_part, maha_part = _share(dasha_rows), _share(maha_rows)
+    if dasha_part is not None and maha_part is not None:
+        dosha_part = (ds["weight"] * dasha_part + (100 - ds["weight"]) * maha_part) / 100
+    else:
+        dosha_part = dasha_part if dasha_part is not None else maha_part
+    if main_part is not None and dosha_part is not None:
+        pct = round(ds["main_weight"] * main_part + (100 - ds["main_weight"]) * dosha_part)
+    elif main_part is not None or dosha_part is not None:
+        pct = round(100 * (main_part if main_part is not None else dosha_part))
+    else:
+        pct = 50
     pct = int(min(98, max(5, pct)))
+    # The dashavidha doshas must be cleared: a window that fails one stays listed, marked, but below 50%.
+    dasha_failed = [d for d in dasha_rows if d["status"] == "fail"]
+    if dasha_failed:
+        pct = min(pct, ds["cap"])
     # Our one addition: a window with a failed mahadosha or a serious dosha is never shown as "best".
     if fatal:
         pct = min(pct, 64 - 10 * (len(fatal) - 1))   # one mahadosha: at most 64; each more: 10 lower
@@ -1833,7 +1918,8 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
                           "muhurta_lagna": lagna.lagna_name_en},
         "maha_doshas": maha_doshas,
         "dashavidha_doshas": dashavidha,
-        "dashavidha_enforced": common.dashavidha_10,
+        "dashavidha_enforced": ds["dashavidha"],
+        "mahadoshas_scored": ds["mahadoshas"],
         "special_yogas": good_yogas,
         "yoga_doshas": yoga_doshas,
         "extra_checks": extra,
@@ -1879,7 +1965,13 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
         "custom_kalas": [{"type": w.metadata.get("type"), "name": w.label,
                           "start": w.start.strftime("%H:%M"), "end": w.end.strftime("%H:%M")}
                          for w in (extras or {}).get("custom_kalas", []) if w.start < cw.end and w.end > cw.start],
-        "audit_points": {"points": points, "applicable": len(applicable)},   # how the percentage was made
+        "audit_points": {"points": points, "applicable": len(applicable),    # how the percentage was made
+                         "main_share": None if main_part is None else round(100 * main_part),
+                         "dosha_share": None if dosha_part is None else round(100 * dosha_part),
+                         "dasha_share": None if dasha_part is None else round(100 * dasha_part),
+                         "maha_share": None if maha_part is None else round(100 * maha_part),
+                         "main_weight": ds["main_weight"], "dasha_weight": ds["weight"],
+                         "dasha_failed": len(dasha_failed)},
         "rule_score": score,          # the event's own preference points (weekday, lagna, pushkara): breaks ties
         "verdict": verdict,
         "reasons": all_reasons,
