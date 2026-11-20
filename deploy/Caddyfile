@@ -1,17 +1,19 @@
 # Caddyfile for Muhurtham App on Hetzner
-# Caddy automatically provisions and renews Let's Encrypt HTTPS certificates.
-
-# The site is reached by IP address for now (no domain), so plain HTTP on port 80 (Option B).
-# Logins over plain HTTP need MUHURTHAM_COOKIE_SECURE=0 in /etc/muhurtham.env: a known risk.
+# The deploy workflow copies this file to /etc/caddy/Caddyfile on every push to main, so change it here,
+# never on the server (a server-side edit is overwritten by the next deploy).
 #
-# Option A: If you have a domain pointing to this server's IP, uncomment and use this
-# (Caddy then gets HTTPS by itself; also set MUHURTHAM_COOKIE_SECURE=1):
-# your-domain.com {
-#     reverse_proxy 127.0.0.1:8000
-# }
-
-# Option B: Direct IP access over HTTP (port 80)
-:80 {
+# Domain (21 Nov 2026): muhurtam.gayathrijyothirnidhe.in. Caddy gets and renews the Let's Encrypt HTTPS
+# certificate by itself and redirects http:// to https://. This needs:
+#   - the domain's A record pointing straight at the server (Cloudflare: "DNS only", grey cloud);
+#   - TCP 80 and 443 open in the Hetzner Cloud Firewall;
+#   - MUHURTHAM_COOKIE_SECURE=1 and MUHURTHAM_CORS_ORIGINS=https://muhurtam.gayathrijyothirnidhe.in
+#     in /etc/muhurtham.env.
+muhurtam.gayathrijyothirnidhe.in {
+    encode gzip
     reverse_proxy 127.0.0.1:8000
 }
 
+# Before the domain was set up the site was reached by IP over plain HTTP:
+# :80 {
+#     reverse_proxy 127.0.0.1:8000
+# }
