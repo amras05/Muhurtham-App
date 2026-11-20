@@ -30,6 +30,10 @@ jobs:
             # 1. Fetch and align to latest main cleanly without merge conflicts
             git fetch origin main
             git reset --hard origin/main
+
+            # 1b. Record when this version went live (shown in the app's footer and on /health)
+            printf '{"commit":"%s","committed_at":"%s","deployed_at":"%s"}\n' \
+              "$(git rev-parse HEAD)" "$(git log -1 --format=%cI)" "$(date -Iseconds)" > backend/build_info.json
             
             # 2. Update dependencies in native virtual environment
             source .venv/bin/activate

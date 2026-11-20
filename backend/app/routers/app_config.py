@@ -36,7 +36,8 @@ def _short(v: Any, n: int = 400) -> str:
 
 @router.get("/app/config")
 def public_config() -> Dict[str, Any]:
-    return public_view(all_settings())
+    from app.core.build_info import build_info
+    return {**public_view(all_settings()), "build": build_info()}   # when the app was last updated (footer)
 
 
 @router.get("/admin/config")

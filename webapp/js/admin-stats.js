@@ -84,9 +84,19 @@
     var s = data.server, up = s.uptime_seconds, upText = up >= 86400 ? Math.floor(up / 86400) + tr(" days", " రోజులు") : up >= 3600 ? Math.floor(up / 3600) + tr(" hours", " గంటలు") : Math.max(1, Math.floor(up / 60)) + tr(" min", " ని.");
     $("statServer").innerHTML = [
       [tr("Version", "వెర్షన్"), s.version + " · " + s.env],
+      [tr("Last updated", "చివరి నవీకరణ"), updatedText(s.build)],
       [tr("Since last restart", "చివరి రీస్టార్ట్ నుండి"), upText],
       [tr("Ephemeris files", "ఎఫెమెరిస్ ఫైళ్లు"), s.ephemeris_ok ? s.ephemeris_files + tr(" found", " ఉన్నాయి") : tr("Missing: run backend/install_ephemeris.sh", "లేవు: backend/install_ephemeris.sh నడపండి")],
     ].map(function (r) { return "<dt>" + esc(r[0]) + "</dt><dd>" + esc(r[1]) + "</dd>"; }).join("");
+  }
+
+  // When the running version was deployed (or, on a developer's machine, committed), in India time, + commit.
+  function updatedText(b) {
+    var when = b && (b.deployed_at || b.committed_at), d = when ? new Date(when) : null;
+    if (!d || isNaN(d.getTime())) return tr("Not known", "తెలియదు");
+    var stamp = d.toLocaleString(currentLang === "te" ? "te-IN" : "en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short",
+                                                                         year: "numeric", hour: "numeric", minute: "2-digit" }) + " IST";
+    return stamp + (b.commit ? " · " + b.commit : "") + (b.deployed_at ? "" : tr(" (last commit; not deployed)", " (చివరి కమిట్)"));
   }
 
   async function load() {

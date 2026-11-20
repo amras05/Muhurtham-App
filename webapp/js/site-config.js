@@ -78,10 +78,30 @@ window.SiteConfig = (function () {
     });
     var line = texts && texts.site_footer, foot = document.getElementById("siteFooter");
     var footText = line ? ((line[lang] || "").trim() || (line.en || "").trim()) : "";
-    if (footText) {
+    var updated = updatedLine(data && data.build, lang);
+    if (footText || updated) {
       if (!foot) { foot = document.createElement("footer"); foot.id = "siteFooter"; foot.className = "site-footer"; document.body.appendChild(foot); }
-      foot.textContent = footText;
+      foot.textContent = "";
+      if (footText) { var t = document.createElement("div"); t.textContent = footText; foot.appendChild(t); }
+      if (updated) { var u = document.createElement("small"); u.className = "site-footer__updated"; u.textContent = updated; foot.appendChild(u); }
     } else if (foot) foot.remove();
+  }
+
+  // "App updated: 21 Nov 2026, 10:32 am IST" from /app/config's build (the deploy time; on a developer's
+  // machine the last commit's time). Shown in India time, whatever the viewer's own time zone.
+  function updatedLine(build, lang) {
+    var when = build && (build.deployed_at || build.committed_at);
+    var d = when ? new Date(when) : null;
+    if (!d || isNaN(d.getTime())) return "";
+    var stamp;
+    try {
+      stamp = d.toLocaleString(lang === "te" ? "te-IN" : "en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short",
+                                                                  year: "numeric", hour: "numeric", minute: "2-digit" });
+    } catch (e) {
+      console.error("Update time could not be formatted", e);
+      return "";
+    }
+    return (lang === "te" ? "యాప్ నవీకరణ: " : "App updated: ") + stamp + " IST" + (build.commit ? " · " + build.commit : "");
   }
 
   function apply() {

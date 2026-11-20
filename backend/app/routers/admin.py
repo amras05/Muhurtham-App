@@ -496,6 +496,7 @@ def put_catalog_visibility(body: VisibilityUpdate, req: Request, boss: dict = De
 
 # ── Statistics (plan R10) ─────────────────────────────────────────────────────────
 import time as _time
+from app.core.build_info import build_info as _build_info
 from app.core.config import APP_ENV
 from app.core.logging import logger
 _STARTED = _time.time()          # this worker's start; "time since the last restart"
@@ -578,7 +579,8 @@ def stats(days: int = Query(30, ge=7, le=90), boss: dict = Depends(require("syst
         "active_people": {"last_7_days": int(active.d7 or 0), "last_30_days": int(active.d30 or 0)},
         "accounts": {"active": int(accounts.active), "total": int(accounts.total), "locked_now": int(accounts.locked)},
         "top_muhurtas": top_muhurtas, "top_tabs": top_tabs, "pdf_by_kind": pdf_kinds,
-        "server": {"version": get_settings().APP_VERSION, "env": APP_ENV, "uptime_seconds": int(_time.time() - _STARTED),
+        "server": {"version": get_settings().APP_VERSION, "build": _build_info(), "env": APP_ENV,
+                   "uptime_seconds": int(_time.time() - _STARTED),
                    "ephemeris_files": eph, "ephemeris_ok": eph > 0},
     }
 

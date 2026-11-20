@@ -3,7 +3,7 @@
    Loads the modular CSS architecture: tokens, base, components, and panchang.
    ============================================================ */
 @import url("variables.css?v=20261113c");
-@import url("base.css?v=20261114c");
+@import url("base.css?v=20261121a");
 @import url("components.css?v=20261113j");
 @import url("panchang.css?v=20261110b");
 @import url("app-shell.css?v=20261119w");

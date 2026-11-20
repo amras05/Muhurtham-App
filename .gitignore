@@ -1,3 +1,6 @@
+# Written by the deploy workflow on the server (when the app was last updated)
+backend/build_info.json
+
 # Virtual environment
 venv/
 .venv/

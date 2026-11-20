@@ -92,7 +92,8 @@ app.include_router(app_config_router)
 # Root endpoints
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": app.version}
+    from app.core.build_info import build_info
+    return {"status": "ok", "version": app.version, "build": build_info()}
 
 
 @app.get("/", include_in_schema=False)
