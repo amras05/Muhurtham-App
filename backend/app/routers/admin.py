@@ -7,8 +7,10 @@ Admin portal (plan C3): dashboard summary and user management.
   POST /admin/people/{id}/disable      with a reason; signs the person out everywhere
   POST /admin/people/{id}/enable
 
-Guard rails: nobody acts on themselves; an admin acts only on users; the super admin also on
-admins; nobody disables a super admin here (the last one can never be disabled).
+Guard rails (21 Nov 2026, see _manage_block): nobody acts on themselves; the owner (the super admin made from
+the terminal, is_owner) is changed by nobody else and the database refuses to delete, demote or disable it;
+other super admins are managed by the owner only; admins by super admins; users by admins and super admins.
+Every new account gets a password: admins add users, super admins also admins, the owner also super admins.
 Admins see user activity only; the super admin sees everything.
 """
 from typing import Any, Dict, List, Optional
@@ -17,6 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 
+from app.auth.crypto import hash_password
 from app.auth.database import INVITED, get_user_by_id, get_user_by_phone, write_activity_log
 from app.auth.mobile import normalize_mobile
 from app.auth.mobile import mask_mobile
@@ -96,7 +99,7 @@ def people(q: Optional[str] = Query(None, max_length=80), role: Optional[str] = 
         where.append("u.status = 'active'")
     with app_engine().connect() as c:
         rows = c.execute(text(f"""
-            SELECT u.id::text AS id, u.name, u.mobile, u.role, u.status, u.disabled_reason, u.created_at,
+            SELECT u.id::text AS id, u.name, u.mobile, u.role, u.status, u.disabled_reason, u.created_at, u.is_owner,
                    u.last_login_at, u.login_count, (u.locked_until > now()) AS locked,
                    (SELECT count(*) FROM app.sessions s WHERE s.user_id = u.id AND s.revoked_at IS NULL AND s.expires_at > now()) AS devices
             FROM app.users u WHERE {' AND '.join(where)}
@@ -105,28 +108,67 @@ def people(q: Optional[str] = Query(None, max_length=80), role: Optional[str] = 
     for r in rows:
         pending = r.disabled_reason == "pending_verification"
         invited = r.disabled_reason == INVITED
+        t = {"id": r.id, "role": r.role, "is_owner": bool(r.is_owner)}
+        managed = _manage_block(admin, t) is None
         out.append({
             "id": r.id, "name": r.name, "mobile_masked": mask_mobile(r.mobile), "role": r.role,
+            "is_owner": bool(r.is_owner),
             "status": "pending" if pending else "invited" if invited else r.status,
             "disabled_reason": None if (pending or invited) else r.disabled_reason,
             "locked": bool(r.locked), "devices": int(r.devices), "login_count": int(r.login_count or 0),
             "created_at": _iso(r.created_at), "last_login_at": _iso(r.last_login_at),
-            "can_manage": _may_manage(admin, {"id": r.id, "role": r.role}) is None,
-            "can_change_role": has_permission(admin, "users.role") and r.id != admin["id"] and r.role != "super_admin"
-                               and not pending and not invited,
-            "can_edit": has_permission(admin, "users.edit") and r.id != admin["id"] and r.role != "super_admin",
-            "can_delete": has_permission(admin, "users.delete") and r.id != admin["id"] and r.role != "super_admin",
-            "can_set_perms": has_permission(admin, "users.set_perms") and r.id != admin["id"] and r.role != "super_admin",
+            "can_manage": _may_manage(admin, t) is None,
+            "can_change_role": has_permission(admin, "users.role") and managed and not pending and not invited,
+            "can_edit": has_permission(admin, "users.edit") and managed,
+            "can_delete": has_permission(admin, "users.delete") and managed,
+            "can_set_perms": has_permission(admin, "users.set_perms") and managed and r.role != "super_admin",
+            "can_set_password": has_permission(admin, "users.set_password") and managed,
         })
-    return {"people": out, "count": len(out), "can_create": has_permission(admin, "users.create")}
+    return {"people": out, "count": len(out), "can_create": has_permission(admin, "users.create"),
+            "create_roles": creatable_roles(admin), "role_choices": role_choices(admin)}
+
+
+# Who manages whom (user, 21 Nov 2026):
+#   the owner (the super admin made from the terminal, is_owner) is managed by nobody else, ever;
+#   other super admins are managed only by the owner; admins only by a super admin; users by admins and
+#   super admins (each action still needs its own permission). The database also refuses to delete,
+#   demote or disable the owner (migration 0005).
+def _manage_block(boss: dict, target: dict) -> Optional[str]:
+    """None if `boss` may manage `target`'s account at all, else the reason they may not."""
+    if target["id"] == boss["id"]:
+        return "Use My account to change your own details."
+    if target.get("is_owner"):
+        return "This super admin account can't be changed by anyone else."
+    if target["role"] == "super_admin" and not boss.get("is_owner"):
+        return "Only the main super admin (set up on the server) can manage other super admins."
+    if target["role"] == "admin" and boss["role"] != "super_admin":
+        return "Only a super admin can manage an admin."
+    return None
+
+
+def creatable_roles(boss: dict) -> List[str]:
+    """Roles `boss` may give a new account: users (admins and super admins with "add users"), admins
+    (super admins), super admins (the owner only)."""
+    if not has_permission(boss, "users.create"):
+        return []
+    roles = ["user"]
+    if boss["role"] == "super_admin":
+        roles.append("admin")
+    if boss.get("is_owner"):
+        roles.append("super_admin")
+    return roles
+
+
+def role_choices(boss: dict) -> List[str]:
+    """Roles `boss` may move someone to with "Change role" (users.role): user/admin, plus super admin for the owner."""
+    return ["user", "admin", "super_admin"] if boss.get("is_owner") else ["user", "admin"]
 
 
 def _may_manage(admin: dict, target: dict) -> Optional[str]:
     """None if `admin` may disable/enable `target`, else the reason they may not."""
-    if target["id"] == admin["id"]:
-        return "You cannot change your own account here."
-    if target["role"] == "super_admin":
-        return "The super admin account cannot be disabled here."
+    block = _manage_block(admin, target)
+    if block:
+        return block
     if target["role"] == "admin" and not has_permission(admin, "users.disable_admins"):
         return "Only the super admin can disable an admin."
     return None
@@ -186,17 +228,21 @@ def enable(user_id: str, req: Request, admin: dict = Depends(require("users.disa
 # ── Super admin (plan C4) ─────────────────────────────────────────────────────
 
 class RoleRequest(BaseModel):
-    role: str = Field(..., pattern="^(user|admin)$")
+    role: str = Field(..., pattern="^(user|admin|super_admin)$")
 
 
 @router.post("/admin/people/{user_id}/role")
 def change_role(user_id: str, body: RoleRequest, req: Request, boss: dict = Depends(require("users.role"))) -> Dict[str, Any]:
-    """user ⇄ admin. The super admin role itself is only ever set by the bootstrap command."""
+    """user ⇄ admin by a super admin; to or from super admin by the owner only (21 Nov 2026). The owner's own
+    role never changes."""
     target = _target(user_id)
     if target["id"] == boss["id"]:
         raise HTTPException(status_code=403, detail="You cannot change your own role.")
-    if target["role"] == "super_admin":
-        raise HTTPException(status_code=403, detail="The super admin's role cannot be changed here.")
+    block = _manage_block(boss, target)
+    if block:
+        raise HTTPException(status_code=403, detail=block)
+    if body.role not in role_choices(boss):
+        raise HTTPException(status_code=403, detail="Only the main super admin (set up on the server) can make someone a super admin.")
     if not target.get("is_verified"):
         raise HTTPException(status_code=400, detail="This person has not finished sign-up yet.")
     if target["role"] == body.role:
@@ -330,8 +376,9 @@ def clear_person_permission(user_id: str, perm_key: str, req: Request,
 def reset_person_sessions(user_id: str, req: Request,
                           admin: dict = Depends(require("users.reset_sessions"))) -> Dict[str, Any]:
     target = _target(user_id)
-    if target["role"] == "super_admin" and admin["role"] != "super_admin":
-        raise HTTPException(status_code=403, detail="Cannot reset super admin sessions.")
+    block = _manage_block(admin, target) if target["id"] != admin["id"] else None
+    if block:
+        raise HTTPException(status_code=403, detail=block)
 
     signed_out = revoke_all_sessions(user_id)
     write_activity_log(
@@ -440,10 +487,9 @@ def audit(action: Optional[str] = Query(None, max_length=60), before: Optional[i
 
 def _editable(boss: dict, user_id: str) -> dict:
     target = _target(user_id)
-    if target["id"] == boss["id"]:
-        raise HTTPException(status_code=403, detail="Use My account to change your own details.")
-    if target["role"] == "super_admin":
-        raise HTTPException(status_code=403, detail="The super admin account can't be changed here.")
+    block = _manage_block(boss, target)
+    if block:
+        raise HTTPException(status_code=403, detail=block)
     return target
 
 
@@ -455,30 +501,79 @@ def _mobile_or_400(raw: str) -> str:
     return m
 
 
+MIN_PASSWORD = 8          # the same minimum as sign-up (auth/routes.py)
+
+
+def _check_new_password(password: str, confirm: str) -> None:
+    if password != confirm:
+        raise HTTPException(status_code=400, detail="The two passwords do not match.")
+    if len(password) < MIN_PASSWORD:
+        raise HTTPException(status_code=400, detail=f"The password must be at least {MIN_PASSWORD} characters long.")
+
+
 class PersonCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=80)
     phone: str = Field(..., min_length=8, max_length=20)
-    role: str = Field("user", pattern="^(user|admin)$")
+    role: str = Field("user", pattern="^(user|admin|super_admin)$")
     preferred_language: str = Field("te", pattern="^(te|en)$")
+    password: str = Field(..., max_length=128)
+    confirm_password: str = Field(..., max_length=128)
 
 
 @router.post("/admin/people", status_code=201)
 def add_person(body: PersonCreate, req: Request, boss: dict = Depends(require("users.create"))) -> Dict[str, Any]:
-    """The account waits as 'invited' until the person confirms a code and sets a password
-    ("Forgot password" on the login page, or signing up with the same number)."""
+    """Add an account with its password (user, 21 Nov 2026): it is active at once and the person logs in with
+    this mobile and password. Who may add which role: see creatable_roles. The mobile is taken as confirmed
+    because the person adding it vouches for it; the password is never logged or returned."""
+    if body.role not in creatable_roles(boss):
+        who = {"admin": "a super admin", "super_admin": "the main super admin (set up on the server)"}.get(body.role, "someone with \"Add users\"")
+        raise HTTPException(status_code=403, detail=f"Only {who} can add a {body.role.replace('_', ' ')}.")
+    _check_new_password(body.password, body.confirm_password)
     mobile = _mobile_or_400(body.phone)
     if get_user_by_phone(mobile):
         raise HTTPException(status_code=409, detail="This mobile number already has an account.")
     with app_engine().begin() as c:
         new_id = c.execute(text("""
-            INSERT INTO app.users (mobile, name, role, status, disabled_reason, preferred_language, created_by)
-            VALUES (:m, :n, :r, 'disabled', :inv, :l, CAST(:b AS uuid)) RETURNING id::text"""),
-            {"m": mobile, "n": body.name.strip(), "r": body.role, "inv": INVITED, "l": body.preferred_language,
-             "b": boss["id"]}).scalar()
+            INSERT INTO app.users (mobile, mobile_verified_at, name, password_hash, role, status, preferred_language,
+                                   created_by)
+            VALUES (:m, now(), :n, :p, :r, 'active', :l, CAST(:b AS uuid)) RETURNING id::text"""),
+            {"m": mobile, "n": body.name.strip(), "p": hash_password(body.password), "r": body.role,
+             "l": body.preferred_language, "b": boss["id"]}).scalar()
     write_activity_log(user_id=boss["id"], action="user.create",
-                       details=f"Added {body.name.strip()} ({mask_mobile(mobile)}) as {body.role}",
+                       details=f"Added {body.name.strip()} ({mask_mobile(mobile)}) as {body.role}, with a password",
                        ip_address=_ip(req), target_type="user", target_id=new_id)
-    return {"id": new_id, "status": "invited"}
+    return {"id": new_id, "status": "active"}
+
+
+class PasswordSet(BaseModel):
+    password: str = Field(..., max_length=128)
+    confirm_password: str = Field(..., max_length=128)
+
+
+@router.post("/admin/people/{user_id}/password")
+def set_person_password(user_id: str, body: PasswordSet, req: Request,
+                        boss: dict = Depends(require("users.set_password"))) -> Dict[str, Any]:
+    """Set someone's password (user, 21 Nov 2026): a user's by an admin or super admin, an admin's by a super
+    admin, another super admin's by the owner; the owner's by nobody else (they use My account). The person is
+    signed out everywhere and logs in with the new password; an invited account becomes active."""
+    target = _target(user_id)
+    block = _manage_block(boss, target)
+    if block:
+        raise HTTPException(status_code=403, detail=block)
+    _check_new_password(body.password, body.confirm_password)
+    invited = target.get("status") == "disabled" and target.get("disabled_reason") in (INVITED, "pending_verification")
+    with app_engine().begin() as c:
+        c.execute(text(f"""
+            UPDATE app.users SET password_hash = :p, failed_logins = 0, locked_until = NULL
+                   {", status = 'active', disabled_reason = NULL, mobile_verified_at = COALESCE(mobile_verified_at, now())"
+                    if invited else ""}
+            WHERE id = CAST(:i AS uuid)"""), {"p": hash_password(body.password), "i": user_id})
+    n = revoke_all_sessions(user_id)
+    write_activity_log(user_id=boss["id"], action="user.password_set",
+                       details=f"Set a new password for {target['name']} ({target['role']}); {n} device(s) signed out"
+                               + ("; account activated" if invited else ""),
+                       ip_address=_ip(req), target_type="user", target_id=user_id)
+    return {"id": user_id, "signed_out_devices": n, "activated": invited}
 
 
 class PersonUpdate(BaseModel):

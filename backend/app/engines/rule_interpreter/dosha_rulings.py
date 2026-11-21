@@ -267,6 +267,74 @@ def _lagna_dosha_rows(lagna: LagnaWindow, panchang: Dict[str, Any], vaara_idx: i
     return [dict(r) for r in result[0]], [dict(r) for r in result[1]]
 
 
+# The four mahadoshas that depend on the navamsha rising (user, 21 Nov 2026, "at the muhurta's navamsha"):
+# judged inside the muhurta, not over the whole lagna, and the muhurta is narrowed to the navamshas free of them.
+# A navamsha lasts 10-17 minutes, so "anywhere in the 2-hour lagna" failed almost every window. Awaiting
+# Dr. Nemani's confirmation (questionnaire E5); the other 17 mahadoshas stay judged over the whole lagna (A4).
+NAVAMSHA_DOSHA_IDS = ("papa_shadvargamu", "kunavamshamu", "lagnastra_dosham", "gandantam")
+_NAV_SPAN = 30.0 / 9.0
+NAVAMSHA_MIN_MINUTES = 8          # a narrowed muhurta shorter than this is not offered (our choice)
+
+
+def _navamsha_pieces(lagna: LagnaWindow, start: datetime, end: datetime, tz_offset: float,
+                     lat: float, lon: float) -> List[Tuple[datetime, datetime]]:
+    """[start, end] cut wherever the rising degree crosses into the next navamsha (bisection, ~1 s accuracy)."""
+    from app.engines.limb_timeline import ascendant_at
+    base = (lagna.lagna_idx - 1) * 30.0
+
+    def risen(t: datetime) -> float:
+        d = (ascendant_at(local_to_jd(t, tz_offset), lat, lon) - base) % 360.0
+        return d if d <= 30.0 else (0.0 if d > 180.0 else 30.0)
+
+    r_end = risen(end)
+    cuts = [start]
+    k = int(risen(start) // _NAV_SPAN) + 1
+    while k < 9 and k * _NAV_SPAN < r_end:
+        lo, hi = cuts[-1], end
+        for _ in range(18):
+            mid = lo + (hi - lo) / 2
+            if risen(mid) >= k * _NAV_SPAN:
+                hi = mid
+            else:
+                lo = mid
+        cuts.append(hi)
+        k += 1
+    cuts.append(end)
+    return [(a, b) for a, b in zip(cuts, cuts[1:]) if b > a]
+
+
+def navamsha_doshas(lagna: LagnaWindow, start: datetime, end: datetime, limbs, panchang: Dict[str, Any],
+                    vaara_idx: int, cur_date: date, tz_offset: float, place_obj, birth_details,
+                    base_ctx: Dict[str, Any]) -> Tuple[Optional[Tuple[datetime, datetime]], List[Dict[str, Any]]]:
+    """The four navamsha mahadoshas inside one muhurta window, navamsha by navamsha.
+    Returns (the longest run of navamshas free of all four, or None if no run lasts NAVAMSHA_MIN_MINUTES;
+    the four rows: as found in that run, else the worst over the whole window)."""
+    samples = []
+    for a, b in _navamsha_pieces(lagna, start, end, tz_offset, place_obj.latitude, place_obj.longitude):
+        mid = a + (b - a) / 2
+        d1, raw = compute_d1_positions(mid.date(), mid.hour + mid.minute / 60.0 + mid.second / 3600.0, place_obj)
+        sp = dict(panchang)
+        sp.update(limbs.as_panchang_fields())
+        sp["vaara_number"] = vaara_idx
+        ctx = dict(base_ctx, jd=local_to_jd(mid, tz_offset), limbs=limbs, window=(a, b),
+                   hora_lord=_hora_lord(mid, panchang, cur_date, vaara_idx))
+        rows = [r for r in evaluate_21_maha_doshas(sp, d1, raw, lagna.lagna_idx, birth_details, context=ctx)
+                if r.get("id") in NAVAMSHA_DOSHA_IDS]
+        clean = all(r.get("status") in ("pass", "not_applicable") for r in rows)
+        samples.append(((a, b), rows, clean))
+    best, run = None, []
+    for item in samples + [None]:
+        if item is not None and item[2]:
+            run.append(item)
+            continue
+        if run and (best is None or run[-1][0][1] - run[0][0][0] > best[-1][0][1] - best[0][0][0]):
+            best = run
+        run = []
+    if best and (best[-1][0][1] - best[0][0][0]) >= timedelta(minutes=NAVAMSHA_MIN_MINUTES):
+        return (best[0][0][0], best[-1][0][1]), _merge_lagna_rows([(s, r) for s, r, _ in best])
+    return None, _merge_lagna_rows([(s, r) for s, r, _ in samples])
+
+
 # A5 (21 Nov 2026): three dashavidha doshas are the same as a mahadosha and are counted once, as the mahadosha.
 DASHAVIDHA_SAME_AS_MAHA = {"yuti_dosham": (11, "Sagraha chandra", "సగ్రహ చంద్రుడు"),
                            "vedha_dosham": (17, "Ashubha viddha", "అశుభవిద్ధము"),

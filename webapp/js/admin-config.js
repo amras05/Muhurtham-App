@@ -134,7 +134,8 @@
       children: [
         { key: "users_view_mobile", label: ["Reveal Full Mobile Numbers", "పూర్తి మొబైల్ నంబర్లు చూడడం"] },
         { key: "users_disable", label: ["Disable and Enable Users", "వినియోగదారులను నిలిపివేయడం, ప్రారంభించడం"] },
-        { key: "invite_users", label: ["Add / Invite New Users", "కొత్త వినియోగదారులను చేర్చడం / ఆహ్వానించడం"] },
+        { key: "invite_users", label: ["Add New Users (with a password)", "కొత్త వినియోగదారులను చేర్చడం (పాస్‌వర్డ్‌తో)"] },
+        { key: "set_user_passwords", label: ["Set a User's Password", "వినియోగదారుని పాస్‌వర్డ్ సెట్ చేయడం"] },
         { key: "edit_user_profile", label: ["Edit User Profile (Name, Phone, Language)", "వినియోగదారుని ప్రొఫైల్ సవరించడం"] },
         { key: "delete_user", label: ["Permanently Delete User Account", "వినియోగదారుని ఖాతా శాశ్వత తొలగింపు"] },
         { key: "reset_user_sessions", label: ["Force Logout User Sessions", "వినియోగదారుల సెషన్లను రద్దు చేయడం (సైన్ అవుట్)"] },

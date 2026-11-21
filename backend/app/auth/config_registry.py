@@ -370,6 +370,7 @@ ADMIN_POWERS = {   # power -> the permission it grants the admin role
     "reset_user_sessions": "users.reset_sessions",
     "export_users": "users.export",
     "set_user_permissions": "users.set_perms",
+    "set_user_passwords": "users.set_password",     # users only; admins' passwords are the super admin's (21 Nov 2026)
 
     # Content & App Settings
     "content_edit": "content.edit",
@@ -391,12 +392,13 @@ class AdminPowers(BaseModel):
     users_view: bool = True
     users_view_mobile: bool = True
     users_disable: bool = True
-    invite_users: bool = False
+    invite_users: bool = True          # add users (with a password); on by default since 21 Nov 2026
     edit_user_profile: bool = False
     delete_user: bool = False
     reset_user_sessions: bool = True
     export_users: bool = False
     set_user_permissions: bool = False
+    set_user_passwords: bool = True    # set a user's password (21 Nov 2026)
 
     # Content & App Settings
     content_edit: bool = True

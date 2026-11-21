@@ -32,7 +32,7 @@ MAX_OTP_ATTEMPTS = 5
 _USER_COLUMNS = """
     id::text AS id, mobile, mobile_verified_at, name, email, password_hash, role, status,
     disabled_reason, preferred_language, created_at, updated_at, last_login_at, login_count,
-    failed_logins, locked_until, home_place, home_lat, home_lon, home_tz
+    failed_logins, locked_until, home_place, home_lat, home_lon, home_tz, is_owner
 """
 
 

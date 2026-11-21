@@ -173,14 +173,27 @@ function doshaItemHTML(m, title, desc, kind) {
 }
 
 // ---- Render Results ----
+// Best 1-2 a day (21 Nov 2026): the server marks each day's best two lagnas day_best; the rest are hidden
+// until the user asks for them. Results saved before then have no day_best and are always shown.
+var showOtherLagnas = false;
+function toggleOtherLagnas() {
+  showOtherLagnas = !showOtherLagnas;
+  if (lastData) renderResults(lastData);
+}
+
 function renderResults(data) {
   el("mfResults").style.display = "block";
+  // `results` stays the full list so every card's index still points into lastData.results ("Full analysis");
+  // `inView` is the day's best 1-2 (or everything once "Show the other lagnas" is on).
   const results = data.results || data.candidates || [];
+  const hiddenOther = results.filter(r => r.day_best === false).length;
+  const inView = r => showOtherLagnas || r.day_best !== false;
+  const visible = results.filter(inView);
   const title = currentLang === "te" ? (data.title_te || data.title_en) : data.title_en;
 
   // Summary boxes double as filters (11 Nov 2026): Excellent >= 75 %, Medium 50-74 %, Avoid < 50 %.
   const band = r => { const p = r.percentage || 0; return p >= 75 ? "excellent" : p >= 50 ? "medium" : "avoid"; };
-  const count = b => results.filter(r => band(r) === b).length;
+  const count = b => visible.filter(r => band(r) === b).length;
   const tile = (key, n, numCls, en, te) => `
     <button type="button" class="summary-stat summary-stat--filter${bandFilter === key ? " is-active" : ""}" data-band="${key}"
             aria-pressed="${bandFilter === key}" title="${escapeHtml(T("Show only these", "ఇవి మాత్రమే చూపించు"))}">
@@ -194,7 +207,10 @@ function renderResults(data) {
     tile("excellent", count("excellent"), "num--excellent", "Excellent", "ఉత్తమ ముహూర్తములు") +
     tile("medium", count("medium"), "num--favorable", "Medium", "మధ్యమ ముహూర్తములు") +
     tile("avoid", count("avoid"), "num--unfavorable", "Avoid", "నిషిద్ధములు") +
-    tile("", results.length, "num--muhurta", "All muhurtas", "అన్ని ముహూర్తములు");
+    tile("", visible.length, "num--muhurta", "All muhurtas", "అన్ని ముహూర్తములు") +
+    (hiddenOther ? `<button type="button" class="btn btn--sm btn--outline other-lagnas-toggle" onclick="toggleOtherLagnas()" aria-pressed="${showOtherLagnas}">${escapeHtml(showOtherLagnas
+      ? T("Show only the best 1–2 a day", "రోజుకు ఉత్తమ 1–2 మాత్రమే చూపించు")
+      : T(`Show the other lagnas (${hiddenOther})`, `ఇతర లగ్నాలు చూపించు (${hiddenOther})`))}</button>` : "");
 
   // Day cards
   const grid = el("dayGrid");
@@ -203,7 +219,7 @@ function renderResults(data) {
   // Minimum score (11 Nov 2026): hide cards below it, but keep each card's index into lastData so
   // "Full analysis" still opens the right one.
   const minScore = Number(el("mfMinScore")?.value || 0);
-  const passes = r => (r.percentage || 0) >= minScore && (!bandFilter || band(r) === bandFilter)
+  const passes = r => inView(r) && (r.percentage || 0) >= minScore && (!bandFilter || band(r) === bandFilter)
                     && (!eventFilter || (r._event && r._event.id === eventFilter));
   renderEventFilter(data, results);
   const shownCount = results.filter(passes).length;

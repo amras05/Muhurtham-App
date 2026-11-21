@@ -126,8 +126,11 @@ def evaluate_window_for_rule(
     # scored lower; only Strict mode refuses. Before, a missed weekday or nakshatra silently dropped the
     # window (e.g. a daivajna's Sunday / Ashwini business muhurta never appeared).
     def check(bad: bool, msg: str):
-        """Refuse (Strict) or note (Show all) a missed rule; None when it passed or was only noted."""
-        return miss(msg) if bad else None
+        """A panchanga rule (angas, dagdha tithi, waning-Moon Monday, the Sun's sign): refuse in both modes.
+        User, 21 Nov 2026 ("good days, best 1-2"): a day whose panchanga the event does not allow gets no
+        muhurtas, as in a printed panchangam. This reverses the 21 Nov morning "note it and go on" for these
+        checks; the chart and person checks below still only note a miss in Show-all mode."""
+        return fail(msg) if bad else None
 
     # 1-5. The five angas (vara, tithi, nakshatra, yoga, karana), one helper shared with the score.
     angas = anga_checks(cr, limbs, vaara_idx)

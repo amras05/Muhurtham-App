@@ -8,6 +8,14 @@ Refuses if an active super admin already exists. If the mobile already has an ac
 that account is promoted (and its mobile marked verified); otherwise a new account is made
 and you are asked for its password twice (input hidden). Nothing is printed or logged
 except the masked mobile.
+
+The account made here is the owner (is_owner, migration 0005, 21 Nov 2026): nobody can delete, demote or
+disable it, not even another super admin, and only the owner manages the other super admins.
+
+    python -m app.auth.bootstrap --mobile +919848012345 --name "Your Name" --claim-owner
+
+marks an existing active super admin as the owner when no account is marked yet (e.g. the migration could
+not tell which one was made here). It refuses if an owner already exists.
 """
 import argparse
 import getpass
@@ -25,6 +33,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Create the first super admin.")
     ap.add_argument("--mobile", required=True, help="Mobile number, e.g. +919848012345")
     ap.add_argument("--name", required=True, help="Display name (2-80 characters)")
+    ap.add_argument("--claim-owner", action="store_true",
+                    help="Mark this existing super admin as the owner (only when no owner is marked yet)")
     args = ap.parse_args()
 
     mobile = normalize_mobile(args.mobile)
@@ -35,6 +45,8 @@ def main() -> int:
     if not 2 <= len(name) <= 80:
         print("Name must be 2 to 80 characters.", file=sys.stderr)
         return 1
+    if args.claim_owner:
+        return claim_owner(mobile)
     if count_active_super_admins() > 0:
         print("A super admin already exists. Use the admin screens to change roles.", file=sys.stderr)
         return 1
@@ -43,7 +55,8 @@ def main() -> int:
     if existing:
         with app_engine().begin() as c:
             c.execute(text("""UPDATE app.users SET role = 'super_admin', status = 'active', disabled_reason = NULL,
-                                     mobile_verified_at = COALESCE(mobile_verified_at, now()), name = :n
+                                     mobile_verified_at = COALESCE(mobile_verified_at, now()), name = :n,
+                                     is_owner = true
                               WHERE id = CAST(:i AS uuid)"""), {"n": name, "i": existing["id"]})
         user_id = existing["id"]
         print(f"Promoted the existing account {mask_mobile(mobile)} to super admin.")
@@ -57,13 +70,31 @@ def main() -> int:
             return 1
         with app_engine().begin() as c:
             user_id = c.execute(text("""
-                INSERT INTO app.users (mobile, mobile_verified_at, name, password_hash, role, status)
-                VALUES (:m, now(), :n, :p, 'super_admin', 'active') RETURNING id::text"""),
+                INSERT INTO app.users (mobile, mobile_verified_at, name, password_hash, role, status, is_owner)
+                VALUES (:m, now(), :n, :p, 'super_admin', 'active', true) RETURNING id::text"""),
                 {"m": mobile, "n": name, "p": hash_password(pw)}).scalar()
         print(f"Created super admin {mask_mobile(mobile)}. Log in with this mobile and password.")
 
     write_activity_log(None, "bootstrap.super_admin", details="Super admin created from the server command line",
                        target_type="user", target_id=user_id)
+    return 0
+
+
+def claim_owner(mobile: str) -> int:
+    """Mark an existing active super admin as the owner, when no account is marked yet."""
+    with app_engine().begin() as c:
+        if c.execute(text("SELECT count(*) FROM app.users WHERE is_owner")).scalar():
+            print("An owner account is already marked; it cannot be moved from here.", file=sys.stderr)
+            return 1
+        user_id = c.execute(text("""UPDATE app.users SET is_owner = true
+                                    WHERE mobile = :m AND role = 'super_admin' AND status = 'active'
+                                    RETURNING id::text"""), {"m": mobile}).scalar()
+    if not user_id:
+        print("No active super admin has that mobile number.", file=sys.stderr)
+        return 1
+    write_activity_log(None, "bootstrap.claim_owner", details="Owner account marked from the server command line",
+                       target_type="user", target_id=user_id)
+    print(f"Marked {mask_mobile(mobile)} as the owner account.")
     return 0
 
 

@@ -48,11 +48,11 @@ from app.engines.nama_nakshatra import (
     check_travel_directional_sula,
     check_facing_compatibility,
 )
-from app.engines.rule_interpreter.rules_loader import SHUNYA_MASA, VAARA_MAP, _hms_to_hours, compile_rule  # noqa: F401
+from app.engines.rule_interpreter.rules_loader import SHUNYA_MASA, VAARA_MAP, CompiledRule, _hms_to_hours, compile_rule  # noqa: F401
 from app.engines.rule_interpreter.planets import RITU_NIGHTS, _hora_lord, samvatsara_lord  # noqa: F401
 from app.engines.rule_interpreter.pushkara import lagna_for_window, pushkara_text, window_amsha, window_pushkara  # noqa: F401
 from app.engines.rule_interpreter.window_rules import anga_checks, evaluate_window_for_rule  # noqa: F401
-from app.engines.rule_interpreter.dosha_rulings import _LAGNA_EXTRA_IDS, _NOT_LAGNA_DOSHA, _is_panchanga_miss, _lagna_dosha_rows, _mark_duplicates, apply_author_severity, dosha_audit, doshapavada, except_by_benefics  # noqa: F401
+from app.engines.rule_interpreter.dosha_rulings import _LAGNA_EXTRA_IDS, _NOT_LAGNA_DOSHA, _is_panchanga_miss, _lagna_dosha_rows, _mark_duplicates, apply_author_severity, dosha_audit, doshapavada, except_by_benefics, navamsha_doshas  # noqa: F401
 from app.engines.rule_interpreter.scoring import _share, dosha_scoring_for  # noqa: F401
 
 
@@ -67,6 +67,7 @@ from app.engines.rule_interpreter.scoring import _share, dosha_scoring_for  # no
 import copy as _copy
 
 _DAY_CACHE_SIZE = 512
+DAY_BEST_LAGNAS = 2          # muhurtas shown per day (user, 21 Nov 2026: "one or two per type a day")
 
 
 @lru_cache(maxsize=_DAY_CACHE_SIZE)
@@ -490,11 +491,9 @@ def find_muhurta_windows(
         sunset_dt = base_dt + timedelta(hours=_hms_to_hours(panchang.get("sunset"), default=18.0))
 
         day_reject = _day_level_reject(cr, panchang, cur_date, ap, tz_offset)
-        # Show all (21 Nov 2026): a whole-day rule the day misses (month, moudhya, Jupiter's sign, guru bala)
-        # is noted on every window of the day instead of dropping the day; Strict still drops it.
+        # A whole-day rule the day misses (month, moudhya, Jupiter's sign, guru bala) drops the day in both modes
+        # again (user, 21 Nov 2026, "good days, best 1-2"; the morning's "note it on every window" is reversed).
         day_miss = None
-        if day_reject and not strict:
-            day_miss, day_reject = day_reject, None
         # The user's own rulings stay hard in both modes: the Godavari Pushkaralu rule (13 Nov 2026).
         if not day_reject and pushkara_near and jupiter_in_simha(cur_date):
             day_reject = "Godavari Pushkaralu: Jupiter in Simha, no muhurtas near the Godavari"
@@ -559,11 +558,8 @@ def find_muhurta_windows(
                 if ok and hf.anadhyaya:
                     why_an = _anadhyaya_reason(limbs.tithi, (panchang.get("chandramana") or {}).get("month_number"),
                                                local_to_jd(seg_start, tz_offset))
-                    if why_an:
-                        if misses is None:
-                            ok, why = False, [why_an]
-                        else:
-                            misses.append(why_an)
+                    if why_an:          # an anadhyaya day is a panchanga rule: refused in both modes
+                        ok, why = False, [why_an]
                 if ok:
                     for who, nidx in extra_taras:
                         tb = evaluate_tarabala(limbs.nakshatra, nidx)
@@ -623,6 +619,26 @@ def find_muhurta_windows(
             warnings.append(f"No muhurta in the allowed {unit} within these dates; all muhurtas are shown, "
                             f"each marked with the age.")
     age_rank = {(c["date"], c["window_start"]): (c.get("age") or {}).get("tier", 0) for c in candidates}
+
+    # Best 1-2 a day (user, 21 Nov 2026): on each panchang day the best window of the two best lagnas is marked
+    # day_best (by %, then the event's preference points, then the earlier time); the page shows those and
+    # folds the rest under "Other lagnas this day". day_rank numbers every window of the day in that order.
+    by_day: Dict[str, List[Dict[str, Any]]] = {}
+    for c in candidates:
+        by_day.setdefault(c["panchang_day"], []).append(c)
+    best_keys = set()
+    for day_list in by_day.values():
+        day_list.sort(key=lambda c: (-c["percentage"], -c.get("rule_score", 0), c["window_start"]))
+        lagnas_taken: List[str] = []
+        for i, c in enumerate(day_list, 1):
+            c["day_rank"] = i
+            lg = c["detailed_eval"]["lagna"]["name"]
+            c["day_best"] = lg not in lagnas_taken and len(lagnas_taken) < DAY_BEST_LAGNAS
+            if c["day_best"]:
+                lagnas_taken.append(lg)
+                best_keys.add((c["date"], c["window_start"]))
+    for w in results:
+        w["day_best"] = (w["date"], w["start_time"]) in best_keys
 
     sorted_candidates = sorted(candidates, key=lambda x: (age_rank.get((x["date"], x["window_start"]), 0),
                                                           -x["percentage"], -x.get("rule_score", 0), x["date"], x["window_start"]))
@@ -798,6 +814,21 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
         "limbs_checked": cr.limbs_checked,
         "participants": participants,
     }
+    # The four navamsha mahadoshas (user, 21 Nov 2026): judged inside this window, navamsha by navamsha, and the
+    # window narrowed to the longest run of navamshas free of them. Everything below then uses that window.
+    nav_span, nav_rows = navamsha_doshas(lagna, cw.start, cw.end, limbs, panchang, vaara_idx, cur_date, tz_offset,
+                                         place_obj, birth_details, ctx)
+    if nav_span and (nav_span[0] > cw.start or nav_span[1] < cw.end):
+        cw = TimeWindow(start=nav_span[0], end=nav_span[1], label=cw.label, metadata=dict(cw.metadata or {}))
+        lagna = lagna_for_window(lagna, cw.start, cw.end)
+        rules_passed = [r for r in rules_passed if not str(r).startswith("Pushkara navamsa")]
+        if lagna.is_pushkara_navamsa:
+            rules_passed.append(f"Pushkara navamsa: {pushkara_text(lagna)} (+5)")
+        mid_dt = cw.start + (cw.end - cw.start) / 2
+        d1_positions, raw_d1 = compute_d1_positions(mid_dt.date(), mid_dt.hour + mid_dt.minute / 60.0
+                                                    + mid_dt.second / 3600.0, place_obj)
+        ctx.update(jd=local_to_jd(mid_dt, tz_offset), window=(cw.start, cw.end),
+                   hora_lord=_hora_lord(mid_dt, panchang, cur_date, vaara_idx))
     common = cr.hf.common
     # Super admin setting (20 Nov 2026): a set switched to "Don't calculate in score" is still worked out
     # and shown on the result, but it neither lowers nor caps the percentage.
@@ -810,6 +841,18 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
         logger.warning(f"Whole-lagna dosha check fell back to the window middle for {lagna.start:%Y-%m-%d %H:%M}")
         maha_doshas = evaluate_21_maha_doshas(seg_panchang, d1_positions, raw_d1, lagna.lagna_idx, birth_details, context=ctx)
         dashavidha = evaluate_10_dashavidha_doshas(seg_panchang, d1_positions, raw_d1, lagna.lagna_idx, birth_details, context=ctx)
+    nav_by_id = {r.get("id"): r for r in nav_rows}
+    note_en = (f"Judged at this muhurta's navamshas ({cw.start:%H:%M}–{cw.end:%H:%M})." if nav_span
+               else "Judged at this muhurta's navamshas: none of them is free of it.")
+    note_te = (f"ఈ ముహూర్త నవాంశలలో చూశాము ({cw.start:%H:%M}–{cw.end:%H:%M})." if nav_span
+               else "ఈ ముహూర్త నవాంశలలో చూశాము: ఏ నవాంశా దీని నుండి విముక్తం కాదు.")
+    for i, r in enumerate(maha_doshas):
+        if r.get("id") in nav_by_id:
+            row = dict(nav_by_id[r["id"]])
+            if row.get("status") != "not_applicable":
+                row["desc_en"] = f"{row.get('desc_en') or ''} {note_en}".strip()
+                row["desc_te"] = f"{row.get('desc_te') or ''} {note_te}".strip()
+            maha_doshas[i] = row
     if ds["mahadoshas"]:
         _mark_duplicates(dashavidha)
     pariharas = evaluate_muhurta_pariharas(seg_panchang, raw_d1, lagna.lagna_idx,

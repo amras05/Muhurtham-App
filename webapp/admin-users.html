@@ -36,12 +36,16 @@
     </div>
     <form id="addPersonForm" class="portal-card portal-form" hidden>
       <h2 data-en="Add a person" data-te="వ్యక్తిని జోడించండి">Add a person</h2>
-      <p class="portal-hint" data-en="They get no password. They open the login page, choose &quot;Forgot password&quot;, confirm the code sent to this number on WhatsApp and set their own password." data-te="వీరికి పాస్‌వర్డ్ ఉండదు. లాగిన్ పేజీలో 'పాస్‌వర్డ్ మర్చిపోయారా' ఎంచుకుని, ఈ నంబర్ వాట్సాప్‌కు వచ్చిన కోడ్‌తో తమ పాస్‌వర్డ్ పెట్టుకుంటారు.">They get no password. They open the login page, choose "Forgot password", confirm the code sent to this number on WhatsApp and set their own password.</p>
+      <p class="portal-hint" data-en="The account is ready at once: they log in with this mobile and the password you set here. Tell them the password privately; they can change it in My account." data-te="ఖాతా వెంటనే సిద్ధం: ఈ మొబైల్, ఇక్కడ పెట్టిన పాస్‌వర్డ్‌తో లాగిన్ అవుతారు. పాస్‌వర్డ్‌ను వారికి వ్యక్తిగతంగా చెప్పండి; నా ఖాతాలో మార్చుకోవచ్చు.">The account is ready at once: they log in with this mobile and the password you set here. Tell them the password privately; they can change it in My account.</p>
       <div class="row-form">
         <div class="field"><label for="apName" data-en="Name" data-te="పేరు">Name</label><input id="apName" required minlength="2" maxlength="80" autocomplete="off"></div>
         <div class="field"><label for="apPhone" data-en="Mobile" data-te="మొబైల్">Mobile</label><input id="apPhone" required inputmode="tel" maxlength="20" autocomplete="off" placeholder="98480 12345"></div>
-        <div class="field"><label for="apRole" data-en="Role" data-te="పాత్ర">Role</label><select id="apRole"><option value="user" data-en="User" data-te="వినియోగదారు">User</option><option value="admin" data-en="Admin" data-te="నిర్వాహకులు">Admin</option></select></div>
+        <div class="field"><label for="apRole" data-en="Role" data-te="పాత్ర">Role</label><select id="apRole"><option value="user" data-en="User" data-te="వినియోగదారు">User</option></select></div>
         <div class="field"><label for="apLang" data-en="Language" data-te="భాష">Language</label><select id="apLang"><option value="te">తెలుగు</option><option value="en">English</option></select></div>
+      </div>
+      <div class="row-form">
+        <div class="field"><label for="apPass" data-en="Password (at least 8 characters)" data-te="పాస్‌వర్డ్ (కనీసం 8 అక్షరాలు)">Password (at least 8 characters)</label><input id="apPass" type="password" required minlength="8" maxlength="128" autocomplete="new-password"></div>
+        <div class="field"><label for="apPass2" data-en="Type the password again" data-te="పాస్‌వర్డ్ మళ్ళీ టైప్ చేయండి">Type the password again</label><input id="apPass2" type="password" required minlength="8" maxlength="128" autocomplete="new-password"></div>
       </div>
       <div class="row-form"><button type="submit" class="btn" data-en="Add" data-te="జోడించండి">Add</button><button type="button" class="btn btn--ghost" id="apCancel" data-en="Cancel" data-te="రద్దు">Cancel</button></div>
     </form>
@@ -63,6 +67,6 @@
   <script src="js/app-shell.js?v=20261110"></script>
   <script src="js/i18n.js?v=20261114c"></script>
   <script src="js/auth.js?v=20261119a"></script>
-  <script src="js/admin-users.js?v=20261110"></script>
+  <script src="js/admin-users.js?v=20261121b"></script>
 </body>
 </html>

@@ -18,7 +18,7 @@ _ADMIN = _USER | {
 }
 _SUPER = _ADMIN | {
     "users.role", "users.disable_admins", "settings.edit", "system.view", "audit.view_all",
-    "users.create", "users.edit", "users.delete",
+    "users.create", "users.edit", "users.delete", "users.set_password",
 }
 
 ROLE_PERMISSIONS: Dict[str, FrozenSet[str]] = {"user": _USER, "admin": frozenset(_ADMIN), "super_admin": frozenset(_SUPER)}
@@ -142,6 +142,7 @@ PARENT_PERMS: Dict[str, str] = {
     "users.reset_sessions": "users.view",
     "users.export": "users.view",
     "users.set_perms": "users.view",
+    "users.set_password": "users.view",
 }
 
 

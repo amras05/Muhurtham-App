@@ -1,10 +1,11 @@
 // Users page (admin and super admin): search, masked mobiles with a logged reveal, disable / enable,
-// several at once; the super admin also adds, edits and deletes people (plan R9).
+// several at once; adding people with a password and setting passwords (21 Nov 2026: admins add users,
+// super admins also admins, the owner also super admins; the owner account is managed by nobody else).
 (function () {
   function tr(en, te) { return currentLang === "te" ? te : en; }
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
-  var rows = [], selected = {}, canCreate = false;
+  var rows = [], selected = {}, canCreate = false, createRoles = ["user"], roleChoices = ["user", "admin"];
   var ROLE = { user: ["User", "వినియోగదారు"], admin: ["Admin", "నిర్వాహకులు"], super_admin: ["Super admin", "ప్రధాన నిర్వాహకులు"] };
   var STATUS = { active: ["Active", "సక్రియం"], disabled: ["Disabled", "నిలిపివేయబడింది"], pending: ["Sign-up not finished", "నమోదు పూర్తి కాలేదు"],
                  invited: ["Invited", "ఆహ్వానించబడ్డారు"] };
@@ -24,19 +25,27 @@
   function render() {
     $("usersCount").textContent = tr(rows.length + " shown", rows.length + " మంది");
     $("addPersonBtn").hidden = !canCreate;
+    // Roles this person may give a new account (server: creatable_roles): admins add users, super admins
+    // also admins, the owner also super admins (21 Nov 2026).
+    var cur = $("apRole").value;
+    $("apRole").innerHTML = createRoles.map(function (r) {
+      return '<option value="' + r + '"' + (r === cur ? " selected" : "") + ">" + esc(tr(ROLE[r][0], ROLE[r][1])) + "</option>"; }).join("");
     $("peopleBody").innerHTML = rows.length ? rows.map(function (p) {
       var st = STATUS[p.status] || [p.status, p.status];
       var acts = [];
       if (p.can_manage && p.status === "active") acts.push(link("disable", p.id, "Disable", "నిలిపివేయండి"));
       if (p.can_manage && p.status === "disabled") acts.push(link("enable", p.id, "Enable", "ప్రారంభించండి"));
-      if (p.can_change_role) acts.push(link("role", p.id, p.role === "admin" ? "Remove admin" : "Make admin",
-        p.role === "admin" ? "నిర్వాహక హోదా తీసివేయండి" : "నిర్వాహకులుగా చేయండి", ' data-role="' + (p.role === "admin" ? "user" : "admin") + '"'));
+      if (p.can_change_role) roleChoices.filter(function (r) { return r !== p.role; }).forEach(function (r) {
+        acts.push(link("role", p.id, "Make " + ROLE[r][0].toLowerCase(), ROLE[r][1] + "గా చేయండి", ' data-role="' + r + '"'));
+      });
+      if (p.can_set_password) acts.push(link("password", p.id, "Set password", "పాస్‌వర్డ్ పెట్టండి"));
       if (p.can_edit) acts.push(link("edit", p.id, "Edit", "మార్చండి"));
       if (p.can_set_perms) acts.push(link("perms", p.id, "Permissions", "అధికారాలు"));
       if (p.can_delete) acts.push(link("delete", p.id, "Delete", "తొలగించండి"));
       var box = p.can_manage ? '<input type="checkbox" data-sel="' + p.id + '"' + (selected[p.id] ? " checked" : "") + ' aria-label="' + esc(tr("Select ", "ఎంచుకోండి ") + p.name) + '">' : "";
       return '<tr data-row="' + p.id + '"><td>' + box + "</td><td><strong>" + esc(p.name) + "</strong><small>" + tr(p.devices + " device(s) signed in", p.devices + " పరికరాల్లో లాగిన్") + "</small></td>" +
         '<td><span class="mob">' + esc(p.mobile_masked) + "</span> " + link("reveal", p.id, "Show", "చూపించు") + "</td>" +
+        // The owner shows as a plain super admin (user, 21 Nov 2026); it is still protected on the server.
         "<td>" + esc(tr(ROLE[p.role][0], ROLE[p.role][1])) + "</td>" +
         '<td><span class="status-chip status-chip--' + p.status + '">' + esc(tr(st[0], st[1])) + "</span>" +
         (p.locked ? ' <span class="status-chip status-chip--locked">' + tr("Locked", "లాక్") + "</span>" : "") +
@@ -64,6 +73,7 @@
     try {
       var r = await api("GET", "/admin/people?" + q.toString());
       rows = r.people; canCreate = !!r.can_create;
+      createRoles = r.create_roles || ["user"]; roleChoices = r.role_choices || ["user", "admin"];
       var shown = {}; rows.forEach(function (p) { shown[p.id] = true; });
       Object.keys(selected).forEach(function (id) { if (!shown[id]) delete selected[id]; });
       render();
@@ -77,11 +87,15 @@
   $("apCancel").addEventListener("click", function () { $("addPersonForm").reset(); $("addPersonForm").hidden = true; });
   $("addPersonForm").addEventListener("submit", async function (e) {
     e.preventDefault();
+    if ($("apPass").value !== $("apPass2").value) {
+      say("error", tr("The two passwords do not match.", "రెండు పాస్‌వర్డ్‌లు సరిపోలలేదు.")); $("apPass2").focus(); return;
+    }
     try {
       await api("POST", "/admin/people", { name: $("apName").value.trim(), phone: $("apPhone").value.trim(),
-                                           role: $("apRole").value, preferred_language: $("apLang").value });
-      say("info", tr("Added. Ask them to open the login page, choose \"Forgot password\" and set a password with the WhatsApp code.",
-                     "జోడించాము. లాగిన్ పేజీలో 'పాస్‌వర్డ్ మర్చిపోయారా' ఎంచుకుని వాట్సాప్ కోడ్‌తో పాస్‌వర్డ్ పెట్టుకోమని చెప్పండి."));
+                                           role: $("apRole").value, preferred_language: $("apLang").value,
+                                           password: $("apPass").value, confirm_password: $("apPass2").value });
+      say("info", tr("Added. They can log in now with this mobile and the password you set.",
+                     "జోడించాము. ఈ మొబైల్, మీరు పెట్టిన పాస్‌వర్డ్‌తో ఇప్పుడే లాగిన్ అవ్వచ్చు."));
       $("addPersonForm").reset(); $("addPersonForm").hidden = true;
       $("fStatus").value = ""; load();
     } catch (err) { say("error", err.message); }
@@ -155,6 +169,21 @@
         say("info", tr("Role changed. It applies from their next click.", "పాత్ర మార్చాము. వారి తదుపరి చర్య నుండి అమలవుతుంది."));
         load();
       } catch (err) { say("error", err.message); }
+    } else if (act === "password" && p) {
+      var pf = rowForm(row,
+        '<input name="pw" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="' + esc(tr("New password (8+ characters)", "కొత్త పాస్‌వర్డ్ (8+ అక్షరాలు)")) + '" aria-label="' + esc(tr("New password", "కొత్త పాస్‌వర్డ్")) + '">' +
+        '<input name="pw2" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="' + esc(tr("Type it again", "మళ్ళీ టైప్ చేయండి")) + '" aria-label="' + esc(tr("Type the password again", "పాస్‌వర్డ్ మళ్ళీ")) + '">' +
+        '<button class="btn btn--sm">' + tr("Set password", "పాస్‌వర్డ్ పెట్టండి") + "</button>");
+      pf.addEventListener("submit", async function (ev) {
+        ev.preventDefault();
+        if (pf.pw.value !== pf.pw2.value) { say("error", tr("The two passwords do not match.", "రెండు పాస్‌వర్డ్‌లు సరిపోలలేదు.")); return; }
+        try {
+          var out = await api("POST", "/admin/people/" + id + "/password", { password: pf.pw.value, confirm_password: pf.pw2.value });
+          say("info", tr("Password set. They were signed out of " + out.signed_out_devices + " device(s) and log in with the new password.",
+                         "పాస్‌వర్డ్ పెట్టాము. " + out.signed_out_devices + " పరికరాల నుండి సైన్ అవుట్ చేశాము; కొత్త పాస్‌వర్డ్‌తో లాగిన్ అవుతారు."));
+          load();
+        } catch (err) { say("error", err.message); }
+      });
     } else if (act === "edit" && p) {
       var ef = rowForm(row,
         '<input name="name" required minlength="2" maxlength="80" value="' + esc(p.name) + '" aria-label="' + esc(tr("Name", "పేరు")) + '">' +
