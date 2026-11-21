@@ -168,3 +168,21 @@ def put_me(body: MeUpdate, req: Request, current_user: dict = Depends(get_curren
     write_activity_log(user_id=current_user["id"], action="account_update",
                        details="Changed " + ", ".join(sorted(fields)), ip_address=req.client.host if req.client else None)
     return _me(get_user_by_id(current_user["id"]))
+
+
+@router.get("/me/permissions")
+def get_my_permissions(current_user: dict = Depends(get_current_user)) -> Dict[str, Any]:
+    """Returns the user's full resolved permissions map."""
+    from app.auth.permissions import resolve_permission
+    from app.auth.config_registry import USER_POWERS, ADMIN_POWERS
+
+    all_keys = sorted(set(list(USER_POWERS.values()) + list(ADMIN_POWERS.values()) + [
+        "users.role", "users.disable_admins", "settings.edit", "audit.view_all",
+        "users.edit", "users.delete", "self.mobile", "admin.dashboard",
+    ]))
+    perms = {k: resolve_permission(current_user, k) for k in all_keys}
+    return {
+        "role": current_user.get("role", "user"),
+        "permissions": perms,
+        "overrides": current_user.get("_perm_overrides", {}),
+    }

@@ -209,3 +209,20 @@
 .cf-contrast.is-ok { color: var(--color-success); }
 .cf-contrast.is-bad { color: var(--color-danger); }
 .cf-preview { display: inline-flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: 12px; background: var(--color-surface-muted); width: fit-content; }
+
+/* Hierarchical permission tree / accordion (RBAC detailed controls) */
+.cf-perm-tree { display: grid; gap: var(--space-3); width: 100%; max-width: 48rem; }
+.cf-perm-group { border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); overflow: hidden; transition: border-color 0.15s ease; }
+.cf-perm-group:hover { border-color: var(--color-border-strong); }
+.cf-perm-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--color-surface-muted); gap: var(--space-3); cursor: pointer; user-select: none; }
+.cf-perm-title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: var(--text-base); color: var(--color-text); }
+.cf-perm-chevron { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: var(--radius-sm); background: var(--color-surface); border: 1px solid var(--color-border); font-size: 10px; color: var(--color-text-muted); transition: transform 0.2s ease; cursor: pointer; }
+.cf-perm-group.is-open .cf-perm-chevron { transform: rotate(90deg); color: var(--color-primary-strong); border-color: var(--color-primary); }
+.cf-perm-ctrls { display: flex; align-items: center; gap: 12px; }
+.cf-perm-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--color-surface-strong); color: var(--color-text-muted); font-weight: 500; }
+.cf-perm-badge.is-full { background: var(--color-uttama-bg, #ebf7e1); color: var(--color-uttama-text, #2e6e00); font-weight: 600; }
+.cf-perm-badge.is-empty { background: var(--color-nishiddha-bg, #feeceb); color: var(--color-nishiddha-text, #b42318); }
+.cf-perm-children { padding: 12px 14px 14px 44px; display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 10px; border-top: 1px solid var(--color-border); background: var(--color-surface); }
+.cf-perm-group:not(.is-open) .cf-perm-children { display: none; }
+.cf-perm-child { display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); }
+.cf-perm-child label { margin: 0; }

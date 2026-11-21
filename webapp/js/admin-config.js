@@ -19,7 +19,7 @@
     ["finder", "Finder and sharing", "శోధన, పంచుకోవడం", ["finder", "dosha_scoring", "sharing", "godavari"]],
     ["texts", "Texts", "పాఠ్యాలు", ["texts"]],
     ["security", "Accounts and security", "ఖాతాలు, భద్రత", ["security"]],
-    ["admins", "Admin powers", "నిర్వాహకుల అధికారాలు", ["admin_powers", "admin_dashboard"]],
+    ["admins", "Privileges & powers", "అధికారాలు & అనుమతులు", ["admin_powers", "user_powers", "admin_dashboard"]],
     ["system", "System", "వ్యవస్థ", []],
   ];
   var SECTION_LABELS = {
@@ -29,15 +29,159 @@
     dos: ["Good for / avoid today", "అనుకూల, వర్జ్యములు"], shloka: ["Today's shloka", "నేటి శ్లోకం"],
     cta: ["Muhurta Finder banner", "ముహూర్త శోధన బ్యానర్"], more: ["More details", "మరిన్ని వివరాలు"],
   };
-  var POWER_LABELS = {
-    users_view: ["See the Users page", "వినియోగదారుల పేజీ చూడడం"], users_view_mobile: ["See full mobile numbers", "పూర్తి మొబైల్ నంబర్లు చూడడం"],
-    users_disable: ["Disable and enable users", "వినియోగదారులను నిలిపివేయడం, ప్రారంభించడం"], content_edit: ["Edit announcements and utpata dates", "ప్రకటనలు, ఉత్పాత తేదీలు మార్చడం"],
-    audit_view_users: ["See users' activity", "వినియోగదారుల కార్యకలాపాలు చూడడం"], stats_view: ["See Statistics and system health", "గణాంకాలు, వ్యవస్థ స్థితి చూడడం"],
+  var USER_PERM_GROUPS = [
+    {
+      id: "panchang",
+      parent: "panchang_view",
+      title: ["Today's Panchangam", "నేటి పంచాంగం"],
+      children: [
+        { key: "panchang_change_place", label: ["Change City / Location", "నగరం / ప్రదేశం మార్చడం"] },
+        { key: "panchang_change_date", label: ["Change Date (Calendar & Prev/Next)", "తేదీ మార్చడం (క్యాలెండర్, ముందు/వెనుక)"] },
+        { key: "panchang_share", label: ["Share Panchang (Link, WhatsApp, Image)", "పంచాంగం పంచుకోవడం (లింక్, వాట్సాప్)"] },
+        { key: "panchang_pdf", label: ["Download Panchang as PDF", "పంచాంగం PDF డౌన్‌లోడ్"] },
+        { key: "panchang_month", label: ["Switch to Monthly View Link", "మాస పంచాంగం లింక్"] },
+        { key: "panchang_find_muhurtha", label: ["Find Muhurtham CTA Banner", "ముహూర్త శోధన బ్యానర్"] },
+        { key: "panchang_live_cards", label: ["Live Cards (Lagna, Good/Bad Times)", "లైవ్ కార్డులు (లగ్నం, శుభ/అశుభాలు)"] },
+        { key: "panchang_angas", label: ["Principal Angas (Tithi, Nakshatra, Yoga, Karana, Vara)", "పంచాంగ ప్రధానాంగాలు (తిథి, నక్షత్రం...)"] },
+        { key: "panchang_timeline", label: ["24-Hour Day Timeline", "24 గంటల కాల చక్రం"] },
+        { key: "panchang_timings", label: ["Good & Bad Times (Rahu, Yama, Durmuhurtha, Varjyam)", "శుభ & అశుభ సమయాలు (రాహుకాలం...)"] },
+        { key: "panchang_ashta_kaalas", label: ["Dina Ashta Kaalas (8 Divisions)", "దిన అష్ట కాల విభజన (8 కాలాలు)"] },
+        { key: "panchang_hora_choghadiya", label: ["Hora & Choghadiya Tables", "హోర & చోఘడియా పట్టికలు"] },
+        { key: "panchang_chandrabalam", label: ["Chandrabalam for All Rashis", "రాశి వారి చంద్రబలం"] },
+        { key: "panchang_lagnas", label: ["12 Lagnas Detailed Table", "12 లగ్నాల వివరాల పట్టిక"] },
+        { key: "panchang_shloka", label: ["Daily Shloka & Mantra", "నేటి శ్లోకం & మంత్రం"] }
+      ]
+    },
+    {
+      id: "month",
+      parent: "month_view",
+      title: ["Monthly Panchangam", "మాస పంచాంగం"],
+      children: [
+        { key: "month_navigate", label: ["Month & Year Navigator", "నెల & సంవత్సరం మార్చడం"] },
+        { key: "month_day_details", label: ["Day Details Modal / Popover", "రోజు వివరాల పాపప్ / మోడల్"] },
+        { key: "month_pdf", label: ["Export Month Calendar as PDF", "నెల క్యాలెండర్ PDF ఎగుమతి"] },
+        { key: "month_festivals", label: ["Festivals & Vratams Markers", "పండుగలు & వ్రతాల సూచికలు"] }
+      ]
+    },
+    {
+      id: "muhurta",
+      parent: "muhurta_search",
+      title: ["Muhurtha Darshini / Finder", "ముహూర్త దర్శిని / శోధన"],
+      children: [
+        { key: "muhurta_select_activity", label: ["Select Activity & Category (Vivaha, Gruhapravesha...)", "కార్యక్రమం & వర్గం ఎంపిక (వివాహం, గృహప్రవేశం...)"] },
+        { key: "muhurta_date_range", label: ["Custom Date Range Selection", "తేదీల పరిధి ఎంపిక"] },
+        { key: "muhurta_time_filters", label: ["Time Window Filters (Morning, Evening...)", "సమయ విండో ఫిల్టర్లు (ఉదయం, సాయంత్రం...)"] },
+        { key: "muhurta_participants", label: ["Participant Birth Chart Matching (Bride, Groom, Vatu)", "జాతక చక్రాల సరిపోలిక (వధువు, వరుడు, వటువు)"] },
+        { key: "muhurta_audit", label: ["Muhurtha Parishilana (Quality Audit Tab)", "ముహూర్త పరిశీలన (నాణ్యత విశ్లేషణ)"] },
+        { key: "muhurta_save", label: ["Save Muhurtham to Vault", "ముహూర్తాన్ని ఖజానాలో భద్రపరచడం"] },
+        { key: "muhurta_delete", label: ["Delete Saved Muhurthams", "భద్రపరిచిన ముహూర్తాల తొలగింపు"] },
+        { key: "muhurta_export", label: ["Export & Share Muhurtham (PDF, Image, Text)", "ముహూర్తాన్ని పంచుకోవడం / ఎగుమతి"] }
+      ]
+    },
+    {
+      id: "catalog",
+      parent: "catalog_view",
+      title: ["All Muhurtas Catalog", "అన్ని ముహూర్తాల కేటలాగ్"],
+      children: [
+        { key: "catalog_browse", label: ["Browse All 106+ Muhurtha Activities", "106+ ముహూర్త కార్యక్రమాల బ్రౌజింగ్"] },
+        { key: "catalog_search", label: ["Search & Filter Catalog", "కేటలాగ్ వెతకడం & ఫిల్టర్లు"] },
+        { key: "catalog_rules", label: ["View Activity Rules & Dosha Guidelines", "గ్రహ బలాలు & దోష నిబంధనలు చూడడం"] }
+      ]
+    },
+    {
+      id: "family",
+      parent: "family_view",
+      title: ["Family Vault", "కుటుంబ ఖజానా"],
+      children: [
+        { key: "family_add", label: ["Add New Family Member", "కొత్త కుటుంబ సభ్యులను చేర్చడం"] },
+        { key: "family_view_details", label: ["View Encrypted Birth Details (DOB, TOB, POB)", "జన్మ వివరాలు చూడడం (తేదీ, సమయం, స్థలం)"] },
+        { key: "family_edit", label: ["Edit Family Member Details", "కుటుంబ సభ్యుల వివరాలు సవరించడం"] },
+        { key: "family_delete", label: ["Remove Family Member", "కుటుంబ సభ్యులను తొలగించడం"] },
+        { key: "family_events", label: ["Family Events & Shannavati Rites", "కుటుంబ విశేషాలు & షణ్ణవతి శ్రాద్ధాలు"] },
+        { key: "family_export", label: ["Export Family Vault Data", "కుటుంబ ఖజానా డేటా ఎగుమతి"] }
+      ]
+    },
+    {
+      id: "saved",
+      parent: "saved_view",
+      title: ["My Saved Muhurtas", "నా ముహూర్తాలు"],
+      children: [
+        { key: "saved_favourite", label: ["Star / Favourite Saved Searches", "నచ్చిన ముహూర్తాలకు స్టార్ గుర్తు"] },
+        { key: "saved_edit_label", label: ["Edit Custom Notes & Labels", "నోట్స్ & లేబుల్స్ సవరించడం"] },
+        { key: "saved_delete", label: ["Delete Saved Searches", "భద్రపరిచిన శోధనల తొలగింపు"] },
+        { key: "saved_export", label: ["Download & Export Saved Searches", "సేవ్ చేసిన ముహూర్తాల డౌన్‌లోడ్"] }
+      ]
+    },
+    {
+      id: "account",
+      parent: "self_edit",
+      title: ["Account & Profile", "ప్రొఫైల్ & ఖాతా"],
+      children: [
+        { key: "self_edit_name", label: ["Edit Display Name", "పేరు సవరించడం"] },
+        { key: "self_edit_language", label: ["Change Preferred Language (Telugu / English)", "భాష మార్చుకోవడం (తెలుగు / ఇంగ్లీష్)"] },
+        { key: "self_edit_home_place", label: ["Change Home City & Coordinates", "స్వస్థలం & అక్షాంశాలు మార్చడం"] },
+        { key: "self_sessions", label: ["View & Revoke Active Device Sessions", "పరికరాల సెషన్లు చూడడం & రద్దు"] },
+        { key: "self_delete_account", label: ["Request Account Deletion", "ఖాతా తొలగింపు అభ్యర్థన"] }
+      ]
+    }
+  ];
+
+  var ADMIN_PERM_GROUPS = [
+    {
+      id: "users_mgmt",
+      parent: "users_view",
+      title: ["Users Management", "వినియోగదారుల నిర్వహణ"],
+      children: [
+        { key: "users_view_mobile", label: ["Reveal Full Mobile Numbers", "పూర్తి మొబైల్ నంబర్లు చూడడం"] },
+        { key: "users_disable", label: ["Disable and Enable Users", "వినియోగదారులను నిలిపివేయడం, ప్రారంభించడం"] },
+        { key: "invite_users", label: ["Add / Invite New Users", "కొత్త వినియోగదారులను చేర్చడం / ఆహ్వానించడం"] },
+        { key: "edit_user_profile", label: ["Edit User Profile (Name, Phone, Language)", "వినియోగదారుని ప్రొఫైల్ సవరించడం"] },
+        { key: "delete_user", label: ["Permanently Delete User Account", "వినియోగదారుని ఖాతా శాశ్వత తొలగింపు"] },
+        { key: "reset_user_sessions", label: ["Force Logout User Sessions", "వినియోగదారుల సెషన్లను రద్దు చేయడం (సైన్ అవుట్)"] },
+        { key: "export_users", label: ["Export Users List as CSV", "వినియోగదారుల జాబితాను ఎగుమతి చేయడం"] },
+        { key: "set_user_permissions", label: ["Manage Per-User Permission Overrides", "వినియోగదారుల వ్యక్తిగత అధికారాల నిర్వహణ"] }
+      ]
+    },
+    {
+      id: "content_mgmt",
+      parent: "content_edit",
+      title: ["Content & App Settings", "విషయాలు & సెట్టింగులు"],
+      children: [
+        { key: "content_announcements", label: ["Edit Platform Announcements & Banners", "ప్రకటనలు & బ్యానర్లు నిర్వహణ"] },
+        { key: "content_utpata", label: ["Manage Inauspicious Utpata Dates", "ఉత్పాత / దుష్ట కాలాల తేదీలు నిర్వహణ"] },
+        { key: "content_texts", label: ["Edit App Texts & Banner Headlines", "యాప్ పాఠ్యాలు & శీర్షికలు సవరణ"] },
+        { key: "content_rules", label: ["View & Manage Muhurta Rules", "ముహూర్త సూత్రాల నిర్వహణ"] }
+      ]
+    },
+    {
+      id: "audit_mgmt",
+      parent: "audit_view_users",
+      title: ["Audit Logs & Analytics", "కార్యకలాపాలు & గణాంకాలు"],
+      children: [
+        { key: "stats_view", label: ["See Statistics & System Health", "గణాంకాలు & సర్వర్ ఆరోగ్య స్థితి చూడడం"] },
+        { key: "audit_export", label: ["Export Activity Audit Logs", "కార్యకలాపాల లాగ్‌లు ఎగుమతి"] }
+      ]
+    }
+  ];
+
+  var POWER_LABELS = {};
+  ADMIN_PERM_GROUPS.forEach(function (g) {
+    g.children.forEach(function (c) { POWER_LABELS[c.key] = c.label; });
+    POWER_LABELS[g.parent] = g.title;
+  });
+  var USER_POWER_LABELS = {};
+  USER_PERM_GROUPS.forEach(function (g) {
+    g.children.forEach(function (c) { USER_POWER_LABELS[c.key] = c.label; });
+    USER_POWER_LABELS[g.parent] = g.title;
+  });
+  var DASH_LABELS = {
+    stats: ["People counts", "వినియోగదారుల సంఖ్యలు"], attention: ["Needs attention", "గమనించవలసినవి"],
+    activity: ["Recent activity", "ఇటీవలి కార్యకలాపాలు"], tools: ["Tool tiles", "సాధనాల టైల్స్"]
   };
-  var DASH_LABELS = { stats: ["People counts", "వినియోగదారుల సంఖ్యలు"], attention: ["Needs attention", "గమనించవలసినవి"],
-                      activity: ["Recent activity", "ఇటీవలి కార్యకలాపాలు"], tools: ["Tool tiles", "సాధనాల టైల్స్"] };
-  var THEME_LABELS = { sanctuary: ["Vedic Sanctuary (green and gold)", "వేద శరణ్యం (ఆకుపచ్చ, బంగారం)"],
-                       classic: ["Classic (maroon and gold)", "సాంప్రదాయ (మెరూన్, బంగారం)"], saffron: ["Saffron (orange and brown)", "కాషాయం (నారింజ, గోధుమ)"] };
+  var THEME_LABELS = {
+    sanctuary: ["Vedic Sanctuary (green and gold)", "వేద శరణ్యం (ఆకుపచ్చ, బంగారం)"],
+    classic: ["Classic (maroon and gold)", "సాంప్రదాయ (మెరూన్, బంగారం)"], saffron: ["Saffron (orange and brown)", "కాషాయం (నారింజ, గోధుమ)"]
+  };
   var THEME_DEFAULTS = { sanctuary: ["#3c6600", "#d4af37"], classic: ["#6f1725", "#c59b27"], saffron: ["#a14a00", "#e0a526"] };
 
   var cfg = null, form = {}, active = "brand";
@@ -74,17 +218,52 @@
     var extra = (opts.min != null ? ' min="' + opts.min + '"' : "") + (opts.max != null ? ' max="' + opts.max + '"' : "") + (opts.step ? ' step="' + opts.step + '"' : "") + (opts.maxlength ? ' maxlength="' + opts.maxlength + '"' : "");
     var val = get(form[key], path);
     var field = opts.area ? tag + 'id="' + id + '" ' + inputAttrs(key, path) + extra + ">" + esc(val) + "</textarea>"
-                          : tag + 'id="' + id + '" ' + inputAttrs(key, path) + extra + ' value="' + esc(val == null ? "" : val) + '">';
+      : tag + 'id="' + id + '" ' + inputAttrs(key, path) + extra + ' value="' + esc(val == null ? "" : val) + '">';
     return '<div class="field"><label for="' + id + '">' + tr(en, te) + (opts.hint ? ' <small class="cf-hint">' + esc(opts.hint) + "</small>" : "") + "</label>" + field + "</div>";
   }
-  function check(key, path, en, te) {
+  function check(key, path, en, te, extraAttrs) {
     var id = "cf_" + key + "_" + path.replace(/\W/g, "_");
-    return '<label class="switch" for="' + id + '"><input type="checkbox" id="' + id + '" ' + inputAttrs(key, path) + (get(form[key], path) ? " checked" : "") + "> <span>" + tr(en, te) + "</span></label>";
+    return '<label class="switch" for="' + id + '"><input type="checkbox" id="' + id + '" ' + inputAttrs(key, path) + (extraAttrs ? " " + extraAttrs : "") + (get(form[key], path) ? " checked" : "") + "> <span>" + tr(en, te) + "</span></label>";
   }
   function select(key, path, en, te, options) {
     var id = "cf_" + key + "_" + path.replace(/\W/g, "_"), cur = get(form[key], path);
     return '<div class="field"><label for="' + id + '">' + tr(en, te) + '</label><select id="' + id + '" ' + inputAttrs(key, path) + ">" +
       options.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (o[0] === cur ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select></div>";
+  }
+
+  function renderPermTree(key, groups) {
+    return '<div class="cf-perm-tree">' + groups.map(function (grp) {
+      var isParentOn = !!get(form[key], grp.parent);
+      var total = grp.children.length;
+      var activeCount = grp.children.filter(function (c) { return !!get(form[key], c.key); }).length;
+      var badgeCls = activeCount === total ? "is-full" : (activeCount === 0 ? "is-empty" : "");
+
+      var childrenHtml = grp.children.map(function (c) {
+        return '<div class="cf-perm-child">' +
+          check(key, c.key, c.label[0], c.label[1], 'data-perm-child="' + grp.id + '"') +
+          '</div>';
+      }).join("");
+
+      var parentId = "cf_" + key + "_" + grp.parent.replace(/\W/g, "_");
+      return '<div class="cf-perm-group is-open" data-perm-group="' + grp.id + '">' +
+        '<div class="cf-perm-header" data-toggle-accordion="' + grp.id + '">' +
+        '<div class="cf-perm-title">' +
+        '<span class="cf-perm-chevron" aria-hidden="true">&#9654;</span>' +
+        '<span>' + esc(tr(grp.title[0], grp.title[1])) + '</span>' +
+        '</div>' +
+        '<div class="cf-perm-ctrls">' +
+        '<span class="cf-perm-badge ' + badgeCls + '">' + activeCount + '/' + total + ' ' + tr("active", "చురుకు") + '</span>' +
+        '<label class="switch" onclick="event.stopPropagation();" for="' + parentId + '">' +
+        '<input type="checkbox" id="' + parentId + '" ' + inputAttrs(key, grp.parent) + ' data-perm-parent="' + grp.id + '"' + (isParentOn ? " checked" : "") + '> ' +
+        '<span>' + tr("Enable Section", "విభాగం ప్రారంభించు") + '</span>' +
+        '</label>' +
+        '</div>' +
+        '</div>' +
+        '<div class="cf-perm-children" data-group-children="' + grp.id + '">' +
+        childrenHtml +
+        '</div>' +
+        '</div>';
+    }).join("") + '</div>';
   }
 
   // ── One card per setting: fields + Save / Reset / History ──
@@ -93,17 +272,17 @@
     var isDefault = same(cfg.values[key], cfg.meta[key].default);
     return '<section class="portal-card cf-card" data-card="' + key + '" aria-labelledby="cfh_' + key + '">' +
       '<div class="cf-card__head"><h2 id="cfh_' + key + '">' + esc(label(key)) + "</h2>" +
-        (isDefault ? '<span class="status-chip status-chip--active">' + tr("Default", "డిఫాల్ట్") + "</span>" : '<span class="status-chip status-chip--pending">' + tr("Changed", "మార్చారు") + "</span>") + "</div>" +
+      (isDefault ? '<span class="status-chip status-chip--active">' + tr("Default", "డిఫాల్ట్") + "</span>" : '<span class="status-chip status-chip--pending">' + tr("Changed", "మార్చారు") + "</span>") + "</div>" +
       (intro ? '<p class="portal-hint">' + intro + "</p>" : "") +
       '<div class="cf-body">' + bodyHtml + "</div>" +
       '<div class="row-form cf-actions">' +
-        '<button type="button" class="btn btn--primary" data-save="' + key + '"' + (changed ? "" : " disabled") + ">" + tr("Save", "భద్రపరచండి") + "</button>" +
-        '<button type="button" class="btn btn--outline" data-undo="' + key + '"' + (changed ? "" : " disabled") + ">" + tr("Undo my edits", "మార్పులు రద్దు") + "</button>" +
-        '<button type="button" class="btn btn--outline" data-reset="' + key + '"' + (isDefault ? " disabled" : "") + ">" + tr("Reset to default", "డిఫాల్ట్‌కు మార్చండి") + "</button>" +
-        '<button type="button" class="linkish" data-history="' + key + '">' + tr("Change history", "మార్పుల చరిత్ర") + "</button>" +
+      '<button type="button" class="btn btn--primary" data-save="' + key + '"' + (changed ? "" : " disabled") + ">" + tr("Save", "భద్రపరచండి") + "</button>" +
+      '<button type="button" class="btn btn--outline" data-undo="' + key + '"' + (changed ? "" : " disabled") + ">" + tr("Undo my edits", "మార్పులు రద్దు") + "</button>" +
+      '<button type="button" class="btn btn--outline" data-reset="' + key + '"' + (isDefault ? " disabled" : "") + ">" + tr("Reset to default", "డిఫాల్ట్‌కు మార్చండి") + "</button>" +
+      '<button type="button" class="linkish" data-history="' + key + '">' + tr("Change history", "మార్పుల చరిత్ర") + "</button>" +
       "</div>" +
       '<div class="cf-history" id="cfhist_' + key + '" hidden></div>' +
-    "</section>";
+      "</section>";
   }
 
   // ── Tab bodies ──
@@ -121,9 +300,9 @@
       var c1 = contrast(primary, "#ffffff"), c2 = contrast(gold, "#241a00");
       return select(k, "preset", "Theme", "థీమ్", cfg.meta._choices.themes.map(function (p) { return [p, tr(THEME_LABELS[p][0], THEME_LABELS[p][1])]; })) +
         '<div class="cf-colors">' +
-          '<div class="field"><label for="cfPrimary">' + tr("Main colour (buttons, brand)", "ప్రధాన రంగు (బటన్లు, బ్రాండ్)") + '</label><input type="color" id="cfPrimary" data-color="primary" value="' + primary + '"></div>' +
-          '<div class="field"><label for="cfGold">' + tr("Accent colour (gold)", "అనుబంధ రంగు (బంగారం)") + '</label><input type="color" id="cfGold" data-color="gold" value="' + gold + '"></div>' +
-          '<button type="button" class="linkish" data-color-reset="1">' + tr("Use the theme's own colours", "థీమ్ రంగులనే వాడండి") + "</button>" +
+        '<div class="field"><label for="cfPrimary">' + tr("Main colour (buttons, brand)", "ప్రధాన రంగు (బటన్లు, బ్రాండ్)") + '</label><input type="color" id="cfPrimary" data-color="primary" value="' + primary + '"></div>' +
+        '<div class="field"><label for="cfGold">' + tr("Accent colour (gold)", "అనుబంధ రంగు (బంగారం)") + '</label><input type="color" id="cfGold" data-color="gold" value="' + gold + '"></div>' +
+        '<button type="button" class="linkish" data-color-reset="1">' + tr("Use the theme's own colours", "థీమ్ రంగులనే వాడండి") + "</button>" +
         "</div>" +
         '<p class="cf-contrast ' + (c1 >= 4.5 ? "is-ok" : "is-bad") + '">' + tr("White text on the main colour", "ప్రధాన రంగుపై తెలుపు అక్షరాలు") + ": " + c1.toFixed(1) + ":1 " + (c1 >= 4.5 ? "✓" : tr("— too faint (needs 4.5)", "— చదవడం కష్టం (4.5 కావాలి)")) + "</p>" +
         '<p class="cf-contrast ' + (c2 >= 4.5 ? "is-ok" : "is-bad") + '">' + tr("Dark text on the accent", "అనుబంధ రంగుపై ముదురు అక్షరాలు") + ": " + c2.toFixed(1) + ":1 " + (c2 >= 4.5 ? "✓" : tr("— too faint (needs 4.5)", "— చదవడం కష్టం (4.5 కావాలి)")) + "</p>";
@@ -147,7 +326,7 @@
     },
     panchang: function (k) {
       return '<fieldset class="nf-alerts"><legend>' + tr("Sections on Today's Panchang", "నేటి పంచాంగంలో భాగాలు") + "</legend>" +
-          cfg.meta._choices.panchang_sections.map(function (s) { return check(k, "sections." + s, SECTION_LABELS[s][0], SECTION_LABELS[s][1]); }).join("") + "</fieldset>" +
+        cfg.meta._choices.panchang_sections.map(function (s) { return check(k, "sections." + s, SECTION_LABELS[s][0], SECTION_LABELS[s][1]); }).join("") + "</fieldset>" +
         text(k, "refresh_seconds", "Live view refresh (seconds)", "ప్రత్యక్ష నవీకరణ (సెకన్లు)", { type: "number", min: 15, max: 300, hint: "15–300" }) +
         "<h3>" + tr("Default place (people without a home place)", "డిఫాల్ట్ ప్రదేశం (ఇంటి ప్రదేశం లేని వారికి)") + "</h3>" +
         '<div class="cf-grid">' + text(k, "default_place.name", "Name", "పేరు", { maxlength: 80 }) + text(k, "default_place.lat", "Latitude", "అక్షాంశం", { type: "number", min: -90, max: 90, step: "0.0001" }) +
@@ -184,7 +363,8 @@
       function sel(path, opts, aria) {
         var cur = get(form[k], path);
         return '<select aria-label="' + esc(aria) + '" ' + inputAttrs(k, path) + ">" + opts.map(function (o) {
-          return '<option value="' + o[0] + '"' + (o[0] === cur ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select>";
+          return '<option value="' + o[0] + '"' + (o[0] === cur ? " selected" : "") + ">" + esc(o[1]) + "</option>";
+        }).join("") + "</select>";
       }
       // "Calculate all" / "Don't calculate any" for one dosha set ("" = both sets).
       function allRow(set, name) {
@@ -241,7 +421,10 @@
         text(k, "otp_attempts", "Tries allowed for a WhatsApp code", "వాట్సాప్ కోడ్‌కు అనుమతించే ప్రయత్నాలు", { type: "number", min: 3, max: 10, hint: "3–10" });
     },
     admin_powers: function (k) {
-      return cfg.meta._choices.admin_powers.map(function (p) { return check(k, p, POWER_LABELS[p][0], POWER_LABELS[p][1]); }).join("");
+      return renderPermTree(k, ADMIN_PERM_GROUPS);
+    },
+    user_powers: function (k) {
+      return renderPermTree(k, USER_PERM_GROUPS);
     },
     admin_dashboard: function (k) {
       return Object.keys(DASH_LABELS).map(function (p) { return check(k, p, DASH_LABELS[p][0], DASH_LABELS[p][1]); }).join("");
@@ -249,12 +432,14 @@
   };
   var INTROS = {
     nav: ["Hide a page instead of removing it. Who may open a page is still decided by the server. The Settings link always shows.",
-          "పేజీని తొలగించకుండా దాచండి. ఎవరు ఏ పేజీ తెరవవచ్చో సర్వర్ నిర్ణయిస్తుంది. సెట్టింగుల లింక్ ఎప్పుడూ కనిపిస్తుంది."],
+      "పేజీని తొలగించకుండా దాచండి. ఎవరు ఏ పేజీ తెరవవచ్చో సర్వర్ నిర్ణయిస్తుంది. సెట్టింగుల లింక్ ఎప్పుడూ కనిపిస్తుంది."],
     texts: ["Leave a box empty to keep the page's own wording.", "పేజీ స్వంత పదాలు ఉంచాలంటే ఖాళీగా వదలండి."],
     security: ["Values outside the limits are refused, so a mistake can't weaken security.", "పరిమితులు దాటిన విలువలు అంగీకరించబడవు."],
     admin_powers: ["The server checks these too. Your own powers can't be changed here.", "సర్వర్ కూడా వీటిని పరిశీలిస్తుంది. మీ అధికారాలు ఇక్కడ మారవు."],
     dosha_scoring: ["The muhurta % = panchanga shuddhi (the event's own rules) + the 21 mahadoshas; for marriage the 10 dashavidha doshas take a share too (default 30 / 70, or 30 / 60 / 10). By default the mahadoshas are checked for every event and the dashavidha doshas for marriage only. A set switched off here is still listed on the result but has no share. Rules themselves stay in the rule files.",
-                    "ముహూర్త శాతం = పంచాంగ శుద్ధి (కార్య నియమాలు) + 21 మహాదోషాలు; వివాహానికి దశవిధ దోషాలకు కూడా వాటా (మామూలుగా 30 / 70, లేదా 30 / 60 / 10). మామూలుగా మహాదోషాలు అన్ని కార్యాలకు, దశవిధ దోషాలు వివాహానికి మాత్రమే. ఇక్కడ ఆపిన దోషాలు ఫలితంలో కనిపిస్తాయి కానీ శాతంలో వాటా ఉండదు. నియమాలు నియమ ఫైళ్ళలోనే ఉంటాయి."],
+      "ముహూర్త శాతం = పంచాంగ శుద్ధి (కార్య నియమాలు) + 21 మహాదోషాలు; వివాహానికి దశవిధ దోషాలకు కూడా వాటా (మామూలుగా 30 / 70, లేదా 30 / 60 / 10). మామూలుగా మహాదోషాలు అన్ని కార్యాలకు, దశవిధ దోషాలు వివాహానికి మాత్రమే. ఇక్కడ ఆపిన దోషాలు ఫలితంలో కనిపిస్తాయి కానీ శాతంలో వాటా ఉండదు. నియమాలు నియమ ఫైళ్ళలోనే ఉంటాయి."],
+    user_powers: ["Global privileges for all standard users. You can also override these per-user in the Users page.",
+      "వినియోగదారులందరికీ వర్తించే సాధారణ అధికారాలు. వినియోగదారుల పేజీలో వ్యక్తిగతంగా కూడా మార్చవచ్చు."],
     godavari: ["Your own ruling: while Jupiter is in Simha, places near the Godavari get no muhurtas.", "మీ నిర్ణయం: గురుడు సింహంలో ఉన్నప్పుడు గోదావరి సమీప ప్రాంతాలకు ముహూర్తాలు లేవు."],
   };
 
@@ -300,9 +485,57 @@
     }
     if (!key || !form[key]) return;
     var path = t.getAttribute("data-path"), v;
-    if (t.type === "checkbox") v = t.checked;
-    else if (t.type === "number") v = t.value === "" ? null : Number(t.value);
-    else v = t.value;
+    if (t.type === "checkbox") {
+      v = t.checked;
+      var parentGroup = t.getAttribute("data-perm-parent");
+      if (parentGroup) {
+        var cardEl = t.closest("[data-card]");
+        if (cardEl) {
+          var childInputs = cardEl.querySelectorAll('[data-perm-child="' + parentGroup + '"]');
+          childInputs.forEach(function (ci) {
+            ci.checked = v;
+            setPath(form[key], ci.getAttribute("data-path"), v);
+          });
+          var grpEl = cardEl.querySelector('[data-perm-group="' + parentGroup + '"]');
+          if (grpEl) {
+            var badge = grpEl.querySelector(".cf-perm-badge");
+            if (badge) {
+              badge.textContent = (v ? childInputs.length : 0) + "/" + childInputs.length + " " + tr("active", "చురుకు");
+              badge.className = "cf-perm-badge " + (v ? "is-full" : "is-empty");
+            }
+          }
+        }
+      } else {
+        var childGroup = t.getAttribute("data-perm-child");
+        if (childGroup) {
+          var cardEl = t.closest("[data-card]");
+          if (cardEl) {
+            var grpEl = cardEl.querySelector('[data-perm-group="' + childGroup + '"]');
+            if (grpEl) {
+              var childInputs = grpEl.querySelectorAll('[data-perm-child="' + childGroup + '"]');
+              var activeCount = 0;
+              childInputs.forEach(function (ci) { if (ci.checked) activeCount++; });
+              var badge = grpEl.querySelector(".cf-perm-badge");
+              if (badge) {
+                badge.textContent = activeCount + "/" + childInputs.length + " " + tr("active", "చురుకు");
+                badge.className = "cf-perm-badge " + (activeCount === childInputs.length ? "is-full" : (activeCount === 0 ? "is-empty" : ""));
+              }
+              if (v) {
+                var parentInput = grpEl.querySelector('[data-perm-parent="' + childGroup + '"]');
+                if (parentInput && !parentInput.checked) {
+                  parentInput.checked = true;
+                  setPath(form[key], parentInput.getAttribute("data-path"), true);
+                }
+              }
+            }
+          }
+        }
+      }
+    } else if (t.type === "number") {
+      v = t.value === "" ? null : Number(t.value);
+    } else {
+      v = t.value;
+    }
     setPath(form[key], path, v);
     if (key === "brand" || (key === "theme" && path === "preset")) refreshCard(key); else updateButtons(key);
   });
@@ -314,6 +547,12 @@
     }
   });
   document.addEventListener("click", async function (e) {
+    var toggleHdr = e.target.closest("[data-toggle-accordion]");
+    if (toggleHdr && !e.target.closest("label.switch") && !e.target.closest("input")) {
+      var grp = toggleHdr.closest(".cf-perm-group");
+      if (grp) grp.classList.toggle("is-open");
+      return;
+    }
     var b = e.target.closest("button");
     if (!b) return;
     var tabBtn = b.id && b.id.indexOf("cftab_") === 0 ? b.id.slice(6) : null;
@@ -381,7 +620,7 @@
       }
     }
     var ok = await AppShell.confirm(tr("Save these changes to “" + label(key) + "”?", "“" + label(key) + "” లో ఈ మార్పులు భద్రపరచాలా?") + "\n\n" + summary(key),
-                                    { ok: tr("Save", "భద్రపరచండి"), cancel: tr("Keep editing", "మార్చడం కొనసాగించండి") });
+      { ok: tr("Save", "భద్రపరచండి"), cancel: tr("Keep editing", "మార్చడం కొనసాగించండి") });
     if (!ok) return;
     try {
       var r = await api("PUT", "/admin/config", { changes: (function () { var c = {}; c[key] = form[key]; return c; })() });
@@ -393,7 +632,7 @@
   }
   async function doReset(key) {
     var ok = await AppShell.confirm(tr("Put “" + label(key) + "” back to its default?", "“" + label(key) + "” ను డిఫాల్ట్‌కు మార్చాలా?"),
-                                    { ok: tr("Reset", "మార్చండి"), cancel: tr("Keep", "ఉంచండి"), danger: true });
+      { ok: tr("Reset", "మార్చండి"), cancel: tr("Keep", "ఉంచండి"), danger: true });
     if (!ok) return;
     try {
       var r = await api("POST", "/admin/config/" + key + "/reset");

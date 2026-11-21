@@ -32,6 +32,7 @@
       if (p.can_change_role) acts.push(link("role", p.id, p.role === "admin" ? "Remove admin" : "Make admin",
         p.role === "admin" ? "నిర్వాహక హోదా తీసివేయండి" : "నిర్వాహకులుగా చేయండి", ' data-role="' + (p.role === "admin" ? "user" : "admin") + '"'));
       if (p.can_edit) acts.push(link("edit", p.id, "Edit", "మార్చండి"));
+      if (p.can_set_perms) acts.push(link("perms", p.id, "Permissions", "అధికారాలు"));
       if (p.can_delete) acts.push(link("delete", p.id, "Delete", "తొలగించండి"));
       var box = p.can_manage ? '<input type="checkbox" data-sel="' + p.id + '"' + (selected[p.id] ? " checked" : "") + ' aria-label="' + esc(tr("Select ", "ఎంచుకోండి ") + p.name) + '">' : "";
       return '<tr data-row="' + p.id + '"><td>' + box + "</td><td><strong>" + esc(p.name) + "</strong><small>" + tr(p.devices + " device(s) signed in", p.devices + " పరికరాల్లో లాగిన్") + "</small></td>" +
@@ -187,6 +188,241 @@
           delete selected[id]; load();
         } catch (err) { say("error", err.message); }
       });
+    } else if (act === "perms" && p) {
+      try {
+        var res = await api("GET", "/admin/people/" + id + "/permissions");
+        var permMap = {
+          // Panchang
+          "panchang.view": ["Today's Panchang (Page Access)", "నేటి పంచాంగం (పేజీ దర్శనం)"],
+          "panchang.change_place": ["Change Location / City", "నగరం / ప్రదేశం మార్చడం"],
+          "panchang.change_date": ["Change Date (Picker & Prev/Next)", "తేదీ మార్చడం (క్యాలెండర్, ముందు/వెనుక)"],
+          "panchang.share": ["Share Panchang (Link, WhatsApp, Image)", "పంచాంగం పంచుకోవడం"],
+          "panchang.export_pdf": ["Download Panchang as PDF", "పంచాంగం PDF డౌన్‌లోడ్"],
+          "panchang.month": ["Switch to Monthly View Link", "మాస పంచాంగం లింక్"],
+          "panchang.find_muhurtha": ["Find Muhurtham CTA Banner", "ముహూర్త శోధన బ్యానర్"],
+          "panchang.live_cards": ["Live Cards (Lagna, Good/Bad Times)", "లైవ్ కార్డులు (లగ్నం, శుభ/అశుభాలు)"],
+          "panchang.angas": ["Principal Angas (Tithi, Nakshatra...)", "పంచాంగ ప్రధానాంగాలు (తిథి, నక్షత్రం...)"],
+          "panchang.timeline": ["24-Hour Day Timeline", "24 గంటల కాల చక్రం"],
+          "panchang.timings": ["Good & Bad Times (Rahu, Yama, Varjyam)", "శుభ & అశుభ సమయాలు (రాహుకాలం...)"],
+          "panchang.ashta_kaalas": ["Dina Ashta Kaalas (8 Divisions)", "దిన అష్ట కాల విభజన (8 కాలాలు)"],
+          "panchang.hora_choghadiya": ["Hora & Choghadiya Tables", "హోర & చోఘడియా పట్టికలు"],
+          "panchang.chandrabalam": ["Chandrabalam for All Rashis", "రాశి వారి చంద్రబలం"],
+          "panchang.lagnas": ["12 Lagnas Detailed Table", "12 లగ్నాల వివరాల పట్టిక"],
+          "panchang.shloka": ["Daily Shloka & Mantra", "నేటి శ్లోకం & మంత్రం"],
+
+          // Monthly
+          "panchang_month.view": ["Monthly Panchang (Page Access)", "మాస పంచాంగం (పేజీ దర్శనం)"],
+          "panchang_month.navigate": ["Month & Year Navigator", "నెల & సంవత్సరం మార్చడం"],
+          "panchang_month.day_details": ["Day Details Modal / Popover", "రోజు వివరాల పాపప్"],
+          "panchang_month.export_pdf": ["Export Month Calendar as PDF", "నెల క్యాలెండర్ PDF ఎగుమతి"],
+          "panchang_month.festivals": ["Festivals & Vratams Markers", "పండుగలు & వ్రతాల సూచికలు"],
+
+          // Muhurtha
+          "muhurta.search": ["Muhurta Finder (Page Access)", "ముహూర్త శోధన (పేజీ దర్శనం)"],
+          "muhurta.select_activity": ["Select Activity & Category", "కార్యక్రమం & వర్గం ఎంపిక"],
+          "muhurta.date_range": ["Custom Date Range Selection", "తేదీల పరిధి ఎంపిక"],
+          "muhurta.time_filters": ["Time Window Filters", "సమయ విండో ఫిల్టర్లు"],
+          "muhurta.participants": ["Participant Birth Charts Matching", "జాతక చక్రాల సరిపోలిక"],
+          "muhurta.audit": ["Muhurtha Parishilana (Quality Audit)", "ముహూర్త పరిశీలన (నాణ్యత విశ్లేషణ)"],
+          "muhurta.save": ["Save Muhurtham to Vault", "ముహూర్తాన్ని భద్రపరచడం"],
+          "muhurta.delete": ["Delete Saved Muhurthams", "భద్రపరిచిన ముహూర్తాల తొలగింపు"],
+          "muhurta.export": ["Export & Share Muhurtham", "ముహూర్తాన్ని పంచుకోవడం / ఎగుమతి"],
+
+          // Catalog
+          "catalog.view": ["Muhurtas Catalog (Page Access)", "కేటలాగ్ (పేజీ దర్శనం)"],
+          "catalog.browse": ["Browse 106+ Activities", "కార్యక్రమాల బ్రౌజింగ్"],
+          "catalog.search": ["Search & Filter Catalog", "కేటలాగ్ వెతకడం"],
+          "catalog.rules": ["View Activity Rules & Guidelines", "గ్రహ బలాలు & నిబంధనలు చూడడం"],
+
+          // Family
+          "family.view": ["Family Vault (Page Access)", "కుటుంబ ఖజానా (పేజీ దర్శనం)"],
+          "family.add": ["Add Family Member", "కుటుంబ సభ్యులను చేర్చడం"],
+          "family.view_details": ["View Encrypted Birth Details", "జన్మ వివరాలు చూడడం"],
+          "family.edit": ["Edit Family Member Details", "కుటుంబ సభ్యుల వివరాలు సవరణ"],
+          "family.delete": ["Remove Family Member", "కుటుంబ సభ్యుల తొలగింపు"],
+          "family.events": ["Family Events & Rites", "కుటుంబ విశేషాలు & శ్రాద్ధాలు"],
+          "family.export": ["Export Family Vault Data", "కుటుంబ ఖజానా డేటా ఎగుమతి"],
+
+          // Saved
+          "saved.view": ["Saved Searches (Page Access)", "నా ముహూర్తాలు (పేజీ దర్శనం)"],
+          "saved.favourite": ["Star / Favourite Saved Searches", "ముహూర్తాలకు స్టార్ గుర్తు"],
+          "saved.edit_label": ["Edit Custom Notes & Labels", "నోట్స్ & లేబుల్స్ సవరణ"],
+          "saved.delete": ["Delete Saved Searches", "భద్రపరిచిన శోధనల తొలగింపు"],
+          "saved.export": ["Download & Export Saved Searches", "సేవ్ చేసిన ముహూర్తాల డౌన్‌లోడ్"],
+
+          // Account
+          "self.edit": ["Account & Profile (Access)", "ప్రొఫైల్ & ఖాతా (దర్శనం)"],
+          "self.edit_name": ["Edit Display Name", "పేరు సవరణ"],
+          "self.edit_language": ["Change Language", "భాష మార్పు"],
+          "self.edit_home_place": ["Change Home City & Coordinates", "స్వస్థలం మార్పు"],
+          "self.sessions": ["Manage Device Sessions", "పరికరాల సెషన్ల నిర్వహణ"],
+          "self.delete_account": ["Request Account Deletion", "ఖాతా తొలగింపు అభ్యర్థన"],
+
+          // Admin
+          "users.view": ["Users Page Access", "వినియోగదారుల పేజీ చూడడం"],
+          "users.view_mobile": ["Reveal Full Mobile Numbers", "పూర్తి మొబైల్ నంబర్లు చూడడం"],
+          "users.disable": ["Disable/Enable Users", "వినియోగదారులను నిలిపివేయడం"],
+          "users.create": ["Add / Invite Users", "వినియోగదారులను చేర్చడం"],
+          "users.edit": ["Edit User Profile", "వినియోగదారుని ప్రొఫైల్ సవరణ"],
+          "users.delete": ["Delete User Account", "వినియోగదారుని ఖాతా తొలగింపు"],
+          "users.reset_sessions": ["Force Logout Sessions", "సెషన్లు రద్దు చేయడం"],
+          "users.export": ["Export Users List", "వినియోగదారుల ఎగుమతి"],
+          "users.set_perms": ["Manage User Perms", "అధికారాల నిర్వహణ"],
+          "content.edit": ["Content & Rules Access", "విషయాలు & సూత్రాలు సవరణ"],
+          "content.announcements": ["Manage Announcements", "ప్రకటనలు నిర్వహణ"],
+          "content.utpata": ["Manage Utpata Dates", "ఉత్పాత తేదీల నిర్వహణ"],
+          "content.texts": ["Edit App Texts", "యాప్ పాఠ్యాలు సవరణ"],
+          "content.rules": ["Manage Muhurta Rules", "ముహూర్త సూత్రాల నిర్వహణ"],
+          "audit.view_users": ["View Activity Logs", "కార్యకలాపాల లాగ్‌లు"],
+          "system.view": ["View System Stats & Health", "గణాంకాలు & ఆరోగ్య స్థితి"],
+          "audit.export": ["Export Audit Logs", "లాగ్‌లు ఎగుమతి"]
+        };
+
+        var GROUPS_DEF = [
+          {
+            title: ["Today's Panchangam", "నేటి పంచాంగం"],
+            parent: "panchang.view",
+            keys: [
+              "panchang.view", "panchang.change_place", "panchang.change_date", "panchang.share", "panchang.export_pdf",
+              "panchang.month", "panchang.find_muhurtha", "panchang.live_cards", "panchang.angas", "panchang.timeline",
+              "panchang.timings", "panchang.ashta_kaalas", "panchang.hora_choghadiya", "panchang.chandrabalam",
+              "panchang.lagnas", "panchang.shloka"
+            ]
+          },
+          {
+            title: ["Monthly Panchangam", "మాస పంచాంగం"],
+            parent: "panchang_month.view",
+            keys: ["panchang_month.view", "panchang_month.navigate", "panchang_month.day_details", "panchang_month.export_pdf", "panchang_month.festivals"]
+          },
+          {
+            title: ["Muhurtha Darshini / Finder", "ముహూర్త దర్శిని / శోధన"],
+            parent: "muhurta.search",
+            keys: [
+              "muhurta.search", "muhurta.select_activity", "muhurta.date_range", "muhurta.time_filters",
+              "muhurta.participants", "muhurta.audit", "muhurta.save", "muhurta.delete", "muhurta.export"
+            ]
+          },
+          {
+            title: ["All Muhurtas Catalog", "అన్ని ముహూర్తాల కేటలాగ్"],
+            parent: "catalog.view",
+            keys: ["catalog.view", "catalog.browse", "catalog.search", "catalog.rules"]
+          },
+          {
+            title: ["Family Vault", "కుటుంబ ఖజానా"],
+            parent: "family.view",
+            keys: ["family.view", "family.add", "family.view_details", "family.edit", "family.delete", "family.events", "family.export"]
+          },
+          {
+            title: ["My Saved Muhurtas", "నా ముహూర్తాలు"],
+            parent: "saved.view",
+            keys: ["saved.view", "saved.favourite", "saved.edit_label", "saved.delete", "saved.export"]
+          },
+          {
+            title: ["Account & Profile", "ప్రొఫైల్ & ఖాతా"],
+            parent: "self.edit",
+            keys: ["self.edit", "self.edit_name", "self.edit_language", "self.edit_home_place", "self.sessions", "self.delete_account"]
+          },
+          {
+            title: ["Users Management (Admin)", "వినియోగదారుల నిర్వహణ (నిర్వాహక)"],
+            parent: "users.view",
+            keys: [
+              "users.view", "users.view_mobile", "users.disable", "users.create", "users.edit", "users.delete",
+              "users.reset_sessions", "users.export", "users.set_perms"
+            ]
+          },
+          {
+            title: ["Content & Rules (Admin)", "విషయాలు & సూత్రాలు (నిర్వాహక)"],
+            parent: "content.edit",
+            keys: ["content.edit", "content.announcements", "content.utpata", "content.texts", "content.rules"]
+          },
+          {
+            title: ["Audit & Analytics (Admin)", "కార్యకలాపాలు & గణాంకాలు (నిర్వాహక)"],
+            parent: "audit.view_users",
+            keys: ["audit.view_users", "system.view", "audit.export"]
+          }
+        ];
+
+        var permLookup = {};
+        res.permissions.forEach(function (item) { permLookup[item.key] = item; });
+
+        var groupsHtml = GROUPS_DEF.map(function (grp) {
+          var matching = grp.keys.map(function (k) { return permLookup[k]; }).filter(Boolean);
+          if (!matching.length) return "";
+          var parentItem = permLookup[grp.parent] || matching[0];
+          var activeCount = matching.filter(function (m) { return m.effective; }).length;
+
+          var itemsList = matching.map(function (item) {
+            var label = permMap[item.key] ? tr(permMap[item.key][0], permMap[item.key][1]) : item.key;
+            var isParent = item.key === grp.parent;
+            var statusBadge = item.has_override
+              ? (item.override_value
+                  ? '<span class="status-chip status-chip--active" style="font-size:11px;">' + tr("Explicit: ON", "స్పష్టంగా: చురుకు") + '</span>'
+                  : '<span class="status-chip status-chip--disabled" style="font-size:11px;">' + tr("Explicit: OFF", "స్పష్టంగా: నిలిపివేత") + '</span>')
+              : (item.role_default
+                  ? '<span style="color:#666; font-size:11px;">' + tr("Default: ON", "సాధారణం: చురుకు") + '</span>'
+                  : '<span style="color:#666; font-size:11px;">' + tr("Default: OFF", "సాధారణం: నిలిపివేత") + '</span>');
+
+            var toggleBtn = item.effective
+              ? '<button type="button" class="btn btn--sm btn--danger" data-pperm="' + esc(item.key) + '" data-paction="disable" style="padding:2px 8px; font-size:12px;">' + tr("Block", "నిషేధించు") + '</button>'
+              : '<button type="button" class="btn btn--sm" data-pperm="' + esc(item.key) + '" data-paction="enable" style="padding:2px 8px; font-size:12px;">' + tr("Allow", "అనుమతించు") + '</button>';
+            var resetBtn = item.has_override
+              ? ' <button type="button" class="linkish" data-pperm="' + esc(item.key) + '" data-paction="reset" style="font-size:11px;">' + tr("Reset to default", "సాధారణ స్థితికి") + '</button>'
+              : '';
+
+            return '<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #f0f0f0;' + (isParent ? ' background:#fafcf7; font-weight:600;' : ' padding-left:14px;') + '">' +
+              '<div style="flex:1;">' + (isParent ? '⭐ ' : '↳ ') + '<strong>' + esc(label) + '</strong> <small style="display:block; color:#888;">' + esc(item.key) + '</small></div>' +
+              '<div style="margin:0 10px;">' + statusBadge + '</div>' +
+              '<div>' + (res.can_edit ? toggleBtn + resetBtn : "") + '</div>' +
+              '</div>';
+          }).join("");
+
+          return '<div class="cf-perm-group is-open" style="margin-bottom:10px;">' +
+            '<div class="cf-perm-header" data-toggle-subaccordion="1">' +
+              '<div class="cf-perm-title"><span class="cf-perm-chevron" aria-hidden="true">&#9654;</span> <span>' + esc(tr(grp.title[0], grp.title[1])) + '</span></div>' +
+              '<div class="cf-perm-ctrls"><span class="cf-perm-badge">' + activeCount + '/' + matching.length + ' ' + tr("active", "చురుకు") + '</span></div>' +
+            '</div>' +
+            '<div class="cf-perm-children" style="display:block; padding:8px 12px;">' +
+              itemsList +
+            '</div>' +
+          '</div>';
+        }).join("");
+
+        var pf = rowForm(row,
+          '<div style="max-height:440px; overflow-y:auto; padding:8px 0; min-width:360px;">' +
+          '<div style="font-weight:bold; margin-bottom:10px; font-size:1.05rem; color:var(--color-primary-strong);">' + tr("Privileges for: ", "అధికారాలు: ") + esc(res.name) + ' (' + esc(res.role) + ')</div>' +
+          groupsHtml +
+          '</div>'
+        );
+
+        pf.addEventListener("click", async function (pev) {
+          var subHdr = pev.target.closest("[data-toggle-subaccordion]");
+          if (subHdr && !pev.target.closest("button")) {
+            var grp = subHdr.closest(".cf-perm-group");
+            if (grp) grp.classList.toggle("is-open");
+            return;
+          }
+          var pkey = pev.target.getAttribute("data-pperm");
+          var pact = pev.target.getAttribute("data-paction");
+          if (!pkey || !pact) return;
+          pev.preventDefault();
+          try {
+            if (pact === "reset") {
+              await api("DELETE", "/admin/people/" + id + "/permissions/" + encodeURIComponent(pkey));
+              say("info", tr("Reverted to role default.", "సాధారణ స్థితికి మార్చాము."));
+            } else {
+              var isEn = pact === "enable";
+              await api("PUT", "/admin/people/" + id + "/permissions", { permission_key: pkey, is_enabled: isEn });
+              say("info", tr("Updated permission.", "అధికారం మార్చాము."));
+            }
+            pf.remove();
+            load();
+          } catch (err) {
+            say("error", err.message);
+          }
+        });
+      } catch (err) {
+        say("error", err.message);
+      }
     }
   });
 

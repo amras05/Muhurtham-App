@@ -19,7 +19,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
 from app.auth.database import write_activity_log
-from app.auth.permissions import require
+from app.auth.permissions import has_permission, require
 from app.core.logging import logger
 from app.core.sealed import seal, unseal
 from app.db.engine import app_engine
@@ -123,6 +123,8 @@ def _ip(req: Request) -> Optional[str]:
 
 @router.get("/me/family")
 def list_family(me: dict = Depends(require("self.edit"))) -> Dict[str, Any]:
+    if not has_permission(me, "family.view"):
+        raise HTTPException(status_code=403, detail="Family vault view is disabled for your account.")
     with app_engine().connect() as c:
         rows = c.execute(text(f"""SELECT {_COLS} FROM app.family_profiles
                                   WHERE owner_id = CAST(:o AS uuid) AND deleted_at IS NULL
@@ -132,6 +134,8 @@ def list_family(me: dict = Depends(require("self.edit"))) -> Dict[str, Any]:
 
 @router.post("/me/family", status_code=201)
 def add_family(body: FamilyIn, req: Request, me: dict = Depends(require("self.edit"))) -> Dict[str, Any]:
+    if not has_permission(me, "family.add"):
+        raise HTTPException(status_code=403, detail="Adding family members is disabled for your account.")
     v, warnings = _values(body, me["id"])
     try:
         with app_engine().begin() as c:
@@ -153,6 +157,8 @@ def add_family(body: FamilyIn, req: Request, me: dict = Depends(require("self.ed
 
 @router.put("/me/family/{profile_id}")
 def edit_family(profile_id: str, body: FamilyIn, req: Request, me: dict = Depends(require("self.edit"))) -> Dict[str, Any]:
+    if not has_permission(me, "family.edit"):
+        raise HTTPException(status_code=403, detail="Editing family members is disabled for your account.")
     v, warnings = _values(body, me["id"])
     keep_birth = body.birth is None
     try:
@@ -175,6 +181,8 @@ def edit_family(profile_id: str, body: FamilyIn, req: Request, me: dict = Depend
 
 @router.delete("/me/family/{profile_id}")
 def remove_family(profile_id: str, req: Request, me: dict = Depends(require("self.edit"))) -> Dict[str, Any]:
+    if not has_permission(me, "family.delete"):
+        raise HTTPException(status_code=403, detail="Deleting family members is disabled for your account.")
     with app_engine().begin() as c:
         r = c.execute(text("""UPDATE app.family_profiles SET deleted_at = now(), birth_enc = NULL
                               WHERE id = CAST(:i AS uuid) AND owner_id = CAST(:o AS uuid) AND deleted_at IS NULL

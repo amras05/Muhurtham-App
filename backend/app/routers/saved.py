@@ -24,7 +24,7 @@ from app.auth.crypto import verify_password
 from app.auth.database import write_activity_log
 from app.auth.dependencies import get_current_user
 from app.auth.mobile import mask_mobile
-from app.auth.permissions import require
+from app.auth.permissions import has_permission, require
 from app.auth.sessions import hit
 from app.core.config import APP_VERSION
 from app.db.engine import app_engine
@@ -121,6 +121,8 @@ def _uuid(value: str) -> str:
 
 @router.get("/me/saved")
 def list_saved(me: dict = Depends(require("self.edit"))) -> Dict[str, Any]:
+    if not has_permission(me, "muhurta.save"):
+        raise HTTPException(status_code=403, detail="Saved searches access is disabled for your account.")
     with app_engine().connect() as c:
         rows = c.execute(text(f"""SELECT {_COLS} FROM app.saved_searches WHERE owner_id = CAST(:o AS uuid)
                                   ORDER BY is_favourite DESC, created_at DESC"""), {"o": me["id"]}).all()
@@ -129,6 +131,8 @@ def list_saved(me: dict = Depends(require("self.edit"))) -> Dict[str, Any]:
 
 @router.get("/me/saved/{saved_id}")
 def get_saved(saved_id: str, me: dict = Depends(require("self.edit"))) -> Dict[str, Any]:
+    if not has_permission(me, "muhurta.save"):
+        raise HTTPException(status_code=403, detail="Saved searches access is disabled for your account.")
     with app_engine().connect() as c:
         r = c.execute(text(f"SELECT {_COLS} FROM app.saved_searches WHERE id = CAST(:i AS uuid) AND owner_id = CAST(:o AS uuid)"),
                       {"i": _uuid(saved_id), "o": me["id"]}).first()
@@ -139,6 +143,8 @@ def get_saved(saved_id: str, me: dict = Depends(require("self.edit"))) -> Dict[s
 
 @router.post("/me/saved", status_code=201)
 def save(body: SaveIn, req: Request, me: dict = Depends(require("self.edit"))) -> Dict[str, Any]:
+    if not has_permission(me, "muhurta.save"):
+        raise HTTPException(status_code=403, detail="Saving searches is disabled for your account.")
     if body.kind == "muhurta":
         request = _clean_request(body.request)
         if not request.get("activity_id") or not request.get("start_date"):
@@ -182,6 +188,8 @@ def edit_saved(saved_id: str, body: SaveEdit, me: dict = Depends(require("self.e
 
 @router.delete("/me/saved/{saved_id}")
 def delete_saved(saved_id: str, req: Request, me: dict = Depends(require("self.edit"))) -> Dict[str, Any]:
+    if not has_permission(me, "muhurta.delete"):
+        raise HTTPException(status_code=403, detail="Deleting saved searches is disabled for your account.")
     with app_engine().begin() as c:
         r = c.execute(text("DELETE FROM app.saved_searches WHERE id = CAST(:i AS uuid) AND owner_id = CAST(:o AS uuid) RETURNING activity_id, kind"),
                       {"i": _uuid(saved_id), "o": me["id"]}).first()

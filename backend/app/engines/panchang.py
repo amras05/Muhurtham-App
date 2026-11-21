@@ -7,14 +7,19 @@ location-specific timings for sunrise, sunset, tithi, nakshatra, etc.
 """
 from datetime import date, datetime, timedelta
 
-from jhora.panchanga import drik, drik1
+from jhora.panchanga import drik
+try:
+    from jhora.panchanga import drik1
+except ImportError:
+    drik1 = None
 from jhora import utils, const
 import swisseph as swe
 
 # Monkey patch pyjhora's reset functions to prevent it from resetting Swiss Ephemeris 
 # to other modes. We force it to stay on Lahiri ayanamsa at all times.
 drik.reset_ayanamsa_mode = lambda: swe.set_sid_mode(swe.SIDM_LAHIRI)
-drik1.reset_ayanamsa_mode = lambda: swe.set_sid_mode(swe.SIDM_LAHIRI)
+if drik1 is not None:
+    drik1.reset_ayanamsa_mode = lambda: swe.set_sid_mode(swe.SIDM_LAHIRI)
 
 from app.core.logging import logger
 from app.models.names import (

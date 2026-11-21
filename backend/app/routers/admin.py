@@ -116,6 +116,7 @@ def people(q: Optional[str] = Query(None, max_length=80), role: Optional[str] = 
                                and not pending and not invited,
             "can_edit": has_permission(admin, "users.edit") and r.id != admin["id"] and r.role != "super_admin",
             "can_delete": has_permission(admin, "users.delete") and r.id != admin["id"] and r.role != "super_admin",
+            "can_set_perms": has_permission(admin, "users.set_perms") and r.id != admin["id"] and r.role != "super_admin",
         })
     return {"people": out, "count": len(out), "can_create": has_permission(admin, "users.create")}
 
@@ -206,6 +207,142 @@ def change_role(user_id: str, body: RoleRequest, req: Request, boss: dict = Depe
                        details=f"{target['name']}: {target['role']} → {body.role}", ip_address=_ip(req),
                        target_type="user", target_id=user_id)
     return {"id": user_id, "role": body.role, "changed": True}
+
+
+# ── Granular per-user permissions (RBAC) ──────────────────────────────────────
+
+class PermOverrideRequest(BaseModel):
+    permission_key: str = Field(..., min_length=2, max_length=80)
+    is_enabled: bool
+    reason: Optional[str] = Field("", max_length=200)
+
+
+@router.get("/admin/people/{user_id}/permissions")
+def get_person_permissions(user_id: str, admin: dict = Depends(require("users.view"))) -> Dict[str, Any]:
+    target = _target(user_id)
+    role = target["role"]
+    from app.auth.permissions import permissions_for, _load_user_overrides, resolve_permission
+    from app.auth.config_registry import USER_POWERS, ADMIN_POWERS
+
+    role_perms = permissions_for(role)
+    overrides = _load_user_overrides(user_id)
+
+    # All candidate keys that can apply to this person
+    relevant_keys = list(USER_POWERS.values())
+    if role in ("admin", "super_admin"):
+        relevant_keys += list(ADMIN_POWERS.values())
+    relevant_keys = sorted(set(relevant_keys))
+
+    items = []
+    for k in relevant_keys:
+        has_override = k in overrides
+        override_val = overrides.get(k)
+        effective = resolve_permission(target, k)
+        role_default = k in role_perms
+        items.append({
+            "key": k,
+            "role_default": role_default,
+            "has_override": has_override,
+            "override_value": override_val,
+            "effective": effective,
+        })
+
+    return {
+        "user_id": user_id,
+        "name": target["name"],
+        "role": role,
+        "is_super_admin": role == "super_admin",
+        "can_edit": has_permission(admin, "users.set_perms") and target["id"] != admin["id"] and role != "super_admin",
+        "permissions": items,
+    }
+
+
+@router.put("/admin/people/{user_id}/permissions")
+def set_person_permission(user_id: str, body: PermOverrideRequest, req: Request,
+                          admin: dict = Depends(require("users.set_perms"))) -> Dict[str, Any]:
+    target = _target(user_id)
+    if target["id"] == admin["id"]:
+        raise HTTPException(status_code=403, detail="You cannot alter your own permissions.")
+    if target["role"] == "super_admin":
+        raise HTTPException(status_code=403, detail="Cannot alter super admin permissions.")
+
+    # Prevent privilege escalation: Admin cannot grant or toggle a power they don't hold
+    if admin["role"] != "super_admin":
+        from app.auth.permissions import resolve_permission
+        if not resolve_permission(admin, body.permission_key):
+            raise HTTPException(status_code=403, detail="You cannot grant or alter a permission you do not hold.")
+
+    with app_engine().begin() as c:
+        c.execute(text("""
+            INSERT INTO app.user_permissions (user_id, permission_key, is_enabled, granted_by, reason)
+            VALUES (CAST(:uid AS uuid), :key, :val, CAST(:by AS uuid), :reason)
+            ON CONFLICT (user_id, permission_key)
+            DO UPDATE SET is_enabled = EXCLUDED.is_enabled,
+                          granted_by = EXCLUDED.granted_by,
+                          granted_at = now(),
+                          reason = EXCLUDED.reason
+        """), {
+            "uid": user_id,
+            "key": body.permission_key,
+            "val": body.is_enabled,
+            "by": admin["id"],
+            "reason": body.reason or "",
+        })
+
+    write_activity_log(
+        user_id=admin["id"],
+        action="permission.override",
+        details=f"{target['name']}: {body.permission_key} = {body.is_enabled}",
+        ip_address=_ip(req),
+        target_type="user",
+        target_id=user_id,
+    )
+    return {"ok": True, "user_id": user_id, "permission_key": body.permission_key, "is_enabled": body.is_enabled}
+
+
+@router.delete("/admin/people/{user_id}/permissions/{perm_key}")
+def clear_person_permission(user_id: str, perm_key: str, req: Request,
+                            admin: dict = Depends(require("users.set_perms"))) -> Dict[str, Any]:
+    target = _target(user_id)
+    if target["id"] == admin["id"]:
+        raise HTTPException(status_code=403, detail="You cannot alter your own permissions.")
+    if target["role"] == "super_admin":
+        raise HTTPException(status_code=403, detail="Cannot alter super admin permissions.")
+
+    with app_engine().begin() as c:
+        c.execute(text("""
+            DELETE FROM app.user_permissions
+            WHERE user_id = CAST(:uid AS uuid) AND permission_key = :key
+        """), {"uid": user_id, "key": perm_key})
+
+    write_activity_log(
+        user_id=admin["id"],
+        action="permission.revert",
+        details=f"Reverted {perm_key} to role default for {target['name']}",
+        ip_address=_ip(req),
+        target_type="user",
+        target_id=user_id,
+    )
+    return {"ok": True, "reverted": True, "permission_key": perm_key}
+
+
+@router.post("/admin/people/{user_id}/sessions/reset")
+def reset_person_sessions(user_id: str, req: Request,
+                          admin: dict = Depends(require("users.reset_sessions"))) -> Dict[str, Any]:
+    target = _target(user_id)
+    if target["role"] == "super_admin" and admin["role"] != "super_admin":
+        raise HTTPException(status_code=403, detail="Cannot reset super admin sessions.")
+
+    signed_out = revoke_all_sessions(user_id)
+    write_activity_log(
+        user_id=admin["id"],
+        action="user.reset_sessions",
+        details=f"Signed out {signed_out} device(s) for {target['name']}",
+        ip_address=_ip(req),
+        target_type="user",
+        target_id=user_id,
+    )
+    return {"ok": True, "signed_out_devices": signed_out}
 
 
 class AlertChoices(BaseModel):

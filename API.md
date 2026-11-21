@@ -193,6 +193,17 @@ A token whose session has ended gets 401 on every endpoint.
 | `POST /auth/otp/send` | Bearer | `{phone: <new number>, purpose: "change_mobile"}` | Code to the new number; 400 if it already has an account |
 | `POST /auth/password/reset` | — | `{phone, otp, new_password, confirm_password}` | New password; every device signed out; login lock cleared |
 | `POST /me/mobile` | Bearer | `{new_phone, otp, password}` | Mobile changed (needs the current password); other devices signed out |
+| `GET /me/permissions` | Bearer | — | Current user's full resolved permission map `{role, permissions, overrides}` |
+
+### Granular Access Control & Permissions (RBAC)
+| Endpoint | Auth | Body | Result |
+|---|---|---|---|
+| `GET /admin/people/{id}/permissions` | Bearer (`users.view`) | — | Target person's role defaults, per-user overrides, and effective permissions |
+| `PUT /admin/people/{id}/permissions` | Bearer (`users.set_perms`) | `{permission_key, is_enabled, reason}` | Sets or updates a per-user permission override |
+| `DELETE /admin/people/{id}/permissions/{key}` | Bearer (`users.set_perms`) | — | Reverts a per-user permission override to role default |
+| `POST /admin/people/{id}/sessions/reset` | Bearer (`users.reset_sessions`) | — | Force-logout all sessions for a user |
+| `GET /admin/config` | Bearer (`settings.edit`) | — | Includes global `user_powers` and `admin_powers` toggles |
+| `PUT /admin/config` | Bearer (`settings.edit`) | `{changes: {user_powers: {...}}}` | Update global role permission defaults |
 
 ### Limits (HTTP 429, with `Retry-After`)
 - A new code: 30 s after the last one; 3 per number in 15 minutes, 10 per day; 20 per network per hour.

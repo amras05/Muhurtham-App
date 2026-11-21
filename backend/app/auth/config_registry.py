@@ -221,19 +221,194 @@ class Security(_Strict):
     otp_attempts: int = Field(5, ge=3, le=10)
 
 
-ADMIN_POWERS = {   # power -> the permission it grants the admin role
-    "users_view": "users.view", "users_view_mobile": "users.view_mobile", "users_disable": "users.disable",
-    "content_edit": "content.edit", "audit_view_users": "audit.view_users", "stats_view": "system.view",
+USER_POWERS = {   # power -> the permission it grants the user role
+    # Today's Panchangam
+    "panchang_view": "panchang.view",
+    "panchang_change_place": "panchang.change_place",
+    "panchang_change_date": "panchang.change_date",
+    "panchang_share": "panchang.share",
+    "panchang_pdf": "panchang.export_pdf",
+    "panchang_month": "panchang.month",
+    "panchang_find_muhurtha": "panchang.find_muhurtha",
+    "panchang_live_cards": "panchang.live_cards",
+    "panchang_angas": "panchang.angas",
+    "panchang_timeline": "panchang.timeline",
+    "panchang_timings": "panchang.timings",
+    "panchang_ashta_kaalas": "panchang.ashta_kaalas",
+    "panchang_hora_choghadiya": "panchang.hora_choghadiya",
+    "panchang_chandrabalam": "panchang.chandrabalam",
+    "panchang_lagnas": "panchang.lagnas",
+    "panchang_shloka": "panchang.shloka",
+
+    # Monthly Panchangam
+    "month_view": "panchang_month.view",
+    "month_navigate": "panchang_month.navigate",
+    "month_day_details": "panchang_month.day_details",
+    "month_pdf": "panchang_month.export_pdf",
+    "month_festivals": "panchang_month.festivals",
+
+    # Muhurtha Darshini / Finder
+    "muhurta_search": "muhurta.search",
+    "muhurta_select_activity": "muhurta.select_activity",
+    "muhurta_date_range": "muhurta.date_range",
+    "muhurta_time_filters": "muhurta.time_filters",
+    "muhurta_participants": "muhurta.participants",
+    "muhurta_audit": "muhurta.audit",
+    "muhurta_save": "muhurta.save",
+    "muhurta_delete": "muhurta.delete",
+    "muhurta_export": "muhurta.export",
+
+    # All Muhurtas Catalog
+    "catalog_view": "catalog.view",
+    "catalog_browse": "catalog.browse",
+    "catalog_search": "catalog.search",
+    "catalog_rules": "catalog.rules",
+
+    # Family Vault
+    "family_view": "family.view",
+    "family_add": "family.add",
+    "family_view_details": "family.view_details",
+    "family_edit": "family.edit",
+    "family_delete": "family.delete",
+    "family_events": "family.events",
+    "family_export": "family.export",
+
+    # My Saved Muhurtas
+    "saved_view": "saved.view",
+    "saved_favourite": "saved.favourite",
+    "saved_edit_label": "saved.edit_label",
+    "saved_delete": "saved.delete",
+    "saved_export": "saved.export",
+
+    # Account & Profile
+    "self_edit": "self.edit",
+    "self_edit_name": "self.edit_name",
+    "self_edit_language": "self.edit_language",
+    "self_edit_home_place": "self.edit_home_place",
+    "self_sessions": "self.sessions",
+    "self_delete_account": "self.delete_account",
 }
 
 
-class AdminPowers(_Strict):
+class UserPowers(BaseModel):
+    model_config = {"extra": "ignore"}
+    # Today's Panchangam
+    panchang_view: bool = True
+    panchang_change_place: bool = True
+    panchang_change_date: bool = True
+    panchang_share: bool = True
+    panchang_pdf: bool = True
+    panchang_month: bool = True
+    panchang_find_muhurtha: bool = True
+    panchang_live_cards: bool = True
+    panchang_angas: bool = True
+    panchang_timeline: bool = True
+    panchang_timings: bool = True
+    panchang_ashta_kaalas: bool = True
+    panchang_hora_choghadiya: bool = True
+    panchang_chandrabalam: bool = True
+    panchang_lagnas: bool = True
+    panchang_shloka: bool = True
+
+    # Monthly Panchangam
+    month_view: bool = True
+    month_navigate: bool = True
+    month_day_details: bool = True
+    month_pdf: bool = True
+    month_festivals: bool = True
+
+    # Muhurtha Darshini / Finder
+    muhurta_search: bool = True
+    muhurta_select_activity: bool = True
+    muhurta_date_range: bool = True
+    muhurta_time_filters: bool = True
+    muhurta_participants: bool = True
+    muhurta_audit: bool = True
+    muhurta_save: bool = True
+    muhurta_delete: bool = True
+    muhurta_export: bool = True
+
+    # All Muhurtas Catalog
+    catalog_view: bool = True
+    catalog_browse: bool = True
+    catalog_search: bool = True
+    catalog_rules: bool = True
+
+    # Family Vault
+    family_view: bool = True
+    family_add: bool = True
+    family_view_details: bool = True
+    family_edit: bool = True
+    family_delete: bool = True
+    family_events: bool = True
+    family_export: bool = True
+
+    # My Saved Muhurtas
+    saved_view: bool = True
+    saved_favourite: bool = True
+    saved_edit_label: bool = True
+    saved_delete: bool = True
+    saved_export: bool = True
+
+    # Account & Profile
+    self_edit: bool = True
+    self_edit_name: bool = True
+    self_edit_language: bool = True
+    self_edit_home_place: bool = True
+    self_sessions: bool = True
+    self_delete_account: bool = True
+
+
+ADMIN_POWERS = {   # power -> the permission it grants the admin role
+    # Users Management
+    "users_view": "users.view",
+    "users_view_mobile": "users.view_mobile",
+    "users_disable": "users.disable",
+    "invite_users": "users.create",
+    "edit_user_profile": "users.edit",
+    "delete_user": "users.delete",
+    "reset_user_sessions": "users.reset_sessions",
+    "export_users": "users.export",
+    "set_user_permissions": "users.set_perms",
+
+    # Content & App Settings
+    "content_edit": "content.edit",
+    "content_announcements": "content.announcements",
+    "content_utpata": "content.utpata",
+    "content_texts": "content.texts",
+    "content_rules": "content.rules",
+
+    # Activity Audit & System
+    "audit_view_users": "audit.view_users",
+    "stats_view": "system.view",
+    "audit_export": "audit.export",
+}
+
+
+class AdminPowers(BaseModel):
+    model_config = {"extra": "ignore"}
+    # Users Management
     users_view: bool = True
     users_view_mobile: bool = True
     users_disable: bool = True
+    invite_users: bool = False
+    edit_user_profile: bool = False
+    delete_user: bool = False
+    reset_user_sessions: bool = True
+    export_users: bool = False
+    set_user_permissions: bool = False
+
+    # Content & App Settings
     content_edit: bool = True
+    content_announcements: bool = True
+    content_utpata: bool = True
+    content_texts: bool = True
+    content_rules: bool = True
+
+    # Activity Audit & System
     audit_view_users: bool = True
     stats_view: bool = False
+    audit_export: bool = False
 
 
 class AdminDashboard(_Strict):
@@ -309,6 +484,8 @@ REGISTRY: Dict[str, Dict[str, Any]] = {
                          Security, "Accounts and security", "ఖాతాలు, భద్రత", "security", False),
     "admin_powers": _setting({k: v for k, v in AdminPowers().model_dump().items()}, AdminPowers,
                              "What admins may do", "నిర్వాహకులు చేయగలిగేవి", "admins", False),
+    "user_powers": _setting({k: v for k, v in UserPowers().model_dump().items()}, UserPowers,
+                            "What users may do", "వినియోగదారులు చేయగలిగేవి", "admins", False),
     "admin_dashboard": _setting(AdminDashboard().model_dump(), AdminDashboard,
                                 "Admin dashboard", "నిర్వాహక డాష్‌బోర్డ్", "admins", True),
 }
@@ -399,4 +576,5 @@ def meta() -> Dict[str, Any]:
                 "default": s["default"]} for k, s in REGISTRY.items()} | {
         "_choices": {"pages": PAGE_CHOICES, "icons": ICON_CHOICES, "themes": THEME_PRESETS,
                      "panchang_sections": PANCHANG_SECTIONS, "texts": TEXT_KEYS, "admin_powers": list(ADMIN_POWERS),
-                     "dosha_tabs": DOSHA_TABS, "dosha_events": _dosha_events()}}
+                     "dosha_tabs": DOSHA_TABS, "dosha_events": _dosha_events(),
+                     "user_powers": list(USER_POWERS)}}

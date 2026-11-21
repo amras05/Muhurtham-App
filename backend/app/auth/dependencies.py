@@ -61,6 +61,9 @@ async def get_current_user(request: Request, authorization: Optional[str] = Head
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account has been disabled."
         )
+
+    from .permissions import _load_user_overrides
+    user["_perm_overrides"] = _load_user_overrides(user_id)
         
     return user
 
