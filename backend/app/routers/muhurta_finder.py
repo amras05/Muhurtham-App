@@ -412,6 +412,17 @@ def _soften_optional_people(warnings: List[str], rule) -> List[str]:
     return kept
 
 
+def _app_strictness() -> str:
+    """'lenient' (show all, marked) or 'strict' (hide windows with a mahadosha), from Settings › Finder."""
+    try:
+        from app.auth.app_settings import get_setting
+        value = (get_setting("finder") or {}).get("strictness", "lenient")
+        return value if value in ("lenient", "strict") else "lenient"
+    except Exception as ex:   # settings unreadable: the default, Show all
+        logger.warning(f"Finder strictness setting unavailable, using Show all: {type(ex).__name__}")
+        return "lenient"
+
+
 @router.post("/find")
 def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None,
                            current_user: dict = Depends(get_current_user)):
@@ -425,10 +436,22 @@ def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None,
     """
     if not visibility.is_event_allowed(req.activity_id, list_all_rules(), current_user):
         raise HTTPException(status_code=404, detail=visibility.NOT_AVAILABLE)
+    # Strictness is an app-wide setting since 21 Nov 2026 (Settings › Finder), not a form choice: the
+    # super admin's value is used whatever the request says.
+    req = req.model_copy(update={"strictness": _app_strictness()})
     try:
         s_date = datetime.strptime(req.start_date, "%Y-%m-%d").date()
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid start_date format. Expected YYYY-MM-DD.")
+    # End date (21 Nov 2026): the search never goes past it, whatever days_to_scan asks for.
+    if req.date_to:
+        try:
+            end = datetime.strptime(req.date_to, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="The end date is not a real date. Expected YYYY-MM-DD.")
+        if end < s_date:
+            raise HTTPException(status_code=400, detail="The end date is before the start date.")
+        req = req.model_copy(update={"days_to_scan": min(req.days_to_scan, (end - s_date).days + 1)})
     if req.period_start_date:
         try:
             p_date = datetime.strptime(req.period_start_date, "%Y-%m-%d").date()
@@ -589,3 +612,79 @@ def search_muhurta_windows(req: MuhurtaFindRequest, request: Request = None,
 
     return result
 
+
+
+CHECK_MAX_DAYS = 62      # one check covers at most about two months of dates
+
+
+class MuhurtaCheckRequest(MuhurtaFindRequest):
+    """A search request for one given moment (a patrika's muhurta). start_date = that date."""
+    check_time: str = Field(..., pattern=r"^\d{1,2}:\d{2}$", description="HH:MM, 24-hour, local time at the place")
+
+
+@router.post("/check")
+def check_muhurta(req: MuhurtaCheckRequest, request: Request = None,
+                  current_user: dict = Depends(get_current_user)):
+    """
+    "Check a muhurta" (user, 21 Nov 2026): the full report for one given moment, e.g. a daivajna's
+    22 Nov 2026 11:01 business muhurta. Runs the same engine as /find in Show-all mode over that date and
+    the day before (a time before sunrise belongs to the previous panchang day) and returns the window
+    that contains the moment, with every rule, mahadosha and dashavidha dosha and the three scores.
+    With date_to (21 Nov 2026), the same time is checked on every day from start_date to date_to
+    (at most CHECK_MAX_DAYS days): `days` lists each date with its window or the reason there is none.
+    When no window holds a moment, says why (durmuhurta, varjyam, a combust planet in the lagna, ...).
+    """
+    try:
+        first = datetime.strptime(req.start_date, "%Y-%m-%d").date()
+        last = datetime.strptime(req.date_to, "%Y-%m-%d").date() if req.date_to else first
+        hh, mm = (int(x) for x in req.check_time.split(":"))
+        if not (0 <= hh < 24 and 0 <= mm < 60):
+            raise ValueError("time out of range")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Give the dates as YYYY-MM-DD and the time as HH:MM.")
+    if last < first:
+        raise HTTPException(status_code=400, detail="The end date is before the start date.")
+    n_days = (last - first).days + 1
+    if n_days > CHECK_MAX_DAYS:
+        raise HTTPException(status_code=400, detail=f"Check at most {CHECK_MAX_DAYS} days at a time.")
+    scan = req.model_copy(update={"start_date": (first - timedelta(days=1)).isoformat(), "days_to_scan": n_days + 1,
+                                  "date_to": None, "strictness": "lenient", "min_window_minutes": 5.0,
+                                  "time_preference": "any", "lunar_months": []})
+    result = search_muhurta_windows(scan, request, current_user)
+    if isinstance(result, dict) and result.get("error"):
+        raise HTTPException(status_code=400, detail=result["error"])
+
+    spans = []
+    for c in result.get("candidates") or []:
+        try:
+            a = datetime.strptime(f"{c.get('date')} {c.get('window_start')}", "%Y-%m-%d %H:%M:%S")
+        except (TypeError, ValueError):
+            logger.warning(f"Check: candidate without a usable time: {c.get('date')} {c.get('window_start')}")
+            continue
+        spans.append((a, a + timedelta(minutes=float(c.get("duration_minutes") or 0)), c))
+
+    reason_en = ("No muhurta window holds this moment. It falls in a time the engine always cuts out: "
+                 "durmuhurta or varjyam, a part of the day this event does not use, a combust planet in "
+                 "the lagna, or (near the Godavari) the Pushkaralu rule.")
+    reason_te = ("ఈ సమయం ఏ ముహూర్త సమయంలోనూ లేదు: దుర్ముహూర్తం / వర్జ్యం, ఈ కార్యానికి వాడని సమయం, "
+                 "లగ్నంలో అస్తంగత గ్రహం, లేదా గోదావరి పుష్కర నియమం.")
+    days = []
+    for i in range(n_days):
+        d = first + timedelta(days=i)
+        when = datetime(d.year, d.month, d.day, hh, mm)
+        found = next((c for a, b, c in spans if a <= when < b), None)
+        row = {"date": d.isoformat(), "found": found is not None, "candidate": found}
+        if found is None:
+            row["reason_en"], row["reason_te"] = reason_en, reason_te
+        days.append(row)
+
+    one = days[0]
+    out = {"activity_id": req.activity_id, "date": req.start_date, "date_to": last.isoformat(), "time": req.check_time,
+           "title_en": result.get("title_en"), "title_te": result.get("title_te"),
+           "found": one["found"], "candidate": one["candidate"], "days": days,
+           "warnings": result.get("warnings") or [], "notices": result.get("notices") or [],
+           "birth_details": result.get("birth_details")}
+    if not one["found"]:
+        out["reason_en"], out["reason_te"] = reason_en, reason_te
+        out["rejection_summary"] = result.get("rejection_summary") or []
+    return out

@@ -576,8 +576,10 @@ _PANCHA_VEDHA = {**{a: b for a, b in PANCHA_SHALAKA_PAIRS}, **{b: a for a, b in 
 ABHIJIT_SPAN = (276.0 + 40.0 / 60.0, 280.0 + 53.0 / 60.0 + 20.0 / 3600.0)    # Makara 6°40′ – 10°53′20″ (book p.48)
 
 
-def _nak28(lon: float):
-    """Nakshatra in the 28-nakshatra scheme: 1-27, or "A" inside Abhijit's span."""
+def _vedha_nak(lon: float):
+    """Nakshatra for the vedha chakras: 1-27, or "A" inside Abhijit's span. (Named _nak28 until 21 Nov 2026,
+    which silently replaced the 1-28 _nak28 above that Ekargala counts with: Ekargala then crashed with the
+    Sun or Moon in Abhijit and miscounted from Shravana onwards.)"""
     if ABHIJIT_SPAN[0] <= lon % 360.0 < ABHIJIT_SPAN[1]:
         return "A"
     return int((lon % 360.0) // (360.0 / 27.0)) + 1
@@ -634,16 +636,16 @@ def _ashubha_viddha(ch: _Chart, ctx: Optional[Dict[str, Any]] = None) -> Optiona
     ctx = ctx or {}
     if not ch.has(1):
         return None
-    n, moon_pada = _nak28(ch.lon[1]), _pada28(ch.lon[1])
+    n, moon_pada = _vedha_nak(ch.lon[1]), _pada28(ch.lon[1])
     nak = _nak28_name(n)
     pancha = ctx.get("event_id") in PANCHA_SHALAKA_EVENTS
     chakra_en, chakra_te, table = (("pancha-shalaka", "పంచశలాక", _PANCHA_VEDHA) if pancha
                                    else ("sapta-shalaka", "సప్తశలాక", _SAPTA_VEDHA))
-    occupied = [PLANET_NAME[p] for p in ch.lon if p != 1 and p in NATURAL_MALEFICS and _nak28(ch.lon[p]) == n]
+    occupied = [PLANET_NAME[p] for p in ch.lon if p != 1 and p in NATURAL_MALEFICS and _vedha_nak(ch.lon[p]) == n]
     partner = table.get(n)
     hits, others = [], []
     for p in ch.lon:
-        if p == 1 or partner is None or _nak28(ch.lon[p]) != partner:
+        if p == 1 or partner is None or _vedha_nak(ch.lon[p]) != partner:
             continue
         pierced = 5 - _pada28(ch.lon[p])
         kind = "malefic" if p in NATURAL_MALEFICS else "benefic"

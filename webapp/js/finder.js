@@ -703,6 +703,14 @@ if (window.SiteConfig) SiteConfig.onChange((c) => {
 let paging = null;        // { payload, scanned, done, loading, error, rejections }
 let moreObserver = null;
 
+// Days from the start date to the end date, both included; a full search year when no end date is given.
+// An end date past that year is cut to it (Settings › Finder › search days).
+function searchSpanDays(startIso, endIso) {
+  if (!endIso) return YEAR_DAYS;
+  const days = Math.round((Date.parse(endIso + "T00:00:00Z") - Date.parse(startIso + "T00:00:00Z")) / 864e5) + 1;
+  return Math.max(1, Math.min(YEAR_DAYS, days));
+}
+
 function addDaysIso(iso, n) {
   const d = new Date(iso + "T00:00:00");
   d.setDate(d.getDate() + n);
@@ -719,7 +727,8 @@ function mergeRejections(data) {
 }
 
 function startPaging(payload, data) {
-  paging = { payload, scanned: payload.days_to_scan, done: payload.days_to_scan >= YEAR_DAYS, loading: false, error: null, rejections: {} };
+  const limit = searchSpanDays(payload.start_date, payload.date_to);
+  paging = { payload, limit, scanned: payload.days_to_scan, done: payload.days_to_scan >= limit, loading: false, error: null, rejections: {} };
   data.results = chunkResults(data).slice().sort(byDateTime);
   lastData = data;
   mergeRejections(data);
@@ -733,7 +742,7 @@ async function loadMore() {
   if (!paging || paging.loading || paging.done || lastToolSearch) return;
   paging.loading = true; paging.error = null;
   updateMore();
-  const days = Math.min(CHUNK_DAYS, YEAR_DAYS - paging.scanned);
+  const days = Math.min(CHUNK_DAYS, paging.limit - paging.scanned);
   const body = { ...paging.payload, start_date: addDaysIso(paging.payload.start_date, paging.scanned), days_to_scan: days };
   try {
     const res = await fetch(`${API_BASE}/muhurta/find`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -747,7 +756,7 @@ async function loadMore() {
     lastData.candidates = lastData.results;
     mergeRejections(data);
     paging.scanned += days;
-    paging.done = paging.scanned >= YEAR_DAYS;
+    paging.done = paging.scanned >= paging.limit;
     lastData.days_scanned = paging.scanned;
     renderResults(lastData);
   } catch (e) {
@@ -765,13 +774,15 @@ function updateMore() {
   if (!paging || lastToolSearch) { box.hidden = true; return; }
   box.hidden = false;
   const upTo = addDaysIso(paging.payload.start_date, paging.scanned - 1);
-  const next = addDaysIso(paging.payload.start_date, Math.min(YEAR_DAYS, paging.scanned + CHUNK_DAYS) - 1);
+  const next = addDaysIso(paging.payload.start_date, Math.min(paging.limit, paging.scanned + CHUNK_DAYS) - 1);
   if (paging.loading) {
     box.innerHTML = `<span class="load-more__spinner" aria-hidden="true"></span> ${escapeHtml(T(`Loading muhurtas up to ${next}…`, `${next} వరకు ముహూర్తాలు లోడ్ అవుతున్నాయి…`))}`;
   } else if (paging.error) {
     box.innerHTML = `${escapeHtml(T("Couldn't load more: ", "మరిన్ని లోడ్ కాలేదు: ") + paging.error)} <button type="button" class="btn btn--sm" onclick="loadMore()">${escapeHtml(T("Try again", "మళ్ళీ ప్రయత్నించు"))}</button>`;
   } else if (paging.done) {
-    box.innerHTML = escapeHtml(T(`That's one year of muhurtas, up to ${upTo}.`, `${upTo} వరకు ఒక సంవత్సరం ముహూర్తాలు చూపించాము.`));
+    box.innerHTML = escapeHtml(paging.payload.date_to
+      ? T(`That's every muhurta from ${paging.payload.start_date} to ${upTo}.`, `${paging.payload.start_date} నుండి ${upTo} వరకు అన్ని ముహూర్తాలు చూపించాము.`)
+      : T(`That's one year of muhurtas, up to ${upTo}.`, `${upTo} వరకు ఒక సంవత్సరం ముహూర్తాలు చూపించాము.`));
   } else {
     box.innerHTML = `<span>${escapeHtml(T(`Showing muhurtas up to ${upTo}.`, `${upTo} వరకు ముహూర్తాలు.`))}</span> <button type="button" class="btn btn--sm" onclick="loadMore()">${escapeHtml(T(`Load more, up to ${next}`, `${next} వరకు మరిన్ని చూపించు`))}</button>`;
   }
@@ -835,7 +846,7 @@ function fillPoolYears() {
   for (let y = current - 1; y <= current + 2; y++) {
     const o = document.createElement("option");
     o.value = y;
-    o.textContent = `${y}–${String(y + 1).slice(2)}`;
+    o.textContent = String(y);      // one year, as people say it (21 Nov 2026); its months run Ugadi to Ugadi
     sel.appendChild(o);
   }
   sel.value = current;
@@ -881,10 +892,18 @@ async function runPool(loc) {
     const mres = await fetch(`${API_BASE}/muhurta/lunar-months?year=${year}&lat=${loc.lat}&lon=${loc.lon}&tz_offset=${loc.tz_offset}`);
     const mdata = await mres.json().catch(() => null);
     if (!mres.ok) throw new Error((mdata && typeof mdata.detail === "string" && mdata.detail) || `HTTP ${mres.status}`);
-    const months = mdata.months.filter(m => !wanted.length || wanted.includes(m.month_number));
-    if (!months.length) throw new Error(T("None of the chosen months falls in that year.", "ఎంచుకున్న మాసాలు ఆ సంవత్సరంలో లేవు."));
+    // The start and end dates (21 Nov 2026) trim the year's months: a month outside them is skipped, one
+    // across them is searched only inside them.
+    const from = el("startDate").value || null, to = el("mfEndDate")?.value || null;
+    const months = mdata.months.filter(m => !wanted.length || wanted.includes(m.month_number)).map(m => {
+      const mEnd = addDaysIso(m.start, m.days - 1);
+      const s0 = from && from > m.start ? from : m.start, e0 = to && to < mEnd ? to : mEnd;
+      return s0 > e0 ? null : Object.assign({}, m, { start: s0, days: searchSpanDays(s0, e0) });
+    }).filter(Boolean);
+    if (!months.length) throw new Error(T("None of the chosen months falls between the start and end dates in that year.",
+                                          "ఎంచుకున్న మాసాలు ఆ సంవత్సరంలో ప్రారంభ, ముగింపు తేదీల మధ్య లేవు."));
     const base = { activity_id: activityId, lat: loc.lat, lon: loc.lon, tz_offset: loc.tz_offset, place_name: loc.place_name,
-                   panchaka_method: "standard", strictness: el("mfStrictness")?.value || "lenient", time_preference: "any",
+                   panchaka_method: "standard", time_preference: "any",
                    participants: [] };
     lastRequest = { ...base, start_date: months[0].start, days_to_scan: Math.min(366, months.reduce((a, m) => a + m.days, 0)),
                     lunar_months: wanted };
@@ -923,8 +942,8 @@ async function runPool(loc) {
     }
     if (more) {
       more.hidden = false;
-      more.textContent = T(`All muhurtas for ${months.map(m => m.name_en).join(", ")} (${year}–${String(year + 1).slice(2)}).`,
-                           `${months.map(m => m.name_te).join(", ")} (${year}–${String(year + 1).slice(2)}) ముహూర్తాలన్నీ చూపించాము.`);
+      more.textContent = T(`All muhurtas for ${months.map(m => m.name_en).join(", ")} (${year}).`,
+                           `${months.map(m => m.name_te).join(", ")} (${year}) ముహూర్తాలన్నీ చూపించాము.`);
     }
   } catch (e) {
     setStatus(T("Couldn't load the muhurtas: ", "ముహూర్తాలు లోడ్ కాలేదు: ") + e.message, true);
@@ -939,6 +958,13 @@ var resultView = (() => { try { return localStorage.getItem("mh_result_view") ||
 var eventFilter = null;      // a ceremony id in the "All main ceremonies" list, or null for all
 
 function bandClass(p) { return p >= 75 ? "excellent" : p >= 50 ? "medium" : "avoid"; }
+// The two dosha scores shown beside the muhurta score (21 Nov 2026): separate, never part of the muhurta %.
+function doshaScoreChips(r) {
+  const chip = (sc, en, te, tip_en, tip_te) => sc
+    ? `<span class="score-chip score-chip--${bandClass(sc.percentage)}" title="${escapeHtml(T(tip_en, tip_te))}">${escapeHtml(T(en, te))} ${sc.percentage}%</span>` : "";
+  return chip(r.maha_score, "Mahadosha", "మహాదోష", `${r.maha_score?.passed} of ${r.maha_score?.checked} mahadoshas clear`, `${r.maha_score?.checked} లో ${r.maha_score?.passed} మహాదోషాలు శుద్ధం`) +
+         chip(r.dasha_score, "Dashavidha", "దశవిధ", `${r.dasha_score?.passed} of ${r.dasha_score?.checked} dashavidha doshas clear`, `${r.dasha_score?.checked} లో ${r.dasha_score?.passed} దశవిధ దోషాలు శుద్ధం`);
+}
 function dmy(iso) { const [y, m, d] = String(iso).split("-"); return `${d}-${m}-${y}`; }
 
 // One line per muhurta (or, for all ceremonies, one line per lagna with a tag per ceremony).
@@ -990,7 +1016,7 @@ function renderCompactList(data, results, passes, grid) {
     html += `<div class="lagna-row${data.allEvents ? "" : " lagna-row--link"}"${open}>
       <div class="lagna-row__line1"><strong>${escapeHtml(dmy(r.date))}</strong><span>${escapeHtml(vaara)}</span><span>${escapeHtml(tithi)}</span><span>${escapeHtml(nak)}</span></div>
       <div class="lagna-row__line2"><span class="lagna-row__lagna">${escapeHtml(lagna)}</span>${am}<span class="lagna-row__time">${escapeHtml(time)}</span>
-        <span class="lagna-row__pct lagna-row__pct--${bandClass(r.percentage || 0)}">${r.percentage}%</span></div>
+        <span class="lagna-row__pct lagna-row__pct--${bandClass(r.percentage || 0)}" title="${escapeHtml(T("Basic muhurta rules", "ముహూర్త ప్రాథమిక నియమాలు"))}">${escapeHtml(T("Muhurta", "ముహూర్త"))} ${r.percentage}%</span>${doshaScoreChips(r)}</div>
       ${chips}
     </div>`;
   });
@@ -1033,15 +1059,80 @@ let lastData = null;
 let lastRequest = null;   // the payload of the last search, for "Save" (plan R3)
 let lastToolSearch = null; // { kind: "yogas" | "pitru", request } when those results are on screen (plan F2)
 
+// The /muhurta/find request from the form: event, place, people and the event's own details. Shared by the
+// search and by "Check a given muhurta" (21 Nov 2026), so both judge with exactly the same inputs.
+function buildFindPayload({ startDate, days, lat, lon, tz_offset, place_name }) {
+  const actSelect = el("mfActivitySelect");
+  const activityId = actSelect ? actSelect.value : null;
+
+  const payload = {
+    activity_id: activityId,
+    start_date: startDate,
+    days_to_scan: days,
+    lat: lat,
+    lon: lon,
+    tz_offset: tz_offset,
+    place_name: place_name,
+    panchaka_method: "standard",
+    rule_variant: el("mfVariantSelect")?.value || null,
+    time_preference: el("mfTimePref")?.value || "any",
+    participants: collectParticipants(),
+    lunar_months: [...document.querySelectorAll("#mfLunarMonths input:checked")].map(i => Number(i.value)),
+    date_to: el("mfEndDate")?.value || null,     // optional end date (21 Nov 2026); the server stops there
+  };
+
+  // Event details (form groups the rule lists in tab_inputs). People come from the cards above.
+  const tabInputs = currentRule()?.tab_inputs || [];
+  const val = id => el(id)?.value?.trim() || null;
+  if (tabInputs.includes("samskara_pregnancy")) payload.conception_date = val("mfConceptionDate");
+  if (tabInputs.includes("garbhadhana_period")) payload.period_start_date = val("mfPeriodStart");
+  if (tabInputs.includes("samskara_main_event")) payload.main_event_date = val("mfMainEventDate");
+  if (tabInputs.includes("pitru_death")) payload.main_event_date = val("mfDeathDate");
+  if (tabInputs.includes("upanayana_family")) {
+    payload.veda_shakha = val("mfVedaShakha");
+    payload.sutra = val("mfSutra");
+    payload.varna = val("mfVarna");
+  }
+  if (tabInputs.includes("griha_owner")) {
+    payload.door_facing = val("mfDoorFacing");
+    payload.plot_facing = val("mfPlotFacing");
+    payload.house_type = val("mfHouseType");
+  }
+  if (tabInputs.includes("travel")) {
+    payload.origin = val("mfTravelOrigin");
+    payload.destination = val("mfTravelDest");
+    payload.travel_direction = val("mfTravelDir");
+    payload.travel_mode = val("mfTravelMode");
+    payload.travel_purpose = val("mfTravelPurpose");
+    payload.travel_exemption = val("mfTravelExemption");
+  }
+  if (tabInputs.includes("business")) {
+    payload.business_name = val("mfBusinessName");
+    payload.business_type = val("mfBusinessType");
+    payload.entrance_facing = val("mfEntranceFacing");
+  }
+  if (tabInputs.includes("vehicle")) {
+    payload.vehicle_type = val("mfVehicleType");
+    payload.vehicle_muhurta_type = val("mfVehicleMuhurtaType");
+  }
+  return payload;
+}
+
 async function findMuhurtas() {
   const startDate = el("startDate").value;
-  const days = CHUNK_DAYS;      // the first part of the year; the rest loads as the list scrolls
+  // The first part of the year (or of the chosen dates); the rest loads as the list scrolls.
+  const days = Math.min(CHUNK_DAYS, searchSpanDays(startDate, el("mfEndDate")?.value || null));
   paging = null;
   bandFilter = null;
   eventFilter = null;
   updateMore();
   if (!chosenPlace || (!startDate && !poolMode)) {
     setStatus(currentLang === "te" ? "దయచేసి తేదీ మరియు ప్రాంతం ఎంచుకోండి." : "Pick a start date and a place first.", true);
+    return;
+  }
+  const endDate = el("mfEndDate")?.value || "";
+  if (endDate && startDate && endDate < startDate) {
+    setStatus(T("The end date is before the start date.", "ముగింపు తేదీ ప్రారంభ తేదీ కంటే ముందుంది."), true);
     return;
   }
   const lat = chosenPlace.lat, lon = chosenPlace.lon, tz_offset = chosenPlace.tz_offset, place_name = chosenPlace.label;
@@ -1080,59 +1171,7 @@ async function findMuhurtas() {
   setStatus("");
 
   try {
-    const actSelect = el("mfActivitySelect");
-    const activityId = actSelect ? actSelect.value : null;
-
-    const payload = {
-      activity_id: activityId,
-      start_date: startDate,
-      days_to_scan: days,
-      lat: lat,
-      lon: lon,
-      tz_offset: tz_offset,
-      place_name: place_name,
-      panchaka_method: "standard",
-      strictness: el("mfStrictness")?.value || "lenient",
-      rule_variant: el("mfVariantSelect")?.value || null,
-      time_preference: el("mfTimePref")?.value || "any",
-      participants: collectParticipants(),
-      lunar_months: [...document.querySelectorAll("#mfLunarMonths input:checked")].map(i => Number(i.value)),
-    };
-
-    // Event details (form groups the rule lists in tab_inputs). People come from the cards above.
-    const tabInputs = currentRule()?.tab_inputs || [];
-    const val = id => el(id)?.value?.trim() || null;
-    if (tabInputs.includes("samskara_pregnancy")) payload.conception_date = val("mfConceptionDate");
-    if (tabInputs.includes("garbhadhana_period")) payload.period_start_date = val("mfPeriodStart");
-    if (tabInputs.includes("samskara_main_event")) payload.main_event_date = val("mfMainEventDate");
-    if (tabInputs.includes("pitru_death")) payload.main_event_date = val("mfDeathDate");
-    if (tabInputs.includes("upanayana_family")) {
-      payload.veda_shakha = val("mfVedaShakha");
-      payload.sutra = val("mfSutra");
-      payload.varna = val("mfVarna");
-    }
-    if (tabInputs.includes("griha_owner")) {
-      payload.door_facing = val("mfDoorFacing");
-      payload.plot_facing = val("mfPlotFacing");
-      payload.house_type = val("mfHouseType");
-    }
-    if (tabInputs.includes("travel")) {
-      payload.origin = val("mfTravelOrigin");
-      payload.destination = val("mfTravelDest");
-      payload.travel_direction = val("mfTravelDir");
-      payload.travel_mode = val("mfTravelMode");
-      payload.travel_purpose = val("mfTravelPurpose");
-      payload.travel_exemption = val("mfTravelExemption");
-    }
-    if (tabInputs.includes("business")) {
-      payload.business_name = val("mfBusinessName");
-      payload.business_type = val("mfBusinessType");
-      payload.entrance_facing = val("mfEntranceFacing");
-    }
-    if (tabInputs.includes("vehicle")) {
-      payload.vehicle_type = val("mfVehicleType");
-      payload.vehicle_muhurta_type = val("mfVehicleMuhurtaType");
-    }
+    const payload = buildFindPayload({ startDate, days, lat, lon, tz_offset, place_name });
 
     lastRequest = payload;
     const res = await fetch(`${API_BASE}/muhurta/find`, {
@@ -1291,7 +1330,7 @@ function limbName(x) {
 
 // Shown on a dosha panel whose set the super admin left out of the score (Settings, 20 Nov 2026).
 function notScoredNote() {
-  return `<p class="portal-hint">${currentLang === "te" ? "ఈ దోషాలు సమాచారం కోసం మాత్రమే: ఈ కార్యానికి ఇవి శాతంలో లెక్కించబడవు." : "Shown for information only: these are not counted in this event's percentage."}</p>`;
+  return `<p class="portal-hint">${currentLang === "te" ? "ఈ దోషాలు సమాచారం కోసం మాత్రమే: ఈ కార్యానికి వీటికి శాతం లెక్కించబడదు (సెట్టింగ్స్‌లో ఆపారు)." : "Shown for information only: this event has no score for these (switched off in Settings)."}</p>`;
 }
 
 function doshaTally(list) {
@@ -1380,15 +1419,15 @@ function renderResults(data) {
       .map(x => `<li>${escapeHtml(x.reason)} <span class="reject-count">× ${x.count}</span></li>`).join("");
     const strictNote = data.strictness === "strict"
       ? (currentLang === "te"
-        ? "కఠిన నియమంలో మహాదోషం ఉన్న సమయాలు దాచబడ్డాయి. 'అన్నీ చూపించు' ఎంచుకుంటే అవి సరిపోని మహాదోషంతో, తక్కువ శాతంతో కనిపిస్తాయి."
-        : "Strict mode hides windows with a mahadosha. Choose \"Show all\" to see them with the mahadosha marked and a lower percentage.")
+        ? "ఈ యాప్ కఠిన నియమంలో ఉంది: మహాదోషం లేదా సరిపోని నియమం ఉన్న సమయాలు దాచబడ్డాయి. సెట్టింగ్స్ › శోధనలో 'అన్నీ చూపించు' ఎంచుకుంటే అవి గుర్తించి కనిపిస్తాయి."
+        : "This app is set to Strict: windows with a mahadosha or a missed rule are hidden. Switching Settings › Finder to \"Show all\" lists them, marked.")
       : "";
     grid.innerHTML = `
       <div class="empty-state">
         <p>${currentLang === "te"
-          ? (paging && !paging.done ? `మొదటి ${data.days_scanned} రోజుల్లో ముహూర్తం లేదు; ముందుకు వెతుకుతున్నాం…` : `ప్రారంభ తేదీ నుండి ఒక సంవత్సరంలో ఈ కార్యానికి శాస్త్రోక్త ముహూర్తం లభించలేదు. వేరే ప్రారంభ తేదీ ఎంచుకోండి.`)
+          ? (paging && !paging.done ? `మొదటి ${data.days_scanned} రోజుల్లో ముహూర్తం లేదు; ముందుకు వెతుకుతున్నాం…` : (paging && paging.payload.date_to ? `ఎంచుకున్న తేదీల మధ్య ఈ కార్యానికి ముహూర్తం లభించలేదు. తేదీలు మార్చండి.` : `ప్రారంభ తేదీ నుండి ఒక సంవత్సరంలో ఈ కార్యానికి శాస్త్రోక్త ముహూర్తం లభించలేదు. వేరే ప్రారంభ తేదీ ఎంచుకోండి.`))
           : data.monthRanges ? (data.poolDone ? `No muhurta for this event in the chosen months. Try other months or another year.` : `Nothing yet; looking through the next month…`)
-          : (paging && !paging.done ? `Nothing in the first ${data.days_scanned} days; looking further…` : `No muhurta passed the book's rules within one year of the start date. Try another start date.`)}</p>
+          : (paging && !paging.done ? `Nothing in the first ${data.days_scanned} days; looking further…` : (paging && paging.payload.date_to ? `No muhurta for this event between the chosen dates. Try other dates.` : `No muhurta passed the book's rules within one year of the start date. Try another start date.`))}</p>
         ${reasons ? `<p class="empty-state__label">${currentLang === "te" ? "ఎక్కువగా తిరస్కరించిన కారణాలు:" : "Most common reasons windows were rejected:"}</p><ul class="empty-state__reasons">${reasons}</ul>` : ""}
         ${strictNote ? `<p class="empty-state__note">${strictNote}</p>` : ""}
       </div>`;
@@ -1527,7 +1566,8 @@ function renderResults(data) {
             </div>
           </div>
           <div class="day-right">
-            <span class="verdict-badge ${verdictClass}">${pct}% · ${verdictText}${mahaTag}</span>
+            <span class="verdict-badge ${verdictClass}" title="${escapeHtml(T("Basic muhurta rules", "ముహూర్త ప్రాథమిక నియమాలు"))}">${escapeHtml(T("Muhurta", "ముహూర్త"))} ${pct}% · ${verdictText}${mahaTag}</span>
+            <div class="score-chips">${doshaScoreChips(r)}</div>
           </div>
         </div>
         ${amshaHtml}
@@ -1896,7 +1936,7 @@ function openDayModal(idx) {
 
   // 10. 21 Maha Doshas Evaluation
   if (d && d.maha_doshas && d.maha_doshas.length > 0) {
-    const mahaScore = doshaTally(d.maha_doshas);
+    const mahaScore = (r.maha_score ? `${r.maha_score.percentage}% · ` : "") + doshaTally(d.maha_doshas);
     bodyHtml += `
       <div class="dosha-panel dosha-panel--maha">
         <div class="dosha-panel__header dosha-panel__header--maha">
@@ -1914,7 +1954,7 @@ function openDayModal(idx) {
 
   // 11. 10 Dashavidha Doshas Evaluation
   if (d && d.dashavidha_doshas && d.dashavidha_doshas.length > 0) {
-    const dashaScore = doshaTally(d.dashavidha_doshas);
+    const dashaScore = (r.dasha_score ? `${r.dasha_score.percentage}% · ` : "") + doshaTally(d.dashavidha_doshas);
     bodyHtml += `
       <div class="dosha-panel dosha-panel--dasha">
         <div class="dosha-panel__header dosha-panel__header--dasha">
@@ -2281,7 +2321,6 @@ async function openSavedSearch(id) {
     el("mfActivitySelect").value = rule.id;
     updateContextualFields();
     if (req.start_date) el("startDate").value = req.start_date;
-    if (req.strictness && el("mfStrictness")) el("mfStrictness").value = req.strictness;
     document.querySelectorAll("#mfLunarMonths input").forEach(i => { i.checked = (req.lunar_months || []).includes(Number(i.value)); });
     if (req.time_preference && el("mfTimePref")) el("mfTimePref").value = req.time_preference;
     if (req.rule_variant && el("mfVariantSelect")) el("mfVariantSelect").value = req.rule_variant;

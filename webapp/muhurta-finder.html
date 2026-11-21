@@ -11,7 +11,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="css/common.css?v=20261121a">
   <link rel="stylesheet" href="css/components.css?v=20261110e">
-  <link rel="stylesheet" href="css/muhurta-finder.css?v=20261119b">
+  <link rel="stylesheet" href="css/muhurta-finder.css?v=20261121c">
 </head>
 
 <body>
@@ -79,6 +79,11 @@
         <label for="startDate" data-en="Start Date" data-te="ప్రారంభ తేదీ">Start Date</label>
         <input type="date" id="startDate">
       </div>
+      <div class="field field--end-date">
+        <label for="mfEndDate" data-en="End date (optional)" data-te="ముగింపు తేదీ (ఐచ్ఛికం)">End date (optional)</label>
+        <input type="date" id="mfEndDate" aria-describedby="mfEndDateNote">
+        <small id="mfEndDateNote" class="place-search__note" data-en="Empty: one year from the start date" data-te="ఖాళీ: ప్రారంభ తేదీ నుండి ఒక సంవత్సరం">Empty: one year from the start date</small>
+      </div>
       <div class="field field--location">
         <label for="mfPlaceInput" data-en="Location" data-te="ప్రాంతం">Location</label>
         <div class="place-search">
@@ -89,13 +94,6 @@
         <small id="mfPlaceNote" class="place-search__note"></small>
         <select id="mfRegionSelect" hidden aria-hidden="true"></select>
       </div>
-      <div class="field field--strictness">
-        <label for="mfStrictness" data-en="Strictness" data-te="నియమ కఠినత">Strictness</label>
-        <select id="mfStrictness">
-          <option value="lenient" selected data-en="Show all: mark mahadoshas not matched, lower %" data-te="అన్నీ చూపించు: సరిపోని మహాదోషాలు గుర్తించి % తగ్గించు">Show all: mark mahadoshas not matched, lower %</option>
-          <option value="strict" data-en="Strict: hide windows with a mahadosha" data-te="కఠినం: మహాదోషం ఉన్న సమయాలు దాచు">Strict: hide windows with a mahadosha</option>
-        </select>
-      </div>
       <div class="field field--timepref">
         <label for="mfTimePref" data-en="Preferred time" data-te="సమయ ప్రాధాన్యత">Preferred time</label>
         <select id="mfTimePref">
@@ -104,22 +102,6 @@
           <option value="afternoon" data-en="Afternoon (midday to sunset)" data-te="మధ్యాహ్నం (మధ్యాహ్నం నుండి సూర్యాస్తమయం)">Afternoon (midday to sunset)</option>
           <option value="evening" data-en="Evening (early night)" data-te="సాయంత్రం (రాత్రి మొదటి భాగం)">Evening (early night)</option>
           <option value="night" data-en="Night (sunset to sunrise)" data-te="రాత్రి (సూర్యాస్తమయం నుండి సూర్యోదయం)">Night (sunset to sunrise)</option>
-        </select>
-      </div>
-      <div class="field field--masa">
-        <label for="mfMasaSystem" data-en="Month names" data-te="మాస పద్ధతి">Month names</label>
-        <select id="mfMasaSystem">
-          <option value="amanta" data-en="Amanta" data-te="అమాంత">Amanta</option>
-          <option value="purnimanta" data-en="Purnimanta" data-te="పూర్ణిమాంత">Purnimanta</option>
-        </select>
-      </div>
-      <div class="field field--minscore">
-        <label for="mfMinScore" data-en="Minimum score" data-te="కనీస శాతం">Minimum score</label>
-        <select id="mfMinScore">
-          <option value="0" data-en="Show every score" data-te="అన్ని శాతాలు చూపించు">Show every score</option>
-          <option value="50" data-en="50% and above" data-te="50% పైన">50% and above</option>
-          <option value="70" data-en="70% and above (good)" data-te="70% పైన (మంచివి)">70% and above (good)</option>
-          <option value="85" data-en="85% and above (best)" data-te="85% పైన (ఉత్తమం)">85% and above (best)</option>
         </select>
       </div>
       <fieldset class="lunar-months" id="mfLunarMonths">
@@ -521,7 +503,7 @@
   <script src="js/regions.js"></script>
   <script src="js/pdf-download.js?v=20261110b"></script>
   <script src="js/stars.js"></script>
-  <script src="js/finder.js?v=20261120a"></script>
+  <script src="js/finder.js?v=20261121g"></script>
 </body>
 
 </html>

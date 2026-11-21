@@ -146,6 +146,8 @@ class Places(_Strict):
 class Finder(_Strict):
     search_days: int = Field(366, ge=60, le=730)     # how far a person search looks ahead
     chunk_days: int = Field(60, ge=15, le=120)       # how many days load at a time
+    # Moved off the Finder form into Settings (21 Nov 2026); the server applies it to every search.
+    strictness: Literal["lenient", "strict"] = "lenient"
 
 
 SWITCH = Literal["inherit", "on", "off"]
@@ -154,16 +156,17 @@ DOSHA_TABS = [t for t in MUHURTA_TABS if t["id"] != "yogas"]
 
 
 class DoshaSwitch(_Strict):
-    """Whether the 21 mahadoshas / 10 dashavidha doshas count in the score (they are always shown). "inherit" = for a category,
+    """Whether the 21 mahadoshas / 10 dashavidha doshas get their own score (they are always listed). "inherit" = for a category,
     follow each event's rule file; for an event, follow its category."""
     mahadoshas: SWITCH = "inherit"
     dashavidha: SWITCH = "inherit"
 
 
 class DoshaScoring(_Strict):
-    main_weight: int = Field(70, ge=0, le=100)       # share of the % from the event's own checks (user, 21 Nov 2026)
-    dasha_weight: int = Field(70, ge=0, le=100)      # dashavidha's share of the dosha part; mahadoshas the rest
-    dasha_cap: int = Field(49, ge=5, le=98)          # most a window with a failed dashavidha dosha can score
+    # Since 21 Nov 2026 (three separate scores) these three are no longer used; kept so saved values still load.
+    main_weight: int = Field(70, ge=0, le=100)
+    dasha_weight: int = Field(70, ge=0, le=100)
+    dasha_cap: int = Field(49, ge=5, le=98)
     tabs: Dict[str, DoshaSwitch] = Field(default_factory=dict)
     events: Dict[str, DoshaSwitch] = Field(default_factory=dict)
 
@@ -281,7 +284,8 @@ REGISTRY: Dict[str, Dict[str, Any]] = {
                          Panchang, "Panchang pages", "పంచాంగ పేజీలు", "panchang", True),
     "places": _setting({"items": [{"id": k, **v} for k, v in REGIONS.items()]}, Places,
                        "Places list", "ప్రదేశాల జాబితా", "places", True),
-    "finder": _setting({"search_days": 366, "chunk_days": 60}, Finder, "Muhurta Finder", "ముహూర్త శోధన", "finder", True),
+    "finder": _setting({"search_days": 366, "chunk_days": 60, "strictness": "lenient"}, Finder,
+                       "Muhurta Finder", "ముహూర్త శోధన", "finder", True),
     "sharing": _setting({"pdf": False, "image": True, "text": True}, Sharing,
                         "PDF, image and text sharing", "PDF, చిత్రం, పాఠ్యం పంచుకోవడం", "finder", True),
     "godavari": _setting({"enabled": True, "km": 30.0}, Godavari,
@@ -289,7 +293,7 @@ REGISTRY: Dict[str, Dict[str, Any]] = {
     "dosha_scoring": _setting({"main_weight": 70, "dasha_weight": 70, "dasha_cap": 49,
                                "tabs": {t["id"]: {"mahadoshas": "inherit", "dashavidha": "inherit"} for t in DOSHA_TABS},
                                "events": {}},
-                              DoshaScoring, "Doshas in the score", "స్కోరులో దోషాలు", "finder", False),
+                              DoshaScoring, "Dosha scores", "దోష శాతాలు", "finder", False),
     "texts": _setting({k: {"en": "", "te": ""} for k in TEXT_KEYS}, None, "Texts", "పాఠ్యాలు", "texts", True),
     "security": _setting({"session_days": 30, "login_fails_before_lock": 5, "lock_minutes": 15, "otp_attempts": 5},
                          Security, "Accounts and security", "ఖాతాలు, భద్రత", "security", False),
