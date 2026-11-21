@@ -82,23 +82,99 @@
 
   $("filters").addEventListener("submit", function (e) { e.preventDefault(); load(); });
 
-  // ── Add a person (super admin) ──
-  $("addPersonBtn").addEventListener("click", function () { $("addPersonForm").hidden = false; $("apName").focus(); });
-  $("apCancel").addEventListener("click", function () { $("addPersonForm").reset(); $("addPersonForm").hidden = true; });
-  $("addPersonForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-    if ($("apPass").value !== $("apPass2").value) {
-      say("error", tr("The two passwords do not match.", "రెండు పాస్‌వర్డ్‌లు సరిపోలలేదు.")); $("apPass2").focus(); return;
+  // ── Add a person / Edit a person: one dialog (21 Nov 2026) ──
+  var dlgMode = "add", dlgId = null;
+  function dlgError(text) { var e = $("pdError"); e.hidden = !text; e.textContent = text || ""; }
+  function openPersonDialog(mode, p) {
+    dlgMode = mode; dlgId = p ? p.id : null;
+    $("personForm").reset(); dlgError("");
+    var add = mode === "add", pwOnly = mode === "password";
+    $("pdTitle").textContent = add ? tr("Add a person", "వ్యక్తిని జోడించండి")
+      : pwOnly ? tr("Set password for " + p.name, p.name + " కు పాస్‌వర్డ్ పెట్టండి")
+      : tr("Edit " + p.name, p.name + " వివరాలు మార్చండి");
+    $("pdHint").textContent = add
+      ? tr("They can log in straight away with this mobile and password.", "ఈ మొబైల్, పాస్‌వర్డ్‌తో వెంటనే లాగిన్ అవ్వచ్చు.")
+      : pwOnly ? tr("They are signed out on every device and log in again with the new password (mobile " + p.mobile_masked + ").",
+                    "అన్ని పరికరాల నుండి సైన్ అవుట్ అవుతారు; కొత్త పాస్‌వర్డ్‌తో మళ్ళీ లాగిన్ అవుతారు (మొబైల్ " + p.mobile_masked + ").")
+      : tr("Current mobile " + p.mobile_masked + ". A new mobile signs them out until they confirm it with a WhatsApp code.",
+           "ప్రస్తుత మొబైల్ " + p.mobile_masked + ". కొత్త మొబైల్ ఇస్తే వాట్సాప్ కోడ్‌తో నిర్ధారించే వరకు సైన్ అవుట్ అవుతారు.");
+    $("pdPerson").hidden = pwOnly;
+    document.querySelectorAll("#personForm .pf-pass__toggle").forEach(function (b) {
+      $(b.getAttribute("data-for")).type = "password"; b.setAttribute("aria-pressed", "false"); b.textContent = tr("Show", "చూపించు");
+    });
+    $("pdPhoneLabel").textContent = add ? tr("Mobile", "మొబైల్") : tr("New mobile (leave empty to keep)", "కొత్త మొబైల్ (మార్చకపోతే ఖాళీగా)");
+    $("apPhone").required = add;
+    $("pdRoleField").hidden = !add;
+    $("pdPasswords").hidden = !(add || pwOnly);
+    $("apPass").required = add || pwOnly; $("apPass2").required = add || pwOnly;
+    var keep = $("apLang").querySelector('option[value=""]');
+    if (add && keep) keep.remove();
+    if (!add && !keep) $("apLang").insertAdjacentHTML("afterbegin", '<option value="">' + esc(tr("Keep as it is", "మార్చవద్దు")) + "</option>");
+    $("apLang").value = add ? "te" : "";
+    if (!add) $("apName").value = p.name;
+    $("pdSubmit").textContent = add ? tr("Add", "జోడించండి") : pwOnly ? tr("Set password", "పాస్‌వర్డ్ పెట్టండి") : tr("Save", "భద్రపరచండి");
+    $("pdClose").setAttribute("aria-label", tr("Close", "మూసివేయండి"));
+    $("personDialog").showModal();
+    $(pwOnly ? "apPass" : "apName").focus();
+  }
+  $("addPersonBtn").addEventListener("click", function () { openPersonDialog("add"); });
+  $("apCancel").addEventListener("click", function () { $("personDialog").close(); });
+  $("pdClose").addEventListener("click", function () { $("personDialog").close(); });
+  // Show / hide what was typed in a password box
+  $("personForm").addEventListener("click", function (e) {
+    var b = e.target.closest(".pf-pass__toggle");
+    if (!b) return;
+    var inp = $(b.getAttribute("data-for")), show = inp.type === "password";
+    inp.type = show ? "text" : "password";
+    b.setAttribute("aria-pressed", String(show));
+    b.textContent = show ? tr("Hide", "దాచు") : tr("Show", "చూపించు");
+    inp.focus();
+  });
+  // The dialog checks the fields itself (novalidate), so the message shows inside it, in the chosen language.
+  function dlgInvalid() {
+    var add = dlgMode === "add";
+    if (dlgMode === "password") {
+      if ($("apPass").value.length < 8) return [$("apPass"), tr("The password must be at least 8 characters.", "పాస్‌వర్డ్ కనీసం 8 అక్షరాలు ఉండాలి.")];
+      if ($("apPass").value !== $("apPass2").value) return [$("apPass2"), tr("The two passwords do not match.", "రెండు పాస్‌వర్డ్‌లు సరిపోలలేదు.")];
+      return null;
     }
+    if ($("apName").value.trim().length < 2) return [$("apName"), tr("Enter the full name (at least 2 letters).", "పూర్తి పేరు ఇవ్వండి (కనీసం 2 అక్షరాలు).")];
+    if (add && !$("apPhone").value.trim()) return [$("apPhone"), tr("Enter the mobile number.", "మొబైల్ నంబర్ ఇవ్వండి.")];
+    if (add && $("apPass").value.length < 8) return [$("apPass"), tr("The password must be at least 8 characters.", "పాస్‌వర్డ్ కనీసం 8 అక్షరాలు ఉండాలి.")];
+    if (add && $("apPass").value !== $("apPass2").value) return [$("apPass2"), tr("The two passwords do not match.", "రెండు పాస్‌వర్డ్‌లు సరిపోలలేదు.")];
+    return null;
+  }
+  $("personForm").addEventListener("submit", async function (e) {
+    e.preventDefault();                 // keep the dialog open until the server says yes
+    dlgError("");
+    var bad = dlgInvalid();
+    if (bad) { dlgError(bad[1]); bad[0].focus(); return; }
+    $("pdSubmit").disabled = true;
     try {
-      await api("POST", "/admin/people", { name: $("apName").value.trim(), phone: $("apPhone").value.trim(),
-                                           role: $("apRole").value, preferred_language: $("apLang").value,
-                                           password: $("apPass").value, confirm_password: $("apPass2").value });
-      say("info", tr("Added. They can log in now with this mobile and the password you set.",
-                     "జోడించాము. ఈ మొబైల్, మీరు పెట్టిన పాస్‌వర్డ్‌తో ఇప్పుడే లాగిన్ అవ్వచ్చు."));
-      $("addPersonForm").reset(); $("addPersonForm").hidden = true;
-      $("fStatus").value = ""; load();
-    } catch (err) { say("error", err.message); }
+      if (dlgMode === "password") {
+        var po = await api("POST", "/admin/people/" + dlgId + "/password", { password: $("apPass").value, confirm_password: $("apPass2").value });
+        say("info", tr("Password set. They were signed out of " + po.signed_out_devices + " device(s) and log in with the new password.",
+                       "పాస్‌వర్డ్ పెట్టాము. " + po.signed_out_devices + " పరికరాల నుండి సైన్ అవుట్ చేశాము; కొత్త పాస్‌వర్డ్‌తో లాగిన్ అవుతారు."));
+      } else if (dlgMode === "add") {
+        await api("POST", "/admin/people", { name: $("apName").value.trim(), phone: $("apPhone").value.trim(),
+                                             role: $("apRole").value, preferred_language: $("apLang").value,
+                                             password: $("apPass").value, confirm_password: $("apPass2").value });
+        say("info", tr("Added. They can log in now with this mobile and the password you set.",
+                       "జోడించాము. ఈ మొబైల్, మీరు పెట్టిన పాస్‌వర్డ్‌తో ఇప్పుడే లాగిన్ అవ్వచ్చు."));
+        $("fStatus").value = "";
+      } else {
+        var body = { name: $("apName").value.trim() };
+        if ($("apPhone").value.trim()) body.phone = $("apPhone").value.trim();
+        if ($("apLang").value) body.preferred_language = $("apLang").value;
+        var out = await api("PUT", "/admin/people/" + dlgId, body);
+        say("info", out.needs_confirmation
+          ? tr("Saved. They are signed out and must confirm the new number: login page → \"Forgot password\".", "భద్రపరిచాము. వారు సైన్ అవుట్ అయ్యారు; కొత్త నంబర్‌ను 'పాస్‌వర్డ్ మర్చిపోయారా' ద్వారా నిర్ధారించుకోవాలి.")
+          : tr("Saved.", "భద్రపరిచాము."));
+      }
+      $("personDialog").close();
+      load();
+    } catch (err) { dlgError(err.message); }
+    finally { $("pdSubmit").disabled = false; }
   });
 
   // ── Several at once ──
@@ -170,39 +246,9 @@
         load();
       } catch (err) { say("error", err.message); }
     } else if (act === "password" && p) {
-      var pf = rowForm(row,
-        '<input name="pw" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="' + esc(tr("New password (8+ characters)", "కొత్త పాస్‌వర్డ్ (8+ అక్షరాలు)")) + '" aria-label="' + esc(tr("New password", "కొత్త పాస్‌వర్డ్")) + '">' +
-        '<input name="pw2" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="' + esc(tr("Type it again", "మళ్ళీ టైప్ చేయండి")) + '" aria-label="' + esc(tr("Type the password again", "పాస్‌వర్డ్ మళ్ళీ")) + '">' +
-        '<button class="btn btn--sm">' + tr("Set password", "పాస్‌వర్డ్ పెట్టండి") + "</button>");
-      pf.addEventListener("submit", async function (ev) {
-        ev.preventDefault();
-        if (pf.pw.value !== pf.pw2.value) { say("error", tr("The two passwords do not match.", "రెండు పాస్‌వర్డ్‌లు సరిపోలలేదు.")); return; }
-        try {
-          var out = await api("POST", "/admin/people/" + id + "/password", { password: pf.pw.value, confirm_password: pf.pw2.value });
-          say("info", tr("Password set. They were signed out of " + out.signed_out_devices + " device(s) and log in with the new password.",
-                         "పాస్‌వర్డ్ పెట్టాము. " + out.signed_out_devices + " పరికరాల నుండి సైన్ అవుట్ చేశాము; కొత్త పాస్‌వర్డ్‌తో లాగిన్ అవుతారు."));
-          load();
-        } catch (err) { say("error", err.message); }
-      });
+      openPersonDialog("password", p);
     } else if (act === "edit" && p) {
-      var ef = rowForm(row,
-        '<input name="name" required minlength="2" maxlength="80" value="' + esc(p.name) + '" aria-label="' + esc(tr("Name", "పేరు")) + '">' +
-        '<input name="phone" inputmode="tel" maxlength="20" placeholder="' + esc(tr("New mobile (leave empty to keep)", "కొత్త మొబైల్ (మార్చకపోతే ఖాళీగా)")) + '" aria-label="' + esc(tr("New mobile", "కొత్త మొబైల్")) + '">' +
-        '<select name="lang" aria-label="' + esc(tr("Language", "భాష")) + '"><option value="">' + tr("Language: keep", "భాష: మార్చవద్దు") + '</option><option value="te">తెలుగు</option><option value="en">English</option></select>' +
-        '<button class="btn btn--sm">' + tr("Save", "భద్రపరచండి") + "</button>");
-      ef.addEventListener("submit", async function (ev) {
-        ev.preventDefault();
-        var body = { name: ef.name.value.trim() };
-        if (ef.phone.value.trim()) body.phone = ef.phone.value.trim();
-        if (ef.lang.value) body.preferred_language = ef.lang.value;
-        try {
-          var out = await api("PUT", "/admin/people/" + id, body);
-          say("info", out.needs_confirmation
-            ? tr("Saved. They are signed out and must confirm the new number: login page → \"Forgot password\".", "భద్రపరిచాము. వారు సైన్ అవుట్ అయ్యారు; కొత్త నంబర్‌ను 'పాస్‌వర్డ్ మర్చిపోయారా' ద్వారా నిర్ధారించుకోవాలి.")
-            : tr("Saved.", "భద్రపరిచాము."));
-          load();
-        } catch (err) { say("error", err.message); }
-      });
+      openPersonDialog("edit", p);
     } else if (act === "delete" && p) {
       var df = rowForm(row,
         "<small>" + esc(tr("This removes their name, mobile, family details and saved muhurtas. It can't be undone. Type their name to confirm:",
