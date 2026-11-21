@@ -31,7 +31,8 @@ hard_filters:
   nakshatra_allow: [anuradha, revati, ashwini, mrigashira, uttara_phalguni, uttara_ashadha, uttara_bhadrapada, punarvasu, pushya, shravana, dhanishta, shatabhisha, hasta, chitra, swati, rohini]
   exclude_janma_counts: [1, 7, 10, 16, 18, 23, 25]
   sun_sign_allow: [makara, kumbha, meena, mesha, vrishabha, mithuna]
-  tarabala_for: [father, mother, guru]
+  # Dosha questionnaire A6 (21 Nov 2026): for upanayana only the vatu's janma details are used, so the
+  # father's, mother's and guru's tarabala (tarabala_for: [father, mother, guru]) is no longer checked.
   house_rules:
     - house: 8
       planets: none

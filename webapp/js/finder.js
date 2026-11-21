@@ -181,7 +181,11 @@ function birthPlaceOptions(selected) {
 function personCardHTML(spec, idx) {
   const role = spec.role;
   const st = participantState[role] || {};
-  const mode = st.mode || "star";
+  // 21 Nov 2026: first "are the birth details known?". Yes = date, time and place (worked out on the server);
+  // no = janma nakshatra, pada and (optional) rashi. The old "find it from the name" mode now lives only in
+  // the nama nakshatra block (Griha Pravesha).
+  const mode = st.mode === "star" || st.mode === "name" ? "star" : "birth";
+  const isNama = spec.star_basis === "nama";
   const label = T(spec.label_en, spec.label_te);
   const id = k => `mfP_${role}_${k}`;
   const needsDob = (spec.fields || []).includes("birth_date");
@@ -223,10 +227,23 @@ function personCardHTML(spec, idx) {
           <input type="text" id="${id("gotra")}" data-k="gotra" value="${escapeHtml(st.gotra || "")}" autocomplete="off"></div>
         ${extra.join("")}
       </div>
-      <div class="nama-mode-tabs" role="tablist" aria-label="${T("How to enter the star", "నక్షత్రం నమోదు విధానం")}">
-        ${tab("star", "I know the nakshatra", "నాకు నక్షత్రం తెలుసు")}
-        ${tab("name", "Find it from the name", "పేరు ద్వారా తెలుసుకోవాలి")}
-        ${tab("birth", "Work it out from birth details", "జన్మ వివరాల ద్వారా")}
+      ${isNama ? `
+      <div class="nama-block">
+        <div class="context-grid">
+          <div class="field"><label for="${id("nama")}">${T("Nama nakshatra (used for Griha Pravesha)", "నామ నక్షత్రం (గృహప్రవేశానికి)")}</label>
+            <select id="${id("nama")}" data-k="nama_nak_idx">${optionList(NAKSHATRAS_27, T("— Not known —", "— తెలియదు —"), st.nama_nak_idx)}</select></div>
+          <div class="field"><label for="${id("npada")}">${T("Nama pada", "నామ పాదం")}</label>
+            <select id="${id("npada")}" data-k="nama_pada">${optionList(PADAS, "—", st.nama_pada)}</select></div>
+          <div class="field"><label for="${id("lookup")}">${T("Or find it from the name", "లేదా పేరు ద్వారా తెలుసుకోండి")}</label>
+            <input type="text" id="${id("lookup")}" data-k="lookup" value="${escapeHtml(st.lookup || "")}" autocomplete="off"
+              oninput="onPersonNameLookup('${role}', this.value)"></div>
+        </div>
+        <div class="nama-detected-badge" id="${id("badge")}" aria-live="polite" hidden></div>
+      </div>` : ""}
+      <p class="participants__hint">${T("Are this person's birth details (date, time, place) known?", "వీరి జన్మ వివరాలు (తేదీ, సమయం, స్థలం) తెలుసా?")}</p>
+      <div class="nama-mode-tabs" role="tablist" aria-label="${T("Birth details known?", "జన్మ వివరాలు తెలుసా?")}">
+        ${tab("birth", "Yes, birth details known", "అవును, జన్మ వివరాలు తెలుసు")}
+        ${tab("star", "No, I know the janma nakshatra", "లేదు, జన్మ నక్షత్రం తెలుసు")}
       </div>
       <div class="person-mode" data-for="star" ${mode === "star" ? "" : "hidden"}>
         <div class="context-grid">
@@ -234,24 +251,9 @@ function personCardHTML(spec, idx) {
             <select id="${id("janma")}" data-k="janma_nak_idx">${optionList(NAKSHATRAS_27, T("— Not known —", "— తెలియదు —"), st.janma_nak_idx)}</select></div>
           <div class="field"><label for="${id("jpada")}">${T("Janma pada", "జన్మ పాదం")}</label>
             <select id="${id("jpada")}" data-k="janma_pada">${optionList(PADAS, "—", st.janma_pada)}</select></div>
-          <div class="field"><label for="${id("nama")}">${T("Nama nakshatra", "నామ నక్షత్రం")}</label>
-            <select id="${id("nama")}" data-k="nama_nak_idx">${optionList(NAKSHATRAS_27, T("— Not known —", "— తెలియదు —"), st.nama_nak_idx)}</select></div>
-          <div class="field"><label for="${id("npada")}">${T("Nama pada", "నామ పాదం")}</label>
-            <select id="${id("npada")}" data-k="nama_pada">${optionList(PADAS, "—", st.nama_pada)}</select></div>
-          <div class="field"><label for="${id("rasi")}">${T("Janma rashi (chandrabala)", "జన్మ రాశి (చంద్రబలం)")}</label>
+          <div class="field"><label for="${id("rasi")}">${T("Janma rashi (optional)", "జన్మ రాశి (ఐచ్ఛికం)")}</label>
             <select id="${id("rasi")}" data-k="rasi_idx">${optionList(RASIS_12, T("— Not known —", "— తెలియదు —"), st.rasi_idx)}</select></div>
-          <div class="field"><label for="${id("lagna")}">${T("Janma lagna", "జన్మ లగ్నం")}</label>
-            <select id="${id("lagna")}" data-k="lagna_idx">${optionList(RASIS_12, T("— Not known —", "— తెలియదు —"), st.lagna_idx)}</select></div>
         </div>
-      </div>
-      <div class="person-mode" data-for="name" ${mode === "name" ? "" : "hidden"}>
-        <div class="context-grid">
-          <div class="field"><label for="${id("lookup")}">${T("Name as given at naming", "నామకరణంలో పెట్టిన పేరు")}</label>
-            <input type="text" id="${id("lookup")}" data-k="lookup" value="${escapeHtml(st.lookup || "")}" autocomplete="off"
-              oninput="onPersonNameLookup('${role}', this.value)"></div>
-        </div>
-        <div class="nama-detected-badge" id="${id("badge")}" aria-live="polite" ${st.nama_nak_idx && mode === "name" ? "" : "hidden"}>${st.nama_nak_idx && mode === "name"
-          ? T(`Nama nakshatra set: ${NAKSHATRAS_27[st.nama_nak_idx - 1].en}, pada ${st.nama_pada || "—"}`, `నామ నక్షత్రం: ${NAKSHATRAS_27[st.nama_nak_idx - 1].te}, ${st.nama_pada || "—"}వ పాదం`) : ""}</div>
       </div>
       <div class="person-mode" data-for="birth" ${mode === "birth" || needsDob ? "" : "hidden"}>
         <div class="context-grid">
@@ -278,8 +280,8 @@ function renderParticipants(rule) {
   box.hidden = false;
   box.innerHTML = `<h4 class="participants__title">${T("People taking part", "పాల్గొనే వ్యక్తులు")}</h4>
     <p class="participants__hint">${T(
-      "Give a nakshatra for each person you want checked. Leave a card empty to skip that person; the result says what was not checked.",
-      "ఎవరి బలం పరిశీలించాలో వారి నక్షత్రం ఇవ్వండి. ఖాళీగా వదిలితే ఆ వ్యక్తి పరిశీలన జరగదు; ఫలితంలో ఆ విషయం చూపిస్తాం.")}</p>` +
+      "For each person, give the birth date, time and place if known; if not, give the janma nakshatra and pada. Leave an optional card empty to skip that person.",
+      "ప్రతి వ్యక్తికి జన్మ తేదీ, సమయం, స్థలం తెలిస్తే ఇవ్వండి; తెలియకపోతే జన్మ నక్షత్రం, పాదం ఇవ్వండి. ఐచ్ఛిక కార్డును ఖాళీగా వదిలితే ఆ వ్యక్తి పరిశీలన జరగదు.")}</p>` +
     specs.map(personCardHTML).join("");
 }
 
@@ -289,7 +291,7 @@ function switchPersonMode(role, mode) {
   card.dataset.mode = mode;
   const needsDob = card.dataset.needsDob === "true";
   card.querySelectorAll(".nama-tab").forEach((b, i) => {
-    const on = ["star", "name", "birth"][i] === mode;
+    const on = ["birth", "star"][i] === mode;
     b.classList.toggle("active", on);
     b.setAttribute("aria-selected", on);
   });
@@ -316,8 +318,8 @@ function onPersonNameLookup(role, val) {
           ${T(`pada ${r.pada}`, `${r.pada}వ పాదం`)} (${T("syllable", "అక్షరం")} <code>${escapeHtml(r.matched_syllable)}</code>)
           <button type="button" class="btn btn--sm" onclick="confirmNamaNakshatra('${role}', ${Number(r.nakshatra_index)}, ${Number(r.pada)})">${T("Use this", "ఇదే వాడండి")}</button>`;
       } else {
-        badge.textContent = T("No nakshatra matches this name's first syllable. Pick the nama nakshatra under 'I know the nakshatra'.",
-          "ఈ పేరు మొదటి అక్షరానికి నక్షత్రం సరిపోలలేదు. 'నాకు నక్షత్రం తెలుసు'లో నామ నక్షత్రం ఎంచుకోండి.");
+        badge.textContent = T("No nakshatra matches this name's first syllable. Pick the nama nakshatra from the list.",
+          "ఈ పేరు మొదటి అక్షరానికి నక్షత్రం సరిపోలలేదు. జాబితా నుండి నామ నక్షత్రం ఎంచుకోండి.");
       }
     } catch (e) {
       console.error("Nama lookup failed:", e);
@@ -345,8 +347,10 @@ function collectParticipants() {
                 gender: val("gender") || null, eldest: !!val("eldest") };
     if (val("profile_id")) p.profile_id = val("profile_id");      // saved family member (plan R1)
     if (val("birth_date")) p.birth_date = val("birth_date");
-    // Directly picked values always count; birth details are sent when that mode is used.
-    ["janma_nak_idx", "janma_pada", "nama_nak_idx", "nama_pada", "rasi_idx", "lagna_idx"].forEach(k => { if (num(k)) p[k] = num(k); });
+    // The nama star (Griha Pravesha cards only) always counts. The janma star is sent only when the birth
+    // details are not known; when they are, the server works it out from them (21 Nov 2026).
+    ["nama_nak_idx", "nama_pada"].forEach(k => { if (num(k)) p[k] = num(k); });
+    if (card.dataset.mode === "star") ["janma_nak_idx", "janma_pada", "rasi_idx"].forEach(k => { if (num(k)) p[k] = num(k); });
     if (card.dataset.mode === "birth" && p.birth_date) {
       p.from_birth = true;
       p.birth_time_unknown = !!val("birth_time_unknown");
@@ -680,9 +684,12 @@ function missingRequired() {
     const parts = [];
     if (s.star_basis === "nama") {
       if (!p.nama_nak_idx) parts.push(T("nama nakshatra", "నామ నక్షత్రం"));
-    } else {
-      if (!p.janma_nak_idx && !fromBirth) parts.push(T("janma nakshatra", "జన్మ నక్షత్రం"));
-      if (!p.rasi_idx && !fromBirth) parts.push(T("janma rashi", "జన్మ రాశి"));
+    } else if (p.from_birth) {
+      // Birth details known: date and time (unless marked not known); the place defaults to the event's.
+      if (!p.birth_time && !p.birth_time_unknown) parts.push(T("birth time", "జన్మ సమయం"));
+    } else if (!fromBirth && !p.janma_nak_idx) {
+      const card = document.querySelector(`#mfParticipants .person-card[data-role="${s.role}"]`);
+      parts.push(card && card.dataset.mode === "birth" ? T("birth date", "పుట్టిన తేదీ") : T("janma nakshatra", "జన్మ నక్షత్రం"));
     }
     if ((s.fields || []).includes("birth_date") && !p.birth_date) parts.push(T("date of birth", "పుట్టిన తేదీ"));
     if (parts.length) out.push({ role: s.role, text: `${T(s.label_en, s.label_te)}: ${parts.join(", ")}` });
@@ -958,7 +965,8 @@ var resultView = (() => { try { return localStorage.getItem("mh_result_view") ||
 var eventFilter = null;      // a ceremony id in the "All main ceremonies" list, or null for all
 
 function bandClass(p) { return p >= 75 ? "excellent" : p >= 50 ? "medium" : "avoid"; }
-// The two dosha scores shown beside the muhurta score (21 Nov 2026): separate, never part of the muhurta %.
+// The dosha parts of the muhurta % shown on their own (A8, 21 Nov 2026: % = panchanga 30 + mahadoshas 70,
+// or 30 / 60 / 10 with dashavidha for marriage).
 function doshaScoreChips(r) {
   const chip = (sc, en, te, tip_en, tip_te) => sc
     ? `<span class="score-chip score-chip--${bandClass(sc.percentage)}" title="${escapeHtml(T(tip_en, tip_te))}">${escapeHtml(T(en, te))} ${sc.percentage}%</span>` : "";
@@ -1225,8 +1233,8 @@ function displayMasa(cm) {
 }
 
 // ---- Result detail (Phase 12: what each result must show) ----
-function roleLabel(role) {
-  const spec = (currentRule()?.participants || []).find(p => p.role === role);
+function roleLabel(role, rule) {
+  const spec = ((rule || currentRule())?.participants || []).find(p => p.role === role);
   return spec ? T(spec.label_en, spec.label_te) : role;
 }
 
@@ -1236,7 +1244,7 @@ function limbWithTimes(lt, fallback) {
   return `${escapeHtml(lt.name)}${pada}<br><small class="limb-time">${escapeHtml(lt.start)} – ${escapeHtml(lt.end)}</small>`;
 }
 
-function peopleStrengthHTML(people) {
+function peopleStrengthHTML(people, rule) {
   const rows = people.filter(p => p.tara || p.chandrabala).map(p => {
     const tara = p.tara
       ? `<span class="pill ${p.tara.is_pass ? "pill--pass" : "pill--fail"}">${escapeHtml(T(p.tara.name, p.tara.name_te || p.tara.name))}</span>`
@@ -1245,7 +1253,7 @@ function peopleStrengthHTML(people) {
       ? `<span class="pill ${p.chandrabala.is_pass ? "pill--pass" : "pill--fail"}">${T(`House ${p.chandrabala.house}`, `${p.chandrabala.house}వ ఇల్లు`)}</span>`
       : `<span class="pill pill--muted">${T("Not given", "ఇవ్వలేదు")}</span>`;
     const basis = p.star_basis_used ? (p.star_basis_used === "nama" ? T("nama star", "నామ నక్షత్రం") : T("janma star", "జన్మ నక్షత్రం")) : "";
-    return `<tr><th scope="row">${escapeHtml(roleLabel(p.role))}${p.name ? `<br><small>${escapeHtml(p.name)}</small>` : ""}</th>
+    return `<tr><th scope="row">${escapeHtml(roleLabel(p.role, rule))}${p.name ? `<br><small>${escapeHtml(p.name)}</small>` : ""}</th>
       <td>${tara}${basis ? `<br><small>${basis}</small>` : ""}</td><td>${cb}</td></tr>`;
   });
   if (!rows.length) return "";
@@ -1277,29 +1285,13 @@ function lagnaStrengthHTML(det) {
   </div>`;
 }
 
-// Printed header: event, place and the record-only details (names, gotra, shakha...).
+// Record-only details shown under the event on the Parishilana (names, gotra, shakha...).
 const RECORD_FIELDS = [
   ["veda_shakha", "Veda shakha", "వేద శాఖ"], ["sutra", "Sutra", "సూత్రం"], ["varna", "Varna", "వర్ణం"],
   ["business_name", "Business", "సంస్థ"], ["business_type", "Business type", "వ్యాపార రకం"],
   ["origin", "From", "ప్రారంభ స్థలం"], ["destination", "To", "గమ్యస్థానం"], ["travel_mode", "Mode", "ప్రయాణ విధానం"],
   ["house_type", "House", "ఇల్లు"], ["vehicle_type", "Vehicle", "వాహనం"],
 ];
-function eventHeaderHTML(r) {
-  const rule = currentRule();
-  const people = (lastData?.participants || []).filter(p => p.name || p.gotra).map(p =>
-    `${escapeHtml(roleLabel(p.role))}: ${escapeHtml(p.name || "—")}${p.gotra ? ` (${T("gotra", "గోత్రం")} ${escapeHtml(p.gotra)})` : ""}`);
-  const ap = lastData?.activity_params || {};
-  const rec = RECORD_FIELDS.filter(([k]) => ap[k]).map(([k, en, te]) => `${T(en, te)}: ${escapeHtml(ap[k])}`);
-  const place = lastData?.birth_details?.place || lastData?.place_name || "";
-  const lines = [
-    `<strong>${escapeHtml(T(rule?.title_en || lastData?.title_en || "", rule?.title_te || lastData?.title_te || ""))}</strong>` +
-      (place ? ` · ${escapeHtml(place)}` : "") + ` · ${escapeHtml(r.window_start || "")}–${escapeHtml(r.window_end || "")}`,
-  ];
-  if (people.length) lines.push(people.join(" · "));
-  if (rec.length) lines.push(rec.join(" · "));
-  return `<div class="event-header">${lines.map(l => `<div>${l}</div>`).join("")}</div>`;
-}
-
 // ---- Dosha rows ----
 function escapeHtml(str) {
   return String(str ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -1590,443 +1582,380 @@ function renderResults(data) {
 }
 
 // ---- Modal ----
+// ---- Muhurta Parishilana (rebuilt 21 Nov 2026, user's layout choice "verdict first, tabs") ----
+// Top: this muhurta (event, date, time, lagna, %, how the % is made, pushkara inside the window) and why
+// the % is what it is. Below: tabs for the detail. The event is the muhurta's own (r._event), never the
+// event picked in the form now (that showed "Dvitiya Vivaha" for a Vivaha muhurta).
+let paTab = "doshas";
+const PA_TABS = [
+  ["doshas", "Doshas", "దోషాలు"], ["rules", "Event rules", "కార్య నియమాలు"], ["panchang", "Panchang", "పంచాంగం"],
+  ["chart", "Chart", "చక్రం"], ["day", "Day timings", "రోజు సమయాలు"]];
+
+function paRuleFor(r) {
+  const id = r?._event?.id || lastData?.activity_id;
+  return allMuhurtaRules.find(x => x.id === id) || null;
+}
+function paEventTitle(r) {
+  if (r?._event) return T(r._event.en, r._event.te || r._event.en);
+  const rule = paRuleFor(r);
+  return T(rule?.title_en || lastData?.title_en || "Muhurta", rule?.title_te || lastData?.title_te || "ముహూర్తం");
+}
+const hm = t => String(t || "").slice(0, 5);
+const PA_FAIL_RANK = { fail: 0, excepted: 1, to_confirm: 2, not_evaluated: 3, pass: 4, not_applicable: 5 };
+const paFailFirst = list => [...list].sort((a, b) => (PA_FAIL_RANK[doshaStatus(a)] ?? 9) - (PA_FAIL_RANK[doshaStatus(b)] ?? 9));
+const paName = m => String(T(m.name_en, m.name_te || m.name_en) || "").replace(/^\d+\.\s*/, "");
+
+function paHeroHTML(r) {
+  const lg = r.detailed_eval?.lagna || {}, pct = r.percentage ?? 0, band = bandClass(pct);
+  const vaara = VAARA_NAMES[currentLang]?.[r.panchang?.vaara] || r.panchang?.vaara || "";
+  const place = lastData?.place_name || placeName() || "";
+  const bandName = { excellent: T("Uttama muhurta", "ఉత్తమ ముహూర్తం"), medium: T("Madhyama muhurta", "మధ్యమ ముహూర్తం"),
+                     avoid: T("Nishiddha: avoid", "నిషిద్ధం") }[band];
+  const rule = paRuleFor(r);
+  const people = (lastData?.participants || []).filter(p => p.name || p.gotra).map(p =>
+    `${roleLabel(p.role, rule)}: ${p.name || "—"}${p.gotra ? ` (${T("gotra", "గోత్రం")} ${p.gotra})` : ""}`);
+  const ap = lastData?.activity_params || {};
+  const rec = RECORD_FIELDS.filter(([k]) => ap[k]).map(([k, en, tel]) => `${T(en, tel)}: ${ap[k]}`);
+  const lagna = T(`${lg.name || "—"} lagna`, `${lg.name_te || lg.name || "—"} లగ్నం`);
+  const nav = lg.navamsa ? T(`${lg.navamsa} navamsa`, `${te(lg.navamsa, RASI_NAMES_TE) || lg.navamsa} నవాంశ`) : "";
+  const age = r.age?.text ? `<p class="pa-hero__meta">${escapeHtml(r.age.text)}</p>` : "";
+  return `<section class="pa-hero pa-hero--${band}" aria-label="${escapeHtml(T("This muhurta", "ఈ ముహూర్తం"))}">
+    <div class="pa-hero__main">
+      <p class="pa-hero__event">${escapeHtml(paEventTitle(r))}</p>
+      <p class="pa-hero__date">${escapeHtml(dmy(r.date))} · ${escapeHtml(vaara)}${place ? ` · ${escapeHtml(place)}` : ""}</p>
+      <p class="pa-hero__time">${escapeHtml(hm(r.window_start))} – ${escapeHtml(hm(r.window_end))}
+        ${r.duration_minutes ? `<small>${escapeHtml(T(`${r.duration_minutes} min`, `${r.duration_minutes} నిమి.`))}</small>` : ""}</p>
+      <p class="pa-hero__lagna">${escapeHtml(lagna)}${nav ? ` · ${escapeHtml(nav)}` : ""}</p>
+      ${people.length ? `<p class="pa-hero__meta">${escapeHtml(people.join(" · "))}</p>` : ""}
+      ${rec.length ? `<p class="pa-hero__meta">${escapeHtml(rec.join(" · "))}</p>` : ""}${age}
+    </div>
+    <div class="pa-hero__score">
+      <span class="pa-hero__pct">${pct}<small>%</small></span>
+      <span class="pa-hero__band">${escapeHtml(bandName)}</span>
+    </div>
+    ${paSplitHTML(r)}
+    ${paPushkaraHTML(r)}
+  </section>`;
+}
+
+// How the % is made (A8): panchanga shuddhi + mahadoshas (+ dashavidha for marriage), each with its share.
+function paSplitHTML(r) {
+  const a = r.audit_points || {};
+  const ps = r.detailed_eval?.panchanga_shuddhi;     // the five angas (21 Nov 2026, option B)
+  const rows = [
+    [T("Panchanga shuddhi", "పంచాంగ శుద్ధి"), a.panchanga_weight, a.main_share, ps
+      ? T(`${ps.passed} of ${ps.checked} angas`, `${ps.checked} లో ${ps.passed} అంగాలు`) : ""],
+    [T("Mahadoshas", "మహాదోషాలు"), a.maha_weight, a.maha_share,
+      r.maha_score ? T(`${r.maha_score.passed} of ${r.maha_score.checked} clear`, `${r.maha_score.checked} లో ${r.maha_score.passed} శుద్ధం`) : ""],
+    [T("Dashavidha doshas", "దశవిధ దోషాలు"), a.dashavidha_weight, a.dasha_share,
+      r.dasha_score ? T(`${r.dasha_score.passed} of ${r.dasha_score.checked} clear`, `${r.dasha_score.checked} లో ${r.dasha_score.passed} శుద్ధం`) : ""],
+  ].filter(([, w, s]) => w > 0 && s !== null && s !== undefined);
+  if (!rows.length) return "";
+  return `<div class="pa-split" aria-label="${escapeHtml(T("How the percentage is made", "శాతం ఎలా వచ్చింది"))}">${rows.map(([name, w, s, note]) => `
+    <div class="pa-split__row">
+      <span class="pa-split__name">${escapeHtml(name)} <small>${T(`weight ${w}%`, `వాటా ${w}%`)}</small></span>
+      <span class="pa-bar" role="img" aria-label="${s}%"><span class="pa-bar__fill pa-bar__fill--${bandClass(s)}" style="width:${Math.max(0, Math.min(100, s))}%"></span></span>
+      <span class="pa-split__val">${s}%${note ? `<small>${escapeHtml(note)}</small>` : ""}</span>
+    </div>`).join("")}</div>`;
+}
+
+// Pushkara navamsha and pushkara bhaga inside THIS window (server: pushkara_window).
+function paPushkaraHTML(r) {
+  const pw = r.pushkara_window;
+  const badges = [];
+  if (pw) {
+    const nav = pw.navamsha || {}, bh = pw.bhaga || {};
+    if (nav.in_window) {
+      const spans = nav.spans.map(s => `${s.start}–${s.end}${s.navamsa ? ` (${T(s.navamsa, te(s.navamsa, RASI_NAMES_TE) || s.navamsa)})` : ""}`).join(", ");
+      badges.push(["good", T(`Pushkara navamsha in this muhurta: ${spans}`, `ఈ ముహూర్తంలో పుష్కర నవాంశ: ${spans}`)]);
+    } else {
+      badges.push(["none", T("No pushkara navamsha in this muhurta", "ఈ ముహూర్తంలో పుష్కర నవాంశ లేదు")]);
+    }
+    if (bh.in_window) {
+      badges.push(["good", T(`Pushkara bhaga in this muhurta: ${bh.at} (${bh.degree}°)`, `ఈ ముహూర్తంలో పుష్కర భాగం: ${bh.at} (${bh.degree}°)`)]);
+    } else if (bh.touches_window) {
+      badges.push(["near", T(`Close to pushkara bhaga: exact at ${bh.at}, near ${bh.span}`, `పుష్కర భాగానికి సమీపం: ఖచ్చితంగా ${bh.at}, సమీపం ${bh.span}`)]);
+    } else if (bh.at) {
+      badges.push(["none", T(`Pushkara bhaga of this lagna is at ${bh.at}, outside this muhurta`, `ఈ లగ్న పుష్కర భాగం ${bh.at}కు, ఈ ముహూర్తం బయట`)]);
+    } else {
+      badges.push(["none", T("No pushkara bhaga in this lagna", "ఈ లగ్నంలో పుష్కర భాగం లేదు")]);
+    }
+  } else {
+    // Results saved before 21 Nov 2026 have only the navamsha.
+    const lg = r.detailed_eval?.lagna || {};
+    badges.push(lg.is_pushkara_navamsa
+      ? ["good", T(`Pushkara navamsha in this muhurta: ${lg.pushkara_minutes || ""}`, `ఈ ముహూర్తంలో పుష్కర నవాంశ: ${lg.pushkara_minutes || ""}`)]
+      : ["none", T("No pushkara navamsha in this muhurta", "ఈ ముహూర్తంలో పుష్కర నవాంశ లేదు")]);
+  }
+  if (r.amsha?.type === "vargottama") badges.push(["near", T(`Vargottamamsha from ${r.amsha.at}`, `${r.amsha.at} నుండి వర్గోత్తమాంశ`)]);
+  return `<div class="pa-pushkara">${badges.map(([k, txt]) =>
+    `<span class="pa-pill pa-pill--${k}">${Icon(k === "none" ? "moon" : "sparkle")} ${escapeHtml(txt)}</span>`).join("")}</div>`;
+}
+
+// What lowered the % (A3: every failed dosha lowers it), and what was neutralised.
+function paWhyHTML(r) {
+  const d = r.detailed_eval || {};
+  const fails = list => (list || []).filter(m => doshaStatus(m) === "fail");
+  const maha = d.mahadoshas_scored === false ? [] : fails(d.maha_doshas);
+  const dasha = d.dashavidha_enforced === false ? [] : fails(d.dashavidha_doshas);
+  const extra = d.extra_checks || [];
+  const misses = fails(extra.filter(x => String(x.id || "").startsWith("rule_miss_")));
+  const others = fails(extra.filter(x => !String(x.id || "").startsWith("rule_miss_"))).concat(fails(d.yoga_doshas));
+  const neutral = [...(d.maha_doshas || []), ...(d.dashavidha_doshas || []), ...extra, ...(d.yoga_doshas || [])].filter(m => doshaStatus(m) === "excepted");
+  const notEval = [...(d.maha_doshas || []), ...(d.dashavidha_doshas || [])].filter(m => doshaStatus(m) === "not_evaluated").length;
+  const group = (title, items, kind) => items.length ? `<div class="pa-why__group"><h4>${escapeHtml(title)} <span>${items.length}</span></h4>
+    <div class="pa-why__chips">${items.map(m => `<span class="pa-pill pa-pill--${kind}" title="${escapeHtml(T(m.desc_en, m.desc_te || m.desc_en) || "")}">${escapeHtml(paName(m))}</span>`).join("")}</div></div>` : "";
+  const missList = misses.length ? `<div class="pa-why__group"><h4>${escapeHtml(T("Event rules not met", "సరిపోని కార్య నియమాలు"))} <span>${misses.length}</span></h4>
+    <ul class="pa-why__list">${misses.map(m => `<li>${escapeHtml(m.desc_en || "")}</li>`).join("")}</ul></div>` : "";
+  const body = group(T("Mahadoshas present", "ఉన్న మహాదోషాలు"), maha, "bad") +
+               group(T("Dashavidha doshas present", "ఉన్న దశవిధ దోషాలు"), dasha, "bad") + missList +
+               group(T("Other checks failed (not in the %)", "ఇతర పరిశీలనలు (శాతంలో లేవు)"), others, "near") +
+               group(T("Neutralised", "నివారణ అయినవి"), neutral, "good");
+  const clean = !maha.length && !dasha.length && !misses.length;
+  const head = clean ? T("Every counted check passed", "లెక్కించిన పరిశీలనలన్నీ శుద్ధం") : T("Why the percentage is lower", "శాతం ఎందుకు తగ్గింది");
+  const ben = r.audit?.benefics_in_lagna || [];
+  const benNote = ben.length ? `<p class="pa-note">${escapeHtml(T(
+    `${ben.map(b => b[0].toUpperCase() + b.slice(1)).join(", ")} in the lagna neutralises the doshas (Dr. Nemani's ruling).`,
+    `లగ్నంలో ${ben.map(b => ({ jupiter: "గురుడు", mercury: "బుధుడు", venus: "శుక్రుడు" }[b] || b)).join(", ")} ఉన్నందున దోషాలు నివారణ (డా. నేమాని గారి నిర్ణయం).`))}</p>` : "";
+  const neNote = notEval ? `<p class="pa-note">${escapeHtml(T(`${notEval} check(s) could not be made with the details given.`, `ఇచ్చిన వివరాలతో ${notEval} పరిశీలనలు చేయలేకపోయాము.`))}</p>` : "";
+  return `<section class="pa-why pa-why--${clean ? "clean" : "issues"}"><h3 class="pa-why__title">${Icon(clean ? "sparkle" : "alert")} ${escapeHtml(head)}</h3>${body}${benNote}${neNote}</section>`;
+}
+
+function paTabsHTML(r) {
+  const d = r.detailed_eval || {};
+  const nFail = [...(d.maha_doshas || []), ...(d.dashavidha_doshas || [])].filter(m => doshaStatus(m) === "fail").length;
+  const nMiss = (d.extra_checks || []).filter(x => String(x.id || "").startsWith("rule_miss_") && doshaStatus(x) === "fail").length;
+  const count = { doshas: nFail, rules: nMiss };
+  return `<div class="pa-tabs no-print" role="tablist" aria-label="${escapeHtml(T("Muhurta details", "ముహూర్త వివరాలు"))}" onkeydown="paTabKey(event)">${PA_TABS.map(([id, en, tel]) => `
+    <button type="button" role="tab" id="paTab_${id}" aria-controls="paPanel_${id}" aria-selected="${id === paTab}" tabindex="${id === paTab ? 0 : -1}"
+      class="pa-tab${id === paTab ? " is-active" : ""}" onclick="paShowTab('${id}')">${escapeHtml(T(en, tel))}${count[id] ? `<span class="pa-tab__count">${count[id]}</span>` : ""}</button>`).join("")}</div>`;
+}
+function paShowTab(id) {
+  paTab = id;
+  PA_TABS.forEach(([t]) => {
+    const tab = el(`paTab_${t}`), panel = el(`paPanel_${t}`);
+    if (tab) { tab.classList.toggle("is-active", t === id); tab.setAttribute("aria-selected", t === id); tab.tabIndex = t === id ? 0 : -1; }
+    if (panel) panel.hidden = t !== id;
+  });
+}
+function paTabKey(e) {
+  if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+  const ids = PA_TABS.map(t => t[0]);
+  const next = ids[(ids.indexOf(paTab) + (e.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length];
+  paShowTab(next);
+  el(`paTab_${next}`)?.focus();
+  e.preventDefault();
+}
+const paPanel = (id, html) => `<div class="pa-panel" role="tabpanel" id="paPanel_${id}" aria-labelledby="paTab_${id}" ${id === paTab ? "" : "hidden"}>${html}</div>`;
+
+function paDoshaList(cls, icon, title, score, list, kind, note) {
+  return `<div class="dosha-panel dosha-panel--${cls} pa-wide">
+    <div class="dosha-panel__header dosha-panel__header--${cls}"><span>${Icon(icon)} ${escapeHtml(title)}</span>
+      <span class="dosha-panel__score dosha-panel__score--${cls}">${score}</span></div>
+    <div class="dosha-panel__body dosha-panel__body--${cls}">${note || ""}${paFailFirst(list).map(m =>
+      doshaItemHTML(m, T(m.name_en, m.name_te || m.name_en), T(m.desc_en, m.desc_te || m.desc_en), kind)).join("")}</div></div>`;
+}
+
+function paDoshasPanel(r) {
+  const d = r.detailed_eval || {};
+  let h = "";
+  if (d.maha_doshas?.length) {
+    h += paDoshaList("maha", "flame", T("21 mahadoshas", "ఏకవింశతి మహాదోషాలు"),
+      (r.maha_score ? `${r.maha_score.percentage}% · ` : "") + doshaTally(d.maha_doshas), d.maha_doshas, "maha",
+      d.mahadoshas_scored === false ? notScoredNote() : "");
+  }
+  if (d.dashavidha_doshas?.length) {
+    const note = d.dashavidha_enforced === false
+      ? `<p class="portal-hint">${T("Marriage only: shown for information, not in this event's percentage.", "వివాహానికి మాత్రమే: సమాచారం కోసం చూపిస్తాం, ఈ కార్య శాతంలో లేదు.")}</p>` : "";
+    h += paDoshaList("dasha", "zap", T("10 dashavidha doshas", "దశవిధ దోషాలు"),
+      (r.dasha_score ? `${r.dasha_score.percentage}% · ` : "") + doshaTally(d.dashavidha_doshas), d.dashavidha_doshas, "dasha", note);
+  }
+  const others = (d.extra_checks || []).filter(x => !String(x.id || "").startsWith("rule_miss_")).concat(d.yoga_doshas || []);
+  if (others.length) {
+    h += paDoshaList("dasha", "shield", T("Other checks (listed, not in the %)", "ఇతర పరిశీలనలు (శాతంలో లేవు)"), doshaTally(others), others, "dasha", "");
+  }
+  const pariharas = d.pariharas || [];
+  if (pariharas.length) {
+    h += `<div class="dosha-panel dosha-panel--pariharam pa-wide">
+      <div class="dosha-panel__header dosha-panel__header--pariharam"><span>${Icon("shield")} ${T("Pariharas present in this muhurta", "ఈ ముహూర్తంలో పరిహారాలు")}</span>
+        <span class="dosha-panel__score dosha-panel__score--pariharam">${pariharas.length}</span></div>
+      <div class="dosha-panel__body dosha-panel__body--pariharam">${pariharas.map(pr => `
+        <div class="pariharam-item"><div class="pariharam-item__header">
+          <strong class="pariharam-item__name">${Icon("sparkle")} ${escapeHtml(T(pr.name_en, pr.name_te || pr.name_en))}</strong>
+          <span class="pariharam-item__badge">${escapeHtml(pr.status || "")}</span></div>
+          ${pr.shloka ? `<div class="pariharam-item__shloka">"${escapeHtml(pr.shloka)}"</div>` : ""}
+          <div class="pariharam-item__desc">${escapeHtml(T(pr.desc_en, pr.desc_te || pr.desc_en))}</div></div>`).join("")}</div></div>`;
+  }
+  return h || `<p class="portal-hint">${T("No dosha checks were run for this muhurta.", "ఈ ముహూర్తానికి దోష పరిశీలనలు జరగలేదు.")}</p>`;
+}
+
+function paRulesPanel(r) {
+  const d = r.detailed_eval || {};
+  const vaaraTe = VAARA_NAMES[currentLang]?.[r.panchang?.vaara] || r.panchang?.vaara || "";
+  const rawNak = typeof r.panchang?.nakshatra === "object" ? r.panchang.nakshatra.name : (r.panchang?.nakshatra || "");
+  const nakTe = te(rawNak, NAKSHATRA_NAMES_TE) || rawNak;
+  let h = "";
+  const misses = (d.extra_checks || []).filter(x => String(x.id || "").startsWith("rule_miss_"));
+  if (misses.length) {
+    h += `<div class="dosha-panel dosha-panel--dasha pa-wide"><div class="dosha-panel__header dosha-panel__header--dasha">
+      <span>${Icon("alert")} ${T("This event's rules not met", "ఈ కార్య నియమాలు సరిపోలనివి")}</span>
+      <span class="dosha-panel__score dosha-panel__score--dasha">${misses.length}</span></div>
+      <div class="dosha-panel__body dosha-panel__body--dasha">${misses.map(m => doshaItemHTML(m, T("Not met", "సరిపోలలేదు"), m.desc_en || "", "dasha")).join("")}</div></div>`;
+  }
+  const passed = (r.reasons || []).filter(Boolean);
+  if (passed.length) {
+    h += `<div class="detail-card pa-wide"><h4 class="detail-card__title">${Icon("sparkle")} ${T("Rules this muhurta meets", "ఈ ముహూర్తం పాటించే నియమాలు")} <span class="pa-tab__count pa-tab__count--good">${passed.length}</span></h4>
+      <ul class="pa-checklist">${passed.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul></div>`;
+  }
+  if (d.vaara) {
+    const card = (t, ok, txt) => buildRuleCard(t, ok, escapeHtml(txt));
+    let g = card(T("Weekday", "వార శుద్ధి"), d.vaara?.is_pass, vaaraTe);
+    g += card(T("Tithi", "తిథి శుద్ధి"), d.tithi?.is_pass, limbName(r.panchang?.tithi));
+    g += card(T("Nakshatra", "నక్షత్ర శుద్ధి"), d.nakshatra?.is_pass, nakTe);
+    g += card(T("Yoga", "యోగం"), d.yoga?.is_pass, limbName(r.panchang?.yoga));
+    g += card(T("Karana", "కరణం"), d.karana?.is_pass, limbName(r.panchang?.karana));
+    const as = d.ashtama_shuddhi;
+    if (as) g += card(T("8th house (ashtama shuddhi)", "అష్టమ శుద్ధి"), as.has_shuddhi,
+      as.has_shuddhi ? T("Empty", "ఖాళీ") : (as.planets_in_8th || []).join(", "));
+    const ls = d.lagna_shuddhi;
+    if (ls) g += card(T("Planets in the lagna", "లగ్నంలో గ్రహాలు"), true,
+      (ls.planets_in_lagna || []).length ? ls.planets_in_lagna.join(", ") : T("None", "లేవు"));
+    if (d.tara) g += card(T("Tarabala", "తారాబలం"), d.tara.is_pass, T(d.tara.name, d.tara.name_te || te(d.tara.name || "", TARA_NAMES_TE) || d.tara.name));
+    if (d.chandrabalam) g += card(T("Chandrabala", "చంద్రబలం"), d.chandrabalam.is_pass, T(d.chandrabalam.desc_en, d.chandrabalam.desc_te || d.chandrabalam.desc_en) || "");
+    if (d.panchaka) g += card(T("Panchaka", "పంచక శుద్ధి"), d.panchaka.is_pass, T(d.panchaka.name_en, d.panchaka.name_te || d.panchaka.name_en));
+    h += `<div class="rule-grid pa-wide">${g}</div>`;
+  }
+  const cautions = (r.cautions || []).filter(Boolean);
+  if (cautions.length) {
+    h += `<div class="detail-card pa-wide"><h4 class="detail-card__title">${Icon("alert")} ${T("Cautions", "జాగ్రత్తలు")}</h4>
+      <ul class="pa-checklist pa-checklist--warn">${cautions.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul></div>`;
+  }
+  const det = r.detail;
+  if (det?.people?.length) h += `<div class="pa-wide">${peopleStrengthHTML(det.people, paRuleFor(r))}</div>`;
+  return h;
+}
+
+function paPanchangPanel(r) {
+  const d = r.detailed_eval || {};
+  const vaaraTe = VAARA_NAMES[currentLang]?.[r.panchang?.vaara] || r.panchang?.vaara || "";
+  const rawNak = typeof r.panchang?.nakshatra === "object" ? r.panchang.nakshatra.name : (r.panchang?.nakshatra || "");
+  const nakTe = te(rawNak, NAKSHATRA_NAMES_TE) || rawNak;
+  const cm = r.panchang?.chandramana;
+  const cmBanner = cm ? `<div class="cm-banner">
+      <span class="cm-banner__sam">${Icon("lamp")} ${escapeHtml(T(`${cm.samvatsara_name} Samvatsara`, `${cm.samvatsara_telugu || cm.samvatsara_name} నామ సంవత్సరం`))}</span><span>·</span>
+      <span class="cm-banner__ayanam">${escapeHtml(T(cm.ayanam_en, cm.ayanam_te || cm.ayanam_en))}</span><span>·</span>
+      <span class="cm-banner__ruthu">${escapeHtml(T(cm.ruthu_en, cm.ruthu_te || cm.ruthu_en))}</span><span>·</span>
+      <span class="cm-banner__maasa">${escapeHtml(displayMasa(cm))}</span><span>·</span>
+      <span class="cm-banner__paksha">${escapeHtml(T(`${cm.paksha_en} Paksham`, cm.paksha_te || cm.paksha_en))}</span></div>` : "";
+  const lt = r.detail?.limb_times || {};
+  const ak = r.panchang?.abhijit_kala_muhurtham;
+  let h = `<div class="detail-card pa-wide">
+    <h4 class="detail-card__title">${Icon("pin")} ${T("Panchang at this muhurta", "ఈ ముహూర్త పంచాంగం")}</h4>${cmBanner}
+    <div class="detail-card__grid">
+      <div><strong>${T("Weekday:", "వారం:")}</strong> ${escapeHtml(vaaraTe)}</div>
+      <div><strong>${T("Tithi:", "తిథి:")}</strong> ${limbWithTimes(lt.tithi, limbName(r.panchang?.tithi))}</div>
+      <div><strong>${T("Nakshatra:", "నక్షత్రం:")}</strong> ${limbWithTimes(lt.nakshatra && { ...lt.nakshatra, name: nakTe }, nakTe)}</div>
+      <div><strong>${T("Yoga:", "యోగం:")}</strong> ${limbWithTimes(lt.yoga, limbName(r.panchang?.yoga))}</div>
+      <div><strong>${T("Karana:", "కరణం:")}</strong> ${limbWithTimes(lt.karana, limbName(r.panchang?.karana))}</div>
+      <div><strong>${T("Sunrise:", "సూర్యోదయం:")}</strong> ${escapeHtml(r.panchang?.sunrise || "—")}</div>
+      <div><strong>${T("Sunset:", "సూర్యాస్తమయం:")}</strong> ${escapeHtml(r.panchang?.sunset || "—")}</div>
+      <div><strong>${T("Abhijit:", "అభిజిత్:")}</strong> ${r.panchang?.abhijit_muhurta ? escapeHtml(`${r.panchang.abhijit_muhurta.start} – ${r.panchang.abhijit_muhurta.end}`) : "—"}</div>
+    </div>
+    ${ak ? `<div class="abhijit-strip ${ak.status === "auspicious" ? "abhijit-strip--auspicious" : "abhijit-strip--inauspicious"}">
+      <span>${Icon(ak.status === "auspicious" ? "sparkle" : "alert")}</span><span>${escapeHtml(T(ak.msg_en, ak.msg_te || ak.msg_en))}</span></div>` : ""}
+  </div>`;
+  if (r.detail) h += lagnaStrengthHTML(r.detail);
+  const pan = r.panchang?.panchaka_rahitam || d.panchaka;
+  if (pan) {
+    const ok = pan.is_pass;
+    h += `<div class="panchaka-box ${ok ? "panchaka-box--pass" : "panchaka-box--fail"}">
+      <div class="panchaka-box__header"><h4 class="panchaka-box__title ${ok ? "panchaka-box__title--pass" : "panchaka-box__title--fail"}">${Icon("wheel")} ${T("Panchaka rahitam", "పంచక రహితం")}</h4>
+        <span class="panchaka-box__badge ${ok ? "panchaka-box__badge--pass" : "panchaka-box__badge--fail"}">${ok ? T("Clean", "శుద్ధం") : T("Dosha", "దోషం")}</span></div>
+      <div class="panchaka-box__body">
+        <div><strong>${T("Formula:", "సూత్రం:")}</strong> <code>${escapeHtml(pan.formula || `(tithi + vara + nakshatra + lagna) % 9 = ${pan.remainder}`)}</code></div>
+        <div class="panchaka-box__classification"><strong>${T("Result:", "ఫలితం:")}</strong> ${escapeHtml(T(pan.name_en, pan.name_te || pan.name_en))} — <em>${escapeHtml(T(pan.effect_en, pan.effect_te || pan.effect_en) || "")}</em></div>
+        ${!ok && (pan.pariharam_en || pan.pariharam_te) ? `<div class="panchaka-box__remedy"><strong>${Icon("leaf")} ${T("Remedy:", "పరిహారం:")}</strong> ${escapeHtml(T(pan.pariharam_en, pan.pariharam_te || pan.pariharam_en))}</div>` : ""}
+      </div></div>`;
+  }
+  return h;
+}
+
+function paChartPanel(r) {
+  const t = hm(r.window_start);
+  return `<div class="chart-card pa-wide"><h4 class="chart-card__title">${Icon("chart")} ${T(`Muhurta D1 chart (${dmy(r.date)}, ${t})`, `ముహూర్త D1 చక్రం (${dmy(r.date)}, ${t})`)}</h4>
+    ${buildD1ChartHTML(r.d1_chart, T(`MUHURTA D1<br>(${t})`, `ముహూర్త D1<br>(${t})`))}</div>`;
+}
+
+function paDayPanel(r) {
+  let h = "";
+  const pi = r.pushkara_info;
+  if (pi) {
+    const sub = [];
+    if (pi.pushkara_bhaga?.is_available) sub.push(T(`Pushkara bhaga ${pi.pushkara_bhaga.precise_time} (${pi.pushkara_bhaga.time_window})`, `పుష్కర భాగం ${pi.pushkara_bhaga.precise_time} (${pi.pushkara_bhaga.time_window})`));
+    if (pi.pushkara_navamsha?.is_available) sub.push(T(`Pushkara navamsha ${pi.pushkara_navamsha.precise_time} (${pi.pushkara_navamsha.time_window})`, `పుష్కర నవాంశ ${pi.pushkara_navamsha.precise_time} (${pi.pushkara_navamsha.time_window})`));
+    const avoid = T(pi.avoid_note_en, pi.avoid_note_te || pi.avoid_note_en);
+    h += `<div class="rec-time-box"><h4 class="rec-time-box__title">${Icon("sun")} ${T("Best pushkara time of this day (any lagna)", "ఈ రోజు ఉత్తమ పుష్కర సమయం (ఏ లగ్నమైనా)")}</h4>
+      <div class="rec-time-box__time">${Icon("clock")} ${escapeHtml(T(pi.statement_en, pi.statement_te || pi.statement_en) || "")}</div>
+      ${sub.length ? `<div class="rec-time-box__details">${sub.map(s => `${Icon("pin")} ${escapeHtml(s)}`).join("<br>")}</div>` : ""}
+      ${avoid ? `<div class="rec-time-box__note">${Icon("alert")} ${escapeHtml(avoid)}</div>` : ""}
+      <p class="pa-note">${T("This is for the whole day; it is not a check of the muhurta above.", "ఇది రోజంతటికి; పై ముహూర్త పరిశీలన కాదు.")}</p></div>`;
+  }
+  const ip = r.panchang?.inauspicious_periods || r.panchang || {};
+  const fmtP = p => !p ? "—" : typeof p === "string" ? (p.trim() || "—")
+    : Array.isArray(p) ? (p.map(i => typeof i === "object" && i.start ? `${i.start} – ${i.end}` : String(i)).filter(Boolean).join(" & ") || "—")
+    : (typeof p === "object" && p.start) ? `${p.start} – ${p.end}` : String(p);
+  const det = r.detail;
+  h += `<div class="inauspicious-card"><h4 class="inauspicious-card__title">${Icon("hourglass")} ${T("Inauspicious times of the day", "ఈ రోజు అశుభ సమయాలు")}</h4>
+    <div class="inauspicious-card__grid">
+      <div><strong>${T("Durmuhurta:", "దుర్ముహూర్తం:")}</strong> ${escapeHtml(fmtP(ip.durmuhurtam))}</div>
+      <div><strong>${T("Varjyam:", "వర్జ్యం:")}</strong> ${escapeHtml(fmtP(ip.varjyam))}</div>
+      <div><strong>${T("Rahu kalam:", "రాహు కాలం:")}</strong> ${escapeHtml(fmtP(ip.rahu_kalam))}</div>
+      <div><strong>${T("Yamagandam:", "యమగండం:")}</strong> ${escapeHtml(fmtP(ip.yamagandam))}</div>
+      <div><strong>${T("Gulika:", "గుళిక:")}</strong> ${escapeHtml(fmtP(ip.gulika_kalam))}</div>
+    </div>
+    ${det?.cut_by?.length ? `<div class="inauspicious-card__cut"><strong>${T("Cut from this lagna:", "ఈ లగ్నం నుండి తొలగించినవి:")}</strong> ${det.cut_by.map(c => `${escapeHtml(c.label)} ${escapeHtml(c.start)}–${escapeHtml(c.end)}`).join(" · ")}</div>` : ""}
+    <p class="pa-note">${T("Only durmuhurta and varjyam cut muhurtas (book para 1681); Rahu kalam, Yamagandam and Gulika are shown for information.",
+                           "దుర్ముహూర్తం, వర్జ్యం మాత్రమే ముహూర్తాన్ని తొలగిస్తాయి (గ్రంథం 1681); రాహు కాలం, యమగండం, గుళిక సమాచారం కోసం.")}</p></div>`;
+  const lsched = r.panchang?.lagna_schedule || [];
+  if (lsched.length) {
+    const cur = r.detailed_eval?.lagna_shuddhi?.muhurta_lagna || "";
+    h += `<div class="lagna-section pa-wide"><h4 class="lagna-section__title"><span>${Icon("landmark")} ${T("Lagnas of the day", "ఈ రోజు లగ్నాలు")}</span>
+      <span class="lagna-section__subtitle">${T("This muhurta's lagna is marked", "ఈ ముహూర్త లగ్నం గుర్తించబడింది")}</span></h4><div class="lagna-grid">${lsched.map(l => {
+        const on = cur && (l.lagna_name === cur || l.lagna_name_te === cur);
+        return `<div class="lagna-item${on ? " lagna-item--current" : ""}"><div class="lagna-item__header"><strong class="lagna-item__name">${escapeHtml(T(l.lagna_name, l.lagna_name_te || l.lagna_name))}</strong>
+          ${on ? `<span class="lagna-item__muhurta-tag">${T("Muhurta", "ముహూర్తం")}</span>` : ""}</div><div class="lagna-item__time">${escapeHtml(l.start_time)} – ${escapeHtml(l.end_time)}</div></div>`;
+      }).join("")}</div></div>`;
+  }
+  const kv = r.panchang?.kala_vibhajana;
+  if (kv) {
+    const part = (k, icon, extra) => kv[k] ? `<div class="kv-card${extra || ""}"><div class="kv-card__name">${Icon(icon)} ${escapeHtml(T(kv[k].name_en, kv[k].name_te || kv[k].name_en))}</div>
+      <div class="kv-card__time">${escapeHtml(kv[k].start)} – ${escapeHtml(kv[k].end)}</div><div class="kv-card__desc">${escapeHtml(T(kv[k].desc_en, kv[k].desc_te || kv[k].desc_en) || "")}</div></div>` : "";
+    h += `<div class="kv-section pa-wide"><h4 class="kv-header"><span>${Icon("hourglass")} ${T("Five parts of the day", "పంచధా కాల విభజన")}</span></h4><div class="kv-grid">
+      ${part("pratah_kalam", "sunrise")}${part("sangava_kalam", "sun")}${part("madhyahnika_kalam", "sun", " kv-card--highlight")}${part("aparahna_kalam", "cloud-sun")}${part("sayahna_kalam", "sunset")}
+      <div class="kv-card kv-card--sacred"><div class="kv-card__name kv-card__name--sacred">${Icon("moon")} ${T("Night", "రాత్రి")}</div><div class="kv-card__sacred-times">
+        <strong>${T("Pradosha:", "ప్రదోషం:")}</strong> ${escapeHtml(kv.pradosha_kalam?.start || "")} – ${escapeHtml(kv.pradosha_kalam?.end || "")}<br>
+        <strong>${T("Nishitha:", "నిశీథం:")}</strong> ${escapeHtml(kv.nisitha_kalam?.start || "")} – ${escapeHtml(kv.nisitha_kalam?.end || "")}<br>
+        <strong>${T("Brahma muhurta:", "బ్రాహ్మీ ముహూర్తం:")}</strong> ${escapeHtml(kv.brahma_muhurtham?.start || "")} – ${escapeHtml(kv.brahma_muhurtham?.end || "")}</div></div>
+    </div></div>`;
+  }
+  if (r.special_yogas?.length) {
+    h += `<div class="special-yogas-container pa-wide">${r.special_yogas.map(y =>
+      `<div class="yoga-item yoga-item--compact ${y.type === "bad" ? "yoga-item--bad" : "yoga-item--good"}">${Icon("sparkle")} ${escapeHtml(T(y.name_en, y.name_te || y.name_en))} — <span class="yoga-item__desc">${escapeHtml(T(y.desc_en, y.desc_te || y.desc_en) || "")}</span></div>`).join("")}</div>`;
+  }
+  return h;
+}
+
 function openDayModal(idx) {
   if (!lastData || !lastData.results[idx]) return;
   openDayIdx = idx;
   const r = lastData.results[idx];
-  const d = r.detailed_eval;
   paRemember(r);
   paNavState();
-
-  const vaaraTe = VAARA_NAMES[currentLang][r.panchang?.vaara] || r.panchang?.vaara;
-  const rawNak = typeof r.panchang?.nakshatra === 'object' ? r.panchang.nakshatra.name : (r.panchang?.nakshatra || "");
-  const nakTe = te(rawNak, NAKSHATRA_NAMES_TE) || rawNak;
-
-  el("mfModalTitle").innerHTML = `${r.date} · ${vaaraTe}`;
-
-  let bodyHtml = "";
-
-  // 1. Pushkara Info
-  const pi = r.pushkara_info;
-  if (pi) {
-    const stmt = currentLang === "te" ? pi.statement_te : pi.statement_en;
-    const avoidNote = currentLang === "te" ? pi.avoid_note_te : pi.avoid_note_en;
-    let subDetails = [];
-    if (pi.pushkara_bhaga?.is_available) {
-      subDetails.push(currentLang === "te" ?
-        `${Icon("pin")} <strong>పుష్కర భాగ ముహూర్తం:</strong> ${pi.pushkara_bhaga.precise_time} (వ్యవధి: ${pi.pushkara_bhaga.time_window})` :
-        `${Icon("pin")} <strong>Pushkara Bhaga:</strong> ${pi.pushkara_bhaga.precise_time} (Window: ${pi.pushkara_bhaga.time_window})`);
-    }
-    if (pi.pushkara_navamsha?.is_available) {
-      subDetails.push(currentLang === "te" ?
-        `${Icon("pin")} <strong>పుష్కర నవాంశ ముహూర్తం:</strong> ${pi.pushkara_navamsha.precise_time} (వ్యవధి: ${pi.pushkara_navamsha.time_window})` :
-        `${Icon("pin")} <strong>Pushkara Navamsha:</strong> ${pi.pushkara_navamsha.precise_time} (Window: ${pi.pushkara_navamsha.time_window})`);
-    }
-    if (subDetails.length === 0) {
-      subDetails.push(`${Icon("pin")} <strong>${currentLang === "te" ? "సమయ వ్యవధి:" : "Window:"}</strong> ${pi.time_window}`);
-    }
-
-    bodyHtml += `
-      <div class="rec-time-box">
-        <h4 class="rec-time-box__title">${Icon("sun")} ${currentLang === "te" ? "శుభ ముహూర్త సమయ నిర్ణయం" : "Recommended Time Prediction"}</h4>
-        <div class="rec-time-box__time">${Icon("clock")} ${stmt}</div>
-        <div class="rec-time-box__details">
-          ${subDetails.join("<br>")}
-        </div>
-        ${avoidNote ? `<div class="rec-time-box__note">${Icon("alert")} ${currentLang === "te" ? "గమనిక:" : "Note:"} ${avoidNote}</div>` : ''}
-      </div>`;
-  }
-
-  const det = r.detail;
-  bodyHtml += auditBannerHTML(r.audit, false);
-  bodyHtml += eventHeaderHTML(r);
-  if (det) {
-    bodyHtml += `<div class="verdict-strip" role="note">${escapeHtml(T(det.verdict_en, det.verdict_te))}</div>`;
-  }
-
-  // 2. Each person's strength (falls back to the single-person box for older results)
-  const bd = lastData.birth_details;
-  const cb = d?.chandrabalam || r.panchang?.chandrabalam;
-  const peopleHtml = det?.people?.length ? peopleStrengthHTML(det.people) : "";
-  bodyHtml += peopleHtml;
-  if (!peopleHtml && (bd || cb)) {
-    const bNakTe = bd ? te(bd.janma_nakshatra || "", NAKSHATRA_NAMES_TE) : "";
-    const bRasiTe = bd?.birth_moon_rasi ? (te(bd.birth_moon_rasi, RASI_NAMES_TE) || bd.birth_moon_rasi) : "";
-    const cbDesc = cb ? (currentLang === "te" ? cb.desc_te : cb.desc_en) : "";
-    const cbBadgeClass = cb?.is_pass ? "native-profile-box__badge--pass" : "native-profile-box__badge--fail";
-    bodyHtml += `
-      <div class="native-profile-box">
-        <div class="native-profile-box__header">
-          <strong class="native-profile-box__title">${Icon("user")} ${currentLang === "te" ? "వ్యక్తిగత సమాచారం & గోచారం (Native & Transit)" : "Native Profile & Transit Details"}</strong>
-          ${cb ? `<span class="native-profile-box__badge ${cbBadgeClass}">${Icon("moon")} ${currentLang === "te" ? "చంద్రబలం:" : "Chandrabalam:"} ${cb.house ? cb.house + 'వ ఇల్లు' : 'అనుకూలం'}</span>` : ''}
-        </div>
-        <div class="native-profile-box__grid">
-          ${bd?.janma_nakshatra ? `<span><strong>${currentLang === "te" ? "జన్మ నక్షత్రం:" : "Janma Nakshatra:"}</strong> ${bNakTe || bd.janma_nakshatra} ${bd.janma_nakshatra_pada ? `(${bd.janma_nakshatra_pada} ${currentLang === "te" ? "పాదం" : "pada"})` : ""}</span>` : ''}
-          ${bd?.birth_moon_rasi ? `<span><strong>${currentLang === "te" ? "జన్మ రాశి:" : "Janma Rasi:"}</strong> ${bRasiTe}</span>` : ''}
-          ${d?.tara ? `<span><strong>${currentLang === "te" ? "తారాబలం:" : "Tarabalam:"}</strong> ${te(d.tara.name, TARA_NAMES_TE) || d.tara.name}</span>` : ''}
-        </div>
-        ${cbDesc ? `<div class="native-profile-box__footer">ℹ️ ${cbDesc}</div>` : ''}
-      </div>`;
-  }
-
-  // 3. Chandramana Header (Samvatsara, Ayanam, Ruthu, Maasam, Paksham)
-  const cm = r.panchang?.chandramana;
-  let cmBanner = "";
-  if (cm) {
-    const samName = currentLang === "te" ? `${cm.samvatsara_name} (${cm.samvatsara_telugu}) నామ సంవత్సరం` : `${cm.samvatsara_name} Samvatsara`;
-    const ayanam = currentLang === "te" ? (cm.ayanam_te || cm.ayanam_en) : cm.ayanam_en;
-    const ruthu = currentLang === "te" ? (cm.ruthu_te || cm.ruthu_en) : cm.ruthu_en;
-    const maasa = displayMasa(cm);
-    const paksha = currentLang === "te" ? (cm.paksha_te || cm.paksha_en) : `${cm.paksha_en} Paksham`;
-    cmBanner = `
-      <div class="cm-banner">
-        <span class="cm-banner__sam">${Icon("lamp")} ${samName}</span>
-        <span>·</span>
-        <span class="cm-banner__ayanam">${ayanam}</span>
-        <span>·</span>
-        <span class="cm-banner__ruthu">${ruthu}</span>
-        <span>·</span>
-        <span class="cm-banner__maasa">${maasa}</span>
-        <span>·</span>
-        <span class="cm-banner__paksha">${paksha}</span>
-      </div>`;
-  }
-
-  // Panchang Grid
-  const isAbhijitAuspicious = r.panchang?.abhijit_kala_muhurtham && r.panchang.abhijit_kala_muhurtham.status === 'auspicious';
-  bodyHtml += `
-    <div class="detail-card">
-      <h4 class="detail-card__title">${Icon("pin")} ${currentLang === "te" ? "పంచాంగ వివరాలు" : "Panchang Details"}</h4>
-      ${cmBanner}
-      <div class="detail-card__grid">
-        <div><strong>${currentLang === "te" ? "వారం:" : "Weekday:"}</strong> ${vaaraTe}</div>
-        <div><strong>${currentLang === "te" ? "తిథి:" : "Tithi:"}</strong> ${limbWithTimes(r.detail?.limb_times?.tithi, limbName(r.panchang?.tithi))}</div>
-        <div><strong>${currentLang === "te" ? "నక్షత్రం:" : "Nakshatra:"}</strong> ${limbWithTimes(r.detail?.limb_times?.nakshatra && { ...r.detail.limb_times.nakshatra, name: nakTe }, nakTe)}</div>
-        <div><strong>${currentLang === "te" ? "యోగం:" : "Yoga:"}</strong> ${limbWithTimes(r.detail?.limb_times?.yoga, limbName(r.panchang?.yoga))}</div>
-        <div><strong>${currentLang === "te" ? "కరణం:" : "Karana:"}</strong> ${limbWithTimes(r.detail?.limb_times?.karana, limbName(r.panchang?.karana))}</div>
-        <div><strong>${currentLang === "te" ? "సూర్యోదయం:" : "Sunrise:"}</strong> ${r.panchang?.sunrise || "—"}</div>
-        <div><strong>${currentLang === "te" ? "సూర్యాస్తమయం:" : "Sunset:"}</strong> ${r.panchang?.sunset || "—"}</div>
-        <div><strong>${currentLang === "te" ? "అభిజిత్ ముహూర్తం:" : "Abhijit:"}</strong> ${r.panchang?.abhijit_muhurta ? (r.panchang.abhijit_muhurta.start + ' – ' + r.panchang.abhijit_muhurta.end) : '—'}</div>
-        <div class="abhijit-strip ${isAbhijitAuspicious ? 'abhijit-strip--auspicious' : 'abhijit-strip--inauspicious'}">
-          <span>${Icon(isAbhijitAuspicious ? "sparkle" : "alert")}</span>
-          <span>
-            <strong>${currentLang === "te" ? "అభిజిత్ కాల ముహూర్తం:" : "Abhijit Kala Muhurtham:"}</strong>
-            ${r.panchang?.abhijit_kala_muhurtham ? 
-              (currentLang === 'te' ? r.panchang.abhijit_kala_muhurtham.msg_te : r.panchang.abhijit_kala_muhurtham.msg_en) : 
-              '—'
-            }
-          </span>
-        </div>
-      </div>
-    </div>`;
-
-  if (det) bodyHtml += lagnaStrengthHTML(det);
-
-  // 4. Panchaka Rahitam Card
-  const pan = r.panchang?.panchaka_rahitam || d?.panchaka;
-  if (pan) {
-    const panName = currentLang === "te" ? pan.name_te : pan.name_en;
-    const panEffect = currentLang === "te" ? pan.effect_te : pan.effect_en;
-    const panPariharam = currentLang === "te" ? pan.pariharam_te : pan.pariharam_en;
-    const isPass = pan.is_pass;
-    bodyHtml += `
-      <div class="panchaka-box ${isPass ? 'panchaka-box--pass' : 'panchaka-box--fail'}">
-        <div class="panchaka-box__header">
-          <h4 class="panchaka-box__title ${isPass ? 'panchaka-box__title--pass' : 'panchaka-box__title--fail'}">
-            ${Icon("wheel")} ${currentLang === "te" ? "పంచక రహిత విశ్లేషణ (Panchaka Rahitam)" : "Panchaka Rahitam Analysis"}
-          </h4>
-          <span class="panchaka-box__badge ${isPass ? 'panchaka-box__badge--pass' : 'panchaka-box__badge--fail'}">
-            ${isPass ? (currentLang === "te" ? "శుభ పంచకం (దోష రహితం)" : "Subha (Clean)") : (currentLang === "te" ? "అశుభ పంచకం" : "Dosha")}
-          </span>
-        </div>
-        <div class="panchaka-box__body">
-          <div><strong>${currentLang === "te" ? "పంచక నిర్ణయ సూత్రం:" : "Formula:"}</strong> <code>${pan.formula || `(తిథి + వారం + నక్షత్రం + లగ్నం) % 9 = శేషం ${pan.remainder}`}</code></div>
-          <div class="panchaka-box__classification"><strong>${currentLang === "te" ? "పంచక ఫలితం:" : "Classification:"}</strong> <span class="${isPass ? 'panchaka-box__classification-name--pass' : 'panchaka-box__classification-name--fail'}">${panName}</span> — <em>${panEffect}</em></div>
-          ${panPariharam && !isPass ? `
-            <div class="panchaka-box__remedy">
-              <strong>${Icon("leaf")} ${currentLang === "te" ? "శాస్త్రోక్త పరిహారం:" : "Classical Remedy:"}</strong> ${panPariharam}
-            </div>
-          ` : ''}
-        </div>
-      </div>`;
-  }
-
-  // 5. Daily 5-Fold Division (Kala Vibhajana)
-  const kv = r.panchang?.kala_vibhajana;
-  if (kv) {
-    bodyHtml += `
-      <div class="kv-section">
-        <h4 class="kv-header">
-          <span>${Icon("hourglass")} ${currentLang === "te" ? "రోజు మొత్తంలో కాల విభజన (పంచధా కాల విభజన)" : "Daily 5-Fold Time Division (Kala Vibhajana)"}</span>
-          <span class="kv-header__sub">${currentLang === "te" ? "పగలు 5 భాగాలు + రాత్రి పవిత్ర కాలాలు" : "5 Day divisions + Night Sacred Periods"}</span>
-        </h4>
-        <div class="kv-grid">
-          <div class="kv-card">
-            <div class="kv-card__name kv-card__name--pratah">${Icon("sunrise")} ${currentLang === "te" ? kv.pratah_kalam?.name_te : kv.pratah_kalam?.name_en}</div>
-            <div class="kv-card__time">${kv.pratah_kalam?.start} – ${kv.pratah_kalam?.end}</div>
-            <div class="kv-card__desc">${currentLang === "te" ? kv.pratah_kalam?.desc_te : kv.pratah_kalam?.desc_en}</div>
-          </div>
-          <div class="kv-card">
-            <div class="kv-card__name kv-card__name--sangava">${Icon("sun")} ${currentLang === "te" ? kv.sangava_kalam?.name_te : kv.sangava_kalam?.name_en}</div>
-            <div class="kv-card__time">${kv.sangava_kalam?.start} – ${kv.sangava_kalam?.end}</div>
-            <div class="kv-card__desc">${currentLang === "te" ? kv.sangava_kalam?.desc_te : kv.sangava_kalam?.desc_en}</div>
-          </div>
-          <div class="kv-card kv-card--highlight">
-            <div class="kv-card__name kv-card__name--madhya">${Icon("sun")} ${currentLang === "te" ? kv.madhyahnika_kalam?.name_te : kv.madhyahnika_kalam?.name_en} <span class="kv-tag">అభిజిత్</span></div>
-            <div class="kv-card__time">${kv.madhyahnika_kalam?.start} – ${kv.madhyahnika_kalam?.end}</div>
-            <div class="kv-card__desc">${currentLang === "te" ? kv.madhyahnika_kalam?.desc_te : kv.madhyahnika_kalam?.desc_en}</div>
-          </div>
-          <div class="kv-card">
-            <div class="kv-card__name kv-card__name--aparahna">${Icon("cloud-sun")} ${currentLang === "te" ? kv.aparahna_kalam?.name_te : kv.aparahna_kalam?.name_en}</div>
-            <div class="kv-card__time">${kv.aparahna_kalam?.start} – ${kv.aparahna_kalam?.end}</div>
-            <div class="kv-card__desc">${currentLang === "te" ? kv.aparahna_kalam?.desc_te : kv.aparahna_kalam?.desc_en}</div>
-          </div>
-          <div class="kv-card">
-            <div class="kv-card__name kv-card__name--sayahna">${Icon("sunset")} ${currentLang === "te" ? kv.sayahna_kalam?.name_te : kv.sayahna_kalam?.name_en}</div>
-            <div class="kv-card__time">${kv.sayahna_kalam?.start} – ${kv.sayahna_kalam?.end}</div>
-            <div class="kv-card__desc">${currentLang === "te" ? kv.sayahna_kalam?.desc_te : kv.sayahna_kalam?.desc_en}</div>
-          </div>
-          <div class="kv-card kv-card--sacred">
-            <div class="kv-card__name kv-card__name--sacred">${Icon("moon")} ${currentLang === "te" ? "రాత్రి విశేష కాలములు" : "Night Sacred Timings"}</div>
-            <div class="kv-card__sacred-times">
-              <strong>${currentLang === "te" ? "ప్రదోషం:" : "Pradosha:"}</strong> ${kv.pradosha_kalam?.start} – ${kv.pradosha_kalam?.end}<br>
-              <strong>${currentLang === "te" ? "నిశీథ కాలం:" : "Nisitha:"}</strong> ${kv.nisitha_kalam?.start} – ${kv.nisitha_kalam?.end}<br>
-              <strong>${currentLang === "te" ? "బ్రాహ్మీ ముహూర్తం:" : "Brahma:"}</strong> ${kv.brahma_muhurtham?.start} – ${kv.brahma_muhurtham?.end}
-            </div>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  // 6. Lagna Schedule (ప్రతి లగ్న అంతము - All 12 Lagnas)
-  const lsched = r.panchang?.lagna_schedule;
-  if (lsched && lsched.length > 0) {
-    const currentLagnaName = d?.lagna_shuddhi?.muhurta_lagna || "";
-    bodyHtml += `
-      <div class="lagna-section">
-        <h4 class="lagna-section__title">
-          <span>${Icon("landmark")} ${currentLang === "te" ? "ప్రతి లగ్న అంతము (సూర్యోదయం నుండి 12 లగ్నాలు)" : "Daily Lagna Schedule (Lagna Antyalu - All 12 Signs)"}</span>
-          <span class="lagna-section__subtitle">${currentLang === "te" ? "ముహూర్త లగ్నం హైలైట్ చేయబడినది" : "Muhurta Lagna Highlighted"}</span>
-        </h4>
-        <div class="lagna-grid">`;
-    lsched.forEach(l => {
-      const isCurrent = currentLagnaName && (l.lagna_name === currentLagnaName || l.lagna_name_te === currentLagnaName);
-      const lName = currentLang === "te" ? l.lagna_name_te : l.lagna_name;
-      bodyHtml += `
-        <div class="lagna-item ${isCurrent ? 'lagna-item--current' : ''}">
-          <div class="lagna-item__header">
-            <strong class="lagna-item__name">${lName}</strong>
-            ${isCurrent ? `<span class="lagna-item__muhurta-tag">ముహూర్తం</span>` : ''}
-          </div>
-          <div class="lagna-item__time">${l.start_time} – ${l.end_time}</div>
-        </div>`;
-    });
-    bodyHtml += `</div></div>`;
-  }
-
-  // 7. Inauspicious timings + Explanation Note
-  const ip = r.panchang?.inauspicious_periods || r.panchang || {};
-  function fmtP(p) {
-    if (!p) return "—";
-    if (typeof p === 'string') return p.trim() || "—";
-    if (Array.isArray(p)) return p.map(i => typeof i === 'object' && i.start ? `${i.start} – ${i.end}` : String(i)).filter(Boolean).join(" & ") || "—";
-    if (typeof p === 'object' && p.start) return `${p.start} – ${p.end}`;
-    return String(p) || "—";
-  }
-  bodyHtml += `
-    <div class="inauspicious-card">
-      <h4 class="inauspicious-card__title">${Icon("hourglass")} ${currentLang === "te" ? "అశుభ సమయములు" : "Inauspicious Timings"}</h4>
-      <div class="inauspicious-card__grid">
-        <div><strong>${currentLang === "te" ? "రాహు కాలం:" : "Rahu:"}</strong> ${fmtP(ip.rahu_kalam)}</div>
-        <div><strong>${currentLang === "te" ? "యమగండం:" : "Yama:"}</strong> ${fmtP(ip.yamagandam)}</div>
-        <div><strong>${currentLang === "te" ? "గుళిక కాలం:" : "Gulika:"}</strong> ${fmtP(ip.gulika_kalam)}</div>
-        <div><strong>${currentLang === "te" ? "దుర్ముహూర్తం:" : "Dur:"}</strong> ${fmtP(ip.durmuhurtam)}</div>
-        <div><strong>${currentLang === "te" ? "వర్జ్యం:" : "Varjyam:"}</strong> ${fmtP(ip.varjyam)}</div>
-      </div>
-      ${det?.cut_by?.length ? `<div class="inauspicious-card__cut"><strong>${T("Cut from this lagna:", "ఈ లగ్నం నుండి తొలగించినవి:")}</strong> ${
-        det.cut_by.map(c => `${escapeHtml(c.label)} ${escapeHtml(c.start)}–${escapeHtml(c.end)}`).join(" · ")}</div>` : ""}
-      <div class="inauspicious-card__note">
-        ℹ️ <strong>${currentLang === "te" ? "పంచాంగ సమయాల వివరణ:" : "Note on Astrological Timings Across Apps:"}</strong> 
-        ${currentLang === "te" ? 
-          "ఒక App లో ఒక రకంగా, ఇంకో App లో వేరే రకంగా ఉండటానికి కారణం: ఈ యాప్ ఖచ్చితమైన స్థానిక దృక్సిద్ధాంతం (Drik-Ganita Topocentric Swiss Ephemeris) ఆధారంగా ఆ ప్రదేశపు నిజ సూర్యోదయ/సూర్యాస్తమయ సమయాలను అనుసరించి 8 సమాన భాగాలుగా రాహుకాలం, యమగండం, దుర్ముహూర్తములను గణిస్తుంది. ప్రామాణిక 12 గంటల ఫిక్స్‌డ్ సమయాలను కాకుండా ఖగోళ సంబంధిత కచ్చితమైన సమయాన్ని ఇస్తుంది." : 
-          "Timings may slightly vary across different panchang apps. This app calculates precise Drik-Ganita topocentric astronomical sunrise/sunset for your exact location, dividing the local daylight period into 8 equal Ashtabhaga intervals. This provides authentic classical accuracy rather than fixed standard calendar estimates."}
-      </div>
-    </div>`;
-
-  // 8. D1 Chart
-  const mTime = pi ? pi.precise_time : "";
-  const chartLabel = currentLang === "te" ? `ముహూర్త D1<br>(${mTime || r.date})` : `MUHURTA D1<br>(${mTime || r.date})`;
-  bodyHtml += `
-    <div class="chart-card">
-      <h4 class="chart-card__title">${Icon("chart")} ${currentLang === "te" ? `ముహూర్త D1 చక్రం (${r.date})` : `Muhurta D1 Chart (${r.date})`}</h4>
-      ${buildD1ChartHTML(r.d1_chart, chartLabel)}
-    </div>`;
-
-  // 9. Rule Evaluation Grid
-  if (d) {
-    bodyHtml += `<h4 class="rules-eval-title">${Icon("scroll")} ${currentLang === "te" ? "ముహూర్త నియమ విశ్లేషణ" : "Muhurta Rules Evaluation"}</h4>`;
-    bodyHtml += `<div class="rule-grid">`;
-
-    // Vaara
-    bodyHtml += buildRuleCard(currentLang === "te" ? "1. వార శుద్ధి" : "1. Weekday", d.vaara?.is_pass,
-      `${vaaraTe} — ${d.vaara?.is_pass ? (currentLang === "te" ? "అనుకూలమైన వారం." : "Favorable weekday.") : (currentLang === "te" ? "అనుకూలం కాని వారం." : "Not recommended.")}`);
-
-    // Tithi
-    bodyHtml += buildRuleCard(currentLang === "te" ? "2. తిథి శుద్ధి" : "2. Tithi", d.tithi?.is_pass,
-      `${limbName(r.panchang?.tithi)} — ${d.tithi?.is_pass ? (currentLang === "te" ? "అనుకూలమైన తిథి." : "Favorable.") : (currentLang === "te" ? "నిషిద్ధ / రిక్త తిథి (చతుర్థి, అష్టమి, నవమి, చతుర్దశి, పౌర్ణమి, అమావాస్య నిషిద్ధం)." : "Avoided Tithi (Chaturthi, Ashtami, Navami, Chaturdashi, Purnima, Amavasya avoided).")}`);
-
-    // Nakshatra
-    bodyHtml += buildRuleCard(currentLang === "te" ? "3. నక్షత్ర శుద్ధి" : "3. Nakshatra", d.nakshatra?.is_pass,
-      `${nakTe} — ${d.nakshatra?.is_pass ? (currentLang === "te" ? "శ్రేష్ఠ నక్షత్రం." : "Favorable star.") : (currentLang === "te" ? "అనుకూలం కాని నక్షత్రం." : "Not favorable.")}`);
-
-    // Yoga
-    bodyHtml += buildRuleCard(currentLang === "te" ? "4. యోగం" : "4. Yoga", d.yoga?.is_pass,
-      `${limbName(r.panchang?.yoga)} — ${d.yoga?.is_pass ? (currentLang === "te" ? "అనుకూల యోగం." : "Favorable.") : (currentLang === "te" ? "అశుభ యోగం." : "Inauspicious Yoga.")}`);
-
-    // Karana
-    bodyHtml += buildRuleCard(currentLang === "te" ? "5. కరణం" : "5. Karana", d.karana?.is_pass,
-      `${limbName(r.panchang?.karana)} — ${d.karana?.is_pass ? (currentLang === "te" ? "అనుకూల కరణం." : "Favorable.") : (currentLang === "te" ? "అశుభ కరణం." : "Inauspicious.")}`);
-
-    // Ashtama Shuddhi
-    const as = d.ashtama_shuddhi;
-    const aRasi = as?.ashtama_rasi ? ` (${te(as.ashtama_rasi, RASI_NAMES_TE)})` : "";
-    bodyHtml += buildRuleCard(currentLang === "te" ? "6. అష్టమ శుద్ధి" : "6. 8th House", as?.has_shuddhi,
-      as?.has_shuddhi ?
-        (currentLang === "te" ? `8వ ఇల్లు${aRasi} ఖాళీగా ఉంది.` : `8th house${aRasi} is vacant.`) :
-        (currentLang === "te" ? `8వ ఇంట్లో${aRasi} గ్రహాలు ఉన్నాయి (${(as?.planets_in_8th || []).join(", ")}).` : `Planets in 8th${aRasi}: ${(as?.planets_in_8th || []).join(", ")}.`));
-
-    // Lagna Shuddhi
-    const ls = d.lagna_shuddhi;
-    bodyHtml += buildRuleCard(currentLang === "te" ? "7. లగ్న శుద్ధి" : "7. Lagna", ls?.has_shuddhi,
-      ls?.has_shuddhi ?
-        (currentLang === "te" ? `లగ్నం (${te(ls.muhurta_lagna, RASI_NAMES_TE) || ls.muhurta_lagna}) ఖాళీగా ఉంది.` : `Lagna (${ls?.muhurta_lagna}) is vacant.`) :
-        (currentLang === "te" ? `లగ్నంలో గ్రహాలు ఉన్నాయి (${(ls?.planets_in_lagna || []).join(", ")}).` : `Planets in Lagna: ${(ls?.planets_in_lagna || []).join(", ")}.`));
-
-    // Tarabalam
-    if (d.tara) {
-      const taraTe = te(d.tara.name || "", TARA_NAMES_TE);
-      bodyHtml += buildRuleCard(currentLang === "te" ? "8. తారాబలం" : "8. Tarabalam", d.tara?.is_pass,
-        `${taraTe} — ${d.tara?.is_pass ? (currentLang === "te" ? "శుభ తార." : "Favorable.") : (currentLang === "te" ? "అశుభ తార." : "Inauspicious.")}`);
-    }
-
-    // Chandrabalam
-    if (d.chandrabalam) {
-      const cb = d.chandrabalam;
-      const cbDesc = currentLang === "te" ? cb.desc_te : cb.desc_en;
-      bodyHtml += buildRuleCard(currentLang === "te" ? "9. చంద్రబలం" : "9. Chandrabalam", cb.is_pass, cbDesc);
-    }
-
-    // Panchaka
-    if (d.panchaka) {
-      const pk = d.panchaka;
-      const pkDesc = `${currentLang === "te" ? pk.name_te : pk.name_en} — ${currentLang === "te" ? pk.effect_te : pk.effect_en}`;
-      bodyHtml += buildRuleCard(currentLang === "te" ? "10. పంచక శుద్ధి" : "10. Panchaka Check", pk.is_pass, pkDesc);
-    }
-
-    // Ashtama Lagna
-    if (d.ashtama_lagna) {
-      bodyHtml += buildRuleCard(currentLang === "te" ? "11. అష్టమ లగ్నం" : "11. Ashtama Lagna", !d.ashtama_lagna?.is_dosha,
-        d.ashtama_lagna?.is_dosha ?
-          (currentLang === "te" ? `అష్టమ లగ్న దోషం ఉంది!` : `Ashtama Lagna Dosha present!`) :
-          (currentLang === "te" ? `అష్టమ లగ్న దోషం లేదు.` : `No Ashtama Lagna Dosha.`));
-    }
-
-    bodyHtml += `</div>`;
-  }
-
-  // 10. 21 Maha Doshas Evaluation
-  if (d && d.maha_doshas && d.maha_doshas.length > 0) {
-    const mahaScore = (r.maha_score ? `${r.maha_score.percentage}% · ` : "") + doshaTally(d.maha_doshas);
-    bodyHtml += `
-      <div class="dosha-panel dosha-panel--maha">
-        <div class="dosha-panel__header dosha-panel__header--maha">
-          <span>${Icon("flame")} ${currentLang === "te" ? "ఏకవింశతి మహాదోషముల విశ్లేషణ (21 Maha Doshas)" : "21 Maha Doshas Evaluation"}</span>
-          <span class="dosha-panel__score dosha-panel__score--maha">${mahaScore}</span>
-        </div>
-        <div class="dosha-panel__body dosha-panel__body--maha">${d.mahadoshas_scored === false ? notScoredNote() : ""}`;
-    d.maha_doshas.forEach(m => {
-      const mTitle = currentLang === "te" ? m.name_te : m.name_en;
-      const mDesc = currentLang === "te" ? m.desc_te : m.desc_en;
-      bodyHtml += doshaItemHTML(m, mTitle, mDesc, "maha");
-    });
-    bodyHtml += `</div></div>`;
-  }
-
-  // 11. 10 Dashavidha Doshas Evaluation
-  if (d && d.dashavidha_doshas && d.dashavidha_doshas.length > 0) {
-    const dashaScore = (r.dasha_score ? `${r.dasha_score.percentage}% · ` : "") + doshaTally(d.dashavidha_doshas);
-    bodyHtml += `
-      <div class="dosha-panel dosha-panel--dasha">
-        <div class="dosha-panel__header dosha-panel__header--dasha">
-          <span>${Icon("zap")} ${currentLang === "te" ? "దశవిధ దోషముల విశ్లేషణ (10 Dashavidha Doshas)" : "10 Dashavidha Doshas Evaluation"}</span>
-          <span class="dosha-panel__score dosha-panel__score--dasha">${dashaScore}</span>
-        </div>
-        <div class="dosha-panel__body dosha-panel__body--dasha">${d.dashavidha_enforced === false ? notScoredNote() : ""}`;
-    d.dashavidha_doshas.forEach(m => {
-      const mTitle = currentLang === "te" ? m.name_te : m.name_en;
-      const mDesc = currentLang === "te" ? m.desc_te : m.desc_en;
-      bodyHtml += doshaItemHTML(m, mTitle, mDesc, "dasha");
-    });
-    bodyHtml += `</div></div>`;
-  }
-
-  // 11b. This event's own chart rules that the window does not meet ("Show all" mode, 11 Nov 2026):
-  // the window is listed, each rule is marked not matched, and the percentage is lower.
-  const ruleMisses = (d?.extra_checks || []).filter(x => String(x.id || "").startsWith("rule_miss_"));
-  if (ruleMisses.length > 0) {
-    bodyHtml += `
-      <div class="dosha-panel dosha-panel--dasha">
-        <div class="dosha-panel__header dosha-panel__header--dasha">
-          <span>${Icon("alert")} ${T("This event's rules not matched", "ఈ కార్యపు నియమాలు సరిపోలనివి")}</span>
-          <span class="dosha-panel__score dosha-panel__score--dasha">${ruleMisses.length}</span>
-        </div>
-        <div class="dosha-panel__body dosha-panel__body--dasha">`;
-    ruleMisses.forEach(m => {
-      bodyHtml += doshaItemHTML(m, T("Not matched", "సరిపోలలేదు"), m.desc_en, "dasha");
-    });
-    bodyHtml += `</div></div>`;
-  }
-
-  // 12. Muhurta Dosha Pariharams (ముహూర్తములో దోషాలకు పరిహారములు)
-  const pariharas = d?.pariharas;
-  if (pariharas && pariharas.length > 0) {
-    bodyHtml += `
-      <div class="dosha-panel dosha-panel--pariharam">
-        <div class="dosha-panel__header dosha-panel__header--pariharam">
-          <span>${Icon("shield")} ${currentLang === "te" ? "ముహూర్తములో దోషాలకు పరిహారములు (Muhurta Dosha Remedies)" : "Muhurta Dosha Cancellation Remedies (Pariharams)"}</span>
-          <span class="dosha-panel__score dosha-panel__score--pariharam">${pariharas.length} ${currentLang === "te" ? "పరిహారములు వర్తించును" : "Active Remedies"}</span>
-        </div>
-        <div class="dosha-panel__body dosha-panel__body--pariharam">`;
-    pariharas.forEach(pr => {
-      const prTitle = currentLang === "te" ? pr.name_te : pr.name_en;
-      const prDesc = currentLang === "te" ? pr.desc_te : pr.desc_en;
-      bodyHtml += `
-        <div class="pariharam-item">
-          <div class="pariharam-item__header">
-            <strong class="pariharam-item__name">${Icon("sparkle")} ${prTitle}</strong>
-            <span class="pariharam-item__badge">${pr.status}</span>
-          </div>
-          ${pr.shloka ? `<div class="pariharam-item__shloka">"${pr.shloka}"</div>` : ''}
-          <div class="pariharam-item__desc">${prDesc}</div>
-        </div>`;
-    });
-    bodyHtml += `</div></div>`;
-  }
-
-  // 13. Special Yogas
-  if (r.special_yogas?.length > 0) {
-    bodyHtml += `<div class="special-yogas-container">`;
-    r.special_yogas.forEach(y => {
-      const yName = currentLang === "te" ? y.name_te : y.name_en;
-      const yDesc = currentLang === "te" ? y.desc_te : y.desc_en;
-      let yogaClass = "yoga-item--good";
-      if (y.type === "bad") { yogaClass = "yoga-item--bad"; }
-      bodyHtml += `<div class="yoga-item yoga-item--compact ${yogaClass}">${Icon("sparkle")} ${yName} — <span class="yoga-item__desc">${yDesc}</span></div>`;
-    });
-    bodyHtml += `</div>`;
-  }
-
-  el("mfModalBody").innerHTML = bodyHtml;
+  el("mfModalTitle").textContent = `${paEventTitle(r)} · ${dmy(r.date)}`;
+  el("mfModalBody").innerHTML =
+    paHeroHTML(r) + paWhyHTML(r) + paTabsHTML(r) +
+    paPanel("doshas", paDoshasPanel(r)) + paPanel("rules", paRulesPanel(r)) + paPanel("panchang", paPanchangPanel(r)) +
+    paPanel("chart", paChartPanel(r)) + paPanel("day", paDayPanel(r));
   el("mfModal").style.display = "flex";
 }
 
@@ -2132,11 +2061,19 @@ function placeName() {
 
 function downloadDetailPdf(btn) {
   const r = lastData?.results?.[openDayIdx];
-  PdfDownload.fromElement("mfModalBody", {
+  // The PDF holds every tab (21 Nov 2026), in order, without the tab bar.
+  const box = el("mfModalBody").cloneNode(true);
+  box.querySelectorAll(".pa-tabs").forEach(n => n.remove());
+  box.querySelectorAll(".pa-panel").forEach(n => {
+    n.hidden = false;
+    const tab = PA_TABS.find(t => `paPanel_${t[0]}` === n.id);
+    if (tab) n.insertAdjacentHTML("afterbegin", `<h3 class="pa-panel__print-title">${escapeHtml(T(tab[1], tab[2]))}</h3>`);
+  });
+  PdfDownload.fromElement(box, {
     kind: "muhurta",
-    title: `${eventTitle()} · ${el("mfModalTitle").textContent.trim()}`,
+    title: el("mfModalTitle").textContent.trim(),
     subtitle: placeName(),
-    filename: PdfDownload.fileName(lastData?.activity_id, r?.date),
+    filename: PdfDownload.fileName(r?._event?.id || lastData?.activity_id, r?.date),
   }, btn);
 }
 
@@ -2382,7 +2319,7 @@ function auditBannerHTML(a, compact) {
   const head = { green: T("Clean", "శుద్ధం"), amber: T("Clean with exception", "మినహాయింపుతో శుద్ధం"),
                  red: T("Mahadosha not matched", "మహాదోషం సరిపోలేదు") + (failedNames ? ": " + failedNames : "") }[a.colour] || "";
   const exc = (a.excepted || []).length && !compact
-    ? `<div class="audit-banner__note">${escapeHtml(T("Excepted because Jupiter is in the muhurta lagna: ", "ముహూర్త లగ్నంలో గురుడు ఉన్నందున మినహాయింపు: ") + a.excepted.join(", "))}</div>` : "";
+    ? `<div class="audit-banner__note">${escapeHtml(T("Neutralised by a good Jupiter, Mercury or Venus in the muhurta lagna: ", "ముహూర్త లగ్నంలో మంచి గురు, బుధ, శుక్రుల వల్ల నివారణ: ") + a.excepted.join(", "))}</div>` : "";
   const tc = (a.to_confirm || []).length && !compact
     ? `<div class="audit-banner__note">${escapeHtml(T("Shown, not blocking, until Dr. Nemani confirms: ", "డా. నేమాని గారు నిర్ధారించే వరకు చూపిస్తాము, నిరోధించము: ") + a.to_confirm.join(", "))}</div>` : "";
   const ne = (m.not_evaluated || 0) + (d.not_evaluated || 0);

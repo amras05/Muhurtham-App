@@ -44,7 +44,7 @@ from app.engines.universal_filters import (
     extract_inauspicious_windows,
 )
 from app.engines.vocab import (
-    DOSHIC_YOGAS, INAUSPICIOUS_KARANAS, NAKSHATRA_CANONICAL, RASI_INDEX, karana_set, nakshatra_set,
+    NAKSHATRA_CANONICAL, RASI_INDEX, karana_set, nakshatra_set,
     norm_key, tithi_token_set, yoga_set,
 )
 from app.schemas.rules import RuleDefinition
@@ -567,42 +567,56 @@ RITU_NIGHTS = set(range(4, 17)) - {11, 13}      # classical garbhadhana nights (
 #    then "excepted". Questionnaire answers (12 Nov 2026): Q1 not when Jupiter is combust,
 #    debilitated (Makara) or retrograde; Q2 "all of them", so the exception also covers
 #    paksharandhra, kshaya tithi, papa drishti and the Mrityu / Dagdha / Yamaghanta yogas.
-AUTHOR_NOTE_EN = "Excepted: Jupiter is in the muhurta lagna (Dr. Nemani's ruling)."
 # Option A (9 Nov 2026) listed checks shown as "To be confirmed" until Dr. Nemani answered.
 # Q3 (12 Nov 2026): papa shadvarga as coded (any one weak varga lord) is correct, so it is a mahadosha.
 TO_CONFIRM: Dict[str, Tuple[str, str]] = {}
-AUTHOR_NOTE_TE = "మినహాయింపు: ముహూర్త లగ్నంలో గురుడు ఉన్నాడు (డా. నేమాని గారి నిర్ణయం)."
-JUPITER_EXCEPTS_IDS = {"paksharandhra", "kshaya_tithi", "papa_drishti", "mrityu", "dagdha", "yamaghanta"}
+# A7 (21 Nov 2026, replaces the Jupiter-only rule of Q1/Q2): a good Jupiter, Mercury or Venus in the muhurta
+# lagna neutralises the doshas, all of them, the 21 mahadoshas included. "Good" = not retrograde, not combust,
+# not debilitated; Jupiter also not in Simha (Dr. Nemani, 13 Nov 2026: then it has no power).
+LAGNA_BENEFICS = ("jupiter", "mercury", "venus")
+_BENEFIC_TE = {"jupiter": "గురుడు", "mercury": "బుధుడు", "venus": "శుక్రుడు"}
 
 
-def jupiter_exception(lagna: LagnaWindow) -> Tuple[bool, Optional[str]]:
-    """(Jupiter in the lagna can except doshas, why not when it is in the lagna but cannot)."""
+def benefics_in_lagna(lagna: LagnaWindow) -> Tuple[List[str], List[str]]:
+    """(good benefics in the lagna that neutralise doshas, why each other benefic in the lagna cannot)."""
     planets = {p.name_en.lower(): p for plist in (lagna.house_planets or {}).values() for p in plist}
-    jup = next((p for p in (lagna.house_planets or {}).get(1, []) if p.name_en == "Jupiter"), None)
-    if not jup:
-        return False, None
-    if jup.speed < 0:
-        return False, "Jupiter in the lagna is retrograde, so it does not except doshas (Dr. Nemani, Q1)"
-    weak = _planet_weak("jupiter", planets)
-    if weak:
-        return False, f"{weak} in the lagna, so it does not except doshas (Dr. Nemani, Q1)"
-    if int(jup.longitude // 30) + 1 == 5:
-        # Dr. Nemani, 13 Nov 2026: Jupiter retrograde, combust, debilitated or in Simha has no power.
-        return False, "Jupiter in the lagna is in Simha, so it has no power to except doshas (Dr. Nemani)"
-    return True, None
+    in_lagna = {p.name_en.lower(): p for p in (lagna.house_planets or {}).get(1, [])}
+    good, why_not = [], []
+    for name in LAGNA_BENEFICS:
+        p = in_lagna.get(name)
+        if not p:
+            continue
+        weak = _planet_weak(name, planets)
+        if p.speed < 0:
+            why_not.append(f"{p.name_en} in the lagna is retrograde, so it does not neutralise doshas")
+        elif weak:
+            why_not.append(f"{weak} in the lagna, so it does not neutralise doshas")
+        elif name == "jupiter" and int(p.longitude // 30) + 1 == 5:
+            why_not.append("Jupiter in the lagna is in Simha, so it has no power to neutralise doshas")
+        else:
+            good.append(name)
+    return good, why_not
 
 
-def except_by_jupiter(rows: List[Dict[str, Any]]) -> None:
-    """Mark failed rows excepted by Jupiter in the lagna (in place)."""
+def except_by_benefics(rows: List[Dict[str, Any]], good: List[str]) -> None:
+    """Mark failed rows as neutralised by the good benefics in the lagna (in place)."""
+    if not good:
+        return
+    en = " and ".join(n.title() for n in good)
+    te = ", ".join(_BENEFIC_TE[n] for n in good)
+    note_en = f"Neutralised: {en} in the muhurta lagna (Dr. Nemani's ruling)."
+    note_te = f"నివారణ: ముహూర్త లగ్నంలో {te} (డా. నేమాని గారి నిర్ణయం)."
     for r in rows:
         if r.get("status") == "fail":
-            r["status"], r["severity"], r["excepted_by"] = "excepted", "info", "jupiter_in_lagna"
-            for k, note in (("desc_en", AUTHOR_NOTE_EN), ("desc_te", AUTHOR_NOTE_TE)):
+            r["status"], r["severity"], r["excepted_by"] = "excepted", "info", "benefic_in_lagna"
+            r.pop("exemption", None)
+            for k, note in (("desc_en", note_en), ("desc_te", note_te)):
                 r[k] = f"{r.get(k) or ''} {note}".strip()
 
 
 def apply_author_severity(maha: List[Dict[str, Any]], dashavidha: List[Dict[str, Any]], lagna: LagnaWindow):
-    jupiter, _ = jupiter_exception(lagna)
+    """Mahadosha severity (fatal), then the A7 neutralisation. Returns (maha, dashavidha, good benefics)."""
+    good, _ = benefics_in_lagna(lagna)
     maha_out = []
     for r in maha:
         r = dict(r)
@@ -613,22 +627,22 @@ def apply_author_severity(maha: List[Dict[str, Any]], dashavidha: List[Dict[str,
             r["desc_te"] = f"{r.get('desc_te') or ''} {te}".strip()
         elif r.get("status") == "fail":
             r["severity"] = "fatal"
-            r.pop("exemption", None)          # no exemption for a mahadosha
+            r.pop("exemption", None)          # category exemptions never soften a mahadosha
         maha_out.append(r)
     dash_out = [dict(r) for r in dashavidha]
-    if jupiter:
-        except_by_jupiter(dash_out)
-    return maha_out, dash_out, jupiter
+    except_by_benefics(maha_out, good)
+    except_by_benefics(dash_out, good)
+    return maha_out, dash_out, good
 
 
 def dosha_audit(maha: List[Dict[str, Any]], dashavidha: List[Dict[str, Any]], others: List[Dict[str, Any]],
-                jupiter_in_lagna: bool) -> Dict[str, Any]:
+                benefics: List[str]) -> Dict[str, Any]:
     """The banner and colour: red = a mahadosha fails; amber = something excepted or a lesser dosha;
     green = nothing failed."""
     def count(rows, status):
         return sum(1 for r in rows if r.get("status") == status)
     maha_fail, dash_fail = count(maha, "fail"), count(dashavidha, "fail")
-    excepted = [r.get("name_en") for r in dashavidha if r.get("status") == "excepted"]
+    excepted = [r.get("name_en") for r in maha + dashavidha if r.get("status") == "excepted"]
     other_fail = count(others, "fail")
     to_confirm = [r.get("name_en") for r in maha if r.get("status") == "to_confirm"]
     colour = "red" if maha_fail else ("amber" if (dash_fail or excepted or other_fail or to_confirm) else "green")
@@ -643,7 +657,8 @@ def dosha_audit(maha: List[Dict[str, Any]], dashavidha: List[Dict[str, Any]], ot
         "other_failed": other_fail,
         "excepted": excepted,
         "to_confirm": to_confirm,
-        "jupiter_in_lagna": jupiter_in_lagna,
+        "jupiter_in_lagna": "jupiter" in benefics,     # kept for older clients
+        "benefics_in_lagna": benefics,
     }
 
 
@@ -674,6 +689,47 @@ def window_amsha(start: datetime, end: datetime, tz_offset: float, lat: float, l
     return {"type": kind, "name_en": AMSHA_NAMES[kind][0], "name_te": AMSHA_NAMES[kind][1],
             "at": at.strftime("%H:%M") if kind != "none" else None,
             "navamsa": RASI_NAMES_EN[nav] if nav else None}
+
+
+def window_pushkara(lagna: LagnaWindow, start: datetime, end: datetime, tz_offset: float,
+                    lat: float, lon: float) -> Dict[str, Any]:
+    """Whether this muhurta window holds the pushkara navamsha and the pushkara bhaga (Parishilana, 21 Nov
+    2026). Navamsha: the exact spans already worked out for the lagna, clipped to the window. Bhaga: the moment
+    the rising degree reaches the sign's pushkara bhaga degree (PUSHKARA_BHAGA_DEGS), found by bisection, and the
+    span within 1.5 degrees of it (the same tolerance as the day's pushkara box)."""
+    from app.core.constants import PUSHKARA_BHAGA_DEGS
+    from app.engines.limb_timeline import ascendant_at
+    nav = [{"start": a.strftime("%H:%M"), "end": b.strftime("%H:%M"), "navamsa": n}
+           for a, b, n in (lagna.pushkara_spans or []) if min(b, end) > max(a, start)]
+    base = (lagna.lagna_idx - 1) * 30.0
+    target = PUSHKARA_BHAGA_DEGS.get(lagna.lagna_idx - 1, 15.0)
+
+    def risen(t: datetime) -> float:           # degrees risen inside the lagna sign, clamped to 0-30
+        d = (ascendant_at(local_to_jd(t, tz_offset), lat, lon) - base) % 360.0
+        return d if d <= 30.0 else (0.0 if d > 180.0 else 30.0)
+
+    def moment(deg: float) -> Optional[datetime]:
+        lo, hi = lagna.start, lagna.end
+        if risen(lo) >= deg or risen(hi) < deg:   # reached before the lagna's start here (e.g. at sunrise) or never
+            return None
+        for _ in range(20):
+            mid = lo + (hi - lo) / 2
+            if risen(mid) >= deg:
+                hi = mid
+            else:
+                lo = mid
+        return hi
+
+    bhaga = {"degree": target, "in_window": False, "at": None, "span": None}
+    try:
+        at = moment(target)
+        if at is not None:
+            a, b = moment(max(0.0, target - 1.5)) or lagna.start, moment(min(30.0, target + 1.5)) or lagna.end
+            bhaga.update(at=at.strftime("%H:%M"), span=f"{a:%H:%M}–{b:%H:%M}",
+                         in_window=start <= at <= end, touches_window=min(b, end) > max(a, start))
+    except (ValueError, TypeError) as ex:
+        logger.error(f"Pushkara bhaga not worked out for {lagna.start:%Y-%m-%d %H:%M}: {ex}")
+    return {"navamsha": {"in_window": bool(nav), "spans": nav}, "bhaga": bhaga}
 
 
 # ── Doshapavada for the upanayana lagna (book paras 1972-78; 11 Nov 2026) ──────────────────────
@@ -741,6 +797,38 @@ def pushkara_text(lagna: LagnaWindow, with_sign: bool = True) -> str:
                      for a, b, nav in (lagna.pushkara_spans or []))
 
 
+ANGA_NAMES = {"vara": ("Weekday", "వారం"), "tithi": ("Tithi", "తిథి"), "nakshatra": ("Nakshatra", "నక్షత్రం"),
+              "yoga": ("Yoga", "యోగం"), "karana": ("Karana", "కరణం")}
+
+
+def anga_checks(cr: "CompiledRule", limbs: "Limbs", vaara_idx: int) -> List[Dict[str, Any]]:
+    """The five panchanga angas against this event's allow / exclude lists, in order. Panchanga shuddhi
+    (user, 21 Nov 2026, option B) = how many of these five pass; each angas row is {id, ok, msg, name_en, name_te}."""
+    vaara_str = VAARA_MAP[vaara_idx].title()
+    t_label = f"{limbs.tithi_name} ({limbs.paksha.title()})"
+    rows = []
+
+    def add(aid, excluded, not_allowed, ok_msg, ex_msg, na_msg):
+        bad = excluded or not_allowed
+        en, te = ANGA_NAMES[aid]
+        rows.append({"id": aid, "ok": not bad, "name_en": en, "name_te": te,
+                     "msg": ex_msg if excluded else na_msg if not_allowed else ok_msg})
+
+    add("vara", vaara_idx in cr.vaara_exclude, bool(cr.vaara_allow and vaara_idx not in cr.vaara_allow),
+        f"Weekday ({vaara_str}) is acceptable", f"{vaara_str} is excluded for this event", f"{vaara_str} is not an allowed weekday")
+    add("tithi", limbs.tithi in cr.tithi_exclude, bool(cr.tithi_allow and limbs.tithi not in cr.tithi_allow),
+        f"Tithi {t_label} is acceptable", f"Tithi {t_label} is excluded", f"Tithi {t_label} is not an allowed tithi")
+    add("nakshatra", limbs.nakshatra in cr.nak_exclude, bool(cr.nak_allow and limbs.nakshatra not in cr.nak_allow),
+        f"Nakshatra {limbs.nakshatra_name} (pada {limbs.pada}) is acceptable",
+        f"Nakshatra {limbs.nakshatra_name} is excluded", f"Nakshatra {limbs.nakshatra_name} is not an allowed nakshatra")
+    add("yoga", limbs.yoga in cr.yoga_exclude, bool(cr.yoga_allow and limbs.yoga not in cr.yoga_allow),
+        f"Yoga {limbs.yoga_name} is acceptable", f"Yoga {limbs.yoga_name} is excluded", f"Yoga {limbs.yoga_name} is not an allowed yoga")
+    add("karana", limbs.karana in cr.karana_exclude, bool(cr.karana_allow and limbs.karana not in cr.karana_allow),
+        f"Karana {limbs.karana_name} is acceptable", f"Karana {limbs.karana_name} is excluded",
+        f"Karana {limbs.karana_name} is not an allowed karana")
+    return rows
+
+
 def evaluate_window_for_rule(
     cr: CompiledRule,
     lagna: LagnaWindow,
@@ -785,46 +873,13 @@ def evaluate_window_for_rule(
         """Refuse (Strict) or note (Show all) a missed rule; None when it passed or was only noted."""
         return miss(msg) if bad else None
 
-    # 1. Vara (the day's weekday, sunrise to sunrise)
-    v_bad = vaara_idx in cr.vaara_exclude
-    v_msg = f"{vaara_str.title()} is excluded for this event" if v_bad else f"{vaara_str.title()} is not an allowed weekday"
-    v_bad = v_bad or bool(cr.vaara_allow and vaara_idx not in cr.vaara_allow)
-    if (r := check(v_bad, v_msg)):
-        return r
-    if not v_bad:
-        passed.append(f"Weekday ({vaara_str.title()}) is acceptable")
-
-    # 2. Tithi (at this time)
-    t_label = f"{limbs.tithi_name} ({limbs.paksha.title()})"
-    t_bad = limbs.tithi in cr.tithi_exclude
-    t_msg = f"Tithi {t_label} is excluded" if t_bad else f"Tithi {t_label} is not an allowed tithi"
-    t_bad = t_bad or bool(cr.tithi_allow and limbs.tithi not in cr.tithi_allow)
-    if (r := check(t_bad, t_msg)):
-        return r
-    if not t_bad:
-        passed.append(f"Tithi {t_label} is acceptable")
-
-    # 3. Nakshatra
-    n_bad = limbs.nakshatra in cr.nak_exclude
-    n_msg = (f"Nakshatra {limbs.nakshatra_name} is excluded" if n_bad
-             else f"Nakshatra {limbs.nakshatra_name} is not an allowed nakshatra")
-    n_bad = n_bad or bool(cr.nak_allow and limbs.nakshatra not in cr.nak_allow)
-    if (r := check(n_bad, n_msg)):
-        return r
-    if not n_bad:
-        passed.append(f"Nakshatra {limbs.nakshatra_name} (pada {limbs.pada}) is acceptable")
-
-    # 4. Yoga
-    y_bad = limbs.yoga in cr.yoga_exclude
-    y_msg = f"Yoga {limbs.yoga_name} is excluded" if y_bad else f"Yoga {limbs.yoga_name} is not an allowed yoga"
-    if (r := check(y_bad or bool(cr.yoga_allow and limbs.yoga not in cr.yoga_allow), y_msg)):
-        return r
-
-    # 5. Karana
-    k_bad = limbs.karana in cr.karana_exclude
-    k_msg = f"Karana {limbs.karana_name} is excluded" if k_bad else f"Karana {limbs.karana_name} is not an allowed karana"
-    if (r := check(k_bad or bool(cr.karana_allow and limbs.karana not in cr.karana_allow), k_msg)):
-        return r
+    # 1-5. The five angas (vara, tithi, nakshatra, yoga, karana), one helper shared with the score.
+    angas = anga_checks(cr, limbs, vaara_idx)
+    for a in angas:
+        if (r := check(not a["ok"], a["msg"])):
+            return r
+        if a["ok"] and a["id"] in ("vara", "tithi", "nakshatra"):
+            passed.append(a["msg"])
 
     # 5a. Dagdha tithi and waning-Moon Monday
     if hf.exclude_dagdha_tithi:
@@ -1472,6 +1527,7 @@ def find_muhurta_windows(
 
         # 3. Lagnas across the day
         lagnas = scan_day_lagnas(cur_date.year, cur_date.month, cur_date.day, lat, lon, tz_offset, sr_h)
+        dosha_cache: Dict[Any, Any] = {}     # whole-lagna dosha rows (A4), shared by every window of a lagna
 
         pushkara_info = compute_pushkara_window(
             cur_date, lat, lon, tz_offset, place_name, panchang,
@@ -1537,7 +1593,7 @@ def find_muhurta_windows(
                         sula_check, facing_dir, b_nak_idx, b_rasi_idx, cw_score, cw_reasons,
                         durmuhurta_spans, varjyam_spans, strict, rejections,
                         extras={"blocked": blocked, "lat": lat, "lon": lon, "people": people or [], "misses": misses or [],
-                                "custom_kalas": custom_kalas},
+                                "custom_kalas": custom_kalas, "dosha_cache": dosha_cache},
                     )
                     if cand is None:
                         continue
@@ -1728,18 +1784,33 @@ def _hora_lord(when: datetime, panchang: Dict[str, Any], day: date, vaara_idx: i
     return HORA_ORDER[(start + n) % 7]
 
 
+# Dr. Nemani via the user (dosha questionnaire A1/A2, 21 Nov 2026): the 21 mahadoshas are checked for every
+# muhurta; the 10 dashavidha doshas only for marriage (the same events that use the pancha-shalaka chakra).
+DASHAVIDHA_EVENTS = {"vivaha", "dvitiya_vivaha", "nutana_vadhu_pravesha"}
+# A8 (21 Nov 2026): percentage = panchanga shuddhi 30% + mahadoshas 70%; where the dashavidha doshas are
+# checked, 30 / 60 / 10. The dashavidha share is taken out of the mahadosha share.
+PANCHANGA_WEIGHT, DASHAVIDHA_WEIGHT = 30, 10
+
+
+def default_dosha_sets(event_id: str) -> Tuple[bool, bool]:
+    """(mahadoshas checked, dashavidha checked) for an event before any Settings override."""
+    return True, event_id in DASHAVIDHA_EVENTS
+
+
 def dosha_scoring_for(rule, common) -> Dict[str, Any]:
-    """Which dosha sets count in this event's score, and how (Settings › Finder › Doshas,
-    20 Nov 2026). Layers: the event's rule file, then its category, then the event's own override.
-    New default: the 10 dashavidha doshas count wherever the 21 mahadoshas do."""
-    maha = bool(common.mahadoshas_21)
-    dasha = bool(common.dashavidha_10 or common.mahadoshas_21)
+    """Which dosha sets count in this event's score, and how (Settings › Finder › Doshas).
+    Layers: the ruling default (default_dosha_sets), then the category, then the event's own override.
+    The rule files' mahadoshas_21 / dashavidha_10 flags no longer decide this (A1/A2, 21 Nov 2026)."""
+    maha, dasha = default_dosha_sets(rule.id)
     weight, cap, main_weight = 70, 49, 70
+    p_weight, d_weight = PANCHANGA_WEIGHT, DASHAVIDHA_WEIGHT
     try:
         from app.auth.app_settings import get_setting
         s = get_setting("dosha_scoring") or {}
         weight, cap = int(s.get("dasha_weight", weight)), int(s.get("dasha_cap", cap))
         main_weight = int(s.get("main_weight", main_weight))
+        p_weight = int(s.get("panchanga_weight", p_weight))
+        d_weight = int(s.get("dashavidha_weight", d_weight))
         for layer in ((s.get("tabs") or {}).get(rule.tab or rule.category), (s.get("events") or {}).get(rule.id)):
             if not isinstance(layer, dict):
                 continue
@@ -1747,10 +1818,13 @@ def dosha_scoring_for(rule, common) -> Dict[str, Any]:
                 maha = layer["mahadoshas"] == "on"
             if layer.get("dashavidha") in ("on", "off"):
                 dasha = layer["dashavidha"] == "on"
-    except Exception as ex:   # settings unreadable: rule-file defaults and the agreed 70 / 49
+    except Exception as ex:   # settings unreadable: the ruling defaults and 30 / 70 (30 / 60 / 10)
         logger.warning(f"Dosha scoring setting unavailable, using defaults: {type(ex).__name__}")
+    p_weight = max(0, min(100, p_weight))
+    d_weight = max(0, min(100 - p_weight, d_weight))
     return {"mahadoshas": maha, "dashavidha": dasha, "weight": max(0, min(100, weight)), "cap": max(5, min(98, cap)),
-            "main_weight": max(0, min(100, main_weight))}
+            "main_weight": max(0, min(100, main_weight)),
+            "panchanga_weight": p_weight, "dashavidha_weight": d_weight}
 
 
 def _share(rows: List[Dict[str, Any]]) -> Optional[float]:
@@ -1760,6 +1834,83 @@ def _share(rows: List[Dict[str, Any]]) -> Optional[float]:
     if not rows:
         return None
     return sum(1 for d in rows if d["status"] in ("pass", "excepted")) / len(rows)
+
+
+# A4 (21 Nov 2026): the doshas are judged over the whole lagna, not at the middle of each window.
+_STATUS_RANK = {"fail": 5, "to_confirm": 4, "not_evaluated": 3, "excepted": 2, "pass": 1}
+
+
+def _merge_lagna_rows(samples: List[Tuple[Tuple[datetime, datetime], List[Dict[str, Any]]]]) -> List[Dict[str, Any]]:
+    """One row per dosha: its worst status over the lagna's pieces. A dosha failing in any piece fails the
+    whole lagna, and its description says when it is present."""
+    if not samples:
+        return []
+    out = []
+    for first in samples[0][1]:
+        did = first.get("id")
+        worst, hits = first, []
+        for span, rows in samples:
+            r = next((x for x in rows if x.get("id") == did), None)
+            if r is None:
+                continue
+            if r.get("status") == "fail":
+                hits.append(span)
+                if worst.get("status") != "fail":
+                    worst = r
+            elif _STATUS_RANK.get(r.get("status"), 0) > _STATUS_RANK.get(worst.get("status"), 0):
+                worst = r
+        worst = dict(worst)
+        if hits and len(samples) > 1:
+            when = ", ".join(f"{a:%H:%M}–{b:%H:%M}" for a, b in hits)
+            worst["desc_en"] = f"{worst.get('desc_en') or ''} Present in this lagna at {when}.".strip()
+            worst["desc_te"] = f"{worst.get('desc_te') or ''} ఈ లగ్నంలో {when} సమయంలో ఉంది.".strip()
+        out.append(worst)
+    return out
+
+
+def _lagna_dosha_rows(lagna: LagnaWindow, panchang: Dict[str, Any], vaara_idx: int, cur_date: date,
+                      tz_offset: float, place_obj, birth_details, base_ctx: Dict[str, Any],
+                      cache: Optional[Dict[Any, Any]]) -> Optional[Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]]:
+    """The 21 mahadoshas and 10 dashavidha doshas over the whole lagna (A4). The lagna is cut wherever the
+    tithi, nakshatra, yoga or karana changes and each piece is checked at its middle. Cached per lagna, since
+    every window in a lagna gets the same answer. None if the lagna could not be cut (caller falls back)."""
+    key = (lagna.start, lagna.end)
+    if cache is not None and key in cache:
+        maha, dasha = cache[key]
+        return [dict(r) for r in maha], [dict(r) for r in dasha]
+    maha_samples, dasha_samples = [], []
+    for s, e, lb in split_by_limbs(lagna.start, lagna.end, tz_offset):
+        mid = s + (e - s) / 2
+        d1, raw = compute_d1_positions(mid.date(), mid.hour + mid.minute / 60.0 + mid.second / 3600.0, place_obj)
+        sp = dict(panchang)
+        sp.update(lb.as_panchang_fields())
+        sp["vaara_number"] = vaara_idx
+        ctx = dict(base_ctx, jd=local_to_jd(mid, tz_offset), limbs=lb, window=(s, e),
+                   hora_lord=_hora_lord(mid, panchang, cur_date, vaara_idx))
+        maha_samples.append(((s, e), evaluate_21_maha_doshas(sp, d1, raw, lagna.lagna_idx, birth_details, context=ctx)))
+        dasha_samples.append(((s, e), evaluate_10_dashavidha_doshas(sp, d1, raw, lagna.lagna_idx, birth_details, context=ctx)))
+    if not maha_samples:
+        return None
+    result = (_merge_lagna_rows(maha_samples), _merge_lagna_rows(dasha_samples))
+    if cache is not None:
+        cache[key] = result
+    return [dict(r) for r in result[0]], [dict(r) for r in result[1]]
+
+
+# A5 (21 Nov 2026): three dashavidha doshas are the same as a mahadosha and are counted once, as the mahadosha.
+DASHAVIDHA_SAME_AS_MAHA = {"yuti_dosham": (11, "Sagraha chandra", "సగ్రహ చంద్రుడు"),
+                           "vedha_dosham": (17, "Ashubha viddha", "అశుభవిద్ధము"),
+                           "ekargala_dosham": (13, "Kharjurika (Ekargala)", "ఖార్జూరిక (ఏకార్గళ)")}
+
+
+def _mark_duplicates(dashavidha: List[Dict[str, Any]]) -> None:
+    for r in dashavidha:
+        same = DASHAVIDHA_SAME_AS_MAHA.get(r.get("id"))
+        if same:
+            num, en, te = same
+            r["status"], r["is_pass"], r["severity"], r["counted_as"] = "not_applicable", True, "info", num
+            r["desc_en"] = f"Counted once, as mahadosha {num} ({en})."
+            r["desc_te"] = f"ఒకసారే లెక్కిస్తాం: మహాదోషం {num} ({te})."
 
 
 def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, d_offset, tz_offset,
@@ -1797,8 +1948,16 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     # Super admin setting (20 Nov 2026): a set switched to "Don't calculate in score" is still worked out
     # and shown on the result, but it neither lowers nor caps the percentage.
     ds = dosha_scoring_for(rule, common)
-    maha_doshas = evaluate_21_maha_doshas(seg_panchang, d1_positions, raw_d1, lagna.lagna_idx, birth_details, context=ctx)
-    dashavidha = evaluate_10_dashavidha_doshas(seg_panchang, d1_positions, raw_d1, lagna.lagna_idx, birth_details, context=ctx)
+    whole = _lagna_dosha_rows(lagna, panchang, vaara_idx, cur_date, tz_offset, place_obj, birth_details, ctx,
+                              (extras or {}).get("dosha_cache"))
+    if whole is not None:
+        maha_doshas, dashavidha = whole
+    else:   # the lagna could not be cut into pieces: judge the window's middle, as before
+        logger.warning(f"Whole-lagna dosha check fell back to the window middle for {lagna.start:%Y-%m-%d %H:%M}")
+        maha_doshas = evaluate_21_maha_doshas(seg_panchang, d1_positions, raw_d1, lagna.lagna_idx, birth_details, context=ctx)
+        dashavidha = evaluate_10_dashavidha_doshas(seg_panchang, d1_positions, raw_d1, lagna.lagna_idx, birth_details, context=ctx)
+    if ds["mahadoshas"]:
+        _mark_duplicates(dashavidha)
     pariharas = evaluate_muhurta_pariharas(seg_panchang, raw_d1, lagna.lagna_idx,
                                            birth_details=birth_details, pushkara_info=pushkara_info)
 
@@ -1807,7 +1966,7 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     active_pids = [pr.get("id") for pr in pariharas if pr.get("id")]
     maha_doshas = apply_dosha_profile(maha_doshas, tab, rule.id, active_pids, not strict)
     dashavidha = apply_dosha_profile(dashavidha, tab, rule.id, active_pids, not strict)
-    maha_doshas, dashavidha, jupiter_in_lagna = apply_author_severity(maha_doshas, dashavidha, lagna)
+    maha_doshas, dashavidha, good_benefics = apply_author_severity(maha_doshas, dashavidha, lagna)
     good_yogas, yoga_doshas, yoga_points = evaluate_yogas(vaara_idx, limbs.tithi, limbs.nakshatra, tab, rule.id)
     jd_mid = local_to_jd(mid_dt, tz_offset)
     day_sunrise = datetime(cur_date.year, cur_date.month, cur_date.day) + timedelta(
@@ -1816,8 +1975,8 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     extra = extra_checks(tab, rule.id, limbs.tithi, tithi_bounds(jd_mid), local_to_jd(cw.start, tz_offset),
                          [sr_jd - 1.0, sr_jd, sr_jd + 1.0, sr_jd + 2.0], lagna.house_planets,
                          local_to_jd(cw.end, tz_offset))
-    if jupiter_in_lagna:            # Q2 (12 Nov 2026): Jupiter excepts these too
-        except_by_jupiter([r for r in yoga_doshas + extra if r.get("id") in JUPITER_EXCEPTS_IDS])
+    # A7 (21 Nov 2026): a good Jupiter, Mercury or Venus in the lagna neutralises every dosha, these too.
+    except_by_benefics(yoga_doshas + extra, good_benefics)
     # This event's own chart rules that the window misses (Show-all mode): one failed row each.
     for i, msg in enumerate((extras or {}).get("misses") or []):
         extra.append({"id": f"rule_miss_{i + 1}", "number": None,
@@ -1858,7 +2017,7 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     failed = [d for d in checked if d["status"] == "fail"]
     fatal = [d for d in failed if d["severity"] == "fatal"]
     audit = dosha_audit(maha_doshas if ds["mahadoshas"] else [], dashavidha if ds["dashavidha"] else [],
-                        yoga_doshas + extra, jupiter_in_lagna)
+                        yoga_doshas + extra, good_benefics)
     if strict and fatal:
         rejections[f"Fatal dosha: {fatal[0]['name_en'].split('. ', 1)[-1]}"] += 1
         return None
@@ -1895,25 +2054,32 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
         cautions.append(f"Not evaluated (data or author input missing): {', '.join(not_eval)}")
 
     serious = [d for d in failed if d["severity"] == "serious"]
-    # Three separate scores (user, 21 Nov 2026), each the share of its checks passed ("excepted" = passed;
-    # "to be confirmed", "not applicable" and "not evaluated" left out):
-    #   percentage  = the basic muhurta score: the event's own rules only, every one passed or missed (weekday,
-    #                 tithi, nakshatra, yoga, karana, month, lagna, houses, planets, balas). All passed = 98%
-    #                 (user, 21 Nov 2026: "if all basic muhurta rules are good, the percentage is good").
-    #                 The extra checks (chakras, papa drishti, paksharandhra, ...) and special-yoga doshas stay
-    #                 listed on the result but are in none of the three scores;
-    #   maha_score  = the 21 mahadoshas, shown beside it;
-    #   dasha_score = the 10 dashavidha doshas, shown beside it.
-    # The two dosha scores are NOT part of the muhurta score and no longer cap it. A set switched off in
-    # Settings (Doshas in the score) is still shown row by row but gets no score.
+    # One percentage (dosha questionnaire A3/A8, 21 Nov 2026; replaces the three separate scores of the same
+    # morning). Each part is the share of its checks passed ("excepted" = passed; "to be confirmed",
+    # "not applicable" and "not evaluated" left out), so every failed dosha lowers the percentage:
+    #   panchanga shuddhi (30%) = the event's own rules, every one passed or missed (weekday, tithi, nakshatra,
+    #                             yoga, karana, month, lagna, houses, planets, balas);
+    #   mahadoshas (70%, or 60% where the dashavidha doshas are checked);
+    #   dashavidha (10%, marriage only).
+    # A set switched off in Settings (or with no checks) gets no share; the other parts share its weight. maha_score and
+    # dasha_score still show each part on its own. The extra checks (chakras, papa drishti, ...) and the
+    # special-yoga doshas are listed on the result but are in no part.
     # `points` below is the old +10/-10 total of the counted rows, kept only in audit_points.
     def _rows(lst):
         return [d for d in lst if d["status"] in ("pass", "fail", "excepted", "to_confirm")]
     applicable = [d for d in checked if d["status"] in ("pass", "fail", "excepted", "to_confirm")]
     points = sum(10 if d["status"] == "pass" else -10 if d["status"] == "fail" else 0 for d in applicable)
-    passed_rows = [{"status": "pass"} for r in rules_passed if not str(r).startswith("Pushkara navamsa")]
+    # A7 (21 Nov 2026): the Sun in the 11th does good to the lagna. Listed as a reason; since option B
+    # (panchanga shuddhi = the five angas) it no longer changes the percentage.
+    if any(p.name_en == "Sun" for p in (lagna.house_planets or {}).get(11, [])):
+        rules_passed = list(rules_passed) + ["Sun in the 11th from the lagna does good to the lagna (Dr. Nemani)."]
+        all_reasons.append(rules_passed[-1])
+    # Panchanga shuddhi (user, 21 Nov 2026, option B): the five angas only, each passed or not against this
+    # event's lists, so 5 of 5 = 100%. The event's other rules (lagna, houses, planets, balas, month) are listed
+    # as "not met" rows but hold no share; a serious one still caps the % at 74 below.
+    angas = anga_checks(cr, limbs, vaara_idx)
+    main_part = sum(1 for a in angas if a["ok"]) / len(angas)
     main_rows = [d for d in _rows(extra) if str(d.get("id", "")).startswith("rule_miss_")]
-    main_part = _share(passed_rows + main_rows)
     dasha_rows = _rows(dashavidha) if ds["dashavidha"] else []
     maha_rows = _rows(maha_doshas) if ds["mahadoshas"] else []
     dasha_part, maha_part = _share(dasha_rows), _share(maha_rows)
@@ -1925,8 +2091,14 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
                 "passed": sum(1 for d in rows if d["status"] in ("pass", "excepted")),
                 "failed": sum(1 for d in rows if d["status"] == "fail")}
     maha_score, dasha_score = _score(maha_rows, maha_part), _score(dasha_rows, dasha_part)
-    dosha_part = None      # kept for audit_points: the muhurta score no longer blends the doshas in
-    pct = round(100 * main_part) if main_part is not None else 50
+    w_p = ds["panchanga_weight"]
+    w_d = ds["dashavidha_weight"] if dasha_part is not None else 0
+    w_m = (100 - w_p - w_d) if maha_part is not None else 0
+    parts = [(w, part) for w, part in ((w_p, main_part), (w_m, maha_part), (w_d, dasha_part)) if part is not None]
+    total_w = sum(w for w, _ in parts)
+    # A part with no checks (e.g. no event rules recorded) drops out and the others share its weight.
+    dosha_part = sum(w * part for w, part in parts) / total_w if total_w else None
+    pct = round(100 * dosha_part) if dosha_part is not None else 50
     pct = int(min(98, max(5, pct)))
     dasha_failed = [d for d in dasha_rows if d["status"] == "fail"]
     # Caps from the basic rules only: a missed serious rule keeps the window from "best"; a directional sula
@@ -1941,11 +2113,13 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     planets_in_1 = [p.name_en for p in lagna.house_planets.get(1, [])]
     tithi_disp = f"{limbs.tithi_name} ({limbs.paksha.title()})"
     detailed_eval = {
-        "vaara": {"name": panchang.get("vaara"), "is_pass": True},
-        "tithi": {"name": limbs.tithi_name, "number": limbs.tithi_number, "paksha": limbs.paksha, "is_pass": True},
-        "nakshatra": {"name": limbs.nakshatra_name, "pada": limbs.pada, "is_pass": True},
-        "yoga": {"name": limbs.yoga_name, "index": limbs.yoga, "is_pass": limbs.yoga not in DOSHIC_YOGAS},
-        "karana": {"name": limbs.karana_name, "is_pass": limbs.karana not in INAUSPICIOUS_KARANAS},
+        # Each anga against this event's own lists (was hard-coded "passed" for vara, tithi and nakshatra).
+        "vaara": {"name": panchang.get("vaara"), "is_pass": angas[0]["ok"]},
+        "tithi": {"name": limbs.tithi_name, "number": limbs.tithi_number, "paksha": limbs.paksha, "is_pass": angas[1]["ok"]},
+        "nakshatra": {"name": limbs.nakshatra_name, "pada": limbs.pada, "is_pass": angas[2]["ok"]},
+        "yoga": {"name": limbs.yoga_name, "index": limbs.yoga, "is_pass": angas[3]["ok"]},
+        "karana": {"name": limbs.karana_name, "is_pass": angas[4]["ok"]},
+        "panchanga_shuddhi": {"passed": sum(1 for a in angas if a["ok"]), "checked": len(angas), "angas": angas},
         "lagna": {"name": lagna.lagna_name_en, "name_te": lagna.lagna_name_te,
                   "navamsa": lagna.navamsa_name_en, "is_pushkara_navamsa": lagna.is_pushkara_navamsa,
                   "pushkara_minutes": pushkara_text(lagna) or None},
@@ -1984,6 +2158,11 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
     except (KeyError, ValueError, TypeError) as ex:
         logger.error(f"Amsha not worked out: {ex}")
         amsha = None
+    try:
+        pushkara_window = window_pushkara(lagna, cw.start, cw.end, tz_offset, (extras or {})["lat"], (extras or {})["lon"])
+    except KeyError as ex:
+        logger.error(f"Window pushkara not worked out, missing {ex}")
+        pushkara_window = None
     detail = _result_detail(rule, cw, lagna, limbs, cur_date, tz_offset, pct, failed, not_eval,
                             cautions, extras or {})
 
@@ -1997,10 +2176,11 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
         "window_end": cw.end_time,
         "duration_minutes": cw.duration_minutes,
         "duration_ghatis": cw.duration_ghatis,
-        "percentage": pct,                 # the muhurta score (event's own checks)
-        "maha_score": maha_score,          # 21 mahadoshas, separate (None when switched off)
-        "dasha_score": dasha_score,        # 10 dashavidha doshas, separate (None when switched off)
+        "percentage": pct,                 # panchanga shuddhi 30 + mahadoshas 70 (30/60/10 with dashavidha)
+        "maha_score": maha_score,          # the mahadosha part on its own (None when switched off)
+        "dasha_score": dasha_score,        # the dashavidha part on its own (None when not checked)
         "amsha": amsha,               # Pushkaramsha / Vargottamamsha and the time it starts
+        "pushkara_window": pushkara_window,   # pushkara navamsha spans and pushkara bhaga inside THIS window
         "doshapavada": apavada,       # the book's exceptions in this lagna (paras 1972-78)
         "custom_kalas": [{"type": w.metadata.get("type"), "name": w.label,
                           "start": w.start.strftime("%H:%M"), "end": w.end.strftime("%H:%M")}
@@ -2010,7 +2190,7 @@ def _build_candidate(rule, cr, cw, lagna, limbs, panchang, vaara_idx, cur_date, 
                          "dosha_share": None if dosha_part is None else round(100 * dosha_part),
                          "dasha_share": None if dasha_part is None else round(100 * dasha_part),
                          "maha_share": None if maha_part is None else round(100 * maha_part),
-                         "main_weight": ds["main_weight"], "dasha_weight": ds["weight"],
+                         "panchanga_weight": w_p, "maha_weight": w_m, "dashavidha_weight": w_d,
                          "dasha_failed": len(dasha_failed)},
         "rule_score": score,          # the event's own preference points (weekday, lagna, pushkara): breaks ties
         "verdict": verdict,

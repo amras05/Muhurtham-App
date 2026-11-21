@@ -1231,6 +1231,103 @@ body.pa-open { overflow: hidden; }
   .pa-nav { justify-content: flex-start; }
 }
 
+/* ============================================================
+   Muhurta Parishilana rebuilt (21 Nov 2026, "verdict first, tabs"): one column of hero, "why" and tabs;
+   each tab panel is its own two-column grid on wide screens.
+   ============================================================ */
+.pa-view .modal-body { grid-template-columns: minmax(0, 1fr); gap: var(--space-5, 1.25rem); max-width: 1180px; }
+
+.pa-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-4) var(--space-6);
+  padding: var(--space-6); border-radius: var(--radius-lg); background: var(--color-surface);
+  border: 1px solid var(--color-border); box-shadow: var(--shadow-md); }
+.pa-hero__main { display: grid; gap: 2px; min-width: 0; }
+.pa-hero__main p { margin: 0; }
+.pa-hero__event { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); }
+html[lang="te"] .pa-hero__event { letter-spacing: normal; text-transform: none; font-size: 15px; }
+.pa-hero__date { color: var(--color-text-muted); font-size: 14px; }
+.pa-hero__time { font-family: var(--font-serif); font-size: clamp(30px, 5vw, 42px); font-weight: 700; line-height: 1.15;
+  color: var(--color-primary-strong); font-variant-numeric: tabular-nums; margin-top: 6px !important; }
+.pa-hero__time small { font-family: var(--font-sans, inherit); font-size: 14px; font-weight: 500; color: var(--color-text-muted); margin-left: 8px; }
+.pa-hero__lagna { font-size: 17px; font-weight: 600; color: var(--color-text); }
+.pa-hero__meta { font-size: 13.5px; color: var(--color-text-muted); }
+.pa-hero__score { display: grid; justify-items: center; align-content: center; gap: 6px; min-width: 132px;
+  padding: var(--space-4); border-radius: var(--radius-lg); border: 2px solid currentColor; }
+.pa-hero--excellent .pa-hero__score { color: var(--color-success); background: var(--color-success-bg); }
+.pa-hero--medium .pa-hero__score { color: var(--color-warning); background: var(--color-warning-bg); }
+.pa-hero--avoid .pa-hero__score { color: var(--color-danger); background: var(--color-danger-bg); }
+.pa-hero__pct { font-family: var(--font-serif); font-size: 46px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.pa-hero__pct small { font-size: 22px; }
+.pa-hero__band { font-size: 13px; font-weight: 700; text-align: center; }
+
+.pa-split { grid-column: 1 / -1; display: grid; gap: 8px; padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+.pa-split__row { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr) minmax(90px, auto); gap: 12px; align-items: center; font-size: 14px; }
+.pa-split__name small { color: var(--color-text-faint); font-size: 12px; margin-left: 4px; }
+.pa-split__val { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; display: grid; }
+.pa-split__val small { font-weight: 500; font-size: 11.5px; color: var(--color-text-muted); }
+.pa-bar { display: block; height: 10px; border-radius: var(--radius-pill); background: var(--color-surface-strong); overflow: hidden; }
+.pa-bar__fill { display: block; height: 100%; border-radius: inherit; }
+.pa-bar__fill--excellent { background: var(--color-success); }
+.pa-bar__fill--medium { background: var(--color-warning); }
+.pa-bar__fill--avoid { background: var(--color-danger); }
+
+.pa-pushkara { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.pa-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: var(--radius-pill);
+  font-size: 13px; font-weight: 600; border: 1px solid; line-height: 1.4; }
+.pa-pill--good { color: var(--color-success); background: var(--color-success-bg); border-color: var(--color-success-border); }
+.pa-pill--near { color: var(--color-warning); background: var(--color-warning-bg); border-color: var(--color-warning-border); }
+.pa-pill--bad { color: var(--color-danger); background: var(--color-danger-bg); border-color: var(--color-danger-border); }
+.pa-pill--none { color: var(--color-text-muted); background: var(--color-surface-muted); border-color: var(--color-border); font-weight: 500; }
+
+.pa-why { display: grid; gap: var(--space-3); padding: var(--space-5, 1.25rem) var(--space-6); border-radius: var(--radius-lg);
+  background: var(--color-surface); border: 1px solid var(--color-border); }
+.pa-why--issues { border-color: var(--color-danger-border); }
+.pa-why--clean { border-color: var(--color-success-border); background: var(--color-success-bg); }
+.pa-why__title { margin: 0; font-family: var(--font-serif); font-size: 19px; color: var(--color-primary-strong); }
+.pa-why__group { display: grid; gap: 6px; }
+.pa-why__group h4 { margin: 0; font-size: 13px; font-weight: 700; color: var(--color-text-muted); }
+.pa-why__group h4 span { font-variant-numeric: tabular-nums; color: var(--color-text-faint); margin-left: 4px; }
+.pa-why__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pa-why__list { margin: 0; padding-left: 1.2em; font-size: 14px; }
+.pa-note { margin: 0; font-size: 13px; color: var(--color-text-muted); }
+
+.pa-tabs { position: sticky; top: 76px; z-index: 4; display: flex; gap: 4px; overflow-x: auto; padding: 4px;
+  border-radius: var(--radius-pill); background: var(--color-surface-strong); scrollbar-width: none; }
+.pa-tabs::-webkit-scrollbar { display: none; }
+.pa-tab { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 18px;
+  border: 0; border-radius: var(--radius-pill); background: transparent; font: inherit; font-size: 14px; font-weight: 600;
+  color: var(--color-text-muted); cursor: pointer; white-space: nowrap; }
+.pa-tab:hover { color: var(--color-primary-strong); }
+.pa-tab:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.pa-tab.is-active { background: var(--color-surface); color: var(--color-primary-strong); box-shadow: var(--shadow-sm); }
+.pa-tab__count { min-width: 20px; padding: 0 6px; border-radius: var(--radius-pill); font-size: 11.5px; line-height: 18px; text-align: center;
+  background: var(--color-danger); color: var(--color-on-strong); font-variant-numeric: tabular-nums; }
+.pa-tab__count--good { background: var(--color-success); }
+
+.pa-panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); align-items: start; }
+.pa-panel > * { min-width: 0; margin: 0 !important; }
+.pa-panel > .pa-wide, .pa-panel > .rule-grid, .pa-panel > .portal-hint { grid-column: 1 / -1; }
+.pa-panel .rule-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.pa-panel__print-title { display: none; }
+.pa-checklist { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font-size: 14px; }
+.pa-checklist li::marker { content: "✓  "; color: var(--color-success); }
+.pa-checklist--warn li::marker { content: "!  "; color: var(--color-warning); }
+
+@media (max-width: 1000px) { .pa-tabs { position: static; } }   /* the header stacks there; a sticky bar would sit under it */
+@media (max-width: 720px) {
+  .pa-hero { grid-template-columns: 1fr; padding: var(--space-4); }
+  .pa-hero__score { justify-self: start; grid-auto-flow: column; min-width: 0; gap: 12px; padding: 10px 16px; }
+  .pa-hero__pct { font-size: 36px; }
+  .pa-split__row { grid-template-columns: 1fr auto; }
+  .pa-split__row .pa-bar { grid-column: 1 / -1; grid-row: 2; }
+  .pa-panel { grid-template-columns: 1fr; }
+  .pa-tabs { border-radius: var(--radius-md); }
+  .pa-tab { padding: 8px 12px; }
+}
+@media print {
+  .pa-panel[hidden] { display: grid !important; }
+  .pa-panel__print-title { display: block; }
+}
+
 /* Check a given muhurta (21 Nov 2026): time field + button on one row. */
 .mf-check { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .mf-check input[type="time"] { flex: 1 1 8rem; min-width: 0; }

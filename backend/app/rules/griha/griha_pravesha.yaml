@@ -17,6 +17,10 @@ source:
     shadvarga, Venus facing the entrant, the janma rashi direction table, Vrishabha and Kalasha
     chakras (awaiting the author's confirmation of their order).
 kartari: all
+# User, 21 Nov 2026: the nama nakshatra is used only for Griha Pravesha; all other events use the janma nakshatra.
+participants:
+  - {role: owner, level: L1, primary: true, star_basis: nama}
+  - {role: spouse, level: L2, primary: false, star_basis: nama}
 hard_filters:
   common: {mahadoshas_21: true, panchaka_rahita: true, masa_shubha: true}
   vaara_exclude: [sunday, tuesday]

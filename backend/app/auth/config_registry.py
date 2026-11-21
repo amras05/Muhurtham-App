@@ -10,7 +10,7 @@ What stays in the code (plan D1): astrology rules and calculation methods, Dr. N
 """
 from typing import Any, Callable, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
 
 from app.engines.muhurta_tabs import MUHURTA_TABS
 from app.geo.regions import REGIONS
@@ -163,12 +163,21 @@ class DoshaSwitch(_Strict):
 
 
 class DoshaScoring(_Strict):
-    # Since 21 Nov 2026 (three separate scores) these three are no longer used; kept so saved values still load.
+    # Unused since the three-score change (21 Nov 2026); kept so saved values still load.
     main_weight: int = Field(70, ge=0, le=100)
     dasha_weight: int = Field(70, ge=0, le=100)
     dasha_cap: int = Field(49, ge=5, le=98)
+    # A8 (21 Nov 2026): % = panchanga shuddhi + mahadoshas (+ dashavidha, marriage only); mahadoshas get the rest.
+    panchanga_weight: int = Field(30, ge=0, le=100)
+    dashavidha_weight: int = Field(10, ge=0, le=100)
     tabs: Dict[str, DoshaSwitch] = Field(default_factory=dict)
     events: Dict[str, DoshaSwitch] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _weights_fit(self):
+        if self.panchanga_weight + self.dashavidha_weight > 100:
+            raise ValueError("panchanga and dashavidha shares together must be 100% or less")
+        return self
 
     @field_validator("tabs")
     @classmethod
@@ -291,6 +300,7 @@ REGISTRY: Dict[str, Dict[str, Any]] = {
     "godavari": _setting({"enabled": True, "km": 30.0}, Godavari,
                          "Godavari Pushkaralu", "గోదావరి పుష్కరాలు", "finder", False),
     "dosha_scoring": _setting({"main_weight": 70, "dasha_weight": 70, "dasha_cap": 49,
+                               "panchanga_weight": 30, "dashavidha_weight": 10,
                                "tabs": {t["id"]: {"mahadoshas": "inherit", "dashavidha": "inherit"} for t in DOSHA_TABS},
                                "events": {}},
                               DoshaScoring, "Dosha scores", "దోష శాతాలు", "finder", False),
@@ -370,12 +380,12 @@ def public_view(values: Dict[str, Any]) -> Dict[str, Any]:
 
 def _dosha_events() -> List[Dict[str, Any]]:
     """Events for the "Doshas in the score" overrides, with what their rule file says today."""
-    from app.engines.rule_interpreter import list_all_rules, load_rule   # lazy: avoids an import cycle
+    from app.engines.rule_interpreter import default_dosha_sets, list_all_rules, load_rule   # lazy: avoids an import cycle
     out = []
     for r in list_all_rules():
         try:
-            common = load_rule(r["id"]).hard_filters.common
-            maha, dasha = bool(common.mahadoshas_21), bool(common.dashavidha_10 or common.mahadoshas_21)
+            load_rule(r["id"])                       # still refuse to list an unreadable rule's defaults
+            maha, dasha = default_dosha_sets(r["id"])   # the A1/A2 ruling, not the rule file (21 Nov 2026)
         except Exception:   # an unreadable rule file still gets listed; the finder reports its own error
             maha = dasha = None
         out.append({"id": r["id"], "tab": r.get("tab"), "en": r.get("title_en") or r["id"],

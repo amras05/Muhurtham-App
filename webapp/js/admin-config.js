@@ -175,7 +175,7 @@
           ["strict", tr("Strict: hide windows with a mahadosha or a missed rule", "కఠినం: మహాదోషం లేదా సరిపోని నియమం ఉన్న సమయాలు దాచు")]]);
     },
     dosha_scoring: function (k) {
-      var catOpts = [["inherit", tr("As each event's rule file", "ప్రతి కార్య నియమ ఫైలు ప్రకారం")], ["on", tr("Calculate score", "శాతం గణించు")], ["off", tr("Don't calculate score", "శాతం గణించవద్దు")]];
+      var catOpts = [["inherit", tr("Default (mahadoshas all, dashavidha marriage)", "మామూలు (మహాదోషాలు అన్నిటికీ, దశవిధ వివాహానికి)")], ["on", tr("Calculate score", "శాతం గణించు")], ["off", tr("Don't calculate score", "శాతం గణించవద్దు")]];
       var evOpts = [["inherit", tr("Same as its category", "వర్గం ప్రకారమే")], ["on", tr("Calculate score", "శాతం గణించు")], ["off", tr("Don't calculate score", "శాతం గణించవద్దు")]];
       var events = cfg.meta._choices.dosha_events || [], byId = {};
       events.forEach(function (ev) { byId[ev.id] = ev; });
@@ -204,7 +204,7 @@
       var evTable = ids.length ? '<div class="table-wrap"><table class="data-table">' + head.replace("%s", tr("Event", "కార్యం")).replace("%x", "<th></th>") + "<tbody>" +
         ids.map(function (id) {
           var ev = byId[id] || { en: id, te: "" }, nm = tr(ev.en, ev.te || ev.en);
-          return "<tr><td>" + esc(nm) + '<br><small class="cf-hint">' + esc(tabName[ev.tab] || ev.tab || "") + " · " + tr("rule file", "నియమ ఫైలు") + ": " + yn(ev.file_mahadoshas) + " / " + yn(ev.file_dashavidha) + "</small></td><td>" +
+          return "<tr><td>" + esc(nm) + '<br><small class="cf-hint">' + esc(tabName[ev.tab] || ev.tab || "") + " · " + tr("default", "మామూలుగా") + ": " + yn(ev.file_mahadoshas) + " / " + yn(ev.file_dashavidha) + "</small></td><td>" +
             sel("events." + id + ".mahadoshas", evOpts, nm + " mahadoshas") + "</td><td>" + sel("events." + id + ".dashavidha", evOpts, nm + " dashavidha") +
             '</td><td><button type="button" class="btn btn--sm btn--outline" data-dosha-remove="' + esc(id) + '">' + tr("Remove", "తొలగించు") + "</button></td></tr>";
         }).join("") + "</tbody></table></div>" : '<p class="portal-hint">' + tr("No event overrides yet: every event follows its category.", "ఇంకా కార్య మినహాయింపులు లేవు: ప్రతి కార్యం దాని వర్గాన్ని అనుసరిస్తుంది.") + "</p>";
@@ -212,7 +212,9 @@
       var adder = '<div class="row-form"><div class="field"><label for="cfDoshaAdd">' + tr("Set one event differently", "ఒక కార్యాన్ని వేరుగా") + '</label><select id="cfDoshaAdd">' +
         free.map(function (ev) { return '<option value="' + esc(ev.id) + '">' + esc(tr(ev.en, ev.te || ev.en)) + " (" + esc(tabName[ev.tab] || ev.tab || "") + ")</option>"; }).join("") +
         '</select></div><button type="button" class="btn btn--outline" data-dosha-add="1"' + (free.length ? "" : " disabled") + ">+ " + tr("Add", "చేర్చండి") + "</button></div>";
-      return allRow("", tr("Both sets", "రెండూ")) +
+      return text(k, "panchanga_weight", "Panchanga shuddhi share (%)", "పంచాంగ శుద్ధి వాటా (%)", { type: "number", min: 0, max: 100, hint: "30" }) +
+        text(k, "dashavidha_weight", "Dashavidha share where checked (%); mahadoshas get the rest", "దశవిధ దోషాల వాటా (%); మిగిలినది మహాదోషాలకు", { type: "number", min: 0, max: 100, hint: "10" }) +
+        allRow("", tr("Both sets", "రెండూ")) +
         allRow("mahadoshas", tr("21 mahadoshas", "21 మహాదోషాలు")) +
         allRow("dashavidha", tr("10 dashavidha doshas", "దశవిధ దోషాలు")) +
         '<p class="portal-hint">' + tr("Each button sets every category and every event below; then press Save.", "ప్రతి బటన్ అన్ని వర్గాలు, కార్యాలకు వర్తిస్తుంది; తర్వాత భద్రపరచండి నొక్కండి.") + "</p>" +
@@ -251,8 +253,8 @@
     texts: ["Leave a box empty to keep the page's own wording.", "పేజీ స్వంత పదాలు ఉంచాలంటే ఖాళీగా వదలండి."],
     security: ["Values outside the limits are refused, so a mistake can't weaken security.", "పరిమితులు దాటిన విలువలు అంగీకరించబడవు."],
     admin_powers: ["The server checks these too. Your own powers can't be changed here.", "సర్వర్ కూడా వీటిని పరిశీలిస్తుంది. మీ అధికారాలు ఇక్కడ మారవు."],
-    dosha_scoring: ["Each muhurta gets three separate scores: the muhurta score (the event's own rules), a mahadosha score (21) and a dashavidha score (10). The dosha scores are shown beside the muhurta score and are never added to it. Choose here which events get each dosha score; a set switched off is still listed on the result, without a score. Rules themselves stay in the rule files.",
-                    "ప్రతి ముహూర్తానికి మూడు వేర్వేరు శాతాలు: ముహూర్త శాతం (కార్య నియమాలు), మహాదోష శాతం (21), దశవిధ దోష శాతం (10). దోష శాతాలు ముహూర్త శాతం పక్కన చూపబడతాయి, దానిలో కలపబడవు. ఏ కార్యానికి ఏ దోష శాతం గణించాలో ఇక్కడ ఎంచుకోండి; ఆపిన దోషాలు ఫలితంలో శాతం లేకుండా కనిపిస్తాయి. నియమాలు నియమ ఫైళ్ళలోనే ఉంటాయి."],
+    dosha_scoring: ["The muhurta % = panchanga shuddhi (the event's own rules) + the 21 mahadoshas; for marriage the 10 dashavidha doshas take a share too (default 30 / 70, or 30 / 60 / 10). By default the mahadoshas are checked for every event and the dashavidha doshas for marriage only. A set switched off here is still listed on the result but has no share. Rules themselves stay in the rule files.",
+                    "ముహూర్త శాతం = పంచాంగ శుద్ధి (కార్య నియమాలు) + 21 మహాదోషాలు; వివాహానికి దశవిధ దోషాలకు కూడా వాటా (మామూలుగా 30 / 70, లేదా 30 / 60 / 10). మామూలుగా మహాదోషాలు అన్ని కార్యాలకు, దశవిధ దోషాలు వివాహానికి మాత్రమే. ఇక్కడ ఆపిన దోషాలు ఫలితంలో కనిపిస్తాయి కానీ శాతంలో వాటా ఉండదు. నియమాలు నియమ ఫైళ్ళలోనే ఉంటాయి."],
     godavari: ["Your own ruling: while Jupiter is in Simha, places near the Godavari get no muhurtas.", "మీ నిర్ణయం: గురుడు సింహంలో ఉన్నప్పుడు గోదావరి సమీప ప్రాంతాలకు ముహూర్తాలు లేవు."],
   };
 

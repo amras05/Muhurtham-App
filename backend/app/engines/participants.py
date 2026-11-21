@@ -57,18 +57,21 @@ def _p(role, level="L2", primary=False, star_basis="janma", fields=None):
 
 TAB_PARTICIPANTS: Dict[str, List[Dict[str, Any]]] = {
     "vivaha":      [_p("groom", "L1", True, fields=["eldest"]), _p("bride", "L1", fields=["eldest"])],
-    "upanayana":   [_p("vatu", "L1", True, fields=["birth_date"]), _p("father", "L1o"), _p("mother"), _p("guru")],
+    # A6 (21 Nov 2026): marriage uses the bride's and groom's details; upanayana only the vatu's.
+    "upanayana":   [_p("vatu", "L1", True, fields=["birth_date"])],
     "vidya":       [_p("student", "L1", True)],
-    "griha":       [_p("owner", "L1", True, "nama"), _p("spouse", "L2", False, "nama")],
+    # Nama nakshatra only for Griha Pravesha (user, 21 Nov 2026): set in griha_pravesha.yaml `participants`;
+    # every other event, house, business and finance included, uses the janma nakshatra.
+    "griha":       [_p("owner", "L1", True), _p("spouse", "L2", False)],
     "garbha":      [_p("wife", "L1", True), _p("husband")],
     "shishu":      [_p("child", "L1", True, fields=["birth_date", "gender"])],
     "career":      [_p("person", "L1", True)],
-    "business":    [_p("owner", "L1", True, "nama"), _p("partner", "L2", False, "nama")],
+    "business":    [_p("owner", "L1", True), _p("partner", "L2", False)],
     "travel":      [_p("traveller", "L1", True)],
     "health":      [_p("patient", "L1", True)],
     "spiritual":   [_p("yajamana", "L1", True)],
     "pitru":       [_p("karta", "L1", True)],
-    "finance":     [_p("buyer", "L1", True, "nama")],
+    "finance":     [_p("buyer", "L1", True)],
     "agriculture": [_p("farmer", "L1", True)],
     "personal":    [_p("person", "L1", True)],
     "general":     [_p("person", "L1", True)],
