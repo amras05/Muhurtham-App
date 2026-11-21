@@ -19,8 +19,12 @@ webapp/ (HTML/JS, served by FastAPI)  →  backend/ (FastAPI)  →  PyJHora (pan
   durmuhurtam, varjyam for any date/place.
 - `backend/app/models/names.py` — maps PyJHora's Tamil-inflected spellings
   (e.g. "Karthigai") to the standard spelling the rules use ("Krittika").
-- `backend/app/engines/rule_interpreter.py` + `backend/app/rules/` — the
-  declarative YAML rule engine (catalog, hard filters, mahadoshas, soft scoring).
+- `backend/app/engines/rule_interpreter/` + `backend/app/rules/` — the
+  declarative YAML rule engine, one module per part: `rules_loader`, `planets`,
+  `pushkara`, `window_rules`, `dosha_rulings`, `scoring`, `search` (each imports only
+  from the ones before it; `__init__` re-exports every name).
+- `webapp/js/finder-*.js` — the Muhurta Finder page as component scripts, loaded in
+  order by `muhurta-finder.html` (`finder-init.js` last).
 - `backend/app/engines/rules.py` + `rules.json` — legacy flat rules, still used
   only for the per-activity verdicts in `/panchang/day-summary`.
 - `backend/app/engines/samskaras.py` — samskara finder used by the samskara page.

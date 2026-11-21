@@ -12,7 +12,7 @@ source:
   notes: >-
     Plan M14 16.2. Implemented as a general muhurta only (PCPNDT Act; plan legal note).
     Ritu nights (plan R6b, 9 Nov 2026): classical rule pending the book's text - nights 4-16 counted
-    from the first day of the period, except the 11th and 13th (RITU_NIGHTS in rule_interpreter.py);
+    from the first day of the period, except the 11th and 13th (RITU_NIGHTS in engines/rule_interpreter/planets.py);
     the date is used for one search only, never stored or logged; even/odd nights are not used.
     Not yet modelled: the first
     half of Parigha only (whole yoga excluded here), vrata and shraddha days.

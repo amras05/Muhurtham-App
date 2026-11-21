@@ -197,11 +197,16 @@ def compute_pushkara_window(
     last_rasi = None
     lagna_start = sr_h
 
+    # Ascendant at every minute of the day, kept so step 2 reads it instead of computing it again
+    # (21 Nov 2026: step 2 asked Swiss Ephemeris again for the same minutes, ~1,000 extra calls a day).
+    asc_grid: List[float] = []
+    lagna_i0 = 0
     while curr_h <= sr_h + 24.0 + (1.0 / 60.0):
         ut_hour = curr_h - tz_offset
         jd_t = jd_ut_mid + ut_hour / 24.0
         cusps, ascmc = swe.houses_ex(jd_t, lat, lon, b'P', swe.FLG_SIDEREAL)
         l_lon = ascmc[0] % 360.0
+        asc_grid.append(l_lon)
         r_idx = int(l_lon // 30)
 
         if last_rasi is not None and r_idx != last_rasi:
@@ -211,8 +216,10 @@ def compute_pushkara_window(
                 "rasi_te": TELUGU_RASI_NAMES[last_rasi],
                 "start_h": lagna_start,
                 "end_h": curr_h,
+                "_i0": lagna_i0,
             })
             lagna_start = curr_h
+            lagna_i0 = len(asc_grid) - 1
         last_rasi = r_idx
         curr_h += (1.0 / 60.0)
 
@@ -244,14 +251,18 @@ def compute_pushkara_window(
         pushkara_bhaga_mins = []
         pushkara_nav_mins = []
 
+        grid_i = lg["_i0"]
         while step_h <= step_end:
             coll = is_colliding_time(step_h, varjyam, buffer_mins=5.0)
             if not coll:
                 clean_minutes.append(step_h)
-                ut_hour = step_h - tz_offset
-                jd_t = jd_ut_mid + ut_hour / 24.0
-                cusps, ascmc = swe.houses_ex(jd_t, lat, lon, b'P', swe.FLG_SIDEREAL)
-                l_lon = ascmc[0] % 360.0
+                if grid_i < len(asc_grid):
+                    l_lon = asc_grid[grid_i]          # the same minute step 1 already worked out
+                else:
+                    ut_hour = step_h - tz_offset
+                    jd_t = jd_ut_mid + ut_hour / 24.0
+                    cusps, ascmc = swe.houses_ex(jd_t, lat, lon, b'P', swe.FLG_SIDEREAL)
+                    l_lon = ascmc[0] % 360.0
                 deg_in_rasi = l_lon % 30.0
 
                 target_deg = PUSHKARA_BHAGA_DEGS.get(lg["rasi_index"], 15.0)
@@ -264,6 +275,7 @@ def compute_pushkara_window(
                         pushkara_nav_mins.append(step_h)
                         break
             step_h += (1.0 / 60.0)
+            grid_i += 1
 
         # Require at least 20 minutes of clean uncollided duration
         if len(clean_minutes) >= 20:

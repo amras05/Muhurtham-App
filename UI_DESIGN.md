@@ -485,7 +485,7 @@ When the state changes, update both the `active` class and `aria-pressed`.
 
 ## 7. The Muhurta Finder result card
 
-The result card is the most important view in the app. It is built in `renderResults()` in `js/finder.js`.
+The result card is the most important view in the app. It is built in `renderResults()` in `js/finder-results.js`.
 The order below is deliberate: the most important facts come first, and supporting details follow.
 
 | # | Part | Class | Shown when | What it says |
@@ -611,7 +611,7 @@ The order below is deliberate: the most important facts come first, and supporti
 - **Hiding:** use the `hidden` attribute (`common.css` forces it to `display: none`), not inline styles.
 - **No new libraries:** no CSS framework or UI library. Plain HTML, CSS and JS.
 - **Before adding a class:** search `components.css` for an existing one.
-- **Escaping:** text that came from the server or the user is escaped before it is put into HTML (`escapeHtml()` in `finder.js`, `esc()` in `auth.js` and the portal pages), or set with `textContent`.
+- **Escaping:** text that came from the server or the user is escaped before it is put into HTML (`escapeHtml()` in `finder-results.js`, `esc()` in `auth.js` and the portal pages), or set with `textContent`.
 - **After a change:** check the page in both languages, with a narrow window, and with the keyboard only.
 
 ---
@@ -695,7 +695,7 @@ The super admin changes how the app looks and behaves on **Settings** (`admin-se
 | `landing` | `auth/guard.py` `_home_for()` (only a page that role may open) |
 | `panchang` | `panchang.js` (`pdApplySections`, `pdRefreshMs`); `routers/portal.py` (default place) |
 | `places` | `geo/regions.py` (`list_regions`, `get_region`) |
-| `finder`, `sharing` | `finder.js` (search length, load size); `[data-share-kind]` buttons; `panchang-share.js` |
+| `finder`, `sharing` | `finder-search.js` (search length, load size); `[data-share-kind]` buttons; `panchang-share.js` |
 | `godavari` | `engines/godavari.py` (on/off, distance) |
 | `texts` | `[data-text-key]` elements, `SiteConfig.text()` in `panchang.js`, `login.js`, `admin.js`; the footer line |
 | `security` | `auth/sessions.py` `security_setting()` (clamped to its limits), `auth/database.py` (code tries) |
