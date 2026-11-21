@@ -22,7 +22,7 @@ function updateContextualFields() {
   if (vField && vSel) {
     const alts = rule?.alternatives || [];
     vField.hidden = alts.length === 0;
-    vSel.innerHTML = `<option value="">${currentLang === "te" ? "ప్రధాన జాబితా" : "Main list"}</option>` +
+    vSel.innerHTML = `<option value="">${t("Main list")}</option>` +
       alts.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(currentLang === "te" ? (a.title_te || a.title_en) : a.title_en)}</option>`).join("");
   }
 
@@ -30,8 +30,7 @@ function updateContextualFields() {
   if (desc) {
     let text = rule ? (currentLang === "te" ? (rule.description_te || "") : (rule.description_en || "")) : "";
     const base = rule?.extends && allMuhurtaRules.find(r => r.id === rule.extends);
-    if (base) text += T(` · Uses the rules of "${base.title_en}" until the book's own rules are added.`,
-                        ` · గ్రంథంలోని ప్రత్యేక నియమాలు చేర్చేవరకు "${base.title_te || base.title_en}" నియమాలు వర్తిస్తాయి.`);
+    if (base) text += " · " + t("Uses the rules of \"{event}\" until the book's own rules are added.", { event: pickLang(base.title_en, base.title_te || base.title_en) });
     desc.textContent = text;
   }
 
@@ -42,15 +41,9 @@ function updateContextualFields() {
   if (banner) {
     const tab = rule?.tab || currentCategory;
     const notes = [];
-    if (rule?.informational) notes.push(T(
-      "Shown for reference from the book only. Follow your doctor's or lawyer's advice for medical or legal decisions.",
-      "ఇది గ్రంథంలోని సమాచారం మాత్రమే. వైద్య/చట్ట నిర్ణయాలకు నిపుణుల సలహా పాటించండి."));
-    if (tab === "health") notes.push(T(
-      "A muhurta never replaces medical advice. Do not delay urgent treatment or surgery for a muhurta.",
-      "ముహూర్తం వైద్యుని సలహాకు ప్రత్యామ్నాయం కాదు. అత్యవసర చికిత్స లేదా శస్త్రచికిత్సను ముహూర్తం కోసం వాయిదా వేయకూడదు."));
-    if (tab === "garbha") notes.push(T(
-      "This is a traditional muhurta only. It does not replace medical advice on pregnancy or conception.",
-      "ఇది సంప్రదాయ ముహూర్త సూచన మాత్రమే; గర్భధారణకు సంబంధించిన వైద్య సలహాకు ప్రత్యామ్నాయం కాదు."));
+    if (rule?.informational) notes.push(t("Shown for reference from the book only. Follow your doctor's or lawyer's advice for medical or legal decisions."));
+    if (tab === "health") notes.push(t("A muhurta never replaces medical advice. Do not delay urgent treatment or surgery for a muhurta."));
+    if (tab === "garbha") notes.push(t("This is a traditional muhurta only. It does not replace medical advice on pregnancy or conception."));
     banner.hidden = notes.length === 0;
     banner.textContent = notes.join(" ");
   }

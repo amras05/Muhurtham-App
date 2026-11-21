@@ -28,9 +28,8 @@ async function loadRegions() {
 
       const optCustom = document.createElement("option");
       optCustom.value = "custom";
-      optCustom.setAttribute("data-en", "Search Custom Location...");
-      optCustom.setAttribute("data-te", "ఇతర ప్రాంతం వెతకండి...");
-      optCustom.textContent = currentLang === "te" ? "ఇతర ప్రాంతం వెతకండి..." : "Search Custom Location...";
+      optCustom.setAttribute("data-i18n", "Search Custom Location...");
+      optCustom.textContent = t("Search Custom Location...");
       sel.appendChild(optCustom);
     });
   } catch (e) {

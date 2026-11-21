@@ -11,7 +11,7 @@ async function exportPanchangPdf(button) {
   const te_ = currentLang === "te";
   return PdfDownload.fromElement("results", {
     kind: "panchang",
-    title: (te_ ? "పంచాంగం · " : "Panchang · ") + (P.date || ""),
+    title: t("Panchang · {date}", { date: P.date || "" }),
     subtitle: P.place_name || P.place || lastPanchang.place_name || "",
     filename: PdfDownload.fileName("panchang", P.date),
   }, button || document.getElementById("printSmartBtn"));

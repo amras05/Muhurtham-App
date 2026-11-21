@@ -457,7 +457,7 @@ def _setting(default, model: Optional[type], label_en: str, label_te: str, group
 
 
 REGISTRY: Dict[str, Dict[str, Any]] = {
-    "brand": _setting({"name_te": "గాయత్రి జ్యోతిర్నిధి", "name_en": "Gayatri Jyotirnidhi",
+    "brand": _setting({"name_te": "గాయత్రి జ్యోతిర్నిధి", "name_en": "Gayathri Jyothirnidhe",
                        "tagline_te": "వేద ముహూర్త & దృక్సిద్ధాంత దర్శిని", "tagline_en": "Vedic muhurta & Drik panchang",
                        "icon": "sun"}, Brand, "Name and tagline", "పేరు, ఉపశీర్షిక", "brand", True),
     "theme": _setting({"preset": "sanctuary", "primary": None, "gold": None}, Theme,

@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261121a">
+  <link rel="stylesheet" href="css/common.css?v=20261121b">
   <link rel="stylesheet" href="css/portal.css?v=20261113p">
-  <title>Statistics · Gayatri Jyotirnidhi</title>
+  <title>Statistics · Gayathri Jyothirnidhe</title>
 </head>
 <body>
   <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -21,26 +21,27 @@
   </nav>
   <main id="mainContent" class="portal">
     <div class="vis-bar">
-      <h1 class="portal__title" data-en="Statistics" data-te="గణాంకాలు">Statistics</h1>
-      <div class="field stats-range"><label for="statDays" data-en="Period" data-te="కాలం">Period</label>
-        <select id="statDays"><option value="7" data-en="Last 7 days" data-te="గత 7 రోజులు">Last 7 days</option><option value="30" selected data-en="Last 30 days" data-te="గత 30 రోజులు">Last 30 days</option><option value="90" data-en="Last 90 days" data-te="గత 90 రోజులు">Last 90 days</option></select></div>
+      <h1 class="portal__title" data-i18n>Statistics</h1>
+      <div class="field stats-range"><label for="statDays" data-i18n>Period</label>
+        <select id="statDays"><option value="7" data-i18n>Last 7 days</option><option value="30" selected data-i18n>Last 30 days</option><option value="90" data-i18n>Last 90 days</option></select></div>
     </div>
     <div id="statMsg" class="auth-alert auth-alert--error" role="status" hidden></div>
     <div class="stat-grid" id="statTiles"><span class="skeleton skeleton--tile" aria-hidden="true"></span><span class="skeleton skeleton--tile" aria-hidden="true"></span><span class="skeleton skeleton--tile" aria-hidden="true"></span><span class="skeleton skeleton--tile" aria-hidden="true"></span></div>
     <div class="stats-charts" id="statCharts"></div>
     <div class="portal-two">
-      <section class="portal-card" aria-labelledby="tmTitle"><h2 id="tmTitle" data-en="Most-searched muhurtas" data-te="ఎక్కువగా వెతికిన ముహూర్తాలు">Most-searched muhurtas</h2><ol class="rank-list" id="topMuhurtas"></ol></section>
-      <section class="portal-card" aria-labelledby="ttTitle"><h2 id="ttTitle" data-en="Searches by tab" data-te="ట్యాబ్ వారీగా శోధనలు">Searches by tab</h2><ol class="rank-list" id="topTabs"></ol></section>
+      <section class="portal-card" aria-labelledby="tmTitle"><h2 id="tmTitle" data-i18n>Most-searched muhurtas</h2><ol class="rank-list" id="topMuhurtas"></ol></section>
+      <section class="portal-card" aria-labelledby="ttTitle"><h2 id="ttTitle" data-i18n>Searches by tab</h2><ol class="rank-list" id="topTabs"></ol></section>
     </div>
-    <section class="portal-card" aria-labelledby="svTitle"><h2 id="svTitle" data-en="Server" data-te="సర్వర్">Server</h2><dl class="kv" id="statServer"></dl></section>
-    <p class="portal-hint" data-en="Days follow India time. Counts come from the activity log, so they start from when logging began." data-te="రోజులు భారత కాలమానం ప్రకారం. సంఖ్యలు కార్యకలాపాల లాగ్ నుండి వస్తాయి.">Days follow India time. Counts come from the activity log, so they start from when logging began.</p>
+    <section class="portal-card" aria-labelledby="svTitle"><h2 id="svTitle" data-i18n>Server</h2><dl class="kv" id="statServer"></dl></section>
+    <p class="portal-hint" data-i18n>Days follow India time. Counts come from the activity log, so they start from when logging began.</p>
   </main>
   <script src="js/config.js"></script>
-  <script src="js/site-config.js?v=20261121a"></script>
-  <script src="js/icons.js?v=20261110"></script>
-  <script src="js/app-shell.js?v=20261110"></script>
-  <script src="js/i18n.js?v=20261114c"></script>
-  <script src="js/auth.js?v=20261119a"></script>
-  <script src="js/admin-stats.js?v=20261121a"></script>
+  <script src="js/site-config.js?v=20261122a"></script>
+  <script src="js/icons.js?v=20261122a"></script>
+  <script src="js/app-shell.js?v=20261122a"></script>
+  <script src="i18n/te.js?v=20261122a"></script>
+  <script src="js/i18n.js?v=20261122a"></script>
+  <script src="js/auth.js?v=20261122a"></script>
+  <script src="js/admin-stats.js?v=20261122a"></script>
 </body>
 </html>

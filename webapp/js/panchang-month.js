@@ -11,7 +11,7 @@ let monthSelected = null;  // "YYYY-MM-DD" of the open day
 
 const WEEKDAY_SHORT = {
   en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-  te: ["ఆది", "సోమ", "మంగళ", "బుధ", "గురు", "శుక్ర", "శని"],
+  te: ["ఆది", "మంగళ", "గురు", "శని"],
 };
 const PAKSHA_SHORT = {
   en: { shukla: "S", krishna: "K" },
@@ -64,7 +64,7 @@ async function loadMonth() {
     el("goButton").disabled = false;
     return;
   }
-  setStatus(currentLang === "te" ? "నెల పంచాంగం లోడ్ అవుతోంది…" : "Fetching the month's panchang…");
+  setStatus(t("Fetching the month's panchang…"));
   try {
     const q = new URLSearchParams({
       year, month, lat: place.lat, lon: place.lon, tz_offset: place.tz_offset, place_name: place.place_name,
@@ -153,7 +153,7 @@ function renderMonthDetail() {
 
   box.innerHTML =
     panchangSectionsHead(s,
-      `<button type="button" class="btn btn--gold btn--sm no-print" id="monthOpenDay">${L ? "పూర్తి వివరాలు" : "Full day details"}</button>`) +
+      `<button type="button" class="btn btn--gold btn--sm no-print" id="monthOpenDay">${t("Full day details")}</button>`) +
     panchangShareBar() +
     panchangSectionsBody(s);
   box.hidden = false;

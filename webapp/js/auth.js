@@ -48,7 +48,7 @@ window.Auth = (function () {
         body: body === undefined ? undefined : JSON.stringify(body),
       });
     } catch (e) {
-      return { ok: false, status: 0, data: { detail: tr("Could not reach the server. Check your connection.", "సర్వర్‌ను చేరుకోలేకపోయాం. ఇంటర్నెట్ చూడండి.") } };
+      return { ok: false, status: 0, data: { detail: t("Could not reach the server. Check your connection.") } };
     }
     var data = null;
     try { data = await res.json(); } catch (e) { /* empty body */ }
@@ -86,8 +86,8 @@ window.Auth = (function () {
       var field = Array.isArray(f.loc) ? f.loc[f.loc.length - 1] : "";
       return (field ? field + ": " : "") + (f.msg || "invalid value");
     }
-    if (r && r.status === 429) return tr("Too many attempts. Please wait and try again.", "చాలా ప్రయత్నాలు. కొద్దిసేపు ఆగి మళ్లీ ప్రయత్నించండి.");
-    return tr("Something went wrong. Please try again.", "ఏదో పొరపాటు జరిగింది. మళ్లీ ప్రయత్నించండి.");
+    if (r && r.status === 429) return t("Too many attempts. Please wait and try again.");
+    return t("Something went wrong. Please try again.");
   }
 
   async function me() {
@@ -111,28 +111,35 @@ window.Auth = (function () {
   // Header links for this role (the server enforces the same rules).
   var NAV = [
     // The Stitch design's five items (19 Nov 2026); Today's Panchang is the users' landing page.
-    { href: "panchang-lookup.html", en: "Today's Panchang", te: "నేటి పంచాంగం" },
-    { href: "muhurta-finder.html", en: "Muhurta Darshini", te: "ముహూర్త దర్శిని" },
-    { href: "muhurtas.html", en: "All muhurtas", te: "అన్ని ముహూర్తాలు" },
-    { href: "muhurta-finder.html#parishilana", en: "Muhurta Parishilana", te: "ముహూర్త పరిశీలన" },
-    { href: "family.html", en: "Family vault & settings", te: "కుటుంబ ఖజానా & సెట్టింగ్స్" },
-    { href: "admin.html", en: "Dashboard", te: "డాష్‌బోర్డ్", roles: ["admin", "super_admin"] },
+    { href: "panchang-lookup.html", en: "Today's Panchang" },
+    { href: "muhurta-finder.html", en: "Muhurta Darshini" },
+    { href: "muhurtas.html", en: "All muhurtas" },
+    { href: "muhurta-finder.html#parishilana", en: "Muhurta Parishilana" },
+    { href: "family.html", en: "Family vault & settings" },
+    { href: "admin.html", en: "Dashboard", roles: ["admin", "super_admin"] },
     // Reachable from the pages above; hidden from the menu unless Settings › Menu shows them.
-    { href: "panchang-month.html", en: "Monthly Panchang", te: "మాస పంచాంగం", show: false },
-    { href: "home.html", en: "Home", te: "హోమ్", roles: ["user"], show: false },
-    { href: "saved.html", en: "My muhurtas", te: "నా ముహూర్తాలు", show: false },
+    { href: "panchang-month.html", en: "Monthly Panchang", show: false },
+    { href: "home.html", en: "Home", roles: ["user"], show: false },
+    { href: "saved.html", en: "My muhurtas", show: false },
     // group "admin": shown together under one "Admin" menu (Experience Plan U1)
-    { href: "admin-users.html", perm: "users.view", en: "Users", te: "వినియోగదారులు", roles: ["admin", "super_admin"], group: "admin" },
-    { href: "admin-content.html", perm: "content.edit", en: "Content", te: "విషయాలు", roles: ["admin", "super_admin"], group: "admin" },
-    { href: "admin-muhurtas.html", en: "Muhurtas", te: "ముహూర్తాలు", roles: ["super_admin"], group: "admin" },
-    { href: "admin-stats.html", perm: "system.view", en: "Statistics", te: "గణాంకాలు", roles: ["super_admin"], group: "admin" },
-    { href: "admin-settings.html", en: "Settings", te: "సెట్టింగులు", roles: ["super_admin"], group: "admin" },
+    { href: "admin-users.html", perm: "users.view", en: "Users", roles: ["admin", "super_admin"], group: "admin" },
+    { href: "admin-content.html", perm: "content.edit", en: "Content", roles: ["admin", "super_admin"], group: "admin" },
+    { href: "admin-muhurtas.html", en: "Muhurtas", roles: ["super_admin"], group: "admin" },
+    { href: "admin-stats.html", perm: "system.view", en: "Statistics", roles: ["super_admin"], group: "admin" },
+    { href: "admin-settings.html", en: "Settings", roles: ["super_admin"], group: "admin" },
   ];
   var BUILT = ["saved.html", "family.html", "home.html", "admin.html", "panchang-lookup.html", "panchang-month.html", "muhurta-finder.html",
                "muhurtas.html", "muhurta-finder.html#parishilana", "admin-users.html", "admin-content.html", "admin-muhurtas.html", "admin-stats.html", "admin-settings.html"];   // add admin pages as they are built
 
   // The super admin's menu settings (order, shown, names; plan D4) laid over NAV. Who may see a page
   // (roles) stays in NAV and on the server.
+  // A menu label: the super admin's own wording (Settings › Menu) in the current language when set, else the
+  // page name in English through i18n/te.js (21 Nov 2026). A custom English name without a Telugu one stays as typed.
+  function navLabel(n) {
+    if (typeof currentLang !== "undefined" && currentLang === "te") return n.te || (n.custom_en ? n.en : t(n.en));
+    return n.en;
+  }
+
   function navItems() {
     var cfg = window.SiteConfig && SiteConfig.data && SiteConfig.data.nav;
     if (!cfg || !cfg.items) return NAV.filter(function (n) { return n.show !== false; });
@@ -143,7 +150,7 @@ window.Auth = (function () {
       var n = byHref[c.href];
       if (!n) return;
       if (c.show === false && n.href !== "admin-settings.html") return;
-      out.push(Object.assign({}, n, { en: c.en || n.en, te: c.te || n.te, show: true }));
+      out.push(Object.assign({}, n, { en: c.en || n.en, te: c.te || "", custom_en: !!c.en, show: true }));
       delete byHref[c.href];
     });
     Object.keys(byHref).forEach(function (h) { if (byHref[h].show !== false) out.push(byHref[h]); });   // pages added to the code later
@@ -169,7 +176,7 @@ window.Auth = (function () {
       return function (n) {
         var hash = window.location.hash || "";
         var isHere = n.href.indexOf("#") !== -1 ? n.href === here + hash : (n.href === here && hash !== "#parishilana");
-        return '<a class="' + cls + '" href="' + n.href + '"' + (isHere ? ' aria-current="page"' : "") + ">" + esc(tr(n.en, n.te)) + "</a>";
+        return '<a class="' + cls + '" href="' + n.href + '"' + (isHere ? ' aria-current="page"' : "") + ">" + esc(navLabel(n)) + "</a>";
       };
     };
     var admin = allowed.filter(function (n) { return n.group === "admin"; });
@@ -178,7 +185,7 @@ window.Auth = (function () {
       (admin.length
         ? '<div class="nav-group">' +
             '<button type="button" class="app-shell__link nav-group__btn' + (current ? " is-current" : "") + '" id="navAdminBtn" aria-haspopup="true" aria-expanded="false" aria-controls="navAdminPanel">' +
-              esc(tr("Admin", "నిర్వహణ")) + ' <span aria-hidden="true">▾</span></button>' +
+              esc(t("Admin@@auth")) + ' <span aria-hidden="true">▾</span></button>' +
             '<div class="nav-group__panel" id="navAdminPanel" hidden>' + admin.map(link("nav-group__item")).join("") + "</div>" +
           "</div>"
         : "");
@@ -199,9 +206,9 @@ window.Auth = (function () {
       crumbs.className = "crumbs";
       main.insertBefore(crumbs, main.firstChild);
     }
-    crumbs.setAttribute("aria-label", tr("You are here", "మీరు ఇక్కడ ఉన్నారు"));
-    crumbs.innerHTML = '<a href="admin.html">' + esc(tr("Dashboard", "డాష్‌బోర్డ్")) + '</a><span aria-hidden="true">›</span>' +
-      '<span aria-current="page">' + esc(tr(current.en, current.te)) + "</span>";
+    crumbs.setAttribute("aria-label", t("You are here"));
+    crumbs.innerHTML = '<a href="admin.html">' + esc(t("Dashboard")) + '</a><span aria-hidden="true">›</span>' +
+      '<span aria-current="page">' + esc(navLabel(current)) + "</span>";
   }
 
   // One set of listeners for the Admin menu; the menu itself is redrawn on every language change.
@@ -243,13 +250,13 @@ window.Auth = (function () {
       if (!box) return;
       var unread = items.filter(isNew).length;
       box.innerHTML = '<button type="button" class="alert-bell__btn" id="alertBellBtn" aria-haspopup="true" aria-expanded="' + open + '" aria-label="' +
-        esc(tr("Alerts", "హెచ్చరికలు") + (unread ? " (" + unread + ")" : "")) + '">' + Icon("bell") + '' +
+        esc(t("Alerts") + (unread ? " (" + unread + ")" : "")) + '">' + Icon("bell") + '' +
         (unread ? '<span class="alert-bell__count">' + (unread > 9 ? "9+" : unread) + "</span>" : "") + "</button>" +
         '<div class="alert-bell__panel" ' + (open ? "" : "hidden") + "><ul>" +
         (items.length ? items.map(function (x) {
           return '<li class="' + (isNew(x) ? "is-new" : "") + '"><span>' + esc(tr(x.en, x.te)) + "</span><small>" + esc(when(x.at)) + "</small></li>";
-        }).join("") : "<li>" + tr("Nothing in the last 7 days.", "గత 7 రోజుల్లో ఏమీ లేదు.") + "</li>") +
-        '</ul><a class="account-menu__item" href="admin-settings.html">' + tr("Choose alerts", "హెచ్చరికలు ఎంచుకోండి") + "</a></div>";
+        }).join("") : "<li>" + t("Nothing in the last 7 days.") + "</li>") +
+        '</ul><a class="account-menu__item" href="admin-settings.html">' + t("Choose alerts") + "</a></div>";
       document.getElementById("alertBellBtn").addEventListener("click", function () {
         open = !open;
         draw();
@@ -276,10 +283,10 @@ window.Auth = (function () {
     var slot = document.getElementById("accountSlot");
     if (!slot) return;
     if (!currentUser) {
-      slot.innerHTML = '<a class="account-login" href="' + esc(loginHref()) + '">' + tr("Log in", "లాగిన్") + "</a>";
+      slot.innerHTML = '<a class="account-login" href="' + esc(loginHref()) + '">' + t("Log in") + "</a>";
       return;
     }
-    var roleLabel = { super_admin: tr("Super admin", "ప్రధాన నిర్వాహకులు"), admin: tr("Admin", "నిర్వాహకులు") }[currentUser.role];
+    var roleLabel = { super_admin: t("Super admin"), admin: t("Admin") }[currentUser.role];
     slot.innerHTML =
       (currentUser.role === "super_admin" ? '<div class="alert-bell" id="alertBell"></div>' : "") +
       '<div class="account-menu">' +
@@ -292,9 +299,9 @@ window.Auth = (function () {
             "<span>" + esc(String(currentUser.phone || "").length === 10 ? "+91 " + currentUser.phone : "+" + currentUser.phone) + "</span>" +
             (roleLabel ? '<span class="account-menu__role">' + esc(roleLabel) + "</span>" : "") +
           "</div>" +
-          '<a class="account-menu__item" href="account.html">' + tr("My account", "నా ఖాతా") + "</a>" +
-          '<button type="button" class="account-menu__item" data-action="logout">' + tr("Sign out", "సైన్ అవుట్") + "</button>" +
-          '<button type="button" class="account-menu__item" data-action="logout-all">' + tr("Sign out on all devices", "అన్ని పరికరాల నుండి సైన్ అవుట్") + "</button>" +
+          '<a class="account-menu__item" href="account.html">' + t("My account") + "</a>" +
+          '<button type="button" class="account-menu__item" data-action="logout">' + t("Sign out") + "</button>" +
+          '<button type="button" class="account-menu__item" data-action="logout-all">' + t("Sign out on all devices") + "</button>" +
         "</div>" +
       "</div>";
     if (currentUser.role === "super_admin") Bell.mount();
@@ -308,7 +315,7 @@ window.Auth = (function () {
       var action = e.target.getAttribute("data-action");
       if (!action) return;
       await logout(action === "logout-all");
-      if (window.AppShell) AppShell.toast(tr("Signed out.", "సైన్ అవుట్ అయ్యారు."), "success");
+      if (window.AppShell) AppShell.toast(t("Signed out."), "success");
     });
     document.addEventListener("click", function (e) {
       if (!panel.hidden && !slot.contains(e.target)) {

@@ -13,8 +13,8 @@ let openDayIdx = null;          // index of the muhurta open in the Parishilana
 // event picked in the form now (that showed "Dvitiya Vivaha" for a Vivaha muhurta).
 let paTab = "doshas";
 const PA_TABS = [
-  ["doshas", "Doshas", "దోషాలు"], ["rules", "Event rules", "కార్య నియమాలు"], ["panchang", "Panchang", "పంచాంగం"],
-  ["chart", "Chart", "చక్రం"], ["day", "Day timings", "రోజు సమయాలు"]];
+  ["doshas", "Doshas"], ["rules", "Event rules"], ["panchang", "Panchang"],
+  ["chart", "Chart"], ["day", "Day timings"]];
 
 function paRuleFor(r) {
   const id = r?._event?.id || lastData?.activity_id;
@@ -23,7 +23,7 @@ function paRuleFor(r) {
 function paEventTitle(r) {
   if (r?._event) return T(r._event.en, r._event.te || r._event.en);
   const rule = paRuleFor(r);
-  return T(rule?.title_en || lastData?.title_en || "Muhurta", rule?.title_te || lastData?.title_te || "ముహూర్తం");
+  return (rule?.title_en || lastData?.title_en) ? pickLang(rule?.title_en || lastData?.title_en, rule?.title_te || lastData?.title_te) : t("Muhurta");
 }
 const hm = t => String(t || "").slice(0, 5);
 const PA_FAIL_RANK = { fail: 0, excepted: 1, to_confirm: 2, not_evaluated: 3, pass: 4, not_applicable: 5 };
@@ -34,22 +34,22 @@ function paHeroHTML(r) {
   const lg = r.detailed_eval?.lagna || {}, pct = r.percentage ?? 0, band = bandClass(pct);
   const vaara = VAARA_NAMES[currentLang]?.[r.panchang?.vaara] || r.panchang?.vaara || "";
   const place = lastData?.place_name || placeName() || "";
-  const bandName = { excellent: T("Uttama muhurta", "ఉత్తమ ముహూర్తం"), medium: T("Madhyama muhurta", "మధ్యమ ముహూర్తం"),
-                     avoid: T("Nishiddha: avoid", "నిషిద్ధం") }[band];
+  const bandName = { excellent: t("Uttama muhurta"), medium: t("Madhyama muhurta"),
+                     avoid: t("Nishiddha: avoid") }[band];
   const rule = paRuleFor(r);
   const people = (lastData?.participants || []).filter(p => p.name || p.gotra).map(p =>
-    `${roleLabel(p.role, rule)}: ${p.name || "—"}${p.gotra ? ` (${T("gotra", "గోత్రం")} ${p.gotra})` : ""}`);
+    `${roleLabel(p.role, rule)}: ${p.name || "—"}${p.gotra ? ` (${t("gotra")} ${p.gotra})` : ""}`);
   const ap = lastData?.activity_params || {};
-  const rec = RECORD_FIELDS.filter(([k]) => ap[k]).map(([k, en, tel]) => `${T(en, tel)}: ${ap[k]}`);
-  const lagna = T(`${lg.name || "—"} lagna`, `${lg.name_te || lg.name || "—"} లగ్నం`);
-  const nav = lg.navamsa ? T(`${lg.navamsa} navamsa`, `${te(lg.navamsa, RASI_NAMES_TE) || lg.navamsa} నవాంశ`) : "";
+  const rec = RECORD_FIELDS.filter(([k]) => ap[k]).map(([k, label]) => `${t(label)}: ${ap[k]}`);
+  const lagna = t("{name} lagna", { name: pickLang(lg.name || "—", lg.name_te || lg.name || "—") });
+  const nav = lg.navamsa ? t("{name} navamsa", { name: pickLang(lg.navamsa, te(lg.navamsa, RASI_NAMES_TE) || lg.navamsa) }) : "";
   const age = r.age?.text ? `<p class="pa-hero__meta">${escapeHtml(r.age.text)}</p>` : "";
-  return `<section class="pa-hero pa-hero--${band}" aria-label="${escapeHtml(T("This muhurta", "ఈ ముహూర్తం"))}">
+  return `<section class="pa-hero pa-hero--${band}" aria-label="${escapeHtml(t("This muhurta"))}">
     <div class="pa-hero__main">
       <p class="pa-hero__event">${escapeHtml(paEventTitle(r))}</p>
       <p class="pa-hero__date">${escapeHtml(dmy(r.date))} · ${escapeHtml(vaara)}${place ? ` · ${escapeHtml(place)}` : ""}</p>
       <p class="pa-hero__time">${escapeHtml(hm(r.window_start))} – ${escapeHtml(hm(r.window_end))}
-        ${r.duration_minutes ? `<small>${escapeHtml(T(`${r.duration_minutes} min`, `${r.duration_minutes} నిమి.`))}</small>` : ""}</p>
+        ${r.duration_minutes ? `<small>${escapeHtml(t("{duration_minutes} min", { duration_minutes: r.duration_minutes }))}</small>` : ""}</p>
       <p class="pa-hero__lagna">${escapeHtml(lagna)}${nav ? ` · ${escapeHtml(nav)}` : ""}</p>
       ${people.length ? `<p class="pa-hero__meta">${escapeHtml(people.join(" · "))}</p>` : ""}
       ${rec.length ? `<p class="pa-hero__meta">${escapeHtml(rec.join(" · "))}</p>` : ""}${age}
@@ -68,17 +68,17 @@ function paSplitHTML(r) {
   const a = r.audit_points || {};
   const ps = r.detailed_eval?.panchanga_shuddhi;     // the five angas (21 Nov 2026, option B)
   const rows = [
-    [T("Panchanga shuddhi", "పంచాంగ శుద్ధి"), a.panchanga_weight, a.main_share, ps
-      ? T(`${ps.passed} of ${ps.checked} angas`, `${ps.checked} లో ${ps.passed} అంగాలు`) : ""],
-    [T("Mahadoshas", "మహాదోషాలు"), a.maha_weight, a.maha_share,
-      r.maha_score ? T(`${r.maha_score.passed} of ${r.maha_score.checked} clear`, `${r.maha_score.checked} లో ${r.maha_score.passed} శుద్ధం`) : ""],
-    [T("Dashavidha doshas", "దశవిధ దోషాలు"), a.dashavidha_weight, a.dasha_share,
-      r.dasha_score ? T(`${r.dasha_score.passed} of ${r.dasha_score.checked} clear`, `${r.dasha_score.checked} లో ${r.dasha_score.passed} శుద్ధం`) : ""],
+    [t("Panchanga shuddhi"), a.panchanga_weight, a.main_share, ps
+      ? t("{passed} of {checked} angas", { passed: ps.passed, checked: ps.checked }) : ""],
+    [t("Mahadoshas"), a.maha_weight, a.maha_share,
+      r.maha_score ? t("{passed} of {checked} clear", { passed: r.maha_score.passed, checked: r.maha_score.checked }) : ""],
+    [t("Dashavidha doshas"), a.dashavidha_weight, a.dasha_share,
+      r.dasha_score ? t("{passed} of {checked} clear", { passed: r.dasha_score.passed, checked: r.dasha_score.checked }) : ""],
   ].filter(([, w, s]) => w > 0 && s !== null && s !== undefined);
   if (!rows.length) return "";
-  return `<div class="pa-split" aria-label="${escapeHtml(T("How the percentage is made", "శాతం ఎలా వచ్చింది"))}">${rows.map(([name, w, s, note]) => `
+  return `<div class="pa-split" aria-label="${escapeHtml(t("How the percentage is made"))}">${rows.map(([name, w, s, note]) => `
     <div class="pa-split__row">
-      <span class="pa-split__name">${escapeHtml(name)} <small>${T(`weight ${w}%`, `వాటా ${w}%`)}</small></span>
+      <span class="pa-split__name">${escapeHtml(name)} <small>${t("weight {w}%", { w: w })}</small></span>
       <span class="pa-bar" role="img" aria-label="${s}%"><span class="pa-bar__fill pa-bar__fill--${bandClass(s)}" style="width:${Math.max(0, Math.min(100, s))}%"></span></span>
       <span class="pa-split__val">${s}%${note ? `<small>${escapeHtml(note)}</small>` : ""}</span>
     </div>`).join("")}</div>`;
@@ -92,27 +92,27 @@ function paPushkaraHTML(r) {
     const nav = pw.navamsha || {}, bh = pw.bhaga || {};
     if (nav.in_window) {
       const spans = nav.spans.map(s => `${s.start}–${s.end}${s.navamsa ? ` (${T(s.navamsa, te(s.navamsa, RASI_NAMES_TE) || s.navamsa)})` : ""}`).join(", ");
-      badges.push(["good", T(`Pushkara navamsha in this muhurta: ${spans}`, `ఈ ముహూర్తంలో పుష్కర నవాంశ: ${spans}`)]);
+      badges.push(["good", t("Pushkara navamsha in this muhurta: {spans}", { spans: spans })]);
     } else {
-      badges.push(["none", T("No pushkara navamsha in this muhurta", "ఈ ముహూర్తంలో పుష్కర నవాంశ లేదు")]);
+      badges.push(["none", t("No pushkara navamsha in this muhurta")]);
     }
     if (bh.in_window) {
-      badges.push(["good", T(`Pushkara bhaga in this muhurta: ${bh.at} (${bh.degree}°)`, `ఈ ముహూర్తంలో పుష్కర భాగం: ${bh.at} (${bh.degree}°)`)]);
+      badges.push(["good", t("Pushkara bhaga in this muhurta: {at} ({degree}°)", { at: bh.at, degree: bh.degree })]);
     } else if (bh.touches_window) {
-      badges.push(["near", T(`Close to pushkara bhaga: exact at ${bh.at}, near ${bh.span}`, `పుష్కర భాగానికి సమీపం: ఖచ్చితంగా ${bh.at}, సమీపం ${bh.span}`)]);
+      badges.push(["near", t("Close to pushkara bhaga: exact at {at}, near {span}", { at: bh.at, span: bh.span })]);
     } else if (bh.at) {
-      badges.push(["none", T(`Pushkara bhaga of this lagna is at ${bh.at}, outside this muhurta`, `ఈ లగ్న పుష్కర భాగం ${bh.at}కు, ఈ ముహూర్తం బయట`)]);
+      badges.push(["none", t("Pushkara bhaga of this lagna is at {at}, outside this muhurta", { at: bh.at })]);
     } else {
-      badges.push(["none", T("No pushkara bhaga in this lagna", "ఈ లగ్నంలో పుష్కర భాగం లేదు")]);
+      badges.push(["none", t("No pushkara bhaga in this lagna")]);
     }
   } else {
     // Results saved before 21 Nov 2026 have only the navamsha.
     const lg = r.detailed_eval?.lagna || {};
     badges.push(lg.is_pushkara_navamsa
-      ? ["good", T(`Pushkara navamsha in this muhurta: ${lg.pushkara_minutes || ""}`, `ఈ ముహూర్తంలో పుష్కర నవాంశ: ${lg.pushkara_minutes || ""}`)]
-      : ["none", T("No pushkara navamsha in this muhurta", "ఈ ముహూర్తంలో పుష్కర నవాంశ లేదు")]);
+      ? ["good", t("Pushkara navamsha in this muhurta: {pushkara_minutes}", { pushkara_minutes: lg.pushkara_minutes || "" })]
+      : ["none", t("No pushkara navamsha in this muhurta")]);
   }
-  if (r.amsha?.type === "vargottama") badges.push(["near", T(`Vargottamamsha from ${r.amsha.at}`, `${r.amsha.at} నుండి వర్గోత్తమాంశ`)]);
+  if (r.amsha?.type === "vargottama") badges.push(["near", t("Vargottamamsha from {at}", { at: r.amsha.at })]);
   return `<div class="pa-pushkara">${badges.map(([k, txt]) =>
     `<span class="pa-pill pa-pill--${k}">${Icon(k === "none" ? "moon" : "sparkle")} ${escapeHtml(txt)}</span>`).join("")}</div>`;
 }
@@ -130,19 +130,18 @@ function paWhyHTML(r) {
   const notEval = [...(d.maha_doshas || []), ...(d.dashavidha_doshas || [])].filter(m => doshaStatus(m) === "not_evaluated").length;
   const group = (title, items, kind) => items.length ? `<div class="pa-why__group"><h4>${escapeHtml(title)} <span>${items.length}</span></h4>
     <div class="pa-why__chips">${items.map(m => `<span class="pa-pill pa-pill--${kind}" title="${escapeHtml(T(m.desc_en, m.desc_te || m.desc_en) || "")}">${escapeHtml(paName(m))}</span>`).join("")}</div></div>` : "";
-  const missList = misses.length ? `<div class="pa-why__group"><h4>${escapeHtml(T("Event rules not met", "సరిపోని కార్య నియమాలు"))} <span>${misses.length}</span></h4>
+  const missList = misses.length ? `<div class="pa-why__group"><h4>${escapeHtml(t("Event rules not met"))} <span>${misses.length}</span></h4>
     <ul class="pa-why__list">${misses.map(m => `<li>${escapeHtml(m.desc_en || "")}</li>`).join("")}</ul></div>` : "";
-  const body = group(T("Mahadoshas present", "ఉన్న మహాదోషాలు"), maha, "bad") +
-               group(T("Dashavidha doshas present", "ఉన్న దశవిధ దోషాలు"), dasha, "bad") + missList +
-               group(T("Other checks failed (not in the %)", "ఇతర పరిశీలనలు (శాతంలో లేవు)"), others, "near") +
-               group(T("Neutralised", "నివారణ అయినవి"), neutral, "good");
+  const body = group(t("Mahadoshas present"), maha, "bad") +
+               group(t("Dashavidha doshas present"), dasha, "bad") + missList +
+               group(t("Other checks failed (not in the %)"), others, "near") +
+               group(t("Neutralised"), neutral, "good");
   const clean = !maha.length && !dasha.length && !misses.length;
-  const head = clean ? T("Every counted check passed", "లెక్కించిన పరిశీలనలన్నీ శుద్ధం") : T("Why the percentage is lower", "శాతం ఎందుకు తగ్గింది");
+  const head = clean ? t("Every counted check passed") : t("Why the percentage is lower");
   const ben = r.audit?.benefics_in_lagna || [];
-  const benNote = ben.length ? `<p class="pa-note">${escapeHtml(T(
-    `${ben.map(b => b[0].toUpperCase() + b.slice(1)).join(", ")} in the lagna neutralises the doshas (Dr. Nemani's ruling).`,
-    `లగ్నంలో ${ben.map(b => ({ jupiter: "గురుడు", mercury: "బుధుడు", venus: "శుక్రుడు" }[b] || b)).join(", ")} ఉన్నందున దోషాలు నివారణ (డా. నేమాని గారి నిర్ణయం).`))}</p>` : "";
-  const neNote = notEval ? `<p class="pa-note">${escapeHtml(T(`${notEval} check(s) could not be made with the details given.`, `ఇచ్చిన వివరాలతో ${notEval} పరిశీలనలు చేయలేకపోయాము.`))}</p>` : "";
+  const benNames = ben.map(b => t({ jupiter: "Jupiter", mercury: "Mercury", venus: "Venus" }[b] || b)).join(", ");
+  const benNote = ben.length ? `<p class="pa-note">${escapeHtml(t("{planets} in the lagna neutralises the doshas (Dr. Nemani's ruling).", { planets: benNames }))}</p>` : "";
+  const neNote = notEval ? `<p class="pa-note">${escapeHtml(t("{notEval} check(s) could not be made with the details given.", { notEval: notEval }))}</p>` : "";
   return `<section class="pa-why pa-why--${clean ? "clean" : "issues"}"><h3 class="pa-why__title">${Icon(clean ? "sparkle" : "alert")} ${escapeHtml(head)}</h3>${body}${benNote}${neNote}</section>`;
 }
 
@@ -151,9 +150,9 @@ function paTabsHTML(r) {
   const nFail = [...(d.maha_doshas || []), ...(d.dashavidha_doshas || [])].filter(m => doshaStatus(m) === "fail").length;
   const nMiss = (d.extra_checks || []).filter(x => String(x.id || "").startsWith("rule_miss_") && doshaStatus(x) === "fail").length;
   const count = { doshas: nFail, rules: nMiss };
-  return `<div class="pa-tabs no-print" role="tablist" aria-label="${escapeHtml(T("Muhurta details", "ముహూర్త వివరాలు"))}" onkeydown="paTabKey(event)">${PA_TABS.map(([id, en, tel]) => `
+  return `<div class="pa-tabs no-print" role="tablist" aria-label="${escapeHtml(t("Muhurta details"))}" onkeydown="paTabKey(event)">${PA_TABS.map(([id, label]) => `
     <button type="button" role="tab" id="paTab_${id}" aria-controls="paPanel_${id}" aria-selected="${id === paTab}" tabindex="${id === paTab ? 0 : -1}"
-      class="pa-tab${id === paTab ? " is-active" : ""}" onclick="paShowTab('${id}')">${escapeHtml(T(en, tel))}${count[id] ? `<span class="pa-tab__count">${count[id]}</span>` : ""}</button>`).join("")}</div>`;
+      class="pa-tab${id === paTab ? " is-active" : ""}" onclick="paShowTab('${id}')">${escapeHtml(t(label))}${count[id] ? `<span class="pa-tab__count">${count[id]}</span>` : ""}</button>`).join("")}</div>`;
 }
 function paShowTab(id) {
   paTab = id;
@@ -185,24 +184,24 @@ function paDoshasPanel(r) {
   const d = r.detailed_eval || {};
   let h = "";
   if (d.maha_doshas?.length) {
-    h += paDoshaList("maha", "flame", T("21 mahadoshas", "ఏకవింశతి మహాదోషాలు"),
+    h += paDoshaList("maha", "flame", t("21 mahadoshas"),
       (r.maha_score ? `${r.maha_score.percentage}% · ` : "") + doshaTally(d.maha_doshas), d.maha_doshas, "maha",
       d.mahadoshas_scored === false ? notScoredNote() : "");
   }
   if (d.dashavidha_doshas?.length) {
     const note = d.dashavidha_enforced === false
-      ? `<p class="portal-hint">${T("Marriage only: shown for information, not in this event's percentage.", "వివాహానికి మాత్రమే: సమాచారం కోసం చూపిస్తాం, ఈ కార్య శాతంలో లేదు.")}</p>` : "";
-    h += paDoshaList("dasha", "zap", T("10 dashavidha doshas", "దశవిధ దోషాలు"),
+      ? `<p class="portal-hint">${t("Marriage only: shown for information, not in this event's percentage.")}</p>` : "";
+    h += paDoshaList("dasha", "zap", t("10 dashavidha doshas"),
       (r.dasha_score ? `${r.dasha_score.percentage}% · ` : "") + doshaTally(d.dashavidha_doshas), d.dashavidha_doshas, "dasha", note);
   }
   const others = (d.extra_checks || []).filter(x => !String(x.id || "").startsWith("rule_miss_")).concat(d.yoga_doshas || []);
   if (others.length) {
-    h += paDoshaList("dasha", "shield", T("Other checks (listed, not in the %)", "ఇతర పరిశీలనలు (శాతంలో లేవు)"), doshaTally(others), others, "dasha", "");
+    h += paDoshaList("dasha", "shield", t("Other checks (listed, not in the %)"), doshaTally(others), others, "dasha", "");
   }
   const pariharas = d.pariharas || [];
   if (pariharas.length) {
     h += `<div class="dosha-panel dosha-panel--pariharam pa-wide">
-      <div class="dosha-panel__header dosha-panel__header--pariharam"><span>${Icon("shield")} ${T("Pariharas present in this muhurta", "ఈ ముహూర్తంలో పరిహారాలు")}</span>
+      <div class="dosha-panel__header dosha-panel__header--pariharam"><span>${Icon("shield")} ${t("Pariharas present in this muhurta")}</span>
         <span class="dosha-panel__score dosha-panel__score--pariharam">${pariharas.length}</span></div>
       <div class="dosha-panel__body dosha-panel__body--pariharam">${pariharas.map(pr => `
         <div class="pariharam-item"><div class="pariharam-item__header">
@@ -211,7 +210,7 @@ function paDoshasPanel(r) {
           ${pr.shloka ? `<div class="pariharam-item__shloka">"${escapeHtml(pr.shloka)}"</div>` : ""}
           <div class="pariharam-item__desc">${escapeHtml(T(pr.desc_en, pr.desc_te || pr.desc_en))}</div></div>`).join("")}</div></div>`;
   }
-  return h || `<p class="portal-hint">${T("No dosha checks were run for this muhurta.", "ఈ ముహూర్తానికి దోష పరిశీలనలు జరగలేదు.")}</p>`;
+  return h || `<p class="portal-hint">${t("No dosha checks were run for this muhurta.")}</p>`;
 }
 
 function paRulesPanel(r) {
@@ -223,36 +222,36 @@ function paRulesPanel(r) {
   const misses = (d.extra_checks || []).filter(x => String(x.id || "").startsWith("rule_miss_"));
   if (misses.length) {
     h += `<div class="dosha-panel dosha-panel--dasha pa-wide"><div class="dosha-panel__header dosha-panel__header--dasha">
-      <span>${Icon("alert")} ${T("This event's rules not met", "ఈ కార్య నియమాలు సరిపోలనివి")}</span>
+      <span>${Icon("alert")} ${t("This event's rules not met")}</span>
       <span class="dosha-panel__score dosha-panel__score--dasha">${misses.length}</span></div>
-      <div class="dosha-panel__body dosha-panel__body--dasha">${misses.map(m => doshaItemHTML(m, T("Not met", "సరిపోలలేదు"), m.desc_en || "", "dasha")).join("")}</div></div>`;
+      <div class="dosha-panel__body dosha-panel__body--dasha">${misses.map(m => doshaItemHTML(m, t("Not met"), m.desc_en || "", "dasha")).join("")}</div></div>`;
   }
   const passed = (r.reasons || []).filter(Boolean);
   if (passed.length) {
-    h += `<div class="detail-card pa-wide"><h4 class="detail-card__title">${Icon("sparkle")} ${T("Rules this muhurta meets", "ఈ ముహూర్తం పాటించే నియమాలు")} <span class="pa-tab__count pa-tab__count--good">${passed.length}</span></h4>
+    h += `<div class="detail-card pa-wide"><h4 class="detail-card__title">${Icon("sparkle")} ${t("Rules this muhurta meets")} <span class="pa-tab__count pa-tab__count--good">${passed.length}</span></h4>
       <ul class="pa-checklist">${passed.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul></div>`;
   }
   if (d.vaara) {
     const card = (t, ok, txt) => buildRuleCard(t, ok, escapeHtml(txt));
-    let g = card(T("Weekday", "వార శుద్ధి"), d.vaara?.is_pass, vaaraTe);
-    g += card(T("Tithi", "తిథి శుద్ధి"), d.tithi?.is_pass, limbName(r.panchang?.tithi));
-    g += card(T("Nakshatra", "నక్షత్ర శుద్ధి"), d.nakshatra?.is_pass, nakTe);
-    g += card(T("Yoga", "యోగం"), d.yoga?.is_pass, limbName(r.panchang?.yoga));
-    g += card(T("Karana", "కరణం"), d.karana?.is_pass, limbName(r.panchang?.karana));
+    let g = card(t("Weekday"), d.vaara?.is_pass, vaaraTe);
+    g += card(t("Tithi"), d.tithi?.is_pass, limbName(r.panchang?.tithi));
+    g += card(t("Nakshatra"), d.nakshatra?.is_pass, nakTe);
+    g += card(t("Yoga"), d.yoga?.is_pass, limbName(r.panchang?.yoga));
+    g += card(t("Karana"), d.karana?.is_pass, limbName(r.panchang?.karana));
     const as = d.ashtama_shuddhi;
-    if (as) g += card(T("8th house (ashtama shuddhi)", "అష్టమ శుద్ధి"), as.has_shuddhi,
-      as.has_shuddhi ? T("Empty", "ఖాళీ") : (as.planets_in_8th || []).join(", "));
+    if (as) g += card(t("8th house (ashtama shuddhi)"), as.has_shuddhi,
+      as.has_shuddhi ? t("Empty") : (as.planets_in_8th || []).join(", "));
     const ls = d.lagna_shuddhi;
-    if (ls) g += card(T("Planets in the lagna", "లగ్నంలో గ్రహాలు"), true,
-      (ls.planets_in_lagna || []).length ? ls.planets_in_lagna.join(", ") : T("None", "లేవు"));
-    if (d.tara) g += card(T("Tarabala", "తారాబలం"), d.tara.is_pass, T(d.tara.name, d.tara.name_te || te(d.tara.name || "", TARA_NAMES_TE) || d.tara.name));
-    if (d.chandrabalam) g += card(T("Chandrabala", "చంద్రబలం"), d.chandrabalam.is_pass, T(d.chandrabalam.desc_en, d.chandrabalam.desc_te || d.chandrabalam.desc_en) || "");
-    if (d.panchaka) g += card(T("Panchaka", "పంచక శుద్ధి"), d.panchaka.is_pass, T(d.panchaka.name_en, d.panchaka.name_te || d.panchaka.name_en));
+    if (ls) g += card(t("Planets in the lagna"), true,
+      (ls.planets_in_lagna || []).length ? ls.planets_in_lagna.join(", ") : t("None@@finder-parishilana"));
+    if (d.tara) g += card(t("Tarabala"), d.tara.is_pass, T(d.tara.name, d.tara.name_te || te(d.tara.name || "", TARA_NAMES_TE) || d.tara.name));
+    if (d.chandrabalam) g += card(t("Chandrabala"), d.chandrabalam.is_pass, T(d.chandrabalam.desc_en, d.chandrabalam.desc_te || d.chandrabalam.desc_en) || "");
+    if (d.panchaka) g += card(t("Panchaka"), d.panchaka.is_pass, T(d.panchaka.name_en, d.panchaka.name_te || d.panchaka.name_en));
     h += `<div class="rule-grid pa-wide">${g}</div>`;
   }
   const cautions = (r.cautions || []).filter(Boolean);
   if (cautions.length) {
-    h += `<div class="detail-card pa-wide"><h4 class="detail-card__title">${Icon("alert")} ${T("Cautions", "జాగ్రత్తలు")}</h4>
+    h += `<div class="detail-card pa-wide"><h4 class="detail-card__title">${Icon("alert")} ${t("Cautions")}</h4>
       <ul class="pa-checklist pa-checklist--warn">${cautions.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul></div>`;
   }
   const det = r.detail;
@@ -267,7 +266,7 @@ function paPanchangPanel(r) {
   const nakTe = te(rawNak, NAKSHATRA_NAMES_TE) || rawNak;
   const cm = r.panchang?.chandramana;
   const cmBanner = cm ? `<div class="cm-banner">
-      <span class="cm-banner__sam">${Icon("lamp")} ${escapeHtml(T(`${cm.samvatsara_name} Samvatsara`, `${cm.samvatsara_telugu || cm.samvatsara_name} నామ సంవత్సరం`))}</span><span>·</span>
+      <span class="cm-banner__sam">${Icon("lamp")} ${escapeHtml(t("{name} Samvatsara", { name: pickLang(cm.samvatsara_name, cm.samvatsara_telugu || cm.samvatsara_name) }))}</span><span>·</span>
       <span class="cm-banner__ayanam">${escapeHtml(T(cm.ayanam_en, cm.ayanam_te || cm.ayanam_en))}</span><span>·</span>
       <span class="cm-banner__ruthu">${escapeHtml(T(cm.ruthu_en, cm.ruthu_te || cm.ruthu_en))}</span><span>·</span>
       <span class="cm-banner__maasa">${escapeHtml(displayMasa(cm))}</span><span>·</span>
@@ -275,16 +274,16 @@ function paPanchangPanel(r) {
   const lt = r.detail?.limb_times || {};
   const ak = r.panchang?.abhijit_kala_muhurtham;
   let h = `<div class="detail-card pa-wide">
-    <h4 class="detail-card__title">${Icon("pin")} ${T("Panchang at this muhurta", "ఈ ముహూర్త పంచాంగం")}</h4>${cmBanner}
+    <h4 class="detail-card__title">${Icon("pin")} ${t("Panchang at this muhurta")}</h4>${cmBanner}
     <div class="detail-card__grid">
-      <div><strong>${T("Weekday:", "వారం:")}</strong> ${escapeHtml(vaaraTe)}</div>
-      <div><strong>${T("Tithi:", "తిథి:")}</strong> ${limbWithTimes(lt.tithi, limbName(r.panchang?.tithi))}</div>
-      <div><strong>${T("Nakshatra:", "నక్షత్రం:")}</strong> ${limbWithTimes(lt.nakshatra && { ...lt.nakshatra, name: nakTe }, nakTe)}</div>
-      <div><strong>${T("Yoga:", "యోగం:")}</strong> ${limbWithTimes(lt.yoga, limbName(r.panchang?.yoga))}</div>
-      <div><strong>${T("Karana:", "కరణం:")}</strong> ${limbWithTimes(lt.karana, limbName(r.panchang?.karana))}</div>
-      <div><strong>${T("Sunrise:", "సూర్యోదయం:")}</strong> ${escapeHtml(r.panchang?.sunrise || "—")}</div>
-      <div><strong>${T("Sunset:", "సూర్యాస్తమయం:")}</strong> ${escapeHtml(r.panchang?.sunset || "—")}</div>
-      <div><strong>${T("Abhijit:", "అభిజిత్:")}</strong> ${r.panchang?.abhijit_muhurta ? escapeHtml(`${r.panchang.abhijit_muhurta.start} – ${r.panchang.abhijit_muhurta.end}`) : "—"}</div>
+      <div><strong>${t("Weekday:")}</strong> ${escapeHtml(vaaraTe)}</div>
+      <div><strong>${t("Tithi:")}</strong> ${limbWithTimes(lt.tithi, limbName(r.panchang?.tithi))}</div>
+      <div><strong>${t("Nakshatra:")}</strong> ${limbWithTimes(lt.nakshatra && { ...lt.nakshatra, name: nakTe }, nakTe)}</div>
+      <div><strong>${t("Yoga:")}</strong> ${limbWithTimes(lt.yoga, limbName(r.panchang?.yoga))}</div>
+      <div><strong>${t("Karana:")}</strong> ${limbWithTimes(lt.karana, limbName(r.panchang?.karana))}</div>
+      <div><strong>${t("Sunrise:")}</strong> ${escapeHtml(r.panchang?.sunrise || "—")}</div>
+      <div><strong>${t("Sunset:")}</strong> ${escapeHtml(r.panchang?.sunset || "—")}</div>
+      <div><strong>${t("Abhijit:")}</strong> ${r.panchang?.abhijit_muhurta ? escapeHtml(`${r.panchang.abhijit_muhurta.start} – ${r.panchang.abhijit_muhurta.end}`) : "—"}</div>
     </div>
     ${ak ? `<div class="abhijit-strip ${ak.status === "auspicious" ? "abhijit-strip--auspicious" : "abhijit-strip--inauspicious"}">
       <span>${Icon(ak.status === "auspicious" ? "sparkle" : "alert")}</span><span>${escapeHtml(T(ak.msg_en, ak.msg_te || ak.msg_en))}</span></div>` : ""}
@@ -294,21 +293,21 @@ function paPanchangPanel(r) {
   if (pan) {
     const ok = pan.is_pass;
     h += `<div class="panchaka-box ${ok ? "panchaka-box--pass" : "panchaka-box--fail"}">
-      <div class="panchaka-box__header"><h4 class="panchaka-box__title ${ok ? "panchaka-box__title--pass" : "panchaka-box__title--fail"}">${Icon("wheel")} ${T("Panchaka rahitam", "పంచక రహితం")}</h4>
-        <span class="panchaka-box__badge ${ok ? "panchaka-box__badge--pass" : "panchaka-box__badge--fail"}">${ok ? T("Clean", "శుద్ధం") : T("Dosha", "దోషం")}</span></div>
+      <div class="panchaka-box__header"><h4 class="panchaka-box__title ${ok ? "panchaka-box__title--pass" : "panchaka-box__title--fail"}">${Icon("wheel")} ${t("Panchaka rahitam")}</h4>
+        <span class="panchaka-box__badge ${ok ? "panchaka-box__badge--pass" : "panchaka-box__badge--fail"}">${ok ? t("Clean") : t("Dosha")}</span></div>
       <div class="panchaka-box__body">
-        <div><strong>${T("Formula:", "సూత్రం:")}</strong> <code>${escapeHtml(pan.formula || `(tithi + vara + nakshatra + lagna) % 9 = ${pan.remainder}`)}</code></div>
-        <div class="panchaka-box__classification"><strong>${T("Result:", "ఫలితం:")}</strong> ${escapeHtml(T(pan.name_en, pan.name_te || pan.name_en))} — <em>${escapeHtml(T(pan.effect_en, pan.effect_te || pan.effect_en) || "")}</em></div>
-        ${!ok && (pan.pariharam_en || pan.pariharam_te) ? `<div class="panchaka-box__remedy"><strong>${Icon("leaf")} ${T("Remedy:", "పరిహారం:")}</strong> ${escapeHtml(T(pan.pariharam_en, pan.pariharam_te || pan.pariharam_en))}</div>` : ""}
+        <div><strong>${t("Formula:")}</strong> <code>${escapeHtml(pan.formula || `(tithi + vara + nakshatra + lagna) % 9 = ${pan.remainder}`)}</code></div>
+        <div class="panchaka-box__classification"><strong>${t("Result:")}</strong> ${escapeHtml(T(pan.name_en, pan.name_te || pan.name_en))} — <em>${escapeHtml(T(pan.effect_en, pan.effect_te || pan.effect_en) || "")}</em></div>
+        ${!ok && (pan.pariharam_en || pan.pariharam_te) ? `<div class="panchaka-box__remedy"><strong>${Icon("leaf")} ${t("Remedy:")}</strong> ${escapeHtml(T(pan.pariharam_en, pan.pariharam_te || pan.pariharam_en))}</div>` : ""}
       </div></div>`;
   }
   return h;
 }
 
 function paChartPanel(r) {
-  const t = hm(r.window_start);
-  return `<div class="chart-card pa-wide"><h4 class="chart-card__title">${Icon("chart")} ${T(`Muhurta D1 chart (${dmy(r.date)}, ${t})`, `ముహూర్త D1 చక్రం (${dmy(r.date)}, ${t})`)}</h4>
-    ${buildD1ChartHTML(r.d1_chart, T(`MUHURTA D1<br>(${t})`, `ముహూర్త D1<br>(${t})`))}</div>`;
+  const tv = hm(r.window_start);
+  return `<div class="chart-card pa-wide"><h4 class="chart-card__title">${Icon("chart")} ${t("Muhurta D1 chart ({date}, {t})", { date: dmy(r.date), t: tv })}</h4>
+    ${buildD1ChartHTML(r.d1_chart, t("MUHURTA D1<br>({t})", { t: tv }))}</div>`;
 }
 
 function paDayPanel(r) {
@@ -316,51 +315,50 @@ function paDayPanel(r) {
   const pi = r.pushkara_info;
   if (pi) {
     const sub = [];
-    if (pi.pushkara_bhaga?.is_available) sub.push(T(`Pushkara bhaga ${pi.pushkara_bhaga.precise_time} (${pi.pushkara_bhaga.time_window})`, `పుష్కర భాగం ${pi.pushkara_bhaga.precise_time} (${pi.pushkara_bhaga.time_window})`));
-    if (pi.pushkara_navamsha?.is_available) sub.push(T(`Pushkara navamsha ${pi.pushkara_navamsha.precise_time} (${pi.pushkara_navamsha.time_window})`, `పుష్కర నవాంశ ${pi.pushkara_navamsha.precise_time} (${pi.pushkara_navamsha.time_window})`));
+    if (pi.pushkara_bhaga?.is_available) sub.push(t("Pushkara bhaga {precise_time} ({time_window})", { precise_time: pi.pushkara_bhaga.precise_time, time_window: pi.pushkara_bhaga.time_window }));
+    if (pi.pushkara_navamsha?.is_available) sub.push(t("Pushkara navamsha {precise_time} ({time_window})", { precise_time: pi.pushkara_navamsha.precise_time, time_window: pi.pushkara_navamsha.time_window }));
     const avoid = T(pi.avoid_note_en, pi.avoid_note_te || pi.avoid_note_en);
-    h += `<div class="rec-time-box"><h4 class="rec-time-box__title">${Icon("sun")} ${T("Best pushkara time of this day (any lagna)", "ఈ రోజు ఉత్తమ పుష్కర సమయం (ఏ లగ్నమైనా)")}</h4>
+    h += `<div class="rec-time-box"><h4 class="rec-time-box__title">${Icon("sun")} ${t("Best pushkara time of this day (any lagna)")}</h4>
       <div class="rec-time-box__time">${Icon("clock")} ${escapeHtml(T(pi.statement_en, pi.statement_te || pi.statement_en) || "")}</div>
       ${sub.length ? `<div class="rec-time-box__details">${sub.map(s => `${Icon("pin")} ${escapeHtml(s)}`).join("<br>")}</div>` : ""}
       ${avoid ? `<div class="rec-time-box__note">${Icon("alert")} ${escapeHtml(avoid)}</div>` : ""}
-      <p class="pa-note">${T("This is for the whole day; it is not a check of the muhurta above.", "ఇది రోజంతటికి; పై ముహూర్త పరిశీలన కాదు.")}</p></div>`;
+      <p class="pa-note">${t("This is for the whole day; it is not a check of the muhurta above.")}</p></div>`;
   }
   const ip = r.panchang?.inauspicious_periods || r.panchang || {};
   const fmtP = p => !p ? "—" : typeof p === "string" ? (p.trim() || "—")
     : Array.isArray(p) ? (p.map(i => typeof i === "object" && i.start ? `${i.start} – ${i.end}` : String(i)).filter(Boolean).join(" & ") || "—")
     : (typeof p === "object" && p.start) ? `${p.start} – ${p.end}` : String(p);
   const det = r.detail;
-  h += `<div class="inauspicious-card"><h4 class="inauspicious-card__title">${Icon("hourglass")} ${T("Inauspicious times of the day", "ఈ రోజు అశుభ సమయాలు")}</h4>
+  h += `<div class="inauspicious-card"><h4 class="inauspicious-card__title">${Icon("hourglass")} ${t("Inauspicious times of the day")}</h4>
     <div class="inauspicious-card__grid">
-      <div><strong>${T("Durmuhurta:", "దుర్ముహూర్తం:")}</strong> ${escapeHtml(fmtP(ip.durmuhurtam))}</div>
-      <div><strong>${T("Varjyam:", "వర్జ్యం:")}</strong> ${escapeHtml(fmtP(ip.varjyam))}</div>
-      <div><strong>${T("Rahu kalam:", "రాహు కాలం:")}</strong> ${escapeHtml(fmtP(ip.rahu_kalam))}</div>
-      <div><strong>${T("Yamagandam:", "యమగండం:")}</strong> ${escapeHtml(fmtP(ip.yamagandam))}</div>
-      <div><strong>${T("Gulika:", "గుళిక:")}</strong> ${escapeHtml(fmtP(ip.gulika_kalam))}</div>
+      <div><strong>${t("Durmuhurta:")}</strong> ${escapeHtml(fmtP(ip.durmuhurtam))}</div>
+      <div><strong>${t("Varjyam:")}</strong> ${escapeHtml(fmtP(ip.varjyam))}</div>
+      <div><strong>${t("Rahu kalam:")}</strong> ${escapeHtml(fmtP(ip.rahu_kalam))}</div>
+      <div><strong>${t("Yamagandam:")}</strong> ${escapeHtml(fmtP(ip.yamagandam))}</div>
+      <div><strong>${t("Gulika:")}</strong> ${escapeHtml(fmtP(ip.gulika_kalam))}</div>
     </div>
-    ${det?.cut_by?.length ? `<div class="inauspicious-card__cut"><strong>${T("Cut from this lagna:", "ఈ లగ్నం నుండి తొలగించినవి:")}</strong> ${det.cut_by.map(c => `${escapeHtml(c.label)} ${escapeHtml(c.start)}–${escapeHtml(c.end)}`).join(" · ")}</div>` : ""}
-    <p class="pa-note">${T("Only durmuhurta and varjyam cut muhurtas (book para 1681); Rahu kalam, Yamagandam and Gulika are shown for information.",
-                           "దుర్ముహూర్తం, వర్జ్యం మాత్రమే ముహూర్తాన్ని తొలగిస్తాయి (గ్రంథం 1681); రాహు కాలం, యమగండం, గుళిక సమాచారం కోసం.")}</p></div>`;
+    ${det?.cut_by?.length ? `<div class="inauspicious-card__cut"><strong>${t("Cut from this lagna:")}</strong> ${det.cut_by.map(c => `${escapeHtml(c.label)} ${escapeHtml(c.start)}–${escapeHtml(c.end)}`).join(" · ")}</div>` : ""}
+    <p class="pa-note">${t("Only durmuhurta and varjyam cut muhurtas (book para 1681); Rahu kalam, Yamagandam and Gulika are shown for information.")}</p></div>`;
   const lsched = r.panchang?.lagna_schedule || [];
   if (lsched.length) {
     const cur = r.detailed_eval?.lagna_shuddhi?.muhurta_lagna || "";
-    h += `<div class="lagna-section pa-wide"><h4 class="lagna-section__title"><span>${Icon("landmark")} ${T("Lagnas of the day", "ఈ రోజు లగ్నాలు")}</span>
-      <span class="lagna-section__subtitle">${T("This muhurta's lagna is marked", "ఈ ముహూర్త లగ్నం గుర్తించబడింది")}</span></h4><div class="lagna-grid">${lsched.map(l => {
+    h += `<div class="lagna-section pa-wide"><h4 class="lagna-section__title"><span>${Icon("landmark")} ${t("Lagnas of the day")}</span>
+      <span class="lagna-section__subtitle">${t("This muhurta's lagna is marked")}</span></h4><div class="lagna-grid">${lsched.map(l => {
         const on = cur && (l.lagna_name === cur || l.lagna_name_te === cur);
         return `<div class="lagna-item${on ? " lagna-item--current" : ""}"><div class="lagna-item__header"><strong class="lagna-item__name">${escapeHtml(T(l.lagna_name, l.lagna_name_te || l.lagna_name))}</strong>
-          ${on ? `<span class="lagna-item__muhurta-tag">${T("Muhurta", "ముహూర్తం")}</span>` : ""}</div><div class="lagna-item__time">${escapeHtml(l.start_time)} – ${escapeHtml(l.end_time)}</div></div>`;
+          ${on ? `<span class="lagna-item__muhurta-tag">${t("Muhurta")}</span>` : ""}</div><div class="lagna-item__time">${escapeHtml(l.start_time)} – ${escapeHtml(l.end_time)}</div></div>`;
       }).join("")}</div></div>`;
   }
   const kv = r.panchang?.kala_vibhajana;
   if (kv) {
     const part = (k, icon, extra) => kv[k] ? `<div class="kv-card${extra || ""}"><div class="kv-card__name">${Icon(icon)} ${escapeHtml(T(kv[k].name_en, kv[k].name_te || kv[k].name_en))}</div>
       <div class="kv-card__time">${escapeHtml(kv[k].start)} – ${escapeHtml(kv[k].end)}</div><div class="kv-card__desc">${escapeHtml(T(kv[k].desc_en, kv[k].desc_te || kv[k].desc_en) || "")}</div></div>` : "";
-    h += `<div class="kv-section pa-wide"><h4 class="kv-header"><span>${Icon("hourglass")} ${T("Five parts of the day", "పంచధా కాల విభజన")}</span></h4><div class="kv-grid">
+    h += `<div class="kv-section pa-wide"><h4 class="kv-header"><span>${Icon("hourglass")} ${t("Five parts of the day")}</span></h4><div class="kv-grid">
       ${part("pratah_kalam", "sunrise")}${part("sangava_kalam", "sun")}${part("madhyahnika_kalam", "sun", " kv-card--highlight")}${part("aparahna_kalam", "cloud-sun")}${part("sayahna_kalam", "sunset")}
-      <div class="kv-card kv-card--sacred"><div class="kv-card__name kv-card__name--sacred">${Icon("moon")} ${T("Night", "రాత్రి")}</div><div class="kv-card__sacred-times">
-        <strong>${T("Pradosha:", "ప్రదోషం:")}</strong> ${escapeHtml(kv.pradosha_kalam?.start || "")} – ${escapeHtml(kv.pradosha_kalam?.end || "")}<br>
-        <strong>${T("Nishitha:", "నిశీథం:")}</strong> ${escapeHtml(kv.nisitha_kalam?.start || "")} – ${escapeHtml(kv.nisitha_kalam?.end || "")}<br>
-        <strong>${T("Brahma muhurta:", "బ్రాహ్మీ ముహూర్తం:")}</strong> ${escapeHtml(kv.brahma_muhurtham?.start || "")} – ${escapeHtml(kv.brahma_muhurtham?.end || "")}</div></div>
+      <div class="kv-card kv-card--sacred"><div class="kv-card__name kv-card__name--sacred">${Icon("moon")} ${t("Night")}</div><div class="kv-card__sacred-times">
+        <strong>${t("Pradosha:")}</strong> ${escapeHtml(kv.pradosha_kalam?.start || "")} – ${escapeHtml(kv.pradosha_kalam?.end || "")}<br>
+        <strong>${t("Nishitha:")}</strong> ${escapeHtml(kv.nisitha_kalam?.start || "")} – ${escapeHtml(kv.nisitha_kalam?.end || "")}<br>
+        <strong>${t("Brahma muhurta:")}</strong> ${escapeHtml(kv.brahma_muhurtham?.start || "")} – ${escapeHtml(kv.brahma_muhurtham?.end || "")}</div></div>
     </div></div>`;
   }
   if (r.special_yogas?.length) {
@@ -409,7 +407,7 @@ function paNavState() {
   const n = (lastData && lastData.results) ? lastData.results.length : 0;
   if (el("paPrev")) el("paPrev").disabled = openDayIdx <= 0;
   if (el("paNext")) el("paNext").disabled = openDayIdx >= n - 1;
-  if (el("paCount")) el("paCount").textContent = n > 1 ? T(`${openDayIdx + 1} of ${n}`, `${n} లో ${openDayIdx + 1}`) : "";
+  if (el("paCount")) el("paCount").textContent = n > 1 ? t("{openDayIdx} of {n}", { openDayIdx: openDayIdx + 1, n: n }) : "";
 }
 function stepParishilana(delta) {
   const i = openDayIdx + delta;
@@ -428,6 +426,6 @@ function paRestore() {
     lastData = Object.assign({}, lastData || {}, { results: [saved.r], birth_details: saved.birth_details || null });
     openDayModal(0);
   } else {
-    AppShell.toast(T("Search for muhurtas first, then open one to see it in full here.", "ముందుగా ముహూర్తాలు వెతకండి, ఆపై ఒకదాన్ని తెరిస్తే ఇక్కడ పూర్తిగా చూపిస్తాం."), "info");
+    AppShell.toast(t("Search for muhurtas first, then open one to see it in full here."), "info");
   }
 }

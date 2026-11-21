@@ -22,10 +22,10 @@ window.Today = (function () {
     var dateText = new Date(d.date + "T12:00:00").toLocaleDateString(currentLang === "te" ? "te-IN" : "en-IN", { day: "numeric", month: "long", year: "numeric" });
     var cur = d.current_period;
     var nowLine = cur
-      ? '<span class="today__now today__now--bad">' + tr("Now: ", "ఇప్పుడు: ") + esc(tr(cur.name_en, cur.name_te)) + " " + esc(cur.start) + "–" + esc(cur.end) + "</span>"
-      : '<span class="today__now today__now--ok">' + tr("Now: no bad period", "ఇప్పుడు: అశుభ కాలం లేదు") + "</span>";
+      ? '<span class="today__now today__now--bad">' + t("Now: ") + esc(tr(cur.name_en, cur.name_te)) + " " + esc(cur.start) + "–" + esc(cur.end) + "</span>"
+      : '<span class="today__now today__now--ok">' + t("Now: no bad period") + "</span>";
     var good = d.next_good
-      ? '<span>' + tr(d.next_good.now ? "Good now: " : "Next good window: ", d.next_good.now ? "ఇప్పుడు శుభం: " : "తదుపరి శుభ సమయం: ") +
+      ? '<span>' + t(d.next_good.now ? "Good now:" : "Next good window:") + " " +
         esc(tr(d.next_good.name_en, d.next_good.name_te)) + " " + esc(d.next_good.start) + "–" + esc(d.next_good.end) + "</span>"
       : "";
     var periods = d.periods.map(function (p) {
@@ -35,28 +35,27 @@ window.Today = (function () {
     var yogas = (d.special_yogas || []).map(function (y) {
       return '<span class="today__yoga today__yoga--' + (y.type === "bad" ? "bad" : "good") + '">' + esc(tr(y.name_en, y.name_te)) + "</span>";
     }).join("");
-    var limb = function (en, te, x, extra) {
-      return '<div class="today__limb"><span class="today__label">' + tr(en, te) + "</span><strong>" + esc(x.name) + (extra || "") +
-        '</strong><small>' + tr("till ", "") + esc(x.end) + tr("", " వరకు") + "</small></div>";
+    var limb = function (en, x, extra) {
+      return '<div class="today__limb"><span class="today__label">' + t(en) + "</span><strong>" + esc(x.name) + (extra || "") +
+        '</strong><small>' + esc(t("till {time}", { time: x.end })) + "</small></div>";
     };
     box.innerHTML =
       '<div class="today__head">' +
         '<div><div class="today__date">' + esc(dayName(d.weekday)) + ", " + esc(dateText) + "</div>" +
-        '<div class="today__masa">' + esc(tr((m.samvatsara_en || "") + " · " + (m.name_en || "") + (m.adhika ? " (adhika)" : "") + " · " + (m.paksha_en || ""),
-                                              (m.samvatsara_te || "") + " · " + (m.name_te || "") + (m.adhika ? " (అధిక)" : "") + " · " + (m.paksha_te || ""))) + "</div></div>" +
-        '<div class="today__place">' + esc(d.place.name) + ' · <a href="account.html#home">' + tr("Change", "మార్చండి") + "</a></div>" +
+        '<div class="today__masa">' + esc((tr(m.samvatsara_en, m.samvatsara_te) || "") + " · " + (tr(m.name_en, m.name_te) || "") + (m.adhika ? " " + t("(adhika)") : "") + " · " + (tr(m.paksha_en, m.paksha_te) || "")) + "</div></div>" +
+        '<div class="today__place">' + esc(d.place.name) + ' · <a href="account.html#home">' + t("Change") + "</a></div>" +
       "</div>" +
       '<div class="today__status">' + nowLine + good + "</div>" +
       '<div class="today__limbs">' +
-        limb("Tithi", "తిథి", d.tithi) +
-        limb("Nakshatra", "నక్షత్రం", { name: tr(d.nakshatra.name, nakTe(d.nakshatra.name)), end: d.nakshatra.end }, " · " + tr("pada ", "") + d.nakshatra.pada + tr("", " పాదం")) +
-        limb("Yoga", "యోగం", d.yoga) + limb("Karana", "కరణం", d.karana) +
-        '<div class="today__limb"><span class="today__label">' + tr("Sun", "సూర్యుడు") + "</span><strong>↑ " + esc(d.sunrise) + " · ↓ " + esc(d.sunset) + "</strong><small>" + tr("sunrise · sunset", "ఉదయం · అస్తమయం") + "</small></div>" +
+        limb("Tithi@@today", d.tithi) +
+        limb("Nakshatra@@today", { name: tr(d.nakshatra.name, nakTe(d.nakshatra.name)), end: d.nakshatra.end }, " · " + t("pada {n}", { n: d.nakshatra.pada })) +
+        limb("Yoga", d.yoga) + limb("Karana", d.karana) +
+        '<div class="today__limb"><span class="today__label">' + t("Sun") + "</span><strong>↑ " + esc(d.sunrise) + " · ↓ " + esc(d.sunset) + "</strong><small>" + t("sunrise · sunset") + "</small></div>" +
       "</div>" +
-      '<div class="today__avoid"><span class="today__label">' + tr("Avoid today", "ఈ రోజు నివారించవలసినవి") + "</span><ul>" + periods + "</ul></div>" +
+      '<div class="today__avoid"><span class="today__label">' + t("Avoid today") + "</span><ul>" + periods + "</ul></div>" +
       (yogas ? '<div class="today__yogas">' + yogas + "</div>" : "") +
       (canShare() ? panchangShareBar() : "") +
-      '<div class="today__foot"><span>' + tr("Updated ", "నవీకరణ ") + esc(d.now) + '</span><a href="panchang-lookup.html">' + tr("Full panchang →", "పూర్తి పంచాంగం →") + "</a></div>";
+      '<div class="today__foot"><span>' + t("Updated ") + esc(d.now) + '</span><a href="panchang-lookup.html">' + t("Full panchang →") + "</a></div>";
     if (canShare()) {
       // Shared copies use today's panchang only (no live "Now" line or struck-out past periods).
       bindPanchangShare(box, {
@@ -79,7 +78,7 @@ window.Today = (function () {
       lastDate = data.date;
       render();
     } catch (e) {
-      if (box) box.innerHTML = '<p class="today__error">' + esc(tr("Couldn't load today's panchang: ", "నేటి పంచాంగం లోడ్ కాలేదు: ") + e.message) + "</p>";
+      if (box) box.innerHTML = '<p class="today__error">' + esc(t("Couldn't load today's panchang: ") + e.message) + "</p>";
     }
   }
 

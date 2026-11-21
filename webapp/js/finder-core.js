@@ -23,7 +23,7 @@ const CHART_GRID_POSITIONS = {
 };
 const D9_RASI_LABELS = {
   en: ["Mesha", "Vrishabha", "Mithuna", "Karkataka", "Simha", "Kanya", "Tula", "Vrishchika", "Dhanus", "Makara", "Kumbha", "Meena"],
-  te: ["మేషం", "వృషభం", "మిథునం", "కర్కాటకం", "సింహం", "కన్య", "తుల", "వృశ్చికం", "ధనుస్సు", "మకరం", "కుంభం", "మీనం"]
+  te: ["మేషం", "మిథునం", "సింహం", "తుల", "ధనుస్సు", "కుంభం"]
 };
 
 // ---- Category tabs + event catalog (from /muhurta/catalog) ----
@@ -73,9 +73,7 @@ async function loadMuhurtaCatalog() {
     populateActivityDropdown();
   } catch (e) {
     console.error("Failed to load catalog:", e);
-    setStatus(currentLang === "te"
-      ? "ముహూర్త జాబితా లోడ్ కాలేదు. బ్యాకెండ్ నడుస్తోందో చూడండి."
-      : `Couldn't load the event list (${e.message}). Check that the backend is running.`, true);
+    setStatus(t("Couldn't load the event list ({error}). Check that the backend is running.", { error: e.message }), true);
   }
 }
 
@@ -83,19 +81,19 @@ function renderCategoryTabs() {
   const bar = el("mfCategoryTabs");
   if (!bar) return;
   bar.innerHTML = "";
-  CATEGORY_TABS.forEach(t => {
-    const count = allMuhurtaRules.filter(r => ruleInTab(r, t.id)).length;
+  CATEGORY_TABS.forEach(tv => {
+    const count = allMuhurtaRules.filter(r => ruleInTab(r, tv.id)).length;
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.id = `mfTab-${t.id}`;
-    btn.className = "tab-item" + (t.id === currentCategory ? " active" : "");
+    btn.id = `mfTab-${tv.id}`;
+    btn.className = "tab-item" + (tv.id === currentCategory ? " active" : "");
     btn.setAttribute("role", "tab");
-    btn.setAttribute("aria-selected", t.id === currentCategory ? "true" : "false");
-    btn.disabled = count === 0 && t.id !== "yogas";   // Special Yogas searches without events
-    btn.title = count === 0 ? (currentLang === "te" ? "ఇంకా అందుబాటులో లేదు" : "Not available yet") : "";
-    btn.innerHTML = `${currentLang === "te" ? t.te : t.en} <span class="tab-badge">${count}</span>` +
-      (t.hidden ? `<span class="tab-hidden-mark">${currentLang === "te" ? "దాచబడింది" : "Hidden"}</span>` : "");
-    btn.addEventListener("click", () => onCategoryChange(t.id));
+    btn.setAttribute("aria-selected", tv.id === currentCategory ? "true" : "false");
+    btn.disabled = count === 0 && tv.id !== "yogas";   // Special Yogas searches without events
+    btn.title = count === 0 ? (t("Not available yet")) : "";
+    btn.innerHTML = `${currentLang === "te" ? tv.te : tv.en} <span class="tab-badge">${count}</span>` +
+      (tv.hidden ? `<span class="tab-hidden-mark">${t("Hidden")}</span>` : "");
+    btn.addEventListener("click", () => onCategoryChange(tv.id));
     bar.appendChild(btn);
   });
 }
@@ -124,7 +122,7 @@ function populateActivityDropdown() {
       parent = groups[r.sub_group];
     }
     opt.value = r.id;
-    opt.textContent = (r.hidden ? (currentLang === "te" ? "[దాచబడింది] " : "[Hidden] ") : "") + (currentLang === "te" && r.title_te
+    opt.textContent = (r.hidden ? (t("[Hidden] ")) : "") + (currentLang === "te" && r.title_te
       ? `${r.title_te} (${r.title_en})`
       : `${r.title_en} · ${r.title_te || ""}`);
     if (r.id === prevVal) {

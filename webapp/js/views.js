@@ -1,5 +1,5 @@
 // ============================================================
-// Gayatri Jyotirnidhi · Views — composed UI components for the app page
+// Gayathri Jyothirnidhe · Views — composed UI components for the app page
 // Rendered once on load by app.js → UI.mount('app', Views.layout())
 // Every DOM id matches the previous static markup, so panel logic
 // (panchang.js, pdf.js) works unchanged. The old samskara mode was retired (plan R4): use the Muhurta Finder.
@@ -13,7 +13,7 @@ var Views = (function () {
   // Print / Save PDF follows Settings › Finder and sharing (plan D6; off by default): site-config.js shows it.
   var header =
     '<div class="no-print app-actions" data-share-kind="pdf" hidden>' +
-    B({ id: "printSmartBtn", cls: "btn btn--gold", onclick: "exportSmartPdf()", icon: Icon("printer"), en: "Print / Save PDF", te: "ప్రింట్ / PDF సేవ్", label: "Print / Save PDF" }) +
+    B({ id: "printSmartBtn", cls: "btn btn--gold", onclick: "exportSmartPdf()", icon: Icon("printer"), en: "Print / Save PDF", label: "Print / Save PDF" }) +
     "</div>";
   // The site header (menu, language switch, account) is in panchang-lookup.html, the same as every page.
 
@@ -26,14 +26,14 @@ var Views = (function () {
 
   var panchangForm =
     '<div class="controls">' +
-      F("regionSelect", "Region", "ప్రాంతం", '<select id="regionSelect"></select>', { minWidth: 200 }) +
-      F("dateInput", "Date", "తేదీ", '<input type="date" id="dateInput">', { minWidth: 150 }) +
-      B({ id: "goButton", en: "Get Panchang", te: "పంచాంగం చూడండి", label: "Get Panchang", cls: "btn btn--primary btn--block" }) +
+      F("regionSelect", "Region", '<select id="regionSelect"></select>', { minWidth: 200 }) +
+      F("dateInput", "Date", '<input type="date" id="dateInput">', { minWidth: 150 }) +
+      B({ id: "goButton", en: "Get Panchang", label: "Get Panchang", cls: "btn btn--primary btn--block" }) +
       '<div id="customPlaceField" class="custom-place">' +
-        '<label class="field-label" for="customPlaceInput" data-en="Search Place (e.g. London, Kakinada)" data-te="ప్రాంతం పేరు (ఉదా: లండన్, కాకినాడ)">Search Place</label>' +
+        '<label class="field-label" for="customPlaceInput" data-i18n="Search Place (e.g. London, Kakinada)">Search Place</label>' +
         '<div class="place-row">' +
           '<input type="text" id="customPlaceInput" placeholder="Enter place name..." autocomplete="off">' +
-          B({ id: "searchPlaceButton", cls: "btn btn--gold btn--sm", en: "Search & Go", te: "వెతకండి", label: "Search & Go" }) +
+          B({ id: "searchPlaceButton", cls: "btn btn--gold btn--sm", en: "Search & Go", label: "Search & Go" }) +
           UI.suggestionsBox("suggestionsList", 130) +
         "</div>" +
       "</div>" +
@@ -61,24 +61,24 @@ var Views = (function () {
       "</div>" +
       '<section class="pd-cta" id="pdCta"></section>' +
       '<details class="pd-more">' +
-        '<summary data-en="More details: 5-fold day division, Abhijit check, all activities" data-te="మరిన్ని వివరాలు: పంచధా కాల విభజన, అభిజిత్ పరిశీలన, అన్ని కార్యాలు">More details: 5-fold day division, Abhijit check, all activities</summary>' +
+        '<summary data-i18n="More details: 5-fold day division, Abhijit check, all activities">More details: 5-fold day division, Abhijit check, all activities</summary>' +
         '<div id="vKalaVibhajanaSection"></div>' +
-        KS("అభిజిత్ కాల ముహూర్తం", "Abhijit Kala Muhurtham",
+        KS("Abhijit Kala Muhurtham",
           '<div class="kaala-row kaala-row--borderless">' +
-          '<span class="kname kname--gold" data-en="Auspicious Timing" data-te="శుభ సమయము">Auspicious Timing</span>' +
+          '<span class="kname kname--gold" data-i18n="Auspicious Timing">Auspicious Timing</span>' +
           '<span class="ktime ktime--gold" id="vAbhijitKala">—</span></div>',
           "kaala-section--highlight") +
         '<div id="vPanchakaSection"></div>' +
-        KS("అనుకూలమైన ముహూర్తములు", "Favorable Muhurtas", '<div id="vFavorableActivities" class="list-body"></div>') +
-        KS("నిషిద్ధ సమయాలు / పనులు", "Activities to Avoid", '<div id="vAvoidActivities" class="list-body"></div>') +
+        KS("Favorable Muhurtas", '<div id="vFavorableActivities" class="list-body"></div>') +
+        KS("Activities to Avoid", '<div id="vAvoidActivities" class="list-body"></div>') +
       "</details>" +
     "</div>";
 
   // ---- Day / Month tabs (the place and date form above is shared) -----------
   var viewTabs =
     '<div class="pview-tabs tab-container" role="tablist" aria-label="Panchang view">' +
-      '<button type="button" class="pview-tab active" id="tabDayBtn" role="tab" aria-selected="true" aria-controls="dayView" data-en="Day" data-te="రోజు">Day</button>' +
-      '<button type="button" class="pview-tab" id="tabMonthBtn" role="tab" aria-selected="false" aria-controls="monthView" data-en="Month" data-te="నెల">Month</button>' +
+      '<button type="button" class="pview-tab active" id="tabDayBtn" role="tab" aria-selected="true" aria-controls="dayView" data-i18n="Day@@views">Day</button>' +
+      '<button type="button" class="pview-tab" id="tabMonthBtn" role="tab" aria-selected="false" aria-controls="monthView" data-i18n="Month">Month</button>' +
     "</div>";
 
   var monthView =
@@ -89,7 +89,7 @@ var Views = (function () {
         '<button type="button" class="month-nav" id="monthNext" aria-label="Next month">›</button>' +
       "</div>" +
       '<div class="month-cal" id="monthCal"></div>' +
-      '<p class="month-hint" data-en="Tap a date to see its panchang. Tithi and nakshatra are the ones at sunrise." data-te="పంచాంగం చూడటానికి తేదీని నొక్కండి. తిథి, నక్షత్రం సూర్యోదయం నాటివి.">Tap a date to see its panchang. Tithi and nakshatra are the ones at sunrise.</p>' +
+      '<p class="month-hint" data-i18n="Tap a date to see its panchang. Tithi and nakshatra are the ones at sunrise.">Tap a date to see its panchang. Tithi and nakshatra are the ones at sunrise.</p>' +
       '<section id="monthDayDetail" class="month-detail" aria-live="polite" hidden></section>' +
     "</div>";
 
@@ -123,12 +123,12 @@ var Views = (function () {
     }
     return (
       '<div class="app-shell"><div class="wrap wrap--wide">' +
-        '<h1 class="portal__title pm-title" data-text-key="month_title" data-en="Monthly Panchang" data-te="మాస పంచాంగం">Monthly Panchang</h1>' +
+        '<h1 class="portal__title pm-title" data-text-key="month_title" data-i18n="Monthly Panchang">Monthly Panchang</h1>' +
         '<header id="appHeader">' + header + "</header>" +
         '<section id="tabPanchangContent">' + panchangForm +
           monthView +
           '<div id="dayView" hidden>' +
-            '<div class="pm-dayhead no-print"><button type="button" class="btn btn--outline btn--sm" id="backToMonth" data-en="‹ Back to the calendar" data-te="‹ క్యాలెండర్‌కు తిరిగి">‹ Back to the calendar</button></div>' +
+            '<div class="pm-dayhead no-print"><button type="button" class="btn btn--outline btn--sm" id="backToMonth" data-i18n="‹ Back to the calendar">‹ Back to the calendar</button></div>' +
             panchangResults +
           "</div>" +
         "</section>" +

@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261121a">
+  <link rel="stylesheet" href="css/common.css?v=20261121b">
   <link rel="stylesheet" href="css/portal.css?v=20261113p">
-  <title>Settings · Gayatri Jyotirnidhi</title>
+  <title>Settings · Gayathri Jyothirnidhe</title>
 </head>
 <body>
   <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -20,7 +20,7 @@
     <div class="account-slot" id="accountSlot"></div>
   </nav>
   <main id="mainContent" class="portal">
-    <h1 class="portal__title" data-en="Settings" data-te="సెట్టింగులు">Settings</h1>
+    <h1 class="portal__title" data-i18n>Settings</h1>
     <div id="setMsg" class="auth-alert auth-alert--info" role="status" hidden></div>
 
     <!-- Tabs (Super Admin Control Plan S2, 13 Nov 2026): js/admin-config.js fills them; the older sections are the "System" tab. -->
@@ -30,64 +30,65 @@
 
     <div class="portal-two">
       <section class="portal-card" aria-labelledby="sTitle">
-        <h2 id="sTitle" data-en="App settings" data-te="యాప్ సెట్టింగులు">App settings</h2>
+        <h2 id="sTitle" data-i18n>App settings</h2>
         <form id="settingsForm" class="portal-form">
-          <label class="switch"><input type="checkbox" id="stSignup"> <span data-en="Anyone can create an account" data-te="ఎవరైనా ఖాతా సృష్టించవచ్చు">Anyone can create an account</span></label>
-          <label class="switch"><input type="checkbox" id="stMaint"> <span data-en="Maintenance mode (only you can use the site)" data-te="నిర్వహణ మోడ్ (మీరు మాత్రమే వాడగలరు)">Maintenance mode (only you can use the site)</span></label>
-          <div class="field"><label for="stMsg" data-en="Message shown during maintenance" data-te="నిర్వహణ సమయంలో చూపే సందేశం">Message shown during maintenance</label><textarea id="stMsg" rows="2" maxlength="300"></textarea></div>
-          <button type="submit" class="btn" data-en="Save settings" data-te="సెట్టింగులు భద్రపరచండి">Save settings</button>
+          <label class="switch"><input type="checkbox" id="stSignup"> <span data-i18n>Anyone can create an account</span></label>
+          <label class="switch"><input type="checkbox" id="stMaint"> <span data-i18n>Maintenance mode (only you can use the site)</span></label>
+          <div class="field"><label for="stMsg" data-i18n>Message shown during maintenance</label><textarea id="stMsg" rows="2" maxlength="300"></textarea></div>
+          <button type="submit" class="btn" data-i18n>Save settings</button>
         </form>
       </section>
       <section class="portal-card" aria-labelledby="hTitle">
-        <h2 id="hTitle" data-en="System health" data-te="వ్యవస్థ స్థితి">System health</h2>
+        <h2 id="hTitle" data-i18n>System health</h2>
         <dl class="kv" id="system"><dt><span class="skeleton skeleton--line" role="status" aria-label="Loading"></span></dt><dd></dd></dl>
       </section>
     </div>
 
     <section class="portal-card" aria-labelledby="nTitle">
-      <h2 id="nTitle" data-en="Notifications" data-te="నోటిఫికేషన్లు">Notifications</h2>
+      <h2 id="nTitle" data-i18n>Notifications</h2>
       <p class="portal-hint" id="nfStatus"><span class="skeleton skeleton--line" role="status" aria-label="Loading"></span></p>
       <form id="notifyForm" class="portal-form">
-        <label class="switch"><input type="checkbox" id="nfSending"> <span data-en="Send login codes on WhatsApp (sign-up, forgot password, new mobile)" data-te="వాట్సాప్‌లో లాగిన్ కోడ్‌లు పంపండి (నమోదు, పాస్‌వర్డ్ మర్చిపోవడం, కొత్త మొబైల్)">Send login codes on WhatsApp (sign-up, forgot password, new mobile)</span></label>
-        <p class="portal-hint" data-en="Switching this off pauses every code: nobody can sign up or reset a password until it is on again. Logging in with a password still works." data-te="ఇది ఆపితే అన్ని కోడ్‌లు ఆగిపోతాయి: మళ్లీ ప్రారంభించే వరకు ఎవరూ నమోదు చేయలేరు, పాస్‌వర్డ్ మార్చలేరు. పాస్‌వర్డ్‌తో లాగిన్ పనిచేస్తుంది.">Switching this off pauses every code: nobody can sign up or reset a password until it is on again. Logging in with a password still works.</p>
-        <div class="field"><label for="nfLang" data-en="Language of the code message" data-te="కోడ్ సందేశం భాష">Language of the code message</label>
+        <label class="switch"><input type="checkbox" id="nfSending"> <span data-i18n>Send login codes on WhatsApp (sign-up, forgot password, new mobile)</span></label>
+        <p class="portal-hint" data-i18n>Switching this off pauses every code: nobody can sign up or reset a password until it is on again. Logging in with a password still works.</p>
+        <div class="field"><label for="nfLang" data-i18n>Language of the code message</label>
           <select id="nfLang"><option value="en">English</option><option value="te">తెలుగు</option></select></div>
-        <p class="portal-hint" data-en="Telugu works only after Meta approves a Telugu version of the WhatsApp template." data-te="మెటా వాట్సాప్ టెంప్లేట్ తెలుగు వెర్షన్‌ను ఆమోదించిన తర్వాతే తెలుగు పనిచేస్తుంది.">Telugu works only after Meta approves a Telugu version of the WhatsApp template.</p>
-        <fieldset class="nf-alerts"><legend data-en="Alerts in the bell at the top of the page" data-te="పేజీ పైన గంటలో హెచ్చరికలు">Alerts in the bell at the top of the page</legend>
-          <label class="switch"><input type="checkbox" id="nfSignup"> <span data-en="New account" data-te="కొత్త ఖాతా">New account</span></label>
-          <label class="switch"><input type="checkbox" id="nfLocked"> <span data-en="Account locked after wrong passwords" data-te="తప్పు పాస్‌వర్డ్‌ల వల్ల ఖాతా లాక్">Account locked after wrong passwords</span></label>
-          <label class="switch"><input type="checkbox" id="nfDisabled"> <span data-en="An admin disabled someone" data-te="నిర్వాహకులు ఎవరినైనా నిలిపివేశారు">An admin disabled someone</span></label>
-          <label class="switch"><input type="checkbox" id="nfSummary"> <span data-en="Yesterday's summary" data-te="నిన్నటి సారాంశం">Yesterday's summary</span></label>
+        <p class="portal-hint" data-i18n>Telugu works only after Meta approves a Telugu version of the WhatsApp template.</p>
+        <fieldset class="nf-alerts"><legend data-i18n>Alerts in the bell at the top of the page</legend>
+          <label class="switch"><input type="checkbox" id="nfSignup"> <span data-i18n>New account</span></label>
+          <label class="switch"><input type="checkbox" id="nfLocked"> <span data-i18n>Account locked after wrong passwords</span></label>
+          <label class="switch"><input type="checkbox" id="nfDisabled"> <span data-i18n>An admin disabled someone</span></label>
+          <label class="switch"><input type="checkbox" id="nfSummary"> <span data-i18n>Yesterday's summary</span></label>
         </fieldset>
         <div class="row-form">
-          <button type="submit" class="btn" data-en="Save notifications" data-te="నోటిఫికేషన్లు భద్రపరచండి">Save notifications</button>
-          <button type="button" class="btn btn--ghost" id="nfTest" data-en="Send a test code to my WhatsApp" data-te="నా వాట్సాప్‌కు పరీక్ష కోడ్ పంపండి">Send a test code to my WhatsApp</button>
+          <button type="submit" class="btn" data-i18n>Save notifications</button>
+          <button type="button" class="btn btn--ghost" id="nfTest" data-i18n>Send a test code to my WhatsApp</button>
         </div>
       </form>
-      <details class="nf-limits"><summary data-en="Send limits (fixed)" data-te="పంపే పరిమితులు (స్థిరం)">Send limits (fixed)</summary><dl class="kv" id="nfLimits"></dl></details>
+      <details class="nf-limits"><summary data-i18n>Send limits (fixed)</summary><dl class="kv" id="nfLimits"></dl></details>
     </section>
 
     <section class="portal-card" aria-labelledby="aTitle">
-      <h2 id="aTitle" data-en="Admins" data-te="నిర్వాహకులు">Admins</h2>
-      <p class="portal-hint" data-en="To make someone an admin, find them on the Users page and choose Make admin." data-te="ఎవరినైనా నిర్వాహకులుగా చేయడానికి, వినియోగదారుల పేజీలో వారిని వెతికి 'నిర్వాహకులుగా చేయండి' ఎంచుకోండి.">To make someone an admin, find them on the Users page and choose Make admin.</p>
+      <h2 id="aTitle" data-i18n="Admins">Admins</h2>
+      <p class="portal-hint" data-i18n>To make someone an admin, find them on the Users page and choose Make admin.</p>
       <ul class="portal-list" id="admins"><li><span class="skeleton" role="status" aria-label="Loading"></span></li></ul>
     </section>
 
     <section class="portal-card" aria-labelledby="lTitle">
-      <h2 id="lTitle" data-en="Activity log" data-te="కార్యకలాపాల లాగ్">Activity log</h2>
-      <div class="quick-search"><div class="field"><label for="logAction" data-en="Show" data-te="చూపించు">Show</label><select id="logAction"><option value="" data-en="Everything" data-te="అన్నీ">Everything</option></select></div></div>
-      <div class="table-scroll"><table class="people-table"><thead><tr><th data-en="When" data-te="ఎప్పుడు">When</th><th data-en="Who" data-te="ఎవరు">Who</th><th data-en="What" data-te="ఏమిటి">What</th><th data-en="Details" data-te="వివరాలు">Details</th></tr></thead><tbody id="logBody"></tbody></table></div>
-      <button type="button" class="btn btn--ghost" id="logMore" hidden data-en="Load more" data-te="మరిన్ని">Load more</button>
+      <h2 id="lTitle" data-i18n>Activity log</h2>
+      <div class="quick-search"><div class="field"><label for="logAction" data-i18n>Show</label><select id="logAction"><option value="" data-i18n>Everything</option></select></div></div>
+      <div class="table-scroll"><table class="people-table"><thead><tr><th data-i18n>When</th><th data-i18n>Who</th><th data-i18n>What</th><th data-i18n>Details</th></tr></thead><tbody id="logBody"></tbody></table></div>
+      <button type="button" class="btn btn--ghost" id="logMore" hidden data-i18n>Load more</button>
     </section>
     </div>
   </main>
   <script src="js/config.js"></script>
-  <script src="js/site-config.js?v=20261121a"></script>
-  <script src="js/icons.js?v=20261110"></script>
-  <script src="js/app-shell.js?v=20261110"></script>
-  <script src="js/i18n.js?v=20261114c"></script>
-  <script src="js/auth.js?v=20261119a"></script>
-  <script src="js/admin-settings.js?v=20261110b"></script>
-  <script src="js/admin-config.js?v=20261121d"></script>
+  <script src="js/site-config.js?v=20261122a"></script>
+  <script src="js/icons.js?v=20261122a"></script>
+  <script src="js/app-shell.js?v=20261122a"></script>
+  <script src="i18n/te.js?v=20261122a"></script>
+  <script src="js/i18n.js?v=20261122a"></script>
+  <script src="js/auth.js?v=20261122a"></script>
+  <script src="js/admin-settings.js?v=20261122a"></script>
+  <script src="js/admin-config.js?v=20261122a"></script>
 </body>
 </html>

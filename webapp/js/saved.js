@@ -12,12 +12,12 @@
   }
   var items = [], catalog = {};
   // Special Yogas and Shraddha calendar searches (plan F2) have no event; name them by tool.
-  var PITRU = { annual: ["Shraddha calendar: yearly shraddha", "శ్రాద్ధ పంచాంగం: వార్షిక శ్రాద్ధం"],
-                after_death: ["Shraddha calendar: rites after a death", "శ్రాద్ధ పంచాంగం: మరణానంతర కర్మలు"],
-                shannavati: ["Shraddha calendar: 96 shraddha days", "శ్రాద్ధ పంచాంగం: 96 శ్రాద్ధ దినాలు"] };
+  var PITRU = { annual: ["Shraddha calendar: yearly shraddha"],
+                after_death: ["Shraddha calendar: rites after a death"],
+                shannavati: ["Shraddha calendar: 96 shraddha days"] };
   function whatOf(s) {
-    if (s.kind === "yogas") return tr("Special yogas", "విశేష యోగాలు");
-    if (s.kind === "pitru") { var p = PITRU[(s.summary || {}).mode]; return p ? tr(p[0], p[1]) : tr("Shraddha calendar", "శ్రాద్ధ పంచాంగం"); }
+    if (s.kind === "yogas") return t("Special yogas");
+    if (s.kind === "pitru") { var p = PITRU[(s.summary || {}).mode]; return p ? t(p) : t("Shraddha calendar"); }
     var r = catalog[s.activity_id];
     return r ? tr(r.title_en, r.title_te || r.title_en) : s.activity_id;
   }
@@ -26,20 +26,19 @@
     $("svList").innerHTML = items.length ? items.map(function (s) {
       var sum = s.summary || {}, w = s.chosen_window;
       var what = whatOf(s);
-      var line = [sum.place_name, sum.start_date ? tr("from ", "") + sum.start_date + tr("", " నుండి") : "", sum.days_to_scan ? sum.days_to_scan + tr(" days", " రోజులు") : "",
+      var line = [sum.place_name, sum.start_date ? t("from {date}", { date: sum.start_date }) : "", sum.days_to_scan ? sum.days_to_scan + t(" days") : "",
                   s.kind === "pitru" && sum.mode === "shannavati" && sum.year ? String(sum.year) : ""].filter(Boolean).join(" · ");
-      var win = w ? tr("Chosen: ", "ఎంచుకున్నది: ") + [w.date, (w.window_start || w.start_time || "") + ((w.window_end || w.end_time) ? "–" + (w.window_end || w.end_time) : ""),
+      var win = w ? t("Chosen: ") + [w.date, (w.window_start || w.start_time || "") + ((w.window_end || w.end_time) ? "–" + (w.window_end || w.end_time) : ""),
                     w.percentage != null ? w.percentage + "%" : ""].filter(Boolean).join(" · ") : "";
       return '<li data-id="' + esc(s.id) + '"><div><span><button type="button" class="sv-star" data-star="' + esc(s.id) + '" aria-pressed="' + s.is_favourite + '" aria-label="' +
-        esc(s.is_favourite ? tr("Remove star", "నక్షత్రం తీసివేయండి") : tr("Star", "నక్షత్రం పెట్టండి")) + '">' + (s.is_favourite ? Icon("star", { filled: true }) : Icon("star")) + "</button><strong>" + esc(s.label) + "</strong></span>" +
+        esc(s.is_favourite ? t("Remove star") : t("Star")) + '">' + (s.is_favourite ? Icon("star", { filled: true }) : Icon("star")) + "</button><strong>" + esc(s.label) + "</strong></span>" +
         "<small>" + esc(what) + (line ? " · " + esc(line) : "") + "</small>" + (win ? "<span>" + esc(win) + "</span>" : "") +
-        (s.engine_changed ? '<small class="sv-note">' + tr("The app was updated after you saved this; results may differ now.", "భద్రపరిచిన తర్వాత యాప్ నవీకరించబడింది; ఫలితాలు మారవచ్చు.") + "</small>" : "") +
-        "<small>" + tr("Saved ", "భద్రపరిచినది ") + esc(new Date(s.created_at).toLocaleDateString()) + "</small></div>" +
-        '<div class="acts"><a class="btn btn--sm" href="muhurta-finder.html?saved=' + encodeURIComponent(s.id) + '">' + tr("Run again", "మళ్లీ శోధించండి") + "</a>" +
-        '<button type="button" class="btn btn--sm btn--ghost" data-rename="' + esc(s.id) + '">' + tr("Rename", "పేరు మార్చండి") + "</button>" +
-        '<button type="button" class="btn btn--sm btn--ghost" data-del="' + esc(s.id) + '">' + tr("Delete", "తొలగించండి") + "</button></div></li>";
-    }).join("") : '<li class="empty-state"><p>' + tr("Nothing saved yet. In the Muhurta Finder (also Special Yogas and the Shraddha calendar), use \"Save this search\" or \"Save this muhurta\".",
-                                                    "ఇంకా ఏమీ భద్రపరచలేదు. ముహూర్త శోధనలో (విశేష యోగాలు, శ్రాద్ధ పంచాంగం కూడా) 'ఈ శోధన భద్రపరచండి' లేదా 'ఈ ముహూర్తం భద్రపరచండి' వాడండి.") + '</p><a class="btn btn--sm" href="muhurta-finder.html">' + tr("Open the Muhurta Finder", "ముహూర్త శోధన తెరవండి") + "</a></li>";
+        (s.engine_changed ? '<small class="sv-note">' + t("The app was updated after you saved this; results may differ now.") + "</small>" : "") +
+        "<small>" + t("Saved ") + esc(new Date(s.created_at).toLocaleDateString()) + "</small></div>" +
+        '<div class="acts"><a class="btn btn--sm" href="muhurta-finder.html?saved=' + encodeURIComponent(s.id) + '">' + t("Run again") + "</a>" +
+        '<button type="button" class="btn btn--sm btn--ghost" data-rename="' + esc(s.id) + '">' + t("Rename") + "</button>" +
+        '<button type="button" class="btn btn--sm btn--ghost" data-del="' + esc(s.id) + '">' + t("Delete") + "</button></div></li>";
+    }).join("") : '<li class="empty-state"><p>' + t("Nothing saved yet. In the Muhurta Finder (also Special Yogas and the Shraddha calendar), use \"Save this search\" or \"Save this muhurta\".") + '</p><a class="btn btn--sm" href="muhurta-finder.html">' + t("Open the Muhurta Finder") + "</a></li>";
   }
 
   async function load() {
@@ -48,23 +47,23 @@
   }
 
   $("svList").addEventListener("click", async function (e) {
-    var t = e.target, id;
-    if ((id = t.getAttribute("data-star"))) {
+    var tv = e.target, id;
+    if ((id = tv.getAttribute("data-star"))) {
       var s = items.find(function (x) { return x.id === id; });
       try { await api("PUT", "/me/saved/" + id, { is_favourite: !s.is_favourite }); load(); } catch (err) { say("error", err.message); }
-    } else if ((id = t.getAttribute("data-rename"))) {
-      var li = t.closest("li"), cur = items.find(function (x) { return x.id === id; });
+    } else if ((id = tv.getAttribute("data-rename"))) {
+      var li = tv.closest("li"), cur = items.find(function (x) { return x.id === id; });
       if (li.querySelector(".row-form")) return;
-      li.querySelector("div").insertAdjacentHTML("beforeend", '<form class="row-form"><input maxlength="120" required value="' + esc(cur.label) + '" aria-label="' + esc(tr("New name", "కొత్త పేరు")) + '">' +
-        '<button class="btn btn--sm">' + tr("Save", "భద్రపరచండి") + "</button></form>");
+      li.querySelector("div").insertAdjacentHTML("beforeend", '<form class="row-form"><input maxlength="120" required value="' + esc(cur.label) + '" aria-label="' + esc(t("New name")) + '">' +
+        '<button class="btn btn--sm">' + t("Save") + "</button></form>");
       var f = li.querySelector(".row-form"); f.querySelector("input").focus();
       f.addEventListener("submit", async function (ev) {
         ev.preventDefault();
         try { await api("PUT", "/me/saved/" + id, { label: f.querySelector("input").value.trim() }); load(); } catch (err) { say("error", err.message); }
       });
-    } else if ((id = t.getAttribute("data-del"))) {
-      if (t.getAttribute("data-confirm") !== "1") { t.setAttribute("data-confirm", "1"); t.textContent = tr("Delete for good?", "శాశ్వతంగా తొలగించాలా?"); t.classList.add("btn--danger"); return; }
-      try { await api("DELETE", "/me/saved/" + id); say("info", tr("Deleted.", "తొలగించాము.")); load(); } catch (err) { say("error", err.message); }
+    } else if ((id = tv.getAttribute("data-del"))) {
+      if (tv.getAttribute("data-confirm") !== "1") { tv.setAttribute("data-confirm", "1"); tv.textContent = t("Delete for good?"); tv.classList.add("btn--danger"); return; }
+      try { await api("DELETE", "/me/saved/" + id); say("info", t("Deleted.")); load(); } catch (err) { say("error", err.message); }
     }
   });
 

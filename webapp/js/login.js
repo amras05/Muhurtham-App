@@ -6,21 +6,21 @@
   var CONSENT_VERSION = "2026-11-v1";
   var VIEWS = ["login", "signup", "otp", "forgot", "reset"];
   var TITLES = {
-    login:  ["Sign in to your account", "ఖాతా ప్రవేశం", "Use the mobile number you signed up with.", "మీరు నమోదు చేసిన మొబైల్ నంబర్‌తో ప్రవేశించండి."],
-    signup: ["Create your account", "కొత్త ఖాతా", "We send a code to your WhatsApp to confirm the number.", "నంబర్ ధృవీకరణకు మీ వాట్సాప్‌కు కోడ్ పంపుతాము."],
-    otp:    ["Enter the code", "కోడ్ నమోదు చేయండి", "The code is valid for 5 minutes.", "కోడ్ 5 నిమిషాలు చెల్లుతుంది."],
-    forgot: ["Reset your password", "పాస్‌వర్డ్ రీసెట్", "We send a code to the WhatsApp of this number.", "ఈ నంబర్ వాట్సాప్‌కు కోడ్ పంపుతాము."],
-    reset:  ["Choose a new password", "కొత్త పాస్‌వర్డ్", "All your devices will be signed out.", "మీ అన్ని పరికరాల నుండి సైన్ అవుట్ అవుతారు."],
+    login:  ["Sign in to your account", "Use the mobile number you signed up with."],
+    signup: ["Create your account", "We send a code to your WhatsApp to confirm the number."],
+    otp:    ["Enter the code", "The code is valid for 5 minutes."],
+    forgot: ["Reset your password", "We send a code to the WhatsApp of this number."],
+    reset:  ["Choose a new password", "All your devices will be signed out."],
   };
   var pendingPhone = "";
   var currentView = "login";
 
   function applyTitles() {
-    var t = TITLES[currentView];
+    var tv = TITLES[currentView];
     var S = window.SiteConfig;
     var own = currentView === "login" && S;   // the super admin may reword the sign-in view (plan D8)
-    $("authTitle").textContent = own ? S.text("login_title", t[0], t[1]) : tr(t[0], t[1]);
-    $("authLede").textContent = own ? S.text("login_lede", t[2], t[3]) : tr(t[2], t[3]);
+    $("authTitle").textContent = own ? S.text("login_title", tv[0]) : t(tv[0]);
+    $("authLede").textContent = own ? S.text("login_lede", tv[1]) : t(tv[1]);
   }
   window.onLangChange = applyTitles;
   if (window.SiteConfig) SiteConfig.onChange(function () { applyTitles(); });
@@ -63,7 +63,7 @@
   }
 
   function done(user) {
-    AppShell.toast(tr("Welcome, " + user.name, "స్వాగతం, " + user.name), "success");
+    AppShell.toast(t("Welcome, {name}", { name: user.name }), "success");
     window.location.href = nextUrl();
   }
 
@@ -79,7 +79,7 @@
   $("viewSignup").addEventListener("submit", function (e) {
     e.preventDefault();
     if (!$("signupConsent").checked) {
-      return message("error", tr("Please tick the box to agree before creating an account.", "ఖాతా సృష్టించే ముందు అంగీకార పెట్టెను టిక్ చేయండి."));
+      return message("error", t("Please tick the box to agree before creating an account."));
     }
     busy(e.target, async function () {
       pendingPhone = $("signupPhone").value;
@@ -89,8 +89,7 @@
       });
       if (!r.ok) return message("error", Auth.errorText(r));
       showView("otp");
-      $("otpHint").textContent = tr("We sent a code to WhatsApp on +91 " + pendingPhone + ".",
-                                    "+91 " + pendingPhone + " వాట్సాప్‌కు కోడ్ పంపాము.");
+      $("otpHint").textContent = t("We sent a code to WhatsApp on +91 {pendingPhone}.", { pendingPhone: pendingPhone });
     });
   });
 
@@ -107,7 +106,7 @@
     var btn = $("resendBtn");
     btn.disabled = true;
     var r = await Auth.resend(pendingPhone);
-    message(r.ok ? "info" : "error", r.ok ? tr("A new code has been sent.", "కొత్త కోడ్ పంపాము.") : Auth.errorText(r));
+    message(r.ok ? "info" : "error", r.ok ? t("A new code has been sent.") : Auth.errorText(r));
     setTimeout(function () { btn.disabled = false; }, 30000);   // the server allows one code per 30 seconds
   };
 
@@ -141,12 +140,12 @@
   // After "Delete my account" (account.js sends ?deleted=1, plan F2). Shown once: the flag is taken
   // out of the address so a reload doesn't show it again; a language switch shows it in the new language.
   if (new URLSearchParams(window.location.search).get("deleted") === "1") {
-    var DELETED = ["Your account and everything saved in it have been deleted.", "మీ ఖాతా మరియు అందులో భద్రపరిచినవన్నీ తొలగించబడ్డాయి."];
-    message("info", tr(DELETED[0], DELETED[1]));
+    var DELETED = ["Your account and everything saved in it have been deleted."];
+    message("info", t(DELETED));
     window.onLangChange = function () {
       applyTitles();
       var box = $("authInfo");
-      if (!box.hidden && DELETED.indexOf(box.textContent) !== -1) box.textContent = tr(DELETED[0], DELETED[1]);
+      if (!box.hidden && DELETED.indexOf(box.textContent) !== -1) box.textContent = t(DELETED);
     };
     var q = new URLSearchParams(window.location.search);
     q.delete("deleted");
@@ -159,7 +158,7 @@
   function eyeState(btn, shown) {
     btn.innerHTML = shown ? EYE_OFF : EYE;
     btn.setAttribute("aria-pressed", String(shown));
-    btn.setAttribute("aria-label", shown ? tr("Hide password", "పాస్‌వర్డ్ దాచు") : tr("Show password", "పాస్‌వర్డ్ చూపించు"));
+    btn.setAttribute("aria-label", shown ? t("Hide password") : t("Show password"));
   }
   document.querySelectorAll("[data-show-pass]").forEach(function (btn) {
     eyeState(btn, false);

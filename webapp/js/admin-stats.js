@@ -7,15 +7,15 @@
 
   // [series keys], title, colours (CSS custom properties so both themes work)
   var CHARTS = [
-    { id: "new_accounts", keys: ["new_accounts"], en: "New accounts", te: "కొత్త ఖాతాలు" },
-    { id: "searches", keys: ["searches"], en: "Muhurta searches", te: "ముహూర్త శోధనలు" },
-    { id: "logins", keys: ["logins"], en: "Logins", te: "లాగిన్లు" },
-    { id: "pdfs", keys: ["pdfs"], en: "PDF downloads", te: "PDF డౌన్‌లోడ్‌లు" },
-    { id: "codes", keys: ["codes_sent", "codes_confirmed"], en: "Login codes: sent and confirmed", te: "లాగిన్ కోడ్‌లు: పంపినవి, నిర్ధారించినవి" },
-    { id: "failed", keys: ["failed_logins"], en: "Failed logins", te: "విఫలమైన లాగిన్లు" },
+    { id: "new_accounts", keys: ["new_accounts"], en: "New accounts" },
+    { id: "searches", keys: ["searches"], en: "Muhurta searches" },
+    { id: "logins", keys: ["logins"], en: "Logins" },
+    { id: "pdfs", keys: ["pdfs"], en: "PDF downloads" },
+    { id: "codes", keys: ["codes_sent", "codes_confirmed"], en: "Login codes: sent and confirmed" },
+    { id: "failed", keys: ["failed_logins"], en: "Failed logins" },
   ];
-  var LABEL = { new_accounts: ["New accounts", "కొత్త ఖాతాలు"], searches: ["Searches", "శోధనలు"], logins: ["Logins", "లాగిన్లు"], pdfs: ["PDFs", "PDFలు"],
-                codes_sent: ["Sent", "పంపినవి"], codes_confirmed: ["Confirmed", "నిర్ధారించినవి"], failed_logins: ["Failed logins", "విఫల లాగిన్లు"] };
+  var LABEL = { new_accounts: ["New accounts"], searches: ["Searches"], logins: ["Logins"], pdfs: ["PDFs"],
+                codes_sent: ["Sent"], codes_confirmed: ["Confirmed"], failed_logins: ["Failed logins"] };
   var COLOURS = ["var(--color-primary-strong)", "var(--color-accent)"];
 
   function niceMax(v) { if (v <= 4) return 4; var p = Math.pow(10, Math.floor(Math.log10(v))); var m = Math.ceil(v / p); return (m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; }
@@ -35,7 +35,7 @@
       keys.forEach(function (k, j) {
         var v = data.series[k][i], x = L + i * slot + slot * 0.1 + j * bw;
         if (v > 0) svg += '<rect x="' + x.toFixed(1) + '" y="' + y(v).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (y(0) - y(v)).toFixed(1) +
-          '" rx="1" fill="' + COLOURS[j] + '"><title>' + esc(shortDate(d) + " · " + tr(LABEL[k][0], LABEL[k][1]) + ": " + v) + "</title></rect>";
+          '" rx="1" fill="' + COLOURS[j] + '"><title>' + esc(shortDate(d) + " · " + t(LABEL[k]) + ": " + v) + "</title></rect>";
       });
     });
     [0, Math.floor((n - 1) / 2), n - 1].forEach(function (i, idx) {
@@ -58,45 +58,45 @@
     var top = list.length ? list[0].count : 1;
     $(el).innerHTML = list.length ? list.map(function (x) {
       return "<li><span>" + esc(tr(x.en, x.te || x.en)) + "</span><b>" + x.count + '</b><span class="bar"><span style="width:' + Math.round(100 * x.count / top) + '%"></span></span></li>';
-    }).join("") : '<li class="empty-state">' + tr("No searches in this period.", "ఈ కాలంలో శోధనలు లేవు.") + "</li>";
+    }).join("") : '<li class="empty-state">' + t("No searches in this period.") + "</li>";
   }
 
   function render() {
     if (!data) return;
-    var t = data.totals, a = data.active_people, acc = data.accounts;
+    var tv = data.totals, a = data.active_people, acc = data.accounts;
     var tiles = [
-      [tr("Active in the last 7 days", "గత 7 రోజుల్లో చురుకుగా"), a.last_7_days, tr("30 days: ", "30 రోజులు: ") + a.last_30_days],
-      [tr("Accounts", "ఖాతాలు"), acc.active, tr(acc.total + " in all · " + acc.locked_now + " locked now", "మొత్తం " + acc.total + " · ఇప్పుడు లాక్: " + acc.locked_now)],
-      [tr("Searches", "శోధనలు"), t.searches, tr("in " + data.days + " days", data.days + " రోజుల్లో")],
-      [tr("PDF downloads", "PDF డౌన్‌లోడ్‌లు"), t.pdfs, Object.keys(data.pdf_by_kind).map(function (k) { return k + " " + data.pdf_by_kind[k]; }).join(" · ") || "—"],
+      [t("Active in the last 7 days"), a.last_7_days, t("30 days: ") + a.last_30_days],
+      [t("Accounts"), acc.active, t("{total} in all · {locked_now} locked now", { total: acc.total, locked_now: acc.locked_now })],
+      [t("Searches"), tv.searches, t("in {days} days", { days: data.days })],
+      [t("PDF downloads"), tv.pdfs, Object.keys(data.pdf_by_kind).map(function (k) { return k + " " + data.pdf_by_kind[k]; }).join(" · ") || "—"],
     ];
     $("statTiles").innerHTML = tiles.map(function (x) {
       return '<div class="stat"><span>' + esc(x[0]) + "</span><b>" + x[1] + '</b><small class="portal-hint">' + esc(x[2]) + "</small></div>";
     }).join("");
     $("statCharts").innerHTML = CHARTS.map(function (c) {
-      var total = c.keys.map(function (k) { return t[k]; }).join(" / ");
-      var legend = c.keys.length > 1 ? '<div class="chart-legend">' + c.keys.map(function (k, j) { return '<span><i style="background:' + COLOURS[j] + '"></i>' + esc(tr(LABEL[k][0], LABEL[k][1])) + "</span>"; }).join("") + "</div>" : "";
-      return '<section class="chart-card" aria-label="' + esc(tr(c.en, c.te)) + '"><div class="chart-card__head"><h2>' + esc(tr(c.en, c.te)) + '</h2><span class="chart-card__total">' + total + "</span></div>" +
-        legend + barChart(c.keys) + '<div><button type="button" class="linkish" data-csv="' + c.id + '">' + tr("Download CSV", "CSV డౌన్‌లోడ్") + "</button></div></section>";
+      var total = c.keys.map(function (k) { return tv[k]; }).join(" / ");
+      var legend = c.keys.length > 1 ? '<div class="chart-legend">' + c.keys.map(function (k, j) { return '<span><i style="background:' + COLOURS[j] + '"></i>' + esc(t(LABEL[k])) + "</span>"; }).join("") + "</div>" : "";
+      return '<section class="chart-card" aria-label="' + esc(t(c.en)) + '"><div class="chart-card__head"><h2>' + esc(t(c.en)) + '</h2><span class="chart-card__total">' + total + "</span></div>" +
+        legend + barChart(c.keys) + '<div><button type="button" class="linkish" data-csv="' + c.id + '">' + t("Download CSV") + "</button></div></section>";
     }).join("");
     ranks(data.top_muhurtas, "topMuhurtas");
     ranks(data.top_tabs, "topTabs");
-    var s = data.server, up = s.uptime_seconds, upText = up >= 86400 ? Math.floor(up / 86400) + tr(" days", " రోజులు") : up >= 3600 ? Math.floor(up / 3600) + tr(" hours", " గంటలు") : Math.max(1, Math.floor(up / 60)) + tr(" min", " ని.");
+    var s = data.server, up = s.uptime_seconds, upText = up >= 86400 ? Math.floor(up / 86400) + t(" days") : up >= 3600 ? Math.floor(up / 3600) + t(" hours") : Math.max(1, Math.floor(up / 60)) + t(" min");
     $("statServer").innerHTML = [
-      [tr("Version", "వెర్షన్"), s.version + " · " + s.env],
-      [tr("Last updated", "చివరి నవీకరణ"), updatedText(s.build)],
-      [tr("Since last restart", "చివరి రీస్టార్ట్ నుండి"), upText],
-      [tr("Ephemeris files", "ఎఫెమెరిస్ ఫైళ్లు"), s.ephemeris_ok ? s.ephemeris_files + tr(" found", " ఉన్నాయి") : tr("Missing: run backend/install_ephemeris.sh", "లేవు: backend/install_ephemeris.sh నడపండి")],
+      [t("Version"), s.version + " · " + s.env],
+      [t("Last updated"), updatedText(s.build)],
+      [t("Since last restart"), upText],
+      [t("Ephemeris files"), s.ephemeris_ok ? s.ephemeris_files + t(" found") : t("Missing: run backend/install_ephemeris.sh")],
     ].map(function (r) { return "<dt>" + esc(r[0]) + "</dt><dd>" + esc(r[1]) + "</dd>"; }).join("");
   }
 
   // When the running version was deployed (or, on a developer's machine, committed), in India time, + commit.
   function updatedText(b) {
     var when = b && (b.deployed_at || b.committed_at), d = when ? new Date(when) : null;
-    if (!d || isNaN(d.getTime())) return tr("Not known", "తెలియదు");
+    if (!d || isNaN(d.getTime())) return t("Not known");
     var stamp = d.toLocaleString(currentLang === "te" ? "te-IN" : "en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short",
                                                                          year: "numeric", hour: "numeric", minute: "2-digit" }) + " IST";
-    return stamp + (b.commit ? " · " + b.commit : "") + (b.deployed_at ? "" : tr(" (last commit; not deployed)", " (చివరి కమిట్)"));
+    return stamp + (b.commit ? " · " + b.commit : "") + (b.deployed_at ? "" : t(" (last commit; not deployed)"));
   }
 
   async function load() {

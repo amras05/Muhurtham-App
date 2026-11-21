@@ -1,6 +1,6 @@
-# Gayatri Jyotirnidhi · Design
+# Gayathri Jyothirnidhe · Design
 
-How the Gayatri Jyotirnidhi web app (formerly "Muhurtham") looks and behaves, and the rules for keeping it consistent.
+How the Gayathri Jyothirnidhe web app (formerly "Muhurtham") looks and behaves, and the rules for keeping it consistent.
 Read this before adding or changing a page in `webapp/`.
 
 - **Scope:** the web app (`webapp/`). The Flutter app (`frontend/`) is not covered here.
@@ -75,7 +75,7 @@ The header links come from the `NAV` list in `js/auth.js`. The server enforces t
 
 1. Copy the page frame from 6.1.
 2. Add it to `NAV` (with `roles` and, for admin pages, `group: "admin"`) and to `BUILT` in `js/auth.js`.
-3. Give it a `<title>` in the form `Name · Gayatri Jyotirnidhi`.
+3. Give it a `<title>` in the form `Name · Gayathri Jyothirnidhe`.
 4. Add its row to the table above.
 
 ---
@@ -360,7 +360,7 @@ These are the shapes to start from. Text always carries both languages (see 8.1)
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/common.css?v=YYYYMMDD">
   <link rel="stylesheet" href="css/portal.css?v=YYYYMMDD">
-  <title>Page name · Gayatri Jyotirnidhi</title>
+  <title>Page name · Gayathri Jyothirnidhe</title>
 </head>
 <body>
   <a class="skip-link" href="#mainContent">Skip to main content</a>

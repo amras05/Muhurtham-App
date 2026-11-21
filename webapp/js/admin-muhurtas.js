@@ -22,7 +22,7 @@
   }
   function toggle(kind, id, shown) {
     return '<label class="vis-toggle' + (shown ? "" : " vis-off") + '"><input type="checkbox" data-kind="' + kind + '" data-id="' + esc(id) + '"' + (shown ? " checked" : "") + "> " +
-      (shown ? tr("Shown", "చూపబడుతుంది") : tr("Hidden", "దాచబడింది")) + "</label>";
+      (shown ? t("Shown") : t("Hidden")) + "</label>";
   }
 
   function render() {
@@ -35,25 +35,23 @@
         if (hidden.events[e.id] || tabsOf.every(function (x) { return hidden.tabs[x.id]; })) nHiddenEvents++;
       });
     });
-    $("visCounts").textContent = tr(nHiddenEvents + " of " + data.counts.events + " muhurtas hidden · " + Object.keys(hidden.tabs).length + " tabs hidden",
-                                    data.counts.events + " లో " + nHiddenEvents + " ముహూర్తాలు దాచబడ్డాయి · " + Object.keys(hidden.tabs).length + " ట్యాబ్‌లు దాచబడ్డాయి");
+    $("visCounts").textContent = t("{nHiddenEvents} of {events} muhurtas hidden · {tabs} tabs hidden", { nHiddenEvents: nHiddenEvents, events: data.counts.events, tabs: Object.keys(hidden.tabs).length });
     $("visSave").disabled = snapshot() === saved;
     $("visTools").innerHTML = data.tools.map(function (x) {
       return "<li><span>" + esc(tr(x.en, x.te)) + "</span>" + toggle("tool", x.id, !hidden.tools[x.id]) + "</li>";
     }).join("");
-    $("visTabs").innerHTML = data.tabs.map(function (t) {
-      var tabHidden = !!hidden.tabs[t.id];
-      var shownCount = t.events.filter(function (e) { return !hidden.events[e.id]; }).length;
-      var events = t.events.length ? t.events.map(function (e) {
-        return "<li><span>" + esc(tr(e.en, e.te || e.en)) + (e.also_in_other_tab ? "<small>" + tr("Also listed in another tab", "మరో ట్యాబ్‌లో కూడా ఉంది") + "</small>" : "") +
+    $("visTabs").innerHTML = data.tabs.map(function (tv) {
+      var tabHidden = !!hidden.tabs[tv.id];
+      var shownCount = tv.events.filter(function (e) { return !hidden.events[e.id]; }).length;
+      var events = tv.events.length ? tv.events.map(function (e) {
+        return "<li><span>" + esc(tr(e.en, e.te || e.en)) + (e.also_in_other_tab ? "<small>" + t("Also listed in another tab") + "</small>" : "") +
           "</span>" + toggle("event", e.id, !hidden.events[e.id]) + "</li>";
-      }).join("") : '<li><span class="portal-hint">' + tr(t.id === "yogas" ? "A search by yoga; no events to list." : "No muhurtas in this tab yet.",
-                                                         t.id === "yogas" ? "యోగం ఆధారంగా శోధన; ముహూర్తాల జాబితా లేదు." : "ఈ ట్యాబ్‌లో ఇంకా ముహూర్తాలు లేవు.") + "</span></li>";
+      }).join("") : '<li><span class="portal-hint">' + t(tv.id === "yogas" ? "A search by yoga; no events to list." : "No muhurtas in this tab yet.") + "</span></li>";
       return '<div class="vis-tab" data-hidden="' + (tabHidden ? 1 : 0) + '"><div class="vis-tab__head">' +
-        '<button type="button" class="vis-tab__open" data-open="' + esc(t.id) + '" aria-expanded="' + (open[t.id] ? "true" : "false") + '">' +
-        "<span aria-hidden=\"true\">" + (open[t.id] ? "▾" : "▸") + "</span> <strong>" + esc(tr(t.en, t.te)) + "</strong> <small class=\"portal-hint\">" +
-        (t.events.length ? tr(shownCount + " of " + t.events.length + " shown", t.events.length + " లో " + shownCount + " చూపబడుతున్నాయి") : "") + "</small></button>" +
-        toggle("tab", t.id, !tabHidden) + "</div><ul class=\"vis-list\"" + (open[t.id] ? "" : " hidden") + ">" + events + "</ul></div>";
+        '<button type="button" class="vis-tab__open" data-open="' + esc(tv.id) + '" aria-expanded="' + (open[tv.id] ? "true" : "false") + '">' +
+        "<span aria-hidden=\"true\">" + (open[tv.id] ? "▾" : "▸") + "</span> <strong>" + esc(tr(tv.en, tv.te)) + "</strong> <small class=\"portal-hint\">" +
+        (tv.events.length ? t("{shownCount} of {events} shown", { shownCount: shownCount, events: tv.events.length }) : "") + "</small></button>" +
+        toggle("tab", tv.id, !tabHidden) + "</div><ul class=\"vis-list\"" + (open[tv.id] ? "" : " hidden") + ">" + events + "</ul></div>";
     }).join("");
   }
 
@@ -78,7 +76,7 @@
       var d = await api("PUT", "/admin/catalog-visibility", {
         hidden_tabs: Object.keys(hidden.tabs), hidden_events: Object.keys(hidden.events), hidden_tools: Object.keys(hidden.tools) });
       setFrom(d); render();
-      say("info", tr("Saved. Users see the change within 15 seconds.", "భద్రపరిచాము. 15 సెకన్లలో వినియోగదారులకు అమలవుతుంది."));
+      say("info", t("Saved. Users see the change within 15 seconds."));
     } catch (err) { say("error", err.message); }
   });
   window.addEventListener("beforeunload", function (e) { if (data && snapshot() !== saved) { e.preventDefault(); e.returnValue = ""; } });

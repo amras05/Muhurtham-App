@@ -91,15 +91,15 @@ function updateMore() {
   const upTo = addDaysIso(paging.payload.start_date, paging.scanned - 1);
   const next = addDaysIso(paging.payload.start_date, Math.min(paging.limit, paging.scanned + CHUNK_DAYS) - 1);
   if (paging.loading) {
-    box.innerHTML = `<span class="load-more__spinner" aria-hidden="true"></span> ${escapeHtml(T(`Loading muhurtas up to ${next}…`, `${next} వరకు ముహూర్తాలు లోడ్ అవుతున్నాయి…`))}`;
+    box.innerHTML = `<span class="load-more__spinner" aria-hidden="true"></span> ${escapeHtml(t("Loading muhurtas up to {next}…", { next: next }))}`;
   } else if (paging.error) {
-    box.innerHTML = `${escapeHtml(T("Couldn't load more: ", "మరిన్ని లోడ్ కాలేదు: ") + paging.error)} <button type="button" class="btn btn--sm" onclick="loadMore()">${escapeHtml(T("Try again", "మళ్ళీ ప్రయత్నించు"))}</button>`;
+    box.innerHTML = `${escapeHtml(t("Couldn't load more: ") + paging.error)} <button type="button" class="btn btn--sm" onclick="loadMore()">${escapeHtml(t("Try again"))}</button>`;
   } else if (paging.done) {
     box.innerHTML = escapeHtml(paging.payload.date_to
-      ? T(`That's every muhurta from ${paging.payload.start_date} to ${upTo}.`, `${paging.payload.start_date} నుండి ${upTo} వరకు అన్ని ముహూర్తాలు చూపించాము.`)
-      : T(`That's one year of muhurtas, up to ${upTo}.`, `${upTo} వరకు ఒక సంవత్సరం ముహూర్తాలు చూపించాము.`));
+      ? t("That's every muhurta from {start_date} to {upTo}.", { start_date: paging.payload.start_date, upTo: upTo })
+      : t("That's one year of muhurtas, up to {upTo}.", { upTo: upTo }));
   } else {
-    box.innerHTML = `<span>${escapeHtml(T(`Showing muhurtas up to ${upTo}.`, `${upTo} వరకు ముహూర్తాలు.`))}</span> <button type="button" class="btn btn--sm" onclick="loadMore()">${escapeHtml(T(`Load more, up to ${next}`, `${next} వరకు మరిన్ని చూపించు`))}</button>`;
+    box.innerHTML = `<span>${escapeHtml(t("Showing muhurtas up to {upTo}.", { upTo: upTo }))}</span> <button type="button" class="btn btn--sm" onclick="loadMore()">${escapeHtml(t("Load more, up to {next}", { next: next }))}</button>`;
   }
   if (!moreObserver && "IntersectionObserver" in window) {
     moreObserver = new IntersectionObserver(entries => {
@@ -135,7 +135,7 @@ function fillPoolEvents() {
   sel.innerHTML = "";
   const all = document.createElement("option");
   all.value = "__all";
-  all.textContent = T("All main ceremonies", "అన్ని ముఖ్య కార్యాలు");
+  all.textContent = t("All main ceremonies");
   sel.appendChild(all);
   CATEGORY_TABS.forEach(t => {
     const rules = allMuhurtaRules.filter(r => (r.tab || r.category) === t.id && poolEligible(r));
@@ -178,8 +178,7 @@ function setFinderMode(pool) {
   el("mfPoolIntro").hidden = !pool;
   document.querySelectorAll(".field--pool").forEach(f => { f.hidden = !pool; });
   const fb = el("findBtn");
-  fb.setAttribute("data-en", pool ? "Show muhurtas" : "Find muhurtas");
-  fb.setAttribute("data-te", pool ? "ముహూర్తాలు చూపించు" : "ముహూర్తాలు వెతుకు");
+  fb.setAttribute("data-i18n", pool ? "Show muhurtas" : "Find muhurtas");
   fb.textContent = fb.getAttribute(currentLang === "te" ? "data-te" : "data-en");
   if (pool) {
     setYogaMode(false);
@@ -195,14 +194,14 @@ el("mfModePool")?.addEventListener("click", () => setFinderMode(true));
 
 async function runPool(loc) {
   const activityId = el("mfPoolEvent")?.value;
-  if (!activityId) { setStatus(T("Choose an event.", "కార్యం ఎంచుకోండి."), true); return; }
+  if (!activityId) { setStatus(t("Choose an event."), true); return; }
   const year = Number(el("mfPoolYear").value);
   const wanted = [...document.querySelectorAll("#mfLunarMonths input:checked")].map(i => Number(i.value));
   paging = null; bandFilter = null; lastToolSearch = null;
   el("findBtn").disabled = true;
   el("mfResults").style.display = "none";
   const more = el("mfMore");
-  setStatus(T("Working out the lunar months of the year…", "సంవత్సరంలోని చాంద్రమాన మాసాలు లెక్కిస్తున్నాం…"));
+  setStatus(t("Working out the lunar months of the year…"));
   try {
     const mres = await fetch(`${API_BASE}/muhurta/lunar-months?year=${year}&lat=${loc.lat}&lon=${loc.lon}&tz_offset=${loc.tz_offset}`);
     const mdata = await mres.json().catch(() => null);
@@ -215,8 +214,7 @@ async function runPool(loc) {
       const s0 = from && from > m.start ? from : m.start, e0 = to && to < mEnd ? to : mEnd;
       return s0 > e0 ? null : Object.assign({}, m, { start: s0, days: searchSpanDays(s0, e0) });
     }).filter(Boolean);
-    if (!months.length) throw new Error(T("None of the chosen months falls between the start and end dates in that year.",
-                                          "ఎంచుకున్న మాసాలు ఆ సంవత్సరంలో ప్రారంభ, ముగింపు తేదీల మధ్య లేవు."));
+    if (!months.length) throw new Error(t("None of the chosen months falls between the start and end dates in that year."));
     const base = { activity_id: activityId, lat: loc.lat, lon: loc.lon, tz_offset: loc.tz_offset, place_name: loc.place_name,
                    panchaka_method: "standard", time_preference: "any",
                    participants: [] };
@@ -236,8 +234,7 @@ async function runPool(loc) {
         if (more) {
           more.hidden = false;
           const what = allEvents ? `: ${T(rule?.title_en || ev, rule?.title_te || ev)} (${k + 1}/${events.length})` : "";
-          more.innerHTML = `<span class="load-more__spinner" aria-hidden="true"></span> ${escapeHtml(T(
-            `Searching ${m.name_en}${what}, month ${i + 1} of ${months.length}…`, `${m.name_te}${what} వెతుకుతున్నాం, ${months.length} లో ${i + 1}వ మాసం…`))}`;
+          more.innerHTML = `<span class="load-more__spinner" aria-hidden="true"></span> ${escapeHtml(t("Searching {month}{what}, month {i} of {n}…", { month: pickLang(m.name_en, m.name_te), what, i: i + 1, n: months.length }))}`;
         }
         const res = await fetch(`${API_BASE}/muhurta/find`, { method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...base, activity_id: ev, start_date: m.start, days_to_scan: m.days, lunar_months: [m.month_number] }) });
@@ -257,11 +254,10 @@ async function runPool(loc) {
     }
     if (more) {
       more.hidden = false;
-      more.textContent = T(`All muhurtas for ${months.map(m => m.name_en).join(", ")} (${year}).`,
-                           `${months.map(m => m.name_te).join(", ")} (${year}) ముహూర్తాలన్నీ చూపించాము.`);
+      more.textContent = t("All muhurtas for {months} ({year}).", { months: months.map(m => pickLang(m.name_en, m.name_te)).join(", "), year });
     }
   } catch (e) {
-    setStatus(T("Couldn't load the muhurtas: ", "ముహూర్తాలు లోడ్ కాలేదు: ") + e.message, true);
+    setStatus(t("Couldn't load the muhurtas: ") + e.message, true);
     if (more) more.hidden = true;
   } finally {
     el("findBtn").disabled = false;
@@ -276,10 +272,10 @@ function bandClass(p) { return p >= 75 ? "excellent" : p >= 50 ? "medium" : "avo
 // The dosha parts of the muhurta % shown on their own (A8, 21 Nov 2026: % = panchanga 30 + mahadoshas 70,
 // or 30 / 60 / 10 with dashavidha for marriage).
 function doshaScoreChips(r) {
-  const chip = (sc, en, te, tip_en, tip_te) => sc
-    ? `<span class="score-chip score-chip--${bandClass(sc.percentage)}" title="${escapeHtml(T(tip_en, tip_te))}">${escapeHtml(T(en, te))} ${sc.percentage}%</span>` : "";
-  return chip(r.maha_score, "Mahadosha", "మహాదోష", `${r.maha_score?.passed} of ${r.maha_score?.checked} mahadoshas clear`, `${r.maha_score?.checked} లో ${r.maha_score?.passed} మహాదోషాలు శుద్ధం`) +
-         chip(r.dasha_score, "Dashavidha", "దశవిధ", `${r.dasha_score?.passed} of ${r.dasha_score?.checked} dashavidha doshas clear`, `${r.dasha_score?.checked} లో ${r.dasha_score?.passed} దశవిధ దోషాలు శుద్ధం`);
+  const chip = (sc, label, tip) => sc
+    ? `<span class="score-chip score-chip--${bandClass(sc.percentage)}" title="${escapeHtml(tip)}">${escapeHtml(t(label))} ${sc.percentage}%</span>` : "";
+  return chip(r.maha_score, "Mahadosha", t("{passed} of {checked} mahadoshas clear", { passed: r.maha_score?.passed, checked: r.maha_score?.checked })) +
+         chip(r.dasha_score, "Dashavidha", t("{passed} of {checked} dashavidha doshas clear", { passed: r.dasha_score?.passed, checked: r.dasha_score?.checked }));
 }
 function dmy(iso) { const [y, m, d] = String(iso).split("-"); return `${d}-${m}-${y}`; }
 
@@ -327,16 +323,16 @@ function renderCompactList(data, results, passes, grid) {
       else if ((x.r.percentage || 0) > (perEvent[i].r.percentage || 0)) perEvent[i] = x;
     });
     const chips = data.allEvents ? `<div class="lagna-row__events">${perEvent.map(x =>
-      `<button type="button" class="event-chip event-chip--${bandClass(x.r.percentage || 0)}" onclick="openDayModal(${x.idx})" title="${escapeHtml(T("Full analysis", "సమగ్ర విశ్లేషణ"))}">${escapeHtml(T(x.r._event.en, x.r._event.te))} ${x.r.percentage}%</button>`).join("")}</div>` : "";
+      `<button type="button" class="event-chip event-chip--${bandClass(x.r.percentage || 0)}" onclick="openDayModal(${x.idx})" title="${escapeHtml(t("Full analysis"))}">${escapeHtml(T(x.r._event.en, x.r._event.te))} ${x.r.percentage}%</button>`).join("")}</div>` : "";
     const open = data.allEvents ? "" : ` role="button" tabindex="0" onclick="openDayModal(${best.idx})" onkeydown="if(event.key==='Enter')openDayModal(${best.idx})"`;
     html += `<div class="lagna-row${data.allEvents ? "" : " lagna-row--link"}"${open}>
       <div class="lagna-row__line1"><strong>${escapeHtml(dmy(r.date))}</strong><span>${escapeHtml(vaara)}</span><span>${escapeHtml(tithi)}</span><span>${escapeHtml(nak)}</span></div>
       <div class="lagna-row__line2"><span class="lagna-row__lagna">${escapeHtml(lagna)}</span>${am}<span class="lagna-row__time">${escapeHtml(time)}</span>
-        <span class="lagna-row__pct lagna-row__pct--${bandClass(r.percentage || 0)}" title="${escapeHtml(T("Basic muhurta rules", "ముహూర్త ప్రాథమిక నియమాలు"))}">${escapeHtml(T("Muhurta", "ముహూర్త"))} ${r.percentage}%</span>${doshaScoreChips(r)}</div>
+        <span class="lagna-row__pct lagna-row__pct--${bandClass(r.percentage || 0)}" title="${escapeHtml(t("Basic muhurta rules"))}">${escapeHtml(t("Muhurta@@finder-search"))} ${r.percentage}%</span>${doshaScoreChips(r)}</div>
       ${chips}
     </div>`;
   });
-  grid.insertAdjacentHTML("beforeend", html || `<div class="empty-state"><p>${escapeHtml(T("No muhurtas match these filters.", "ఈ ఎంపికలకు ముహూర్తాలు లేవు."))}</p></div>`);
+  grid.insertAdjacentHTML("beforeend", html || `<div class="empty-state"><p>${escapeHtml(t("No muhurtas match these filters."))}</p></div>`);
 }
 
 function renderEventFilter(data, results) {
@@ -347,7 +343,7 @@ function renderEventFilter(data, results) {
   results.forEach(r => { if (r._event) { counts[r._event.id] = (counts[r._event.id] || 0) + 1; names[r._event.id] = r._event; } });
   const chip = (id, label, n) => `<button type="button" class="filter-chip${(eventFilter || "") === id ? " is-active" : ""}" data-event="${escapeHtml(id)}" aria-pressed="${(eventFilter || "") === id}">${escapeHtml(label)}${n != null ? ` <small>${n}</small>` : ""}</button>`;
   box.hidden = false;
-  box.innerHTML = chip("", T("All", "అన్నీ"), null) + POOL_MAIN.filter(id => names[id]).map(id => chip(id, T(names[id].en, names[id].te), counts[id])).join("");
+  box.innerHTML = chip("", t("All"), null) + POOL_MAIN.filter(id => names[id]).map(id => chip(id, T(names[id].en, names[id].te), counts[id])).join("");
 }
 el("mfEventFilter")?.addEventListener("click", e => {
   const b = e.target.closest("[data-event]");
@@ -443,12 +439,12 @@ async function findMuhurtas() {
   eventFilter = null;
   updateMore();
   if (!chosenPlace || (!startDate && !poolMode)) {
-    setStatus(currentLang === "te" ? "దయచేసి తేదీ మరియు ప్రాంతం ఎంచుకోండి." : "Pick a start date and a place first.", true);
+    setStatus(t("Pick a start date and a place first."), true);
     return;
   }
   const endDate = el("mfEndDate")?.value || "";
   if (endDate && startDate && endDate < startDate) {
-    setStatus(T("The end date is before the start date.", "ముగింపు తేదీ ప్రారంభ తేదీ కంటే ముందుంది."), true);
+    setStatus(t("The end date is before the start date."), true);
     return;
   }
   const lat = chosenPlace.lat, lon = chosenPlace.lon, tz_offset = chosenPlace.tz_offset, place_name = chosenPlace.label;
@@ -459,9 +455,8 @@ async function findMuhurtas() {
     const missing = missingRequired();
     if (missing.length) {
       const go = await AppShell.confirm(
-        T(`These details are not given:\n${missing.map(m => "• " + m.text).join("\n")}\n\nThe checks that need them will be left out of the results.`,
-          `ఈ వివరాలు ఇవ్వలేదు:\n${missing.map(m => "• " + m.text).join("\n")}\n\nవాటి అవసరమైన పరిశీలనలు ఫలితాల్లో ఉండవు.`),
-        { ok: T("Search anyway", "అలాగే శోధించు"), cancel: T("Fill them in", "వివరాలు ఇస్తాను") });
+        t("These details are not given:\n{n}\n\nThe checks that need them will be left out of the results.", { n: missing.map(m => "• " + m.text).join("\n") }),
+        { ok: t("Search anyway"), cancel: t("Fill them in") });
       if (!go) {
         const card = document.querySelector(`#mfParticipants .person-card[data-role="${missing[0].role}"]`);
         if (card) { card.open = true; card.scrollIntoView({ behavior: "smooth", block: "center" }); card.querySelector("select, input")?.focus({ preventScroll: true }); }
@@ -483,7 +478,7 @@ async function findMuhurtas() {
   el("mfResults").style.display = "none";
   el("progressSection").style.display = "block";
   el("progressFill").style.width = "10%";
-  el("progressText").textContent = currentLang === "te" ? `${days} రోజుల ముహూర్త శోధన జరుగుతోంది...` : `Scanning ${days} days for auspicious Muhurtas...`;
+  el("progressText").textContent = t("Scanning {days} days for auspicious Muhurtas...", { days: days });
   setStatus("");
 
   try {
@@ -500,7 +495,7 @@ async function findMuhurtas() {
     if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
 
     el("progressFill").style.width = "100%";
-    el("progressText").textContent = currentLang === "te" ? "పూర్తయింది! ✓" : "Complete! ✓";
+    el("progressText").textContent = t("Complete! ✓");
 
     const data = await res.json();
     if (data.candidates && data.candidates.length > 0) {

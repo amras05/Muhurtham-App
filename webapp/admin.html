@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261121a">
+  <link rel="stylesheet" href="css/common.css?v=20261121b">
   <link rel="stylesheet" href="css/portal.css?v=20261113p">
-  <title>Dashboard · Gayatri Jyotirnidhi</title>
+  <title>Dashboard · Gayathri Jyothirnidhe</title>
 </head>
 <body>
   <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -23,45 +23,46 @@
     <!-- Admin and super admin get different dashboards (13 Nov 2026). No panchang here: it has its own
          "Today's Panchang" page in the menu. admin.js fills the role-specific parts. -->
     <header class="dash-head">
-      <h1 class="portal__title"><span id="dashTitle" data-en="Dashboard" data-te="డాష్‌బోర్డ్">Dashboard</span> <span id="roleBadge" class="role-badge"></span></h1>
+      <h1 class="portal__title"><span id="dashTitle" data-i18n>Dashboard</span> <span id="roleBadge" class="role-badge"></span></h1>
       <p class="portal-hint" id="dashLede"></p>
     </header>
 
     <div id="announcements" class="announcements" aria-live="polite"></div>
 
     <section aria-labelledby="sysTitle" class="portal-section" id="systemSection" hidden>
-      <h2 id="sysTitle" class="portal-h2" data-en="System health" data-te="వ్యవస్థ స్థితి">System health</h2>
+      <h2 id="sysTitle" class="portal-h2" data-i18n>System health</h2>
       <div class="sys-grid" id="system"><span class="skeleton skeleton--tile" aria-hidden="true"></span><span class="skeleton skeleton--tile" aria-hidden="true"></span><span class="skeleton skeleton--tile" aria-hidden="true"></span></div>
     </section>
 
     <section aria-labelledby="cTitle" class="portal-section">
-      <h2 id="cTitle" class="portal-h2" data-en="People and use" data-te="వినియోగదారులు · వినియోగం">People and use</h2>
+      <h2 id="cTitle" class="portal-h2" data-i18n>People and use</h2>
       <div class="stat-grid" id="stats"><span class="skeleton skeleton--tile" aria-hidden="true"></span><span class="skeleton skeleton--tile" aria-hidden="true"></span><span class="skeleton skeleton--tile" aria-hidden="true"></span><span class="skeleton skeleton--tile" aria-hidden="true"></span></div>
     </section>
 
     <div class="portal-two">
       <section class="portal-card" aria-labelledby="aTitle">
-        <h2 id="aTitle" data-en="Needs attention" data-te="గమనించవలసినవి">Needs attention</h2>
+        <h2 id="aTitle" data-i18n>Needs attention</h2>
         <ul class="attention" id="attention"><li><span class="skeleton" role="status" aria-label="Loading"></span></li></ul>
       </section>
       <section class="portal-card" aria-labelledby="rTitle">
-        <h2 id="rTitle"><span data-en="Recent activity" data-te="ఇటీవలి కార్యకలాపాలు">Recent activity</span> <small id="scopeNote" class="portal-hint"></small></h2>
+        <h2 id="rTitle"><span data-i18n>Recent activity</span> <small id="scopeNote" class="portal-hint"></small></h2>
         <ul class="activity" id="activity"><li><span class="skeleton" role="status" aria-label="Loading"></span></li></ul>
       </section>
     </div>
 
     <section aria-labelledby="tTitle" class="portal-section">
-      <h2 id="tTitle" class="portal-h2" data-en="Tools" data-te="సాధనాలు">Tools</h2>
+      <h2 id="tTitle" class="portal-h2" data-i18n>Tools</h2>
       <div class="portal-grid" id="tools"></div>
     </section>
   </main>
   <script src="js/config.js"></script>
-  <script src="js/site-config.js?v=20261121a"></script>
-  <script src="js/icons.js?v=20261110"></script>
-  <script src="js/app-shell.js?v=20261110"></script>
-  <script src="js/i18n.js?v=20261114c"></script>
-  <script src="js/auth.js?v=20261119a"></script>
+  <script src="js/site-config.js?v=20261122a"></script>
+  <script src="js/icons.js?v=20261122a"></script>
+  <script src="js/app-shell.js?v=20261122a"></script>
+  <script src="i18n/te.js?v=20261122a"></script>
+  <script src="js/i18n.js?v=20261122a"></script>
+  <script src="js/auth.js?v=20261122a"></script>
   <script src="js/announcements.js"></script>
-  <script src="js/admin.js?v=20261114d"></script>
+  <script src="js/admin.js?v=20261122a"></script>
 </body>
 </html>

@@ -9,7 +9,7 @@
 
 function eventTitle() {
   const rule = currentRule();
-  return T(rule?.title_en || lastData?.title_en || "Muhurta", rule?.title_te || lastData?.title_te || "ముహూర్తం");
+  return (rule?.title_en || lastData?.title_en) ? pickLang(rule?.title_en || lastData?.title_en, rule?.title_te || lastData?.title_te) : t("Muhurta");
 }
 
 function placeName() {
@@ -24,7 +24,7 @@ function downloadDetailPdf(btn) {
   box.querySelectorAll(".pa-panel").forEach(n => {
     n.hidden = false;
     const tab = PA_TABS.find(t => `paPanel_${t[0]}` === n.id);
-    if (tab) n.insertAdjacentHTML("afterbegin", `<h3 class="pa-panel__print-title">${escapeHtml(T(tab[1], tab[2]))}</h3>`);
+    if (tab) n.insertAdjacentHTML("afterbegin", `<h3 class="pa-panel__print-title">${escapeHtml(t(tab[1]))}</h3>`);
   });
   PdfDownload.fromElement(box, {
     kind: "muhurta",
@@ -35,12 +35,12 @@ function downloadDetailPdf(btn) {
 }
 
 function downloadListPdf(btn) {
-  let kind = "results", title = `${eventTitle()} · ${T("muhurtas found", "లభించిన ముహూర్తాలు")}`;
+  let kind = "results", title = `${eventTitle()} · ${t("muhurtas found")}`;
   if (currentCategory === "yogas") {
-    kind = "yogas"; title = T("Special yogas", "ప్రత్యేక యోగాలు");
+    kind = "yogas"; title = t("Special yogas");
   } else if (currentCategory === "pitru" && pitruCalendarOn) {
     const m = el("mfPitruMode");
-    kind = "pitru"; title = `${T("Shraddha calendar", "శ్రాద్ధ తిథి నిర్ణయం")} · ${m ? m.options[m.selectedIndex].text : ""}`;
+    kind = "pitru"; title = `${t("Shraddha calendar")} · ${m ? m.options[m.selectedIndex].text : ""}`;
   }
   const box = document.createElement("div");
   const status = el("mfStatus")?.textContent.trim();
@@ -49,7 +49,7 @@ function downloadListPdf(btn) {
   const start = el("startDate")?.value || "";
   PdfDownload.fromElement(box, {
     kind, title,
-    subtitle: [placeName(), kind === "pitru" ? "" : start && T(`from ${start}`, `${start} నుండి`)].filter(Boolean).join(" · "),
+    subtitle: [placeName(), kind === "pitru" ? "" : start && t("from {start}", { start: start })].filter(Boolean).join(" · "),
     filename: PdfDownload.fileName(kind === "results" ? lastData?.activity_id : kind, start),
   }, btn);
 }
@@ -69,8 +69,8 @@ function requestForSaving() {
   return req;
 }
 
-const PITRU_MODE_NAMES = { annual: ["Yearly shraddha", "వార్షిక శ్రాద్ధం"], after_death: ["Rites after a death", "మరణానంతర కర్మలు"],
-                           shannavati: ["96 shraddha days", "96 శ్రాద్ధ దినాలు"] };
+const PITRU_MODE_NAMES = { annual: ["Yearly shraddha"], after_death: ["Rites after a death"],
+                           shannavati: ["96 shraddha days"] };
 
 // Special Yogas / Shraddha calendar results on screen (plan F2): what to save, and its name.
 // A death date is personal, so it is saved only when the person says yes.
@@ -78,18 +78,17 @@ async function toolSearchForSaving() {
   const req = JSON.parse(JSON.stringify(lastToolSearch.request));
   if (lastToolSearch.kind === "yogas") {
     return { kind: "yogas", request: req,
-             label: [T("Special yogas", "విశేష యోగాలు"), T(`from ${req.start_date}`, `${req.start_date} నుండి`), req.place_name].filter(Boolean).join(" · ") };
+             label: [t("Special yogas"), t("from {start_date}", { start_date: req.start_date }), req.place_name].filter(Boolean).join(" · ") };
   }
   const m = PITRU_MODE_NAMES[req.mode] || [req.mode, req.mode];
   if (req.death_date && !(await AppShell.confirm(
-        T("Also save the date and time of death? If you don't, you enter them again when you run this search.",
-          "మరణ తేదీ, సమయం కూడా భద్రపరచాలా? వద్దంటే, మళ్లీ శోధించినప్పుడు మళ్లీ నమోదు చేయాలి."),
-        { ok: T("Save them", "భద్రపరచు"), cancel: T("Don't save them", "భద్రపరచవద్దు") }))) {
+        t("Also save the date and time of death? If you don't, you enter them again when you run this search."),
+        { ok: t("Save them"), cancel: t("Don't save them") }))) {
     delete req.death_date;
     delete req.death_time;
   }
   return { kind: "pitru", request: req,
-           label: [T(m[0], m[1]), req.mode === "shannavati" ? String(req.year) : "", req.place_name].filter(Boolean).join(" · ") };
+           label: [t(m), req.mode === "shannavati" ? String(req.year) : "", req.place_name].filter(Boolean).join(" · ") };
 }
 
 async function saveSearch(btn, withWindow) {
@@ -98,9 +97,9 @@ async function saveSearch(btn, withWindow) {
     ({ kind, request: req, label } = await toolSearchForSaving());
   } else {
     req = requestForSaving();
-    if (!req) { AppShell.toast(T("Run a search first.", "ముందు శోధించండి."), "error"); return; }
+    if (!req) { AppShell.toast(t("Run a search first."), "error"); return; }
     r = withWindow ? lastData?.results?.[openDayIdx] : null;
-    label = [eventTitle(), r ? r.date + (r.window_start ? " " + String(r.window_start).slice(0, 5) : "") : T(`from ${req.start_date}`, `${req.start_date} నుండి`),
+    label = [eventTitle(), r ? r.date + (r.window_start ? " " + String(r.window_start).slice(0, 5) : "") : t("from {start_date}", { start_date: req.start_date }),
              req.place_name].filter(Boolean).join(" · ");
   }
   btn.disabled = true;
@@ -109,8 +108,8 @@ async function saveSearch(btn, withWindow) {
       body: JSON.stringify({ kind, label: label.slice(0, 120), request: req, chosen_window: r || null }) });
     const d = await res.json().catch(() => null);
     if (!res.ok) throw new Error((d && typeof d.detail === "string" && d.detail) || `HTTP ${res.status}`);
-    AppShell.toast(T(`Saved as "${d.label}". Find it under My muhurtas.`, `"${d.label}" గా భద్రపరిచాము. 'నా ముహూర్తాలు'లో చూడండి.`), "success");
-  } catch (e) { AppShell.toast(T("Couldn't save: ", "భద్రపరచలేకపోయాము: ") + e.message, "error"); }
+    AppShell.toast(t("Saved as \"{label}\". Find it under My muhurtas.", { label: d.label }), "success");
+  } catch (e) { AppShell.toast(t("Couldn't save: ") + e.message, "error"); }
   finally { btn.disabled = false; }
 }
 
@@ -128,7 +127,7 @@ async function openSavedSearch(id) {
     const req = d.request || {};
     if (d.kind === "yogas" || d.kind === "pitru") return await openSavedToolSearch(d);
     const rule = allMuhurtaRules.find(x => x.id === req.activity_id);
-    if (!rule) throw new Error(T("This muhurta is not available now.", "ఈ ముహూర్తం ఇప్పుడు అందుబాటులో లేదు."));
+    if (!rule) throw new Error(t("This muhurta is not available now."));
     (req.participants || []).forEach(p => {
       participantState[p.role] = { ...p, mode: "star", eldest: !!p.eldest };
     });
@@ -142,16 +141,16 @@ async function openSavedSearch(id) {
     if (req.lat != null && req.lon != null) setPlace({ label: req.place_name || "", lat: req.lat, lon: req.lon, tz_offset: req.tz_offset }, false);
     Object.entries(SAVED_FIELD_IDS).forEach(([k, fid]) => { if (req[k] && el(fid)) el(fid).value = req[k]; });
     if (req.main_event_date) ["mfMainEventDate", "mfDeathDate"].forEach(fid => { if (el(fid)) el(fid).value = req.main_event_date; });
-    setStatus(T(`Opened "${d.label}".`, `"${d.label}" తెరిచాము.`) + (d.engine_changed ? " " + T("The app has been updated since you saved this, so results may differ.", "భద్రపరిచిన తర్వాత యాప్ నవీకరించబడింది; ఫలితాలు మారవచ్చు.") : ""));
+    setStatus(t("Opened \"{label}\".", { label: d.label }) + (d.engine_changed ? " " + t("The app has been updated since you saved this, so results may differ.") : ""));
     findMuhurtas();
-  } catch (e) { setStatus(T("Couldn't open the saved muhurta: ", "భద్రపరిచిన ముహూర్తం తెరవలేకపోయాము: ") + e.message, true); }
+  } catch (e) { setStatus(t("Couldn't open the saved muhurta: ") + e.message, true); }
 }
 
 // A saved Special Yogas or Shraddha calendar search (plan F2): fill its tab and run it again.
 async function openSavedToolSearch(d) {
   const req = d.request || {};
-  const opened = T(`Opened "${d.label}".`, `"${d.label}" తెరిచాము.`) +
-    (d.engine_changed ? " " + T("The app has been updated since you saved this, so results may differ.", "భద్రపరిచిన తర్వాత యాప్ నవీకరించబడింది; ఫలితాలు మారవచ్చు.") : "");
+  const opened = t("Opened \"{label}\".", { label: d.label }) +
+    (d.engine_changed ? " " + t("The app has been updated since you saved this, so results may differ.") : "");
   if (req.lat != null && req.lon != null) setPlace({ label: req.place_name || "", lat: req.lat, lon: req.lon, tz_offset: req.tz_offset }, false);
   if (d.kind === "yogas") {
     onCategoryChange("yogas");
@@ -166,7 +165,7 @@ async function openSavedToolSearch(d) {
     return findMuhurtas();
   }
   onCategoryChange("pitru");
-  if (el("mfPitruTabCal")?.hidden) throw new Error(T("The shraddha calendar is not available now.", "శ్రాద్ధ పంచాంగం ఇప్పుడు అందుబాటులో లేదు."));
+  if (el("mfPitruTabCal")?.hidden) throw new Error(t("The shraddha calendar is not available now."));
   setPitruMode(true);
   el("mfPitruMode").value = req.mode;
   updatePitruFields();
@@ -175,7 +174,7 @@ async function openSavedToolSearch(d) {
   if (req.years) el("mfPitruYears").value = req.years;
   if (req.year) el("mfPitruYear").value = req.year;
   if (req.mode !== "shannavati" && !req.death_date) {
-    setStatus(opened + " " + T("The date of death was not saved: enter it and press Search.", "మరణ తేదీ భద్రపరచలేదు: నమోదు చేసి శోధించండి."));
+    setStatus(opened + " " + t("The date of death was not saved: enter it and press Search."));
     el("mfPitruDeathDate").focus();
     return;
   }

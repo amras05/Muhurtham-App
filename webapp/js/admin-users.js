@@ -2,13 +2,12 @@
 // several at once; adding people with a password and setting passwords (21 Nov 2026: admins add users,
 // super admins also admins, the owner also super admins; the owner account is managed by nobody else).
 (function () {
-  function tr(en, te) { return currentLang === "te" ? te : en; }
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   var rows = [], selected = {}, canCreate = false, createRoles = ["user"], roleChoices = ["user", "admin"];
-  var ROLE = { user: ["User", "వినియోగదారు"], admin: ["Admin", "నిర్వాహకులు"], super_admin: ["Super admin", "ప్రధాన నిర్వాహకులు"] };
-  var STATUS = { active: ["Active", "సక్రియం"], disabled: ["Disabled", "నిలిపివేయబడింది"], pending: ["Sign-up not finished", "నమోదు పూర్తి కాలేదు"],
-                 invited: ["Invited", "ఆహ్వానించబడ్డారు"] };
+  var ROLE = { user: "User", admin: "Admin", super_admin: "Super admin" };
+  var STATUS = { active: "Active", disabled: "Disabled", pending: "Sign-up not finished",
+                 invited: "Invited" };
 
   function say(kind, text) { var b = $("usersMsg"); b.hidden = false; b.className = "auth-alert auth-alert--" + kind; b.textContent = text; b.scrollIntoView({ block: "nearest" }); }
 
@@ -19,48 +18,48 @@
     return data;
   }
 
-  function when(iso) { return iso ? new Date(iso).toLocaleString([], { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : tr("Never", "ఎప్పుడూ లేదు"); }
-  function link(act, id, en, te, extra) { return '<button type="button" class="linkish" data-act="' + act + '" data-id="' + id + '"' + (extra || "") + ">" + tr(en, te) + "</button>"; }
+  function when(iso) { return iso ? new Date(iso).toLocaleString([], { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : t("Never"); }
+  function link(act, id, label, extra) { return '<button type="button" class="linkish" data-act="' + act + '" data-id="' + id + '"' + (extra || "") + ">" + esc(label) + "</button>"; }
 
   function render() {
-    $("usersCount").textContent = tr(rows.length + " shown", rows.length + " మంది");
+    $("usersCount").textContent = t("{n} shown", { n: rows.length });
     $("addPersonBtn").hidden = !canCreate;
     // Roles this person may give a new account (server: creatable_roles): admins add users, super admins
     // also admins, the owner also super admins (21 Nov 2026).
     var cur = $("apRole").value;
     $("apRole").innerHTML = createRoles.map(function (r) {
-      return '<option value="' + r + '"' + (r === cur ? " selected" : "") + ">" + esc(tr(ROLE[r][0], ROLE[r][1])) + "</option>"; }).join("");
+      return '<option value="' + r + '"' + (r === cur ? " selected" : "") + ">" + esc(t(ROLE[r])) + "</option>"; }).join("");
     $("peopleBody").innerHTML = rows.length ? rows.map(function (p) {
-      var st = STATUS[p.status] || [p.status, p.status];
+      var st = STATUS[p.status] || p.status;
       var acts = [];
-      if (p.can_manage && p.status === "active") acts.push(link("disable", p.id, "Disable", "నిలిపివేయండి"));
-      if (p.can_manage && p.status === "disabled") acts.push(link("enable", p.id, "Enable", "ప్రారంభించండి"));
+      if (p.can_manage && p.status === "active") acts.push(link("disable", p.id, t("Disable")));
+      if (p.can_manage && p.status === "disabled") acts.push(link("enable", p.id, t("Enable")));
       if (p.can_change_role) roleChoices.filter(function (r) { return r !== p.role; }).forEach(function (r) {
-        acts.push(link("role", p.id, "Make " + ROLE[r][0].toLowerCase(), ROLE[r][1] + "గా చేయండి", ' data-role="' + r + '"'));
+        acts.push(link("role", p.id, t({ user: "Make user", admin: "Make admin", super_admin: "Make super admin" }[r] || r), ' data-role="' + r + '"'));
       });
-      if (p.can_set_password) acts.push(link("password", p.id, "Set password", "పాస్‌వర్డ్ పెట్టండి"));
-      if (p.can_edit) acts.push(link("edit", p.id, "Edit", "మార్చండి"));
-      if (p.can_set_perms) acts.push(link("perms", p.id, "Permissions", "అధికారాలు"));
-      if (p.can_delete) acts.push(link("delete", p.id, "Delete", "తొలగించండి"));
-      var box = p.can_manage ? '<input type="checkbox" data-sel="' + p.id + '"' + (selected[p.id] ? " checked" : "") + ' aria-label="' + esc(tr("Select ", "ఎంచుకోండి ") + p.name) + '">' : "";
-      return '<tr data-row="' + p.id + '"><td>' + box + "</td><td><strong>" + esc(p.name) + "</strong><small>" + tr(p.devices + " device(s) signed in", p.devices + " పరికరాల్లో లాగిన్") + "</small></td>" +
-        '<td><span class="mob">' + esc(p.mobile_masked) + "</span> " + link("reveal", p.id, "Show", "చూపించు") + "</td>" +
+      if (p.can_set_password) acts.push(link("password", p.id, t("Set password")));
+      if (p.can_edit) acts.push(link("edit", p.id, t("Edit")));
+      if (p.can_set_perms) acts.push(link("perms", p.id, t("Permissions")));
+      if (p.can_delete) acts.push(link("delete", p.id, t("Delete")));
+      var box = p.can_manage ? '<input type="checkbox" data-sel="' + p.id + '"' + (selected[p.id] ? " checked" : "") + ' aria-label="' + esc(t("Select {name}", { name: p.name })) + '">' : "";
+      return '<tr data-row="' + p.id + '"><td>' + box + "</td><td><strong>" + esc(p.name) + "</strong><small>" + t("{n} device(s) signed in", { n: p.devices }) + "</small></td>" +
+        '<td><span class="mob">' + esc(p.mobile_masked) + "</span> " + link("reveal", p.id, t("Show")) + "</td>" +
         // The owner shows as a plain super admin (user, 21 Nov 2026); it is still protected on the server.
-        "<td>" + esc(tr(ROLE[p.role][0], ROLE[p.role][1])) + "</td>" +
-        '<td><span class="status-chip status-chip--' + p.status + '">' + esc(tr(st[0], st[1])) + "</span>" +
-        (p.locked ? ' <span class="status-chip status-chip--locked">' + tr("Locked", "లాక్") + "</span>" : "") +
+        "<td>" + esc(t(ROLE[p.role])) + "</td>" +
+        '<td><span class="status-chip status-chip--' + p.status + '">' + esc(t(st)) + "</span>" +
+        (p.locked ? ' <span class="status-chip status-chip--locked">' + t("Locked") + "</span>" : "") +
         (p.disabled_reason ? "<small>" + esc(p.disabled_reason) + "</small>" : "") + "</td>" +
-        "<td>" + esc(when(p.last_login_at)) + "<small>" + tr(p.login_count + " logins", p.login_count + " లాగిన్లు") + "</small></td>" +
+        "<td>" + esc(when(p.last_login_at)) + "<small>" + t("{n} logins", { n: p.login_count }) + "</small></td>" +
         '<td class="acts">' + (acts.length ? acts.join("<br>") : "<small>—</small>") + "</td></tr>";
-    }).join("") : '<tr><td colspan="7" class="empty-state">' + tr("No one matches.", "ఎవరూ సరిపోలలేదు.") + "</td></tr>";
+    }).join("") : '<tr><td colspan="7" class="empty-state">' + t("No one matches.") + "</td></tr>";
     renderBulk();
   }
 
   function renderBulk() {
     var ids = Object.keys(selected);
     $("bulkBar").hidden = ids.length === 0;
-    $("bulkCount").textContent = tr(ids.length + " selected", ids.length + " మంది ఎంచుకున్నారు");
-    $("bulkReason").placeholder = tr("Reason for disabling", "నిలిపివేయడానికి కారణం");
+    $("bulkCount").textContent = t("{n} selected", { n: ids.length });
+    $("bulkReason").placeholder = t("Reason for disabling");
     var manageable = rows.filter(function (p) { return p.can_manage; });
     $("selAll").checked = manageable.length > 0 && manageable.every(function (p) { return selected[p.id]; });
   }
@@ -89,31 +88,29 @@
     dlgMode = mode; dlgId = p ? p.id : null;
     $("personForm").reset(); dlgError("");
     var add = mode === "add", pwOnly = mode === "password";
-    $("pdTitle").textContent = add ? tr("Add a person", "వ్యక్తిని జోడించండి")
-      : pwOnly ? tr("Set password for " + p.name, p.name + " కు పాస్‌వర్డ్ పెట్టండి")
-      : tr("Edit " + p.name, p.name + " వివరాలు మార్చండి");
+    $("pdTitle").textContent = add ? t("Add a person")
+      : pwOnly ? t("Set password for {name}", { name: p.name })
+      : t("Edit {name}", { name: p.name });
     $("pdHint").textContent = add
-      ? tr("They can log in straight away with this mobile and password.", "ఈ మొబైల్, పాస్‌వర్డ్‌తో వెంటనే లాగిన్ అవ్వచ్చు.")
-      : pwOnly ? tr("They are signed out on every device and log in again with the new password (mobile " + p.mobile_masked + ").",
-                    "అన్ని పరికరాల నుండి సైన్ అవుట్ అవుతారు; కొత్త పాస్‌వర్డ్‌తో మళ్ళీ లాగిన్ అవుతారు (మొబైల్ " + p.mobile_masked + ").")
-      : tr("Current mobile " + p.mobile_masked + ". A new mobile signs them out until they confirm it with a WhatsApp code.",
-           "ప్రస్తుత మొబైల్ " + p.mobile_masked + ". కొత్త మొబైల్ ఇస్తే వాట్సాప్ కోడ్‌తో నిర్ధారించే వరకు సైన్ అవుట్ అవుతారు.");
+      ? t("They can log in straight away with this mobile and password.")
+      : pwOnly ? t("They are signed out on every device and log in again with the new password (mobile {mobile}).", { mobile: p.mobile_masked })
+      : t("Current mobile {mobile}. A new mobile signs them out until they confirm it with a WhatsApp code.", { mobile: p.mobile_masked });
     $("pdPerson").hidden = pwOnly;
     document.querySelectorAll("#personForm .pf-pass__toggle").forEach(function (b) {
-      $(b.getAttribute("data-for")).type = "password"; b.setAttribute("aria-pressed", "false"); b.textContent = tr("Show", "చూపించు");
+      $(b.getAttribute("data-for")).type = "password"; b.setAttribute("aria-pressed", "false"); b.textContent = t("Show");
     });
-    $("pdPhoneLabel").textContent = add ? tr("Mobile", "మొబైల్") : tr("New mobile (leave empty to keep)", "కొత్త మొబైల్ (మార్చకపోతే ఖాళీగా)");
+    $("pdPhoneLabel").textContent = add ? t("Mobile") : t("New mobile (leave empty to keep)");
     $("apPhone").required = add;
     $("pdRoleField").hidden = !add;
     $("pdPasswords").hidden = !(add || pwOnly);
     $("apPass").required = add || pwOnly; $("apPass2").required = add || pwOnly;
     var keep = $("apLang").querySelector('option[value=""]');
     if (add && keep) keep.remove();
-    if (!add && !keep) $("apLang").insertAdjacentHTML("afterbegin", '<option value="">' + esc(tr("Keep as it is", "మార్చవద్దు")) + "</option>");
+    if (!add && !keep) $("apLang").insertAdjacentHTML("afterbegin", '<option value="">' + esc(t("Keep as it is")) + "</option>");
     $("apLang").value = add ? "te" : "";
     if (!add) $("apName").value = p.name;
-    $("pdSubmit").textContent = add ? tr("Add", "జోడించండి") : pwOnly ? tr("Set password", "పాస్‌వర్డ్ పెట్టండి") : tr("Save", "భద్రపరచండి");
-    $("pdClose").setAttribute("aria-label", tr("Close", "మూసివేయండి"));
+    $("pdSubmit").textContent = add ? t("Add") : pwOnly ? t("Set password") : t("Save");
+    $("pdClose").setAttribute("aria-label", t("Close"));
     $("personDialog").showModal();
     $(pwOnly ? "apPass" : "apName").focus();
   }
@@ -127,21 +124,21 @@
     var inp = $(b.getAttribute("data-for")), show = inp.type === "password";
     inp.type = show ? "text" : "password";
     b.setAttribute("aria-pressed", String(show));
-    b.textContent = show ? tr("Hide", "దాచు") : tr("Show", "చూపించు");
+    b.textContent = show ? t("Hide") : t("Show");
     inp.focus();
   });
   // The dialog checks the fields itself (novalidate), so the message shows inside it, in the chosen language.
   function dlgInvalid() {
     var add = dlgMode === "add";
     if (dlgMode === "password") {
-      if ($("apPass").value.length < 8) return [$("apPass"), tr("The password must be at least 8 characters.", "పాస్‌వర్డ్ కనీసం 8 అక్షరాలు ఉండాలి.")];
-      if ($("apPass").value !== $("apPass2").value) return [$("apPass2"), tr("The two passwords do not match.", "రెండు పాస్‌వర్డ్‌లు సరిపోలలేదు.")];
+      if ($("apPass").value.length < 8) return [$("apPass"), t("The password must be at least 8 characters.")];
+      if ($("apPass").value !== $("apPass2").value) return [$("apPass2"), t("The two passwords do not match.")];
       return null;
     }
-    if ($("apName").value.trim().length < 2) return [$("apName"), tr("Enter the full name (at least 2 letters).", "పూర్తి పేరు ఇవ్వండి (కనీసం 2 అక్షరాలు).")];
-    if (add && !$("apPhone").value.trim()) return [$("apPhone"), tr("Enter the mobile number.", "మొబైల్ నంబర్ ఇవ్వండి.")];
-    if (add && $("apPass").value.length < 8) return [$("apPass"), tr("The password must be at least 8 characters.", "పాస్‌వర్డ్ కనీసం 8 అక్షరాలు ఉండాలి.")];
-    if (add && $("apPass").value !== $("apPass2").value) return [$("apPass2"), tr("The two passwords do not match.", "రెండు పాస్‌వర్డ్‌లు సరిపోలలేదు.")];
+    if ($("apName").value.trim().length < 2) return [$("apName"), t("Enter the full name (at least 2 letters).")];
+    if (add && !$("apPhone").value.trim()) return [$("apPhone"), t("Enter the mobile number.")];
+    if (add && $("apPass").value.length < 8) return [$("apPass"), t("The password must be at least 8 characters.")];
+    if (add && $("apPass").value !== $("apPass2").value) return [$("apPass2"), t("The two passwords do not match.")];
     return null;
   }
   $("personForm").addEventListener("submit", async function (e) {
@@ -153,14 +150,12 @@
     try {
       if (dlgMode === "password") {
         var po = await api("POST", "/admin/people/" + dlgId + "/password", { password: $("apPass").value, confirm_password: $("apPass2").value });
-        say("info", tr("Password set. They were signed out of " + po.signed_out_devices + " device(s) and log in with the new password.",
-                       "పాస్‌వర్డ్ పెట్టాము. " + po.signed_out_devices + " పరికరాల నుండి సైన్ అవుట్ చేశాము; కొత్త పాస్‌వర్డ్‌తో లాగిన్ అవుతారు."));
+        say("info", t("Password set. They were signed out of {n} device(s) and log in with the new password.", { n: po.signed_out_devices }));
       } else if (dlgMode === "add") {
         await api("POST", "/admin/people", { name: $("apName").value.trim(), phone: $("apPhone").value.trim(),
                                              role: $("apRole").value, preferred_language: $("apLang").value,
                                              password: $("apPass").value, confirm_password: $("apPass2").value });
-        say("info", tr("Added. They can log in now with this mobile and the password you set.",
-                       "జోడించాము. ఈ మొబైల్, మీరు పెట్టిన పాస్‌వర్డ్‌తో ఇప్పుడే లాగిన్ అవ్వచ్చు."));
+        say("info", t("Added. They can log in now with this mobile and the password you set."));
         $("fStatus").value = "";
       } else {
         var body = { name: $("apName").value.trim() };
@@ -168,8 +163,8 @@
         if ($("apLang").value) body.preferred_language = $("apLang").value;
         var out = await api("PUT", "/admin/people/" + dlgId, body);
         say("info", out.needs_confirmation
-          ? tr("Saved. They are signed out and must confirm the new number: login page → \"Forgot password\".", "భద్రపరిచాము. వారు సైన్ అవుట్ అయ్యారు; కొత్త నంబర్‌ను 'పాస్‌వర్డ్ మర్చిపోయారా' ద్వారా నిర్ధారించుకోవాలి.")
-          : tr("Saved.", "భద్రపరిచాము."));
+          ? t("Saved. They are signed out and must confirm the new number: login page → \"Forgot password\".")
+          : t("Saved."));
       }
       $("personDialog").close();
       load();
@@ -194,11 +189,11 @@
     if (!act) return;
     if (act === "clear") { selected = {}; render(); return; }
     var reason = $("bulkReason").value.trim();
-    if (act === "disable" && reason.length < 3) { say("error", tr("Write a reason (at least 3 letters) before disabling.", "నిలిపివేసే ముందు కారణం రాయండి (కనీసం 3 అక్షరాలు).")); $("bulkReason").focus(); return; }
+    if (act === "disable" && reason.length < 3) { say("error", t("Write a reason (at least 3 letters) before disabling.")); $("bulkReason").focus(); return; }
     try {
       var out = await api("POST", "/admin/people/bulk", { ids: Object.keys(selected), action: act, reason: act === "disable" ? reason : undefined });
-      var msg = tr(out.done.length + " done.", out.done.length + " పూర్తయ్యాయి.");
-      if (out.skipped.length) msg += " " + tr(out.skipped.length + " skipped: ", out.skipped.length + " వదిలేశాము: ") +
+      var msg = t("{n} done.", { n: out.done.length });
+      if (out.skipped.length) msg += " " + t("{n} skipped:", { n: out.skipped.length }) + " " +
         out.skipped.map(function (s) { var p = rows.find(function (x) { return x.id === s.id; }); return (p ? p.name : s.id) + " (" + s.why + ")"; }).join("; ");
       say(out.skipped.length ? "error" : "info", msg);
       selected = {}; $("bulkReason").value = ""; load();
@@ -210,7 +205,7 @@
     var cell = row.querySelector(".acts");
     var old = cell.querySelector(".row-form");
     if (old) old.remove();
-    cell.insertAdjacentHTML("beforeend", '<form class="row-form">' + html + ' <button type="button" class="linkish" data-act="cancel">' + tr("Cancel", "రద్దు") + "</button></form>");
+    cell.insertAdjacentHTML("beforeend", '<form class="row-form">' + html + ' <button type="button" class="linkish" data-act="cancel">' + t("Cancel") + "</button></form>");
     var f = cell.querySelector(".row-form");
     var first = f.querySelector("input"); if (first) first.focus();
     return f;
@@ -225,24 +220,36 @@
     if (act === "reveal") {
       try { var r = await api("GET", "/admin/people/" + id + "/mobile"); row.querySelector(".mob").textContent = r.mobile; e.target.remove(); }
       catch (err) { say("error", err.message); }
-    } else if (act === "disable") {
-      var f = rowForm(row, '<input required minlength="3" maxlength="200" placeholder="' + esc(tr("Reason (shown to admins)", "కారణం (నిర్వాహకులకు కనిపిస్తుంది)")) +
-        '"><button class="btn btn--sm">' + tr("Disable", "నిలిపివేయండి") + "</button>");
-      f.addEventListener("submit", async function (ev) {
-        ev.preventDefault();
-        try {
-          var out = await api("POST", "/admin/people/" + id + "/disable", { reason: f.querySelector("input").value.trim() });
-          say("info", tr("Disabled. " + out.signed_out_devices + " device(s) signed out.", "నిలిపివేశాము. " + out.signed_out_devices + " పరికరాల నుండి సైన్ అవుట్."));
-          load();
-        } catch (err) { say("error", err.message); }
-      });
-    } else if (act === "enable") {
-      try { await api("POST", "/admin/people/" + id + "/enable"); say("info", tr("Enabled.", "ప్రారంభించాము.")); load(); }
-      catch (err) { say("error", err.message); }
-    } else if (act === "role") {
+    } else if (act === "disable" && p) {
+      // Confirmation dialogs (21 Nov 2026) for disable, role change and delete.
+      var reason = await AppShell.confirm(
+        t("{name} will be signed out on every device and can't log in until enabled again.", { name: p.name }),
+        { title: t("Disable {name}?", { name: p.name }), ok: t("Disable"), danger: true,
+          input: { label: t("Reason (shown to admins)"), minLength: 3, maxLength: 200,
+                   error: t("Write a reason of at least 3 letters.") } });
+      if (reason == null) return;
       try {
-        await api("POST", "/admin/people/" + id + "/role", { role: e.target.getAttribute("data-role") });
-        say("info", tr("Role changed. It applies from their next click.", "పాత్ర మార్చాము. వారి తదుపరి చర్య నుండి అమలవుతుంది."));
+        var out = await api("POST", "/admin/people/" + id + "/disable", { reason: reason });
+        say("info", t("Disabled. {n} device(s) signed out.", { n: out.signed_out_devices }));
+        load();
+      } catch (err) { say("error", err.message); }
+    } else if (act === "enable") {
+      try { await api("POST", "/admin/people/" + id + "/enable"); say("info", t("Enabled.")); load(); }
+      catch (err) { say("error", err.message); }
+    } else if (act === "role" && p) {
+      var newRole = e.target.getAttribute("data-role");
+      var rn = ROLE[newRole] || newRole, cur = ROLE[p.role] || p.role;
+      var what = { user: "They lose the admin pages and keep their own account.",
+                   admin: "They get the admin pages, with the powers set in Settings › What admins may do.",
+                   super_admin: "They get every power, including Settings and managing admins." }[newRole] || "";
+      var okRole = await AppShell.confirm(
+        t("{name}: {from} → {to}. {what} It applies from their next click.", { name: p.name, from: t(cur), to: t(rn), what: what ? t(what) : "" }),
+        { title: t({ user: "Make {name} a user?", admin: "Make {name} an admin?", super_admin: "Make {name} a super admin?" }[newRole] || "Change {name}'s role?", { name: p.name }),
+          ok: t("Change role"), danger: newRole === "super_admin" });
+      if (!okRole) return;
+      try {
+        await api("POST", "/admin/people/" + id + "/role", { role: newRole });
+        say("info", t("Role changed. It applies from their next click."));
         load();
       } catch (err) { say("error", err.message); }
     } else if (act === "password" && p) {
@@ -250,112 +257,110 @@
     } else if (act === "edit" && p) {
       openPersonDialog("edit", p);
     } else if (act === "delete" && p) {
-      var df = rowForm(row,
-        "<small>" + esc(tr("This removes their name, mobile, family details and saved muhurtas. It can't be undone. Type their name to confirm:",
-                           "ఇది వారి పేరు, మొబైల్, కుటుంబ వివరాలు, భద్రపరిచిన ముహూర్తాలను తొలగిస్తుంది. తిరిగి పొందలేము. నిర్ధారించడానికి వారి పేరు టైప్ చేయండి:")) + "</small>" +
-        '<input required maxlength="80" placeholder="' + esc(p.name) + '" aria-label="' + esc(tr("Type the name to confirm", "నిర్ధారణకు పేరు టైప్ చేయండి")) + '">' +
-        '<button class="btn btn--sm btn--danger">' + tr("Delete for good", "శాశ్వతంగా తొలగించండి") + "</button>");
-      df.addEventListener("submit", async function (ev) {
-        ev.preventDefault();
-        try {
-          await api("POST", "/admin/people/" + id + "/delete", { confirm_name: df.querySelector("input").value.trim() });
-          say("info", tr("Deleted. The activity log keeps a record that the account existed.", "తొలగించాము. ఖాతా ఉండేదని కార్యకలాపాల లాగ్‌లో నమోదు ఉంటుంది."));
-          delete selected[id]; load();
-        } catch (err) { say("error", err.message); }
-      });
+      var typed = await AppShell.confirm(
+        t("This removes their name, mobile, family details and saved muhurtas. It can't be undone; the activity log keeps a record that the account existed."),
+        { title: t("Delete {name} for good?", { name: p.name }), ok: t("Delete for good"), danger: true,
+          input: { label: t("Type their name to confirm: {name}", { name: p.name }), placeholder: p.name,
+                   maxLength: 80, mustEqual: p.name, error: t("The name doesn't match. Type it exactly as shown.") } });
+      if (typed == null) return;
+      try {
+        await api("POST", "/admin/people/" + id + "/delete", { confirm_name: typed });
+        say("info", t("Deleted. The activity log keeps a record that the account existed."));
+        delete selected[id]; load();
+      } catch (err) { say("error", err.message); }
     } else if (act === "perms" && p) {
       try {
         var res = await api("GET", "/admin/people/" + id + "/permissions");
         var permMap = {
           // Panchang
-          "panchang.view": ["Today's Panchang (Page Access)", "నేటి పంచాంగం (పేజీ దర్శనం)"],
-          "panchang.change_place": ["Change Location / City", "నగరం / ప్రదేశం మార్చడం"],
-          "panchang.change_date": ["Change Date (Picker & Prev/Next)", "తేదీ మార్చడం (క్యాలెండర్, ముందు/వెనుక)"],
-          "panchang.share": ["Share Panchang (Link, WhatsApp, Image)", "పంచాంగం పంచుకోవడం"],
-          "panchang.export_pdf": ["Download Panchang as PDF", "పంచాంగం PDF డౌన్‌లోడ్"],
-          "panchang.month": ["Switch to Monthly View Link", "మాస పంచాంగం లింక్"],
-          "panchang.find_muhurtha": ["Find Muhurtham CTA Banner", "ముహూర్త శోధన బ్యానర్"],
-          "panchang.live_cards": ["Live Cards (Lagna, Good/Bad Times)", "లైవ్ కార్డులు (లగ్నం, శుభ/అశుభాలు)"],
-          "panchang.angas": ["Principal Angas (Tithi, Nakshatra...)", "పంచాంగ ప్రధానాంగాలు (తిథి, నక్షత్రం...)"],
-          "panchang.timeline": ["24-Hour Day Timeline", "24 గంటల కాల చక్రం"],
-          "panchang.timings": ["Good & Bad Times (Rahu, Yama, Varjyam)", "శుభ & అశుభ సమయాలు (రాహుకాలం...)"],
-          "panchang.ashta_kaalas": ["Dina Ashta Kaalas (8 Divisions)", "దిన అష్ట కాల విభజన (8 కాలాలు)"],
-          "panchang.hora_choghadiya": ["Hora & Choghadiya Tables", "హోర & చోఘడియా పట్టికలు"],
-          "panchang.chandrabalam": ["Chandrabalam for All Rashis", "రాశి వారి చంద్రబలం"],
-          "panchang.lagnas": ["12 Lagnas Detailed Table", "12 లగ్నాల వివరాల పట్టిక"],
-          "panchang.shloka": ["Daily Shloka & Mantra", "నేటి శ్లోకం & మంత్రం"],
+          "panchang.view": "Today's Panchang (Page Access)",
+          "panchang.change_place": "Change Location / City",
+          "panchang.change_date": "Change Date (Picker & Prev/Next)",
+          "panchang.share": "Share Panchang (Link, WhatsApp, Image)",
+          "panchang.export_pdf": "Download Panchang as PDF",
+          "panchang.month": "Switch to Monthly View Link",
+          "panchang.find_muhurtha": "Find Muhurtham CTA Banner",
+          "panchang.live_cards": "Live Cards (Lagna, Good/Bad Times)",
+          "panchang.angas": "Principal Angas (Tithi, Nakshatra...)",
+          "panchang.timeline": "24-Hour Day Timeline",
+          "panchang.timings": "Good & Bad Times (Rahu, Yama, Varjyam)",
+          "panchang.ashta_kaalas": "Dina Ashta Kaalas (8 Divisions)",
+          "panchang.hora_choghadiya": "Hora & Choghadiya Tables",
+          "panchang.chandrabalam": "Chandrabalam for All Rashis",
+          "panchang.lagnas": "12 Lagnas Detailed Table",
+          "panchang.shloka": "Daily Shloka & Mantra",
 
           // Monthly
-          "panchang_month.view": ["Monthly Panchang (Page Access)", "మాస పంచాంగం (పేజీ దర్శనం)"],
-          "panchang_month.navigate": ["Month & Year Navigator", "నెల & సంవత్సరం మార్చడం"],
-          "panchang_month.day_details": ["Day Details Modal / Popover", "రోజు వివరాల పాపప్"],
-          "panchang_month.export_pdf": ["Export Month Calendar as PDF", "నెల క్యాలెండర్ PDF ఎగుమతి"],
-          "panchang_month.festivals": ["Festivals & Vratams Markers", "పండుగలు & వ్రతాల సూచికలు"],
+          "panchang_month.view": "Monthly Panchang (Page Access)",
+          "panchang_month.navigate": "Month & Year Navigator",
+          "panchang_month.day_details": "Day Details Modal / Popover",
+          "panchang_month.export_pdf": "Export Month Calendar as PDF",
+          "panchang_month.festivals": "Festivals & Vratams Markers",
 
           // Muhurtha
-          "muhurta.search": ["Muhurta Finder (Page Access)", "ముహూర్త శోధన (పేజీ దర్శనం)"],
-          "muhurta.select_activity": ["Select Activity & Category", "కార్యక్రమం & వర్గం ఎంపిక"],
-          "muhurta.date_range": ["Custom Date Range Selection", "తేదీల పరిధి ఎంపిక"],
-          "muhurta.time_filters": ["Time Window Filters", "సమయ విండో ఫిల్టర్లు"],
-          "muhurta.participants": ["Participant Birth Charts Matching", "జాతక చక్రాల సరిపోలిక"],
-          "muhurta.audit": ["Muhurtha Parishilana (Quality Audit)", "ముహూర్త పరిశీలన (నాణ్యత విశ్లేషణ)"],
-          "muhurta.save": ["Save Muhurtham to Vault", "ముహూర్తాన్ని భద్రపరచడం"],
-          "muhurta.delete": ["Delete Saved Muhurthams", "భద్రపరిచిన ముహూర్తాల తొలగింపు"],
-          "muhurta.export": ["Export & Share Muhurtham", "ముహూర్తాన్ని పంచుకోవడం / ఎగుమతి"],
+          "muhurta.search": "Muhurta Finder (Page Access)",
+          "muhurta.select_activity": "Select Activity & Category",
+          "muhurta.date_range": "Custom Date Range Selection",
+          "muhurta.time_filters": "Time Window Filters",
+          "muhurta.participants": "Participant Birth Charts Matching",
+          "muhurta.audit": "Muhurtha Parishilana (Quality Audit)",
+          "muhurta.save": "Save Muhurtham to Vault",
+          "muhurta.delete": "Delete Saved Muhurthams",
+          "muhurta.export": "Export & Share Muhurtham",
 
           // Catalog
-          "catalog.view": ["Muhurtas Catalog (Page Access)", "కేటలాగ్ (పేజీ దర్శనం)"],
-          "catalog.browse": ["Browse 106+ Activities", "కార్యక్రమాల బ్రౌజింగ్"],
-          "catalog.search": ["Search & Filter Catalog", "కేటలాగ్ వెతకడం"],
-          "catalog.rules": ["View Activity Rules & Guidelines", "గ్రహ బలాలు & నిబంధనలు చూడడం"],
+          "catalog.view": "Muhurtas Catalog (Page Access)",
+          "catalog.browse": "Browse 106+ Activities",
+          "catalog.search": "Search & Filter Catalog",
+          "catalog.rules": "View Activity Rules & Guidelines",
 
           // Family
-          "family.view": ["Family Vault (Page Access)", "కుటుంబ ఖజానా (పేజీ దర్శనం)"],
-          "family.add": ["Add Family Member", "కుటుంబ సభ్యులను చేర్చడం"],
-          "family.view_details": ["View Encrypted Birth Details", "జన్మ వివరాలు చూడడం"],
-          "family.edit": ["Edit Family Member Details", "కుటుంబ సభ్యుల వివరాలు సవరణ"],
-          "family.delete": ["Remove Family Member", "కుటుంబ సభ్యుల తొలగింపు"],
-          "family.events": ["Family Events & Rites", "కుటుంబ విశేషాలు & శ్రాద్ధాలు"],
-          "family.export": ["Export Family Vault Data", "కుటుంబ ఖజానా డేటా ఎగుమతి"],
+          "family.view": "Family Vault (Page Access)",
+          "family.add": "Add Family Member",
+          "family.view_details": "View Encrypted Birth Details",
+          "family.edit": "Edit Family Member Details",
+          "family.delete": "Remove Family Member",
+          "family.events": "Family Events & Rites",
+          "family.export": "Export Family Vault Data",
 
           // Saved
-          "saved.view": ["Saved Searches (Page Access)", "నా ముహూర్తాలు (పేజీ దర్శనం)"],
-          "saved.favourite": ["Star / Favourite Saved Searches", "ముహూర్తాలకు స్టార్ గుర్తు"],
-          "saved.edit_label": ["Edit Custom Notes & Labels", "నోట్స్ & లేబుల్స్ సవరణ"],
-          "saved.delete": ["Delete Saved Searches", "భద్రపరిచిన శోధనల తొలగింపు"],
-          "saved.export": ["Download & Export Saved Searches", "సేవ్ చేసిన ముహూర్తాల డౌన్‌లోడ్"],
+          "saved.view": "Saved Searches (Page Access)",
+          "saved.favourite": "Star / Favourite Saved Searches",
+          "saved.edit_label": "Edit Custom Notes & Labels",
+          "saved.delete": "Delete Saved Searches",
+          "saved.export": "Download & Export Saved Searches",
 
           // Account
-          "self.edit": ["Account & Profile (Access)", "ప్రొఫైల్ & ఖాతా (దర్శనం)"],
-          "self.edit_name": ["Edit Display Name", "పేరు సవరణ"],
-          "self.edit_language": ["Change Language", "భాష మార్పు"],
-          "self.edit_home_place": ["Change Home City & Coordinates", "స్వస్థలం మార్పు"],
-          "self.sessions": ["Manage Device Sessions", "పరికరాల సెషన్ల నిర్వహణ"],
-          "self.delete_account": ["Request Account Deletion", "ఖాతా తొలగింపు అభ్యర్థన"],
+          "self.edit": "Account & Profile (Access)",
+          "self.edit_name": "Edit Display Name",
+          "self.edit_language": "Change Language",
+          "self.edit_home_place": "Change Home City & Coordinates",
+          "self.sessions": "Manage Device Sessions",
+          "self.delete_account": "Request Account Deletion",
 
           // Admin
-          "users.view": ["Users Page Access", "వినియోగదారుల పేజీ చూడడం"],
-          "users.view_mobile": ["Reveal Full Mobile Numbers", "పూర్తి మొబైల్ నంబర్లు చూడడం"],
-          "users.disable": ["Disable/Enable Users", "వినియోగదారులను నిలిపివేయడం"],
-          "users.create": ["Add / Invite Users", "వినియోగదారులను చేర్చడం"],
-          "users.edit": ["Edit User Profile", "వినియోగదారుని ప్రొఫైల్ సవరణ"],
-          "users.delete": ["Delete User Account", "వినియోగదారుని ఖాతా తొలగింపు"],
-          "users.reset_sessions": ["Force Logout Sessions", "సెషన్లు రద్దు చేయడం"],
-          "users.export": ["Export Users List", "వినియోగదారుల ఎగుమతి"],
-          "users.set_perms": ["Manage User Perms", "అధికారాల నిర్వహణ"],
-          "content.edit": ["Content & Rules Access", "విషయాలు & సూత్రాలు సవరణ"],
-          "content.announcements": ["Manage Announcements", "ప్రకటనలు నిర్వహణ"],
-          "content.utpata": ["Manage Utpata Dates", "ఉత్పాత తేదీల నిర్వహణ"],
-          "content.texts": ["Edit App Texts", "యాప్ పాఠ్యాలు సవరణ"],
-          "content.rules": ["Manage Muhurta Rules", "ముహూర్త సూత్రాల నిర్వహణ"],
-          "audit.view_users": ["View Activity Logs", "కార్యకలాపాల లాగ్‌లు"],
-          "system.view": ["View System Stats & Health", "గణాంకాలు & ఆరోగ్య స్థితి"],
-          "audit.export": ["Export Audit Logs", "లాగ్‌లు ఎగుమతి"]
+          "users.view": "Users Page Access",
+          "users.view_mobile": "Reveal Full Mobile Numbers",
+          "users.disable": "Disable/Enable Users",
+          "users.create": "Add / Invite Users",
+          "users.edit": "Edit User Profile",
+          "users.delete": "Delete User Account",
+          "users.reset_sessions": "Force Logout Sessions",
+          "users.export": "Export Users List",
+          "users.set_perms": "Manage User Perms",
+          "content.edit": "Content & Rules Access",
+          "content.announcements": "Manage Announcements",
+          "content.utpata": "Manage Utpata Dates",
+          "content.texts": "Edit App Texts",
+          "content.rules": "Manage Muhurta Rules",
+          "audit.view_users": "View Activity Logs",
+          "system.view": "View System Stats & Health",
+          "audit.export": "Export Audit Logs"
         };
 
         var GROUPS_DEF = [
           {
-            title: ["Today's Panchangam", "నేటి పంచాంగం"],
+            title: "Today's Panchangam",
             parent: "panchang.view",
             keys: [
               "panchang.view", "panchang.change_place", "panchang.change_date", "panchang.share", "panchang.export_pdf",
@@ -365,12 +370,12 @@
             ]
           },
           {
-            title: ["Monthly Panchangam", "మాస పంచాంగం"],
+            title: "Monthly Panchangam",
             parent: "panchang_month.view",
             keys: ["panchang_month.view", "panchang_month.navigate", "panchang_month.day_details", "panchang_month.export_pdf", "panchang_month.festivals"]
           },
           {
-            title: ["Muhurtha Darshini / Finder", "ముహూర్త దర్శిని / శోధన"],
+            title: "Muhurtha Darshini / Finder",
             parent: "muhurta.search",
             keys: [
               "muhurta.search", "muhurta.select_activity", "muhurta.date_range", "muhurta.time_filters",
@@ -378,27 +383,27 @@
             ]
           },
           {
-            title: ["All Muhurtas Catalog", "అన్ని ముహూర్తాల కేటలాగ్"],
+            title: "All Muhurtas Catalog",
             parent: "catalog.view",
             keys: ["catalog.view", "catalog.browse", "catalog.search", "catalog.rules"]
           },
           {
-            title: ["Family Vault", "కుటుంబ ఖజానా"],
+            title: "Family Vault",
             parent: "family.view",
             keys: ["family.view", "family.add", "family.view_details", "family.edit", "family.delete", "family.events", "family.export"]
           },
           {
-            title: ["My Saved Muhurtas", "నా ముహూర్తాలు"],
+            title: "My Saved Muhurtas",
             parent: "saved.view",
             keys: ["saved.view", "saved.favourite", "saved.edit_label", "saved.delete", "saved.export"]
           },
           {
-            title: ["Account & Profile", "ప్రొఫైల్ & ఖాతా"],
+            title: "Account & Profile",
             parent: "self.edit",
             keys: ["self.edit", "self.edit_name", "self.edit_language", "self.edit_home_place", "self.sessions", "self.delete_account"]
           },
           {
-            title: ["Users Management (Admin)", "వినియోగదారుల నిర్వహణ (నిర్వాహక)"],
+            title: "Users Management (Admin)",
             parent: "users.view",
             keys: [
               "users.view", "users.view_mobile", "users.disable", "users.create", "users.edit", "users.delete",
@@ -406,12 +411,12 @@
             ]
           },
           {
-            title: ["Content & Rules (Admin)", "విషయాలు & సూత్రాలు (నిర్వాహక)"],
+            title: "Content & Rules (Admin)",
             parent: "content.edit",
             keys: ["content.edit", "content.announcements", "content.utpata", "content.texts", "content.rules"]
           },
           {
-            title: ["Audit & Analytics (Admin)", "కార్యకలాపాలు & గణాంకాలు (నిర్వాహక)"],
+            title: "Audit & Analytics (Admin)",
             parent: "audit.view_users",
             keys: ["audit.view_users", "system.view", "audit.export"]
           }
@@ -427,21 +432,21 @@
           var activeCount = matching.filter(function (m) { return m.effective; }).length;
 
           var itemsList = matching.map(function (item) {
-            var label = permMap[item.key] ? tr(permMap[item.key][0], permMap[item.key][1]) : item.key;
+            var label = permMap[item.key] ? t(permMap[item.key]) : item.key;
             var isParent = item.key === grp.parent;
             var statusBadge = item.has_override
               ? (item.override_value
-                  ? '<span class="status-chip status-chip--active" style="font-size:11px;">' + tr("Explicit: ON", "స్పష్టంగా: చురుకు") + '</span>'
-                  : '<span class="status-chip status-chip--disabled" style="font-size:11px;">' + tr("Explicit: OFF", "స్పష్టంగా: నిలిపివేత") + '</span>')
+                  ? '<span class="status-chip status-chip--active" style="font-size:11px;">' + t("Explicit: ON") + '</span>'
+                  : '<span class="status-chip status-chip--disabled" style="font-size:11px;">' + t("Explicit: OFF") + '</span>')
               : (item.role_default
-                  ? '<span style="color:#666; font-size:11px;">' + tr("Default: ON", "సాధారణం: చురుకు") + '</span>'
-                  : '<span style="color:#666; font-size:11px;">' + tr("Default: OFF", "సాధారణం: నిలిపివేత") + '</span>');
+                  ? '<span style="color:#666; font-size:11px;">' + t("Default: ON") + '</span>'
+                  : '<span style="color:#666; font-size:11px;">' + t("Default: OFF") + '</span>');
 
             var toggleBtn = item.effective
-              ? '<button type="button" class="btn btn--sm btn--danger" data-pperm="' + esc(item.key) + '" data-paction="disable" style="padding:2px 8px; font-size:12px;">' + tr("Block", "నిషేధించు") + '</button>'
-              : '<button type="button" class="btn btn--sm" data-pperm="' + esc(item.key) + '" data-paction="enable" style="padding:2px 8px; font-size:12px;">' + tr("Allow", "అనుమతించు") + '</button>';
+              ? '<button type="button" class="btn btn--sm btn--danger" data-pperm="' + esc(item.key) + '" data-paction="disable" style="padding:2px 8px; font-size:12px;">' + t("Block") + '</button>'
+              : '<button type="button" class="btn btn--sm" data-pperm="' + esc(item.key) + '" data-paction="enable" style="padding:2px 8px; font-size:12px;">' + t("Allow") + '</button>';
             var resetBtn = item.has_override
-              ? ' <button type="button" class="linkish" data-pperm="' + esc(item.key) + '" data-paction="reset" style="font-size:11px;">' + tr("Reset to default", "సాధారణ స్థితికి") + '</button>'
+              ? ' <button type="button" class="linkish" data-pperm="' + esc(item.key) + '" data-paction="reset" style="font-size:11px;">' + t("Reset to default") + '</button>'
               : '';
 
             return '<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #f0f0f0;' + (isParent ? ' background:#fafcf7; font-weight:600;' : ' padding-left:14px;') + '">' +
@@ -453,8 +458,8 @@
 
           return '<div class="cf-perm-group is-open" style="margin-bottom:10px;">' +
             '<div class="cf-perm-header" data-toggle-subaccordion="1">' +
-              '<div class="cf-perm-title"><span class="cf-perm-chevron" aria-hidden="true">&#9654;</span> <span>' + esc(tr(grp.title[0], grp.title[1])) + '</span></div>' +
-              '<div class="cf-perm-ctrls"><span class="cf-perm-badge">' + activeCount + '/' + matching.length + ' ' + tr("active", "చురుకు") + '</span></div>' +
+              '<div class="cf-perm-title"><span class="cf-perm-chevron" aria-hidden="true">&#9654;</span> <span>' + esc(t(grp.title)) + '</span></div>' +
+              '<div class="cf-perm-ctrls"><span class="cf-perm-badge">' + activeCount + '/' + matching.length + ' ' + t("active") + '</span></div>' +
             '</div>' +
             '<div class="cf-perm-children" style="display:block; padding:8px 12px;">' +
               itemsList +
@@ -464,7 +469,7 @@
 
         var pf = rowForm(row,
           '<div style="max-height:440px; overflow-y:auto; padding:8px 0; min-width:360px;">' +
-          '<div style="font-weight:bold; margin-bottom:10px; font-size:1.05rem; color:var(--color-primary-strong);">' + tr("Privileges for: ", "అధికారాలు: ") + esc(res.name) + ' (' + esc(res.role) + ')</div>' +
+          '<div style="font-weight:bold; margin-bottom:10px; font-size:1.05rem; color:var(--color-primary-strong);">' + esc(t("Privileges for: {name}", { name: res.name })) + ' (' + esc(res.role) + ')</div>' +
           groupsHtml +
           '</div>'
         );
@@ -483,11 +488,11 @@
           try {
             if (pact === "reset") {
               await api("DELETE", "/admin/people/" + id + "/permissions/" + encodeURIComponent(pkey));
-              say("info", tr("Reverted to role default.", "సాధారణ స్థితికి మార్చాము."));
+              say("info", t("Reverted to role default."));
             } else {
               var isEn = pact === "enable";
               await api("PUT", "/admin/people/" + id + "/permissions", { permission_key: pkey, is_enabled: isEn });
-              say("info", tr("Updated permission.", "అధికారం మార్చాము."));
+              say("info", t("Updated permission."));
             }
             pf.remove();
             load();

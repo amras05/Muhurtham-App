@@ -34,18 +34,18 @@
       var rows = await api("GET", "/me/sessions");
       list.innerHTML = rows.map(function (s) {
         var when = s.last_used_at ? new Date(s.last_used_at).toLocaleString() : "";
-        return "<li><div><strong>" + esc(s.device_label || tr("Device", "పరికరం")) + "</strong>" +
-          (s.current ? ' <span class="chip-current">' + tr("this device", "ఈ పరికరం") + "</span>" : "") +
-          "<small>" + esc(tr("Last used ", "చివరిసారి ") + when) + "</small></div>" +
-          (s.current ? "" : '<button type="button" class="btn btn--sm btn--ghost" data-sid="' + esc(s.id) + '">' + tr("Sign out", "సైన్ అవుట్") + "</button>") + "</li>";
-      }).join("") || '<li class="empty-state">' + tr("No devices.", "పరికరాలు లేవు.") + "</li>";
+        return "<li><div><strong>" + esc(s.device_label || t("Device")) + "</strong>" +
+          (s.current ? ' <span class="chip-current">' + t("this device") + "</span>" : "") +
+          "<small>" + esc(t("Last used ") + when) + "</small></div>" +
+          (s.current ? "" : '<button type="button" class="btn btn--sm btn--ghost" data-sid="' + esc(s.id) + '">' + t("Sign out") + "</button>") + "</li>";
+      }).join("") || '<li class="empty-state">' + t("No devices.") + "</li>";
     } catch (e) { list.innerHTML = "<li>" + esc(e.message) + "</li>"; }
   }
 
   $("devices").addEventListener("click", async function (e) {
     var sid = e.target.getAttribute("data-sid");
     if (!sid) return;
-    try { await api("DELETE", "/me/sessions/" + encodeURIComponent(sid)); say("info", tr("That device has been signed out.", "ఆ పరికరం నుండి సైన్ అవుట్ అయ్యారు.")); loadDevices(); }
+    try { await api("DELETE", "/me/sessions/" + encodeURIComponent(sid)); say("info", t("That device has been signed out.")); loadDevices(); }
     catch (err) { say("error", err.message); }
   });
 
@@ -55,7 +55,7 @@
       me = await api("PUT", "/me", { name: $("acName").value.trim(), preferred_language: $("acLang").value });
       setLang(me.preferred_language);
       await Auth.me(); Auth.renderMenu();
-      say("info", tr("Saved.", "భద్రపరచాము."));
+      say("info", t("Saved."));
     } catch (err) { say("error", err.message); }
   });
 
@@ -65,7 +65,7 @@
     if (!r) return;
     try {
       me = await api("PUT", "/me", { home_place: r.label, home_lat: r.lat, home_lon: r.lon, home_tz: r.tz_offset });
-      say("info", tr("Home place saved: ", "ఇంటి ప్రదేశం భద్రపరచాము: ") + r.label);
+      say("info", t("Home place saved: ") + r.label);
     } catch (err) { say("error", err.message); }
   });
 
@@ -91,7 +91,7 @@
       var blob = await res.blob(), m = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") || "");
       var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = m ? m[1] : "muhurtham_my_data.json";
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 10000);
-      say("info", tr("Your data was downloaded. It includes birth details: keep the file safe.", "మీ సమాచారం డౌన్‌లోడ్ అయింది. జన్మ వివరాలు ఉన్నాయి: ఫైల్‌ను జాగ్రత్తగా ఉంచండి."));
+      say("info", t("Your data was downloaded. It includes birth details: keep the file safe."));
     } catch (err) { say("error", err.message); }
     finally { b.disabled = false; }
   });

@@ -308,7 +308,7 @@ Top brand navigation with circular Gayatri logo, followed by Telugu Samvatsara A
 
 [Components]
 1. Header Bar:
-   - Circular Gayatri Jyothirnidhe logo medallion on left.
+   - Circular Gayathri Jyothirnidhe logo medallion on left.
    - Title: "గాయత్రి జ్యోతిర్నిధి · నేటి పంచాంగం (Today's Panchangam)".
    - City Picker: "హైదరాబాద్ ▾ (17.38° N, 78.48° E)".
    - Live Date: "సోమవారం, 9 నవంబర్ 2026 (Somavaram)".
@@ -533,7 +533,7 @@ Header with window timestamp and action buttons, followed by 5 scrollable panels
    - Icons: ఆకుపచ్చ టిక్ (Pass), ఎరుపు హెచ్చరిక (Fail), ఊదా కమలం (Pariharam Relieved).
 5. ప్యానెల్ 4 — దక్షిణ భారత కుండలి చక్రం (South Indian 4x4 D1 Chart Widget):
    - Traditional 4x4 Grid (Pisces Meena top-left to Aries Mesha, Taurus, Gemini... clockwise).
-   - Center Box: Gayatri Jyothirnidhe watermark with "D1 లగ్న కుండలి · వృశ్చిక లగ్నం".
+   - Center Box: Gayathri Jyothirnidhe watermark with "D1 లగ్న కుండలి · వృశ్చిక లగ్నం".
    - Planetary labels: రవి ☉, చంద్ర ☽, కుజ ♂, బుధ ☿, గురు ♃, శుక్ర ♀, శని ♄, రాహు ☊, కేతు ☋.
    - Indicators: (వ) వక్ర గ్రహాలు (Retrograde), (మౌ) మౌఢ్య గ్రహాలు (Combust).
 6. ప్యానెల్ 5 — దోష పరిహార శ్లోకాలు (Parihara Shlokas):

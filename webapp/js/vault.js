@@ -1,5 +1,5 @@
 // ============================================================
-// Gayatri Jyotirnidhi · Family Vault header (Stitch "desktop_settings_vault", 19 Nov 2026)
+// Gayathri Jyothirnidhe · Family Vault header (Stitch "desktop_settings_vault", 19 Nov 2026)
 // The profile header above the family, saved-muhurta and account blocks: name, role, mobile (middle
 // digits hidden on screen) and home place, from GET /me. The blocks below have their own scripts.
 // ============================================================
@@ -7,7 +7,7 @@
   function tr(en, te) { return currentLang === "te" ? te : en; }
   function $(id) { return document.getElementById(id); }
   var me = null;
-  var ROLES = { user: ["Member", "సభ్యులు"], admin: ["Admin", "నిర్వాహకులు"], super_admin: ["Super admin", "ప్రధాన నిర్వాహకులు"] };
+  var ROLES = { user: ["Member"], admin: ["Admin"], super_admin: ["Super admin"] };
 
   function masked(phone) {
     var d = String(phone || "").replace(/\D/g, "");
@@ -17,12 +17,12 @@
 
   function render() {
     if (!me) return;
-    $("fvName").textContent = me.name || tr("Your account", "మీ ఖాతా");
+    $("fvName").textContent = me.name || t("Your account");
     var role = ROLES[me.role] || ROLES.user;
-    $("fvRole").textContent = tr(role[0], role[1]);
+    $("fvRole").textContent = t(role);
     $("fvPhone").textContent = masked(me.phone);
     var home = me.home || {};
-    $("fvHome").textContent = home.name ? (me.home_is_default ? tr("Default place: ", "డిఫాల్ట్ ప్రదేశం: ") : tr("Home: ", "ఇల్లు: ")) + home.name : "";
+    $("fvHome").textContent = home.name ? (me.home_is_default ? t("Default place: ") : t("Home: ")) + home.name : "";
   }
 
   async function load() {
@@ -33,7 +33,7 @@
       me = body;
       render();
     } catch (err) {
-      $("fvName").textContent = tr("Your account", "మీ ఖాతా");
+      $("fvName").textContent = t("Your account");
       console.error("Profile header could not be loaded:", err.message);
     }
   }

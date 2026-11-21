@@ -31,7 +31,7 @@ var UI = (function () {
 
   // ---- building blocks ----------------------------------------------------
 
-  function field(id, label, te, inputHTML, opts) {
+  function field(id, label, inputHTML, opts) {   // label: English; Telugu comes from i18n/te.js
     opts = opts || {};
     var style = opts.hidden
       ? ' style="display:none;flex:1;min-width:' + (opts.minWidth || 170) + 'px;"'
@@ -39,7 +39,7 @@ var UI = (function () {
     return (
       '<div class="field"' + style +">" +
       (label ? '<label for="' + esc(id) + '"' +
-        (te ? ' data-en="' + esc(label) + '" data-te="' + esc(te) + '"' : "") + ">" + esc(label) + "</label>" : "") +
+        ' data-i18n="' + esc(label) + '">' + esc(typeof t === "function" ? t(label) : label) + "</label>" : "") +
       inputHTML +
       "</div>"
     );
@@ -58,10 +58,10 @@ var UI = (function () {
     return (
       '<button id="' + esc(p.id) + '" class="' + (p.cls || "btn btn--primary") + '"' +
       (p.onclick ? ' onclick="' + esc(p.onclick) + '"' : "") +
-      (p.en ? ' data-en="' + esc(p.en) + '" data-te="' + esc(p.te) + '"' : "") +
+      (p.en ? ' data-i18n="' + esc(p.en) + '"' : "") +
       (p.style ? ' style="' + esc(p.style) + '"' : "") +
       (p.disabled ? " disabled" : "") + ">" +
-      (p.icon ? "<span>" + p.icon + "</span> " : "") + esc(p.label || p.text || "") +
+      (p.icon ? "<span>" + p.icon + "</span> " : "") + (p.en ? '<span data-i18n>' + esc(t(p.en)) + "</span>" : esc(p.label || p.text || "")) +
       "</button>"
     );
   }
@@ -83,22 +83,22 @@ var UI = (function () {
     );
   }
 
-  function kaalaRow(nameTe, nameEn, valueId, rowStyle) {
+  function kaalaRow(nameEn, valueId, rowStyle) {   // English name; Telugu from i18n/te.js
     return (
       '<div class="kaala-row"' + (rowStyle ? ' style="' + rowStyle + '"' : "") + ">" +
-      '<span class="kname" data-en="' + esc(nameEn) + '" data-te="' + esc(nameTe) + '">' + esc(nameEn) + "</span>" +
+      '<span class="kname" data-i18n="' + esc(nameEn) + '">' + esc(t(nameEn)) + "</span>" +
       '<span class="ktime" id="' + esc(valueId) + '">—</span>' +
       "</div>"
     );
   }
 
-  function kaalaSection(titleTe, titleEn, body, sectionClsOrStyle, titleStyle) {
+  function kaalaSection(titleEn, body, sectionClsOrStyle, titleStyle) {   // English title; Telugu from i18n/te.js
     var isClass = sectionClsOrStyle && !sectionClsOrStyle.includes(":") && !sectionClsOrStyle.includes(";");
     return (
       '<div class="kaala-section' + (isClass ? " " + sectionClsOrStyle : "") + '"' +
       (!isClass && sectionClsOrStyle ? ' style="' + sectionClsOrStyle + '"' : "") + ">" +
       '<div class="kaala-title"' + (titleStyle ? ' style="' + titleStyle + '"' : "") +
-      ' data-en="' + esc(titleEn) + '" data-te="' + esc(titleTe) + '">' + titleEn + "</div>" +
+      ' data-i18n="' + esc(titleEn) + '">' + esc(t(titleEn)) + "</div>" +
       body +
       "</div>"
     );
@@ -112,7 +112,7 @@ var UI = (function () {
     return (
       '<div class="place-row">' +
       '<input type="text" id="' + esc(inputId) + '" placeholder="Enter place name..." autocomplete="off">' +
-      button({ id: buttonId, cls: "btn btn--gold btn--sm", en: "Search & Go", te: "వెతకండి", label: "Search & Go" }) +
+      button({ id: buttonId, cls: "btn btn--gold btn--sm", en: "Search & Go", label: "Search & Go" }) +
       suggestionsBox(listId, 130) +
       "</div>"
     );

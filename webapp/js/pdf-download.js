@@ -11,11 +11,11 @@ window.PdfDownload = (function () {
   async function fromElement(element, opts, button) {
     var node = typeof element === "string" ? document.getElementById(element) : element;
     if (!node || !node.innerHTML.trim()) {
-      AppShell.toast(tr("There is nothing to put in the PDF yet.", "PDF లో చేర్చడానికి ఇంకా ఏమీ లేదు."), "error");
+      AppShell.toast(t("There is nothing to put in the PDF yet."), "error");
       return;
     }
     var label = button ? button.innerHTML : null;
-    if (button) { button.disabled = true; button.textContent = tr("Making PDF…", "PDF తయారవుతోంది…"); }
+    if (button) { button.disabled = true; button.textContent = t("Making PDF…"); }
     try {
       var res = await fetch(API_BASE + "/pdf/render", {
         method: "POST",
@@ -46,7 +46,7 @@ window.PdfDownload = (function () {
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
     } catch (e) {
-      AppShell.toast(tr("Couldn't make the PDF: ", "PDF తయారు కాలేదు: ") + e.message, "error");
+      AppShell.toast(t("Couldn't make the PDF: ") + e.message, "error");
     } finally {
       if (button) { button.disabled = false; button.innerHTML = label; }
     }

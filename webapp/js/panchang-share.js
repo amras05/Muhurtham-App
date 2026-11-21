@@ -16,12 +16,12 @@ function _listText(list) { return list && list.length ? list.map(_pairText).join
 // One day (a /panchang/month entry) → heading, sub-heading and labelled rows.
 function panchangDaySections(d, place) {
   const L = currentLang === "te";
-  const until = (t) => (t ? (L ? `${t} వరకు` : `until ${t}`) : "—");
+  const until = (tm) => (tm ? t("until {time}", { time: tm }) : "—");
   const heading = new Date(`${d.date}T00:00:00`).toLocaleDateString(L ? "te-IN" : "en-IN",
     { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const cm = d.chandramana || {};
   const lunar = cm.month_name
-    ? `${te(cm.month_name, MONTH_NAMES_TE)}${cm.is_adhika_masa ? _tr(" (Adhika)", " (అధిక)") : ""} · ${PAKSHA_NAMES[currentLang][d.tithi.paksha] || d.tithi.paksha} ${_tr("paksha", "పక్షం")}`
+    ? `${te(cm.month_name, MONTH_NAMES_TE)}${cm.is_adhika_masa ? _tr(" (Adhika)") : ""} · ${PAKSHA_NAMES[currentLang][d.tithi.paksha] || d.tithi.paksha} ${_tr("paksha")}`
     : "";
   const vaara = L ? (VAARA_NAMES.te[d.vaara] || d.vaara) : d.vaara;
   return {
@@ -30,26 +30,26 @@ function panchangDaySections(d, place) {
     place: place || "",
     sections: [
       {
-        title: _tr("Panchang", "పంచాంగం"),
+        title: _tr("Panchang"),
         rows: [
-          [_tr("Tithi", "తిథి"), `${te(d.tithi.name, TITHI_NAMES_TE)} · ${until(d.tithi.end_time)}`],
-          [_tr("Nakshatra", "నక్షత్రం"), `${te(d.nakshatra.name, NAKSHATRA_NAMES_TE)} (${_tr("pada", "పాదం")} ${d.nakshatra.pada}) · ${until(d.nakshatra.end_time)}`],
-          [_tr("Yoga", "యోగం"), `${te(d.yoga.name, YOGA_NAMES_TE)} · ${until(d.yoga.end_time)}`],
-          [_tr("Karana", "కరణం"), `${te(d.karana.name, KARANA_NAMES_TE)} · ${until(d.karana.end_time)}`],
-          [_tr("Sunrise", "సూర్యోదయం"), d.sunrise || "—"],
-          [_tr("Sunset", "సూర్యాస్తమయం"), d.sunset || "—"],
+          [_tr("Tithi@@panchang-share"), `${te(d.tithi.name, TITHI_NAMES_TE)} · ${until(d.tithi.end_time)}`],
+          [_tr("Nakshatra@@panchang-share"), `${te(d.nakshatra.name, NAKSHATRA_NAMES_TE)} (${_tr("pada")} ${d.nakshatra.pada}) · ${until(d.nakshatra.end_time)}`],
+          [_tr("Yoga"), `${te(d.yoga.name, YOGA_NAMES_TE)} · ${until(d.yoga.end_time)}`],
+          [_tr("Karana"), `${te(d.karana.name, KARANA_NAMES_TE)} · ${until(d.karana.end_time)}`],
+          [_tr("Sunrise"), d.sunrise || "—"],
+          [_tr("Sunset"), d.sunset || "—"],
         ],
       },
       {
-        title: _tr("Timings to avoid / use", "అశుభ / శుభ సమయాలు"),
+        title: _tr("Timings to avoid / use"),
         rows: [
-          [_tr("Rahu Kalam", "రాహు కాలం"), _pairText(d.rahu_kalam)],
-          [_tr("Yamagandam", "యమగండం"), _pairText(d.yamagandam)],
-          [_tr("Gulika Kalam", "గుళిక కాలం"), _pairText(d.gulika_kalam)],
-          [_tr("Durmuhurtam", "దుర్ముహూర్తం"), _listText(d.durmuhurtam)],
-          [_tr("Varjyam", "వర్జ్యం"), _pairText(d.varjyam)],
-          [_tr("Abhijit Muhurta", "అభిజిత్ ముహూర్తం"), _pairText(d.abhijit_muhurta)],
-          [_tr("Amrit Kalam", "అమృత కాలం"), _listText(d.amrit_kalam)],
+          [_tr("Rahu Kalam"), _pairText(d.rahu_kalam)],
+          [_tr("Yamagandam"), _pairText(d.yamagandam)],
+          [_tr("Gulika Kalam"), _pairText(d.gulika_kalam)],
+          [_tr("Durmuhurtam"), _listText(d.durmuhurtam)],
+          [_tr("Varjyam"), _pairText(d.varjyam)],
+          [_tr("Abhijit Muhurta"), _pairText(d.abhijit_muhurta)],
+          [_tr("Amrit Kalam"), _listText(d.amrit_kalam)],
         ],
       },
     ],
@@ -57,7 +57,7 @@ function panchangDaySections(d, place) {
       name: L ? y.name_te : y.name_en,
       type: y.type === "bad" ? "bad" : (y.type === "info" ? "info" : "good"),
     })),
-    footer: _tr("Drik Panchang (Lahiri) · " + _brandName("en"), "దృక్ పంచాంగం (లాహిరి) · " + _brandName("te")),
+    footer: t("Drik Panchang (Lahiri) · {brand}", { brand: _brandName(currentLang === "te" ? "te" : "en") }),
   };
 }
 
@@ -93,12 +93,12 @@ function panchangPdfElement(s) {
 
 // ---- Text ----------------------------------------------------------------------
 function panchangDayText(s) {
-  const lines = [`🪔 ${_tr("Panchang", "పంచాంగం")} · ${s.heading}`, [s.place, s.sub].filter(Boolean).join(" · ")];
+  const lines = [`🪔 ${_tr("Panchang")} · ${s.heading}`, [s.place, s.sub].filter(Boolean).join(" · ")];
   s.sections.forEach(sec => {
     lines.push("", `*${sec.title}*`);
     sec.rows.forEach(([k, v]) => lines.push(`${k}: ${v}`));
   });
-  if (s.yogas.length) lines.push("", `✨ ${_tr("Special yogas", "విశేష యోగాలు")}: ${s.yogas.map(y => y.name).join(", ")}`);
+  if (s.yogas.length) lines.push("", `✨ ${_tr("Special yogas")}: ${s.yogas.map(y => y.name).join(", ")}`);
   lines.push("", `— ${s.footer}`);
   return lines.join("\n");
 }
@@ -111,7 +111,7 @@ function _shareOn(kind) {
 // The app's name from the super admin's settings (13 Nov 2026), or the built-in one.
 function _brandName(lang) {
   const b = window.SiteConfig && SiteConfig.data && SiteConfig.data.brand;
-  return (b && (lang === "te" ? b.name_te : b.name_en)) || (lang === "te" ? "గాయత్రి జ్యోతిర్నిధి" : "Gayatri Jyotirnidhi");
+  return (b && (lang === "te" ? b.name_te : b.name_en)) || (lang === "te" ? "గాయత్రి జ్యోతిర్నిధి" : "Gayathri Jyothirnidhe");
 }
 
 // Colours follow css/variables.css (Vedic Sanctuary theme, 13 Nov 2026). "maroon" is the brand colour key.
@@ -150,7 +150,7 @@ function _drawCard(ctx, s, measureCtx) {
     ctx.fillStyle = CARD.maroon; ctx.fillRect(0, 0, w, headH);
     ctx.fillStyle = CARD.gold; ctx.fillRect(0, headH - 8, w, 8);
     ctx.fillStyle = "#f4dca0"; ctx.font = _font(600, 28);
-    ctx.fillText(`${_tr("PANCHANG", "పంచాంగం")}${s.place ? " · " + s.place : ""}`, pad, 84);
+    ctx.fillText(`${_tr("PANCHANG")}${s.place ? " · " + s.place : ""}`, pad, 84);
     ctx.fillStyle = "#ffffff"; ctx.font = _font(700, 46);
     headLines.forEach((ln, i) => ctx.fillText(ln, pad, 150 + i * 58));
     ctx.fillStyle = "#f6e7ea"; ctx.font = _font(500, 30);
@@ -185,7 +185,7 @@ function _drawCard(ctx, s, measureCtx) {
 
   // Special yogas as wrapped chips
   if (s.yogas.length) {
-    if (ctx) { ctx.fillStyle = CARD.gold; ctx.font = _font(700, 26); ctx.fillText(_tr("SPECIAL YOGAS", "విశేష యోగాలు"), pad, y); }
+    if (ctx) { ctx.fillStyle = CARD.gold; ctx.font = _font(700, 26); ctx.fillText(_tr("SPECIAL YOGAS"), pad, y); }
     y += 30;
     let x = pad;
     c.font = _font(600, 28);
@@ -279,7 +279,7 @@ async function shareText(text, title) {
   ta.select();
   const ok = document.execCommand("copy");
   ta.remove();
-  if (!ok) throw new Error(_tr("the browser blocked copying", "బ్రౌజర్ కాపీని అనుమతించలేదు"));
+  if (!ok) throw new Error(_tr("the browser blocked copying"));
   return "copied";
 }
 
@@ -288,11 +288,11 @@ function panchangTodaySections(d) {
   const L = currentLang === "te";
   const m = d.masa || {};
   const nak = (n) => (L && typeof NAKSHATRA_NAMES_TE !== "undefined" && NAKSHATRA_NAMES_TE[n]) || n;
-  const till = (t) => (t ? (L ? `${t} వరకు` : `till ${t}`) : "—");
+  const till = (tm) => (tm ? t("till {time}", { time: tm }) : "—");
   const heading = new Date(`${d.date}T12:00:00`).toLocaleDateString(L ? "te-IN" : "en-IN",
     { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const sub = L
-    ? [m.samvatsara_te, `${m.name_te || ""}${m.adhika ? " (అధిక)" : ""}`, m.paksha_te]
+    ? [m.samvatsara_te, `${m.name_te || ""}${m.adhika ? " " + t("(adhika)") : ""}`, m.paksha_te]
     : [m.samvatsara_en, `${m.name_en || ""}${m.adhika ? " (adhika)" : ""}`, m.paksha_en];
   return {
     heading,
@@ -300,23 +300,23 @@ function panchangTodaySections(d) {
     place: (d.place && d.place.name) || "",
     sections: [
       {
-        title: _tr("Panchang", "పంచాంగం"),
+        title: _tr("Panchang"),
         rows: [
-          [_tr("Tithi", "తిథి"), `${d.tithi.name} · ${till(d.tithi.end)}`],
-          [_tr("Nakshatra", "నక్షత్రం"), `${nak(d.nakshatra.name)} (${_tr("pada", "పాదం")} ${d.nakshatra.pada}) · ${till(d.nakshatra.end)}`],
-          [_tr("Yoga", "యోగం"), `${d.yoga.name} · ${till(d.yoga.end)}`],
-          [_tr("Karana", "కరణం"), `${d.karana.name} · ${till(d.karana.end)}`],
-          [_tr("Sunrise", "సూర్యోదయం"), d.sunrise || "—"],
-          [_tr("Sunset", "సూర్యాస్తమయం"), d.sunset || "—"],
+          [_tr("Tithi@@panchang-share"), `${d.tithi.name} · ${till(d.tithi.end)}`],
+          [_tr("Nakshatra@@panchang-share"), `${nak(d.nakshatra.name)} (${_tr("pada")} ${d.nakshatra.pada}) · ${till(d.nakshatra.end)}`],
+          [_tr("Yoga"), `${d.yoga.name} · ${till(d.yoga.end)}`],
+          [_tr("Karana"), `${d.karana.name} · ${till(d.karana.end)}`],
+          [_tr("Sunrise"), d.sunrise || "—"],
+          [_tr("Sunset"), d.sunset || "—"],
         ],
       },
       {
-        title: _tr("Avoid today", "ఈ రోజు నివారించవలసినవి"),
+        title: _tr("Avoid today"),
         rows: (d.periods || []).map(p => [_tr(p.name_en, p.name_te), `${p.start} – ${p.end}`]),
       },
     ],
     yogas: (d.special_yogas || []).map(y => ({ name: _tr(y.name_en, y.name_te), type: y.type === "bad" ? "bad" : "good" })),
-    footer: _tr("Drik Panchang (Lahiri) · " + _brandName("en"), "దృక్ పంచాంగం (లాహిరి) · " + _brandName("te")),
+    footer: t("Drik Panchang (Lahiri) · {brand}", { brand: _brandName(currentLang === "te" ? "te" : "en") }),
   };
 }
 
@@ -324,12 +324,12 @@ function panchangTodaySections(d) {
 function panchangShareBar() {
   const L = currentLang === "te";
   if (!_shareOn("pdf") && !_shareOn("image") && !_shareOn("text")) return "";   // every kind switched off
-  return '<div class="share-bar no-print" role="group" aria-label="' + (L ? "పంచుకోండి" : "Share") + '">' +
-    `<span class="share-bar__label">${L ? "పంచుకోండి" : "Share"}</span>` +
+  return '<div class="share-bar no-print" role="group" aria-label="' + t("Share") + '">' +
+    `<span class="share-bar__label">${t("Share")}</span>` +
     // Each button follows Settings › Finder and sharing (plan D6); PDF is off by default.
     (_shareOn("pdf") ? '<button type="button" class="btn btn--sm share-bar__btn" data-share="pdf">PDF</button>' : "") +
-    (_shareOn("image") ? `<button type="button" class="btn btn--sm share-bar__btn" data-share="png">${L ? "చిత్రం (PNG)" : "Image (PNG)"}</button>` : "") +
-    (_shareOn("text") ? `<button type="button" class="btn btn--sm share-bar__btn" data-share="text">${L ? "పాఠ్యం" : "Text"}</button>` : "") +
+    (_shareOn("image") ? `<button type="button" class="btn btn--sm share-bar__btn" data-share="png">${t("Image (PNG)")}</button>` : "") +
+    (_shareOn("text") ? `<button type="button" class="btn btn--sm share-bar__btn" data-share="text">${t("Text@@share")}</button>` : "") +
     "</div>";
 }
 
@@ -338,7 +338,7 @@ function panchangShareBar() {
 //   date, place: for the title and file name
 function bindPanchangShare(root, opts) {
   const base = PdfDownload.fileName("panchang", opts.date);
-  const title = `${_tr("Panchang", "పంచాంగం")} · ${opts.date}`;
+  const title = `${_tr("Panchang")} · ${opts.date}`;
   const btn = (kind) => root.querySelector(`[data-share="${kind}"]`);
 
   if (btn("pdf")) btn("pdf").addEventListener("click", (e) => {
@@ -349,12 +349,12 @@ function bindPanchangShare(root, opts) {
 
   if (btn("png")) btn("png").addEventListener("click", async (e) => {
     const b = e.currentTarget, label = b.innerHTML;
-    b.disabled = true; b.textContent = _tr("Making image…", "చిత్రం తయారవుతోంది…");
+    b.disabled = true; b.textContent = _tr("Making image…");
     try {
       const blob = await panchangDayPng(opts.getSections());
       await shareOrDownload(blob, `${base}.png`, title);
     } catch (err) {
-      AppShell.toast(_tr("Couldn't make the image: ", "చిత్రం తయారు కాలేదు: ") + err.message, "error");
+      AppShell.toast(_tr("Couldn't make the image: ") + err.message, "error");
     } finally {
       b.disabled = false; b.innerHTML = label;
     }
@@ -365,11 +365,11 @@ function bindPanchangShare(root, opts) {
     try {
       const how = await shareText(panchangDayText(opts.getSections()), title);
       if (how === "copied") {
-        b.textContent = _tr("Copied ✓", "కాపీ అయింది ✓");
+        b.textContent = _tr("Copied ✓");
         setTimeout(() => { b.innerHTML = label; }, 2000);
       }
     } catch (err) {
-      AppShell.toast(_tr("Couldn't share or copy the text: ", "పాఠ్యం పంపడం / కాపీ కాలేదు: ") + err.message, "error");
+      AppShell.toast(_tr("Couldn't share or copy the text: ") + err.message, "error");
     }
   });
 }

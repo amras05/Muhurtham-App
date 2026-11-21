@@ -1,5 +1,5 @@
 // ============================================================
-// Gayatri Jyotirnidhi · All muhurtas (Stitch "desktop_catalog", 19 Nov 2026)
+// Gayathri Jyothirnidhe · All muhurtas (Stitch "desktop_catalog", 19 Nov 2026)
 // Every event from /muhurta/catalog, one card per category (tab), searchable. An event opens the
 // Muhurta Darshini with it chosen (muhurta-finder.html?activity=<id>). Hidden events never arrive here:
 // the server leaves them out of the catalog for users.
@@ -35,50 +35,48 @@
   function render() {
     if (!data) return;
     var tabs = data.tabs;
-    $("mcCount").textContent = tr(tabs.length + " categories · " + data.total + " events",
-                                  tabs.length + " విభాగాలు · " + data.total + " కార్యాలు");
-    $("mcSearch").placeholder = tr("Search events (marriage, griha pravesha, namakarana…)", "కార్యాలు వెతకండి (వివాహం, గృహప్రవేశం, నామకరణం…)");
-    $("mcChips").innerHTML = '<button type="button" class="mc-chip" data-tab="all" aria-pressed="' + (active === "all") + '">' + tr("All", "అన్నీ") +
+    $("mcCount").textContent = t("{tabs} categories · {total} events", { tabs: tabs.length, total: data.total });
+    $("mcSearch").placeholder = t("Search events (marriage, griha pravesha, namakarana…)");
+    $("mcChips").innerHTML = '<button type="button" class="mc-chip" data-tab="all" aria-pressed="' + (active === "all") + '">' + t("All") +
       ' <span>' + tabs.length + "</span></button>" + tabs.map(function (t) {
         return '<button type="button" class="mc-chip" data-tab="' + esc(t.id) + '" aria-pressed="' + (active === t.id) + '">' + esc(tr(t.en, t.te)) +
           (t.count ? " <span>" + t.count + "</span>" : "") + "</button>";
       }).join("");
     $("mcStats").innerHTML = [
-      ["scroll", tr("Categories", "మొత్తం విభాగాలు"), tabs.length],
-      ["calendar", tr("Events", "శాస్త్రీయ కార్యాలు"), data.total],
-      ["sun", tr("Calculation", "గణన పద్ధతి"), tr("Drik · Lahiri", "దృక్ · లాహిరి")],
-      ["shield", tr("Doshas checked", "దోష పరిశీలన"), tr("21 mahadoshas", "21 మహాదోషాలు")],
+      ["scroll", t("Categories"), tabs.length],
+      ["calendar", t("Events"), data.total],
+      ["sun", t("Calculation"), t("Drik · Lahiri")],
+      ["shield", t("Doshas checked"), t("21 mahadoshas")],
     ].map(function (s) {
       return '<div class="mc-stat"><span class="mc-stat__icon">' + Icon(s[0]) + '</span><div><small>' + esc(s[1]) + "</small><strong>" + esc(s[2]) + "</strong></div></div>";
     }).join("");
 
     var shown = 0;
-    $("mcGrid").innerHTML = tabs.filter(function (t) { return active === "all" || t.id === active; }).map(function (t) {
-      var list = eventsOf(t);
-      if (t.id === "yogas") {
+    $("mcGrid").innerHTML = tabs.filter(function (t) { return active === "all" || t.id === active; }).map(function (tv) {
+      var list = eventsOf(tv);
+      if (tv.id === "yogas") {
         if (query) return "";
       } else if (!list.length) return "";
       shown++;
-      var full = open[t.id] || query, more = list.length - PREVIEW;
+      var full = open[tv.id] || query, more = list.length - PREVIEW;
       var items = (full ? list : list.slice(0, PREVIEW)).map(function (r) {
-        return '<li><a href="' + finderLink(t.id, r.id) + '">' + esc(title(r)) + "</a></li>";
+        return '<li><a href="' + finderLink(tv.id, r.id) + '">' + esc(title(r)) + "</a></li>";
       }).join("");
-      var body = t.id === "yogas"
-        ? '<p class="mc-card__text">' + tr("Amrita siddhi, sarvartha siddhi, guru pushya and the other special yogas, with your tarabala and chandrabala.",
-                                            "అమృత సిద్ధి, సర్వార్థ సిద్ధి, గురు పుష్య మొదలైన విశేష యోగాలు, మీ తారాబలం, చంద్రబలంతో సహా.") + "</p>"
+      var body = tv.id === "yogas"
+        ? '<p class="mc-card__text">' + t("Amrita siddhi, sarvartha siddhi, guru pushya and the other special yogas, with your tarabala and chandrabala.") + "</p>"
         : '<ul class="mc-card__list">' + items + "</ul>" +
-          (!query && more > 0 ? '<button type="button" class="linkish mc-card__more" data-more="' + esc(t.id) + '">' +
-            (full ? tr("Show fewer", "తక్కువ చూపించు") : tr("Show all " + list.length, "అన్నీ చూపించు (" + list.length + ")")) + "</button>" : "");
+          (!query && more > 0 ? '<button type="button" class="linkish mc-card__more" data-more="' + esc(tv.id) + '">' +
+            (full ? t("Show fewer") : t("Show all {list}", { list: list.length })) + "</button>" : "");
       var first = list[0];
-      return '<article class="mc-card' + (t.id === "upanayana" ? " mc-card--feature" : "") + '">' +
-        '<div class="mc-card__top"><span class="mc-card__icon">' + Icon(ICONS[t.id] || "calendar") + "</span>" +
-          (t.count ? '<span class="mc-card__count">' + tr(t.count + " events", t.count + " కార్యాలు") + "</span>" : "") + "</div>" +
-        "<h2>" + esc(tr(t.en, t.te)) + "</h2>" + body +
-        '<a class="btn btn--primary mc-card__go" href="' + finderLink(t.id, first && first.id) + '">' + tr("Find a muhurta", "ముహూర్తం శోధించండి") + " →</a>" +
+      return '<article class="mc-card' + (tv.id === "upanayana" ? " mc-card--feature" : "") + '">' +
+        '<div class="mc-card__top"><span class="mc-card__icon">' + Icon(ICONS[tv.id] || "calendar") + "</span>" +
+          (tv.count ? '<span class="mc-card__count">' + t("{count} events", { count: tv.count }) + "</span>" : "") + "</div>" +
+        "<h2>" + esc(tr(tv.en, tv.te)) + "</h2>" + body +
+        '<a class="btn btn--primary mc-card__go" href="' + finderLink(tv.id, first && first.id) + '">' + t("Find a muhurta") + " →</a>" +
       "</article>";
     }).join("");
     $("mcNone").hidden = shown > 0;
-    $("mcNone").textContent = tr("No event matches that search.", "ఆ శోధనకు సరిపోయే కార్యం లేదు.");
+    $("mcNone").textContent = t("No event matches that search.");
   }
 
   document.addEventListener("click", function (e) {
@@ -102,7 +100,7 @@
     } catch (err) {
       $("mcGrid").innerHTML = "";
       $("mcMsg").hidden = false;
-      $("mcMsg").textContent = tr("The list of events could not be loaded: ", "కార్యాల జాబితా రాలేదు: ") + err.message;
+      $("mcMsg").textContent = t("The list of events could not be loaded: ") + err.message;
     }
   }
   window.onLangChange = render;

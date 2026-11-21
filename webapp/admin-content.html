@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261121a">
+  <link rel="stylesheet" href="css/common.css?v=20261121b">
   <link rel="stylesheet" href="css/portal.css?v=20261113p">
-  <title>Content · Gayatri Jyotirnidhi</title>
+  <title>Content · Gayathri Jyothirnidhe</title>
 </head>
 <body>
   <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -20,55 +20,56 @@
     <div class="account-slot" id="accountSlot"></div>
   </nav>
   <main id="mainContent" class="portal">
-    <h1 class="portal__title" data-en="Content" data-te="విషయాలు">Content</h1>
+    <h1 class="portal__title" data-i18n>Content</h1>
     <div id="contentMsg" class="auth-alert auth-alert--info" role="status" hidden></div>
 
     <section class="portal-card" aria-labelledby="oTitle">
-      <h2 id="oTitle" data-en="Omen calendar (utpata)" data-te="ఉత్పాతాల జాబితా">Omen calendar (utpata)</h2>
-      <p class="portal-hint" data-en="Earthquakes, comets, thunderbolts and similar events can't be calculated. Every muhurta on a date listed here fails Mahadosha #15." data-te="భూకంపాలు, తోకచుక్కలు, పిడుగులు వంటివి లెక్కించలేము. ఇక్కడ ఉన్న తేదీలలో ప్రతి ముహూర్తం మహాదోషం #15 వల్ల తిరస్కరించబడుతుంది.">Earthquakes, comets, thunderbolts and similar events can't be calculated. Every muhurta on a date listed here fails Mahadosha #15.</p>
+      <h2 id="oTitle" data-i18n>Omen calendar (utpata)</h2>
+      <p class="portal-hint" data-i18n>Earthquakes, comets, thunderbolts and similar events can't be calculated. Every muhurta on a date listed here fails Mahadosha #15.</p>
       <ul class="portal-list" id="omens"><li><span class="skeleton" role="status" aria-label="Loading"></span></li></ul>
       <form id="omenForm" class="portal-form">
-        <h3 data-en="Add an omen" data-te="ఉత్పాతం జోడించండి">Add an omen</h3>
+        <h3 data-i18n>Add an omen</h3>
         <div class="row-form">
-          <div class="field"><label for="omFrom" data-en="Date" data-te="తేదీ">Date</label><input type="date" id="omFrom" required></div>
-          <div class="field"><label for="omTo" data-en="Until (optional)" data-te="వరకు (ఐచ్ఛికం)">Until (optional)</label><input type="date" id="omTo"></div>
-          <div class="field"><label for="omKind" data-en="What" data-te="ఏమిటి">What</label><select id="omKind" required></select></div>
+          <div class="field"><label for="omFrom" data-i18n>Date</label><input type="date" id="omFrom" required></div>
+          <div class="field"><label for="omTo" data-i18n>Until (optional)</label><input type="date" id="omTo"></div>
+          <div class="field"><label for="omKind" data-i18n>What</label><select id="omKind" required></select></div>
         </div>
-        <div class="field"><label for="omEn" data-en="What happened (English)" data-te="ఏమి జరిగింది (ఇంగ్లీష్)">What happened (English)</label><input type="text" id="omEn" maxlength="300"></div>
-        <div class="field"><label for="omTe" data-en="What happened (Telugu)" data-te="ఏమి జరిగింది (తెలుగు)">What happened (Telugu)</label><input type="text" id="omTe" maxlength="300"></div>
+        <div class="field"><label for="omEn" data-i18n>What happened (English)</label><input type="text" id="omEn" maxlength="300"></div>
+        <div class="field"><label for="omTe" data-i18n>What happened (Telugu)</label><input type="text" id="omTe" maxlength="300"></div>
         <div class="row-form">
-          <div class="field"><label for="omRegion" data-en="Where it applies" data-te="ఎక్కడ వర్తిస్తుంది">Where it applies</label><select id="omRegion"><option value="" data-en="Everywhere" data-te="అన్ని ప్రాంతాలు">Everywhere</option></select></div>
-          <div class="field"><label for="omSource" data-en="Where this was reported" data-te="ఎక్కడ నివేదించబడింది">Where this was reported</label><input type="text" id="omSource" maxlength="200" required></div>
+          <div class="field"><label for="omRegion" data-i18n>Where it applies</label><select id="omRegion"><option value="" data-i18n>Everywhere</option></select></div>
+          <div class="field"><label for="omSource" data-i18n>Where this was reported</label><input type="text" id="omSource" maxlength="200" required></div>
         </div>
-        <button type="submit" class="btn" data-en="Add omen" data-te="ఉత్పాతం జోడించండి">Add omen</button>
+        <button type="submit" class="btn" data-i18n>Add omen</button>
       </form>
     </section>
 
     <section class="portal-card" aria-labelledby="nTitle">
-      <h2 id="nTitle" data-en="Announcements" data-te="ప్రకటనలు">Announcements</h2>
-      <p class="portal-hint" data-en="A short notice shown at the top of the home page." data-te="హోమ్ పేజీ పైభాగంలో చూపే చిన్న ప్రకటన.">A short notice shown at the top of the home page.</p>
+      <h2 id="nTitle" data-i18n>Announcements</h2>
+      <p class="portal-hint" data-i18n>A short notice shown at the top of the home page.</p>
       <ul class="portal-list" id="anns"><li><span class="skeleton" role="status" aria-label="Loading"></span></li></ul>
       <form id="annForm" class="portal-form">
-        <h3 data-en="New announcement" data-te="కొత్త ప్రకటన">New announcement</h3>
-        <div class="field"><label for="anTitleEn" data-en="Title (English)" data-te="శీర్షిక (ఇంగ్లీష్)">Title (English)</label><input type="text" id="anTitleEn" maxlength="120"></div>
-        <div class="field"><label for="anTitleTe" data-en="Title (Telugu)" data-te="శీర్షిక (తెలుగు)">Title (Telugu)</label><input type="text" id="anTitleTe" maxlength="120"></div>
-        <div class="field"><label for="anBodyEn" data-en="Message (English)" data-te="సందేశం (ఇంగ్లీష్)">Message (English)</label><textarea id="anBodyEn" rows="2" maxlength="1000"></textarea></div>
-        <div class="field"><label for="anBodyTe" data-en="Message (Telugu)" data-te="సందేశం (తెలుగు)">Message (Telugu)</label><textarea id="anBodyTe" rows="2" maxlength="1000"></textarea></div>
+        <h3 data-i18n>New announcement</h3>
+        <div class="field"><label for="anTitleEn" data-i18n>Title (English)</label><input type="text" id="anTitleEn" maxlength="120"></div>
+        <div class="field"><label for="anTitleTe" data-i18n>Title (Telugu)</label><input type="text" id="anTitleTe" maxlength="120"></div>
+        <div class="field"><label for="anBodyEn" data-i18n>Message (English)</label><textarea id="anBodyEn" rows="2" maxlength="1000"></textarea></div>
+        <div class="field"><label for="anBodyTe" data-i18n>Message (Telugu)</label><textarea id="anBodyTe" rows="2" maxlength="1000"></textarea></div>
         <div class="row-form">
-          <div class="field"><label for="anAudience" data-en="Show to" data-te="ఎవరికి">Show to</label>
-            <select id="anAudience"><option value="all" data-en="Everyone" data-te="అందరికీ">Everyone</option><option value="users" data-en="Users" data-te="వినియోగదారులకు">Users</option><option value="admins" data-en="Admins" data-te="నిర్వాహకులకు">Admins</option></select></div>
-          <div class="field"><label for="anEnds" data-en="Stop showing on (optional)" data-te="చూపడం ఆపే తేదీ (ఐచ్ఛికం)">Stop showing on (optional)</label><input type="date" id="anEnds"></div>
+          <div class="field"><label for="anAudience" data-i18n>Show to</label>
+            <select id="anAudience"><option value="all" data-i18n>Everyone</option><option value="users" data-i18n="Users@@audience">Users</option><option value="admins" data-i18n="Admins@@audience">Admins</option></select></div>
+          <div class="field"><label for="anEnds" data-i18n>Stop showing on (optional)</label><input type="date" id="anEnds"></div>
         </div>
-        <button type="submit" class="btn" data-en="Publish announcement" data-te="ప్రకటన ప్రచురించండి">Publish announcement</button>
+        <button type="submit" class="btn" data-i18n>Publish announcement</button>
       </form>
     </section>
   </main>
   <script src="js/config.js"></script>
-  <script src="js/site-config.js?v=20261121a"></script>
-  <script src="js/icons.js?v=20261110"></script>
-  <script src="js/app-shell.js?v=20261110"></script>
-  <script src="js/i18n.js?v=20261114c"></script>
-  <script src="js/auth.js?v=20261119a"></script>
-  <script src="js/admin-content.js?v=20261110b"></script>
+  <script src="js/site-config.js?v=20261122a"></script>
+  <script src="js/icons.js?v=20261122a"></script>
+  <script src="js/app-shell.js?v=20261122a"></script>
+  <script src="i18n/te.js?v=20261122a"></script>
+  <script src="js/i18n.js?v=20261122a"></script>
+  <script src="js/auth.js?v=20261122a"></script>
+  <script src="js/admin-content.js?v=20261122a"></script>
 </body>
 </html>

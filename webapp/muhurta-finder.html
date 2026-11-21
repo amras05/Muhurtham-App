@@ -10,7 +10,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261121a">
+  <link rel="stylesheet" href="css/common.css?v=20261121b">
   <link rel="stylesheet" href="css/components.css?v=20261110e">
   <link rel="stylesheet" href="css/muhurta-finder.css?v=20261121d">
 </head>
@@ -35,14 +35,14 @@
       <header class="mf-title">
         <span class="mf-title__icon" data-icon="search"></span>
         <div>
-          <h1 data-en="Muhurta Darshini" data-te="ముహూర్త దర్శిని">Muhurta Darshini</h1>
-          <p data-en="Every window checked against the book's rules: tithi, nakshatra, lagna, the 21 mahadoshas and your birth details."
-            data-te="ప్రతి సమయం గ్రంథ నియమాలతో పరిశీలన: తిథి, నక్షత్రం, లగ్నం, 21 మహాదోషాలు, మీ జన్మ వివరాలు.">Every
+          <h1 data-i18n>Muhurta Darshini</h1>
+          <p data-i18n
+           >Every
             window checked against the book's rules: tithi, nakshatra, lagna, the 21 mahadoshas and your birth details.
           </p>
         </div>
-        <span class="mf-title__chip"><span data-icon="sun"></span> <span data-en="Swiss Ephemeris · Lahiri"
-            data-te="స్విస్ ఎఫిమెరిస్ · లాహిరి">Swiss Ephemeris · Lahiri</span></span>
+        <span class="mf-title__chip"><span data-icon="sun"></span> <span data-i18n
+           >Swiss Ephemeris · Lahiri</span></span>
       </header>
 
       <!-- Category tabs (built from /muhurta/catalog) -->
@@ -54,58 +54,58 @@
           <!-- Two ways to search (11 Nov 2026): for a person, or the muhurtas of an event by lunar month -->
           <div class="finder-modes" role="tablist" aria-label="How to search">
             <button type="button" role="tab" class="finder-mode active" id="mfModePerson" aria-selected="true"
-              data-en="Find for a person" data-te="వ్యక్తి కోసం ముహూర్తం">Find for a person</button>
+              data-i18n>Find for a person</button>
             <button type="button" role="tab" class="finder-mode" id="mfModePool" aria-selected="false"
-              data-en="Muhurtas by month" data-te="మాసాల వారీ ముహూర్తాలు">Muhurtas by month</button>
+              data-i18n>Muhurtas by month</button>
           </div>
           <p class="pool-intro" id="mfPoolIntro" hidden
-            data-en="Choose an event, a year and the lunar months: every suitable muhurta is listed month by month. No personal details are needed."
-            data-te="కార్యం, సంవత్సరం, చాంద్రమాన మాసాలు ఎంచుకోండి: అనువైన ముహూర్తాలన్నీ మాసాల వారీగా చూపిస్తాము. వ్యక్తిగత వివరాలు అవసరం లేదు.">
+            data-i18n
+           >
             Choose an event, a year and the lunar months: every suitable muhurta is listed month by month. No personal
             details are needed.</p>
 
           <!-- Input Form -->
           <div class="controls" id="mfControls">
             <div class="mf-step" id="mfStepEvent">
-              <h2 class="mf-step__title"><span class="mf-step__num">1</span> <span data-en="Choose the event"
-                  data-te="ముహూర్త కార్యము ఎంపిక">Choose the event</span></h2>
+              <h2 class="mf-step__title"><span class="mf-step__num">1</span> <span data-i18n
+                 >Choose the event</span></h2>
               <div class="field field--activity">
-                <label for="mfActivitySelect" data-en="Muhurtha Event" data-te="ముహూర్త కార్యము">Muhurtha Event</label>
+                <label for="mfActivitySelect" data-i18n>Muhurtha Event</label>
                 <select id="mfActivitySelect" onchange="onActivityChange()">
                   <option value="">Loading activities...</option>
                 </select>
                 <small id="mfEventDesc" class="event-desc"></small>
               </div>
               <div class="field field--pool" hidden>
-                <label for="mfPoolEvent" data-en="Event" data-te="కార్యం">Event</label>
+                <label for="mfPoolEvent" data-i18n>Event</label>
                 <select id="mfPoolEvent"></select>
               </div>
               <div class="field field--pool" hidden>
-                <label for="mfPoolYear" data-en="Year (from Ugadi)" data-te="సంవత్సరం (ఉగాది నుండి)">Year (from
+                <label for="mfPoolYear" data-i18n>Year (from
                   Ugadi)</label>
                 <select id="mfPoolYear"></select>
               </div>
               <div class="field field--variant" id="mfVariantField" hidden>
-                <label for="mfVariantSelect" data-en="Rule list" data-te="నియమ జాబితా">Rule list</label>
+                <label for="mfVariantSelect" data-i18n>Rule list</label>
                 <select id="mfVariantSelect"></select>
               </div>
             </div>
             <div class="mf-step" id="mfStepSearch">
-              <h2 class="mf-step__title"><span class="mf-step__num">2</span> <span data-en="Dates, place and options"
-                  data-te="శోధన పరిమితులు & ప్రదేశం">Dates, place and options</span></h2>
+              <h2 class="mf-step__title"><span class="mf-step__num">2</span> <span data-i18n
+                 >Dates, place and options</span></h2>
               <div class="field field--start-date">
-                <label for="startDate" data-en="Start Date" data-te="ప్రారంభ తేదీ">Start Date</label>
+                <label for="startDate" data-i18n>Start Date</label>
                 <input type="date" id="startDate">
               </div>
               <div class="field field--end-date">
-                <label for="mfEndDate" data-en="End date (optional)" data-te="ముగింపు తేదీ (ఐచ్ఛికం)">End date
+                <label for="mfEndDate" data-i18n>End date
                   (optional)</label>
                 <input type="date" id="mfEndDate" aria-describedby="mfEndDateNote">
-                <small id="mfEndDateNote" class="place-search__note" data-en="Empty: one year from the start date"
-                  data-te="ఖాళీ: ప్రారంభ తేదీ నుండి ఒక సంవత్సరం">Empty: one year from the start date</small>
+                <small id="mfEndDateNote" class="place-search__note" data-i18n
+                 >Empty: one year from the start date</small>
               </div>
               <div class="field field--location">
-                <label for="mfPlaceInput" data-en="Location" data-te="ప్రాంతం">Location</label>
+                <label for="mfPlaceInput" data-i18n>Location</label>
                 <div class="place-search">
                   <input type="search" id="mfPlaceInput" autocomplete="off" placeholder="Search a town or city"
                     aria-describedby="mfPlaceNote">
@@ -118,50 +118,50 @@
                 <select id="mfRegionSelect" hidden aria-hidden="true"></select>
               </div>
               <div class="field field--timepref">
-                <label for="mfTimePref" data-en="Preferred time" data-te="సమయ ప్రాధాన్యత">Preferred time</label>
+                <label for="mfTimePref" data-i18n>Preferred time</label>
                 <select id="mfTimePref">
-                  <option value="any" data-en="Any time" data-te="ఏ సమయమైనా">Any time</option>
-                  <option value="morning" data-en="Morning (sunrise to midday)"
-                    data-te="ఉదయం (సూర్యోదయం నుండి మధ్యాహ్నం)">Morning (sunrise to midday)</option>
-                  <option value="afternoon" data-en="Afternoon (midday to sunset)"
-                    data-te="మధ్యాహ్నం (మధ్యాహ్నం నుండి సూర్యాస్తమయం)">Afternoon (midday to sunset)</option>
-                  <option value="evening" data-en="Evening (early night)" data-te="సాయంత్రం (రాత్రి మొదటి భాగం)">Evening
+                  <option value="any" data-i18n>Any time</option>
+                  <option value="morning" data-i18n
+                   >Morning (sunrise to midday)</option>
+                  <option value="afternoon" data-i18n
+                   >Afternoon (midday to sunset)</option>
+                  <option value="evening" data-i18n>Evening
                     (early night)</option>
-                  <option value="night" data-en="Night (sunset to sunrise)"
-                    data-te="రాత్రి (సూర్యాస్తమయం నుండి సూర్యోదయం)">Night (sunset to sunrise)</option>
+                  <option value="night" data-i18n
+                   >Night (sunset to sunrise)</option>
                 </select>
               </div>
               <fieldset class="lunar-months" id="mfLunarMonths">
-                <legend data-en="Only these lunar months (optional)" data-te="ఈ చాంద్రమాన మాసాలు మాత్రమే (ఐచ్ఛికం)">Only
+                <legend data-i18n>Only
                   these lunar months (optional)</legend>
                 <div class="lunar-months__chips">
-                  <label><input type="checkbox" value="1"> <span data-en="Chaitra"
-                      data-te="చైత్రం">Chaitra</span></label>
-                  <label><input type="checkbox" value="2"> <span data-en="Vaishakha"
-                      data-te="వైశాఖం">Vaishakha</span></label>
-                  <label><input type="checkbox" value="3"> <span data-en="Jyeshtha"
-                      data-te="జ్యేష్ఠం">Jyeshtha</span></label>
-                  <label><input type="checkbox" value="4"> <span data-en="Ashadha"
-                      data-te="ఆషాఢం">Ashadha</span></label>
-                  <label><input type="checkbox" value="5"> <span data-en="Shravana"
-                      data-te="శ్రావణం">Shravana</span></label>
-                  <label><input type="checkbox" value="6"> <span data-en="Bhadrapada"
-                      data-te="భాద్రపదం">Bhadrapada</span></label>
-                  <label><input type="checkbox" value="7"> <span data-en="Ashwayuja"
-                      data-te="ఆశ్వయుజం">Ashwayuja</span></label>
-                  <label><input type="checkbox" value="8"> <span data-en="Kartika"
-                      data-te="కార్తీకం">Kartika</span></label>
-                  <label><input type="checkbox" value="9"> <span data-en="Margashira"
-                      data-te="మార్గశిరం">Margashira</span></label>
-                  <label><input type="checkbox" value="10"> <span data-en="Pushya"
-                      data-te="పుష్యం">Pushya</span></label>
-                  <label><input type="checkbox" value="11"> <span data-en="Magha" data-te="మాఘం">Magha</span></label>
-                  <label><input type="checkbox" value="12"> <span data-en="Phalguna"
-                      data-te="ఫాల్గుణం">Phalguna</span></label>
+                  <label><input type="checkbox" value="1"> <span data-i18n
+                     >Chaitra</span></label>
+                  <label><input type="checkbox" value="2"> <span data-i18n
+                     >Vaishakha</span></label>
+                  <label><input type="checkbox" value="3"> <span data-i18n
+                     >Jyeshtha</span></label>
+                  <label><input type="checkbox" value="4"> <span data-i18n
+                     >Ashadha</span></label>
+                  <label><input type="checkbox" value="5"> <span data-i18n
+                     >Shravana</span></label>
+                  <label><input type="checkbox" value="6"> <span data-i18n
+                     >Bhadrapada</span></label>
+                  <label><input type="checkbox" value="7"> <span data-i18n
+                     >Ashwayuja</span></label>
+                  <label><input type="checkbox" value="8"> <span data-i18n
+                     >Kartika</span></label>
+                  <label><input type="checkbox" value="9"> <span data-i18n
+                     >Margashira</span></label>
+                  <label><input type="checkbox" value="10"> <span data-i18n
+                     >Pushya</span></label>
+                  <label><input type="checkbox" value="11"> <span data-i18n>Magha</span></label>
+                  <label><input type="checkbox" value="12"> <span data-i18n
+                     >Phalguna</span></label>
                 </div>
                 <small class="lunar-months__hint"
-                  data-en="None ticked: every month. Months are amanta. Results cover one year from the start date."
-                  data-te="ఏదీ ఎంచుకోకపోతే: అన్ని మాసాలు. మాసాలు అమాంత పద్ధతి. ఫలితాలు ప్రారంభ తేదీ నుండి ఒక సంవత్సరం.">None
+                  data-i18n
+                 >None
                   ticked: every month. Months are amanta. Results cover one year from the start date.</small>
               </fieldset>
               <div id="mfInfoBanner" class="info-banner" role="note" hidden></div>
@@ -169,47 +169,47 @@
 
             <!-- People taking part (built per event from the catalog) -->
             <div class="mf-step" id="mfStepPeople">
-              <h2 class="mf-step__title"><span class="mf-step__num">3</span> <span data-en="Who it is for"
-                  data-te="కర్త / యజమాని వివరాలు">Who it is for</span></h2>
+              <h2 class="mf-step__title"><span class="mf-step__num">3</span> <span data-i18n
+                 >Who it is for</span></h2>
               <section id="mfParticipants" class="participants" aria-label="People taking part"></section>
             </div>
             <div class="mf-step" id="mfStepDetails">
-              <h2 class="mf-step__title"><span class="mf-step__num">4</span> <span data-en="Event details"
-                  data-te="కార్య ప్రత్యేక వివరాలు">Event details</span></h2>
+              <h2 class="mf-step__title"><span class="mf-step__num">4</span> <span data-i18n
+                 >Event details</span></h2>
 
               <!-- Pitru tab: switch between a rite's muhurta and the shraddha calendar -->
               <section id="mfPitruPanel" class="yoga-panel" hidden>
                 <div class="nama-mode-tabs" role="tablist" aria-label="Pitru tools">
                   <button type="button" role="tab" class="nama-tab active" id="mfPitruTabRite" aria-selected="true"
-                    onclick="setPitruMode(false)" data-en="Find a muhurta for a rite" data-te="కర్మకు ముహూర్తం">Find a
+                    onclick="setPitruMode(false)" data-i18n>Find a
                     muhurta for a rite</button>
                   <button type="button" role="tab" class="nama-tab" id="mfPitruTabCal" aria-selected="false"
-                    onclick="setPitruMode(true)" data-en="Shraddha calendar" data-te="శ్రాద్ధ తిథి నిర్ణయం">Shraddha
+                    onclick="setPitruMode(true)" data-i18n="Shraddha calendar">Shraddha
                     calendar</button>
                 </div>
                 <div id="mfPitruCalFields" class="context-grid" hidden>
-                  <div class="field"><label for="mfPitruMode" data-en="What to find" data-te="ఏది కావాలి">What to
+                  <div class="field"><label for="mfPitruMode" data-i18n>What to
                       find</label>
                     <select id="mfPitruMode">
-                      <option value="annual" data-en="Yearly shraddha dates" data-te="వార్షిక శ్రాద్ధ తేదీలు">Yearly
+                      <option value="annual" data-i18n>Yearly
                         shraddha dates</option>
-                      <option value="after_death" data-en="Rites after a death (days 1–12, masikas)"
-                        data-te="మరణానంతర కర్మలు (1–12 రోజులు, మాసికాలు)">Rites after a death (days 1–12, masikas)
+                      <option value="after_death" data-i18n
+                       >Rites after a death (days 1–12, masikas)
                       </option>
-                      <option value="shannavati" data-en="The 96 shraddha days of a year"
-                        data-te="సంవత్సరంలో 96 శ్రాద్ధ దినాలు">The 96 shraddha days of a year</option>
+                      <option value="shannavati" data-i18n
+                       >The 96 shraddha days of a year</option>
                     </select>
                   </div>
-                  <div class="field pitru-death"><label for="mfPitruDeathDate" data-en="Date of death"
-                      data-te="మరణ తేదీ">Date of death</label><input type="date" id="mfPitruDeathDate"></div>
-                  <div class="field pitru-death"><label for="mfPitruDeathTime" data-en="Time of death (sets the tithi)"
-                      data-te="మరణ సమయం (తిథి నిర్ణయానికి)">Time of death (sets the tithi)</label><input type="time"
+                  <div class="field pitru-death"><label for="mfPitruDeathDate" data-i18n
+                     >Date of death</label><input type="date" id="mfPitruDeathDate"></div>
+                  <div class="field pitru-death"><label for="mfPitruDeathTime" data-i18n
+                     >Time of death (sets the tithi)</label><input type="time"
                       id="mfPitruDeathTime"></div>
-                  <div class="field pitru-annual"><label for="mfPitruYears" data-en="Years to list"
-                      data-te="ఎన్ని సంవత్సరాలు">Years to list</label><input type="number" id="mfPitruYears" min="1"
+                  <div class="field pitru-annual"><label for="mfPitruYears" data-i18n
+                     >Years to list</label><input type="number" id="mfPitruYears" min="1"
                       max="10" value="3"></div>
-                  <div class="field pitru-year" hidden><label for="mfPitruYear" data-en="Year"
-                      data-te="సంవత్సరం">Year</label><input type="number" id="mfPitruYear" min="1900" max="2200"></div>
+                  <div class="field pitru-year" hidden><label for="mfPitruYear" data-i18n
+                     >Year</label><input type="number" id="mfPitruYear" min="1900" max="2200"></div>
                 </div>
               </section>
 
@@ -217,28 +217,28 @@
               <section id="mfRajaPanel" class="yoga-panel" hidden>
                 <div class="nama-mode-tabs" role="tablist" aria-label="Garbha tools">
                   <button type="button" role="tab" class="nama-tab active" id="mfRajaTabRite" aria-selected="true"
-                    onclick="setRajaMode(false)" data-en="Find a muhurta for a rite" data-te="కర్మకు ముహూర్తం">Find a
+                    onclick="setRajaMode(false)" data-i18n>Find a
                     muhurta for a rite</button>
                   <button type="button" role="tab" class="nama-tab" id="mfRajaTabRec" aria-selected="false"
-                    onclick="setRajaMode(true)" data-en="First period (rajaswala)" data-te="తొలి రజస్వల">First period
+                    onclick="setRajaMode(true)" data-i18n>First period
                     (rajaswala)</button>
                 </div>
                 <div id="mfRajaFields" hidden>
                   <p class="participants__hint"
-                    data-en="Give the date, time and place of the first period. The book rates that moment by its nakshatra, weekday and lagna and lists 17 bad times. Nothing you enter here is saved."
-                    data-te="తొలి రజస్వల తేదీ, సమయం, స్థలం ఇవ్వండి. గ్రంథం ఆ సమయాన్ని నక్షత్ర, వార, లగ్నాలతో పరిశీలించి 17 దుష్ట కాలాలను చెబుతుంది. ఇక్కడ ఇచ్చినది ఏదీ భద్రపరచబడదు.">
+                    data-i18n
+                   >
                     Give the date, time and place of the first period. The book rates that moment by its nakshatra,
                     weekday and lagna and lists 17 bad times. Nothing you enter here is saved.</p>
                   <div class="context-grid">
-                    <div class="field"><label for="mfRajaDate" data-en="Date" data-te="తేదీ">Date</label><input
+                    <div class="field"><label for="mfRajaDate" data-i18n>Date</label><input
                         type="date" id="mfRajaDate"></div>
-                    <div class="field"><label for="mfRajaTime" data-en="Time" data-te="సమయం">Time</label><input
+                    <div class="field"><label for="mfRajaTime" data-i18n>Time</label><input
                         type="time" id="mfRajaTime"></div>
-                    <div class="field"><label for="mfRajaNak" data-en="Her janma nakshatra (optional)"
-                        data-te="ఆమె జన్మ నక్షత్రం (ఐచ్ఛికం)">Her janma nakshatra (optional)</label><select
+                    <div class="field"><label for="mfRajaNak" data-i18n
+                       >Her janma nakshatra (optional)</label><select
                         id="mfRajaNak"></select></div>
-                    <div class="field"><label for="mfRajaRasi" data-en="Husband's janma rashi (optional)"
-                        data-te="భర్త జన్మ రాశి (ఐచ్ఛికం)">Husband's janma rashi (optional)</label><select
+                    <div class="field"><label for="mfRajaRasi" data-i18n
+                       >Husband's janma rashi (optional)</label><select
                         id="mfRajaRasi"></select></div>
                   </div>
                 </div>
@@ -247,24 +247,24 @@
               <!-- Special Yogas tab: search by yoga, no event -->
               <section id="mfYogaPanel" class="yoga-panel" hidden>
                 <p class="participants__hint"
-                  data-en="Find windows where a chosen yoga forms. Every condition you tick must also hold. The yoga tables are classical and still to be confirmed against the book."
-                  data-te="ఎంచుకున్న యోగం ఏర్పడే సమయాలు చూపిస్తాం. మీరు ఎంచుకున్న నియమాలన్నీ కూడా సరిపోవాలి. యోగ పట్టికలు గ్రంథంతో ఇంకా సరిచూడవలసి ఉంది.">
+                  data-i18n="Find windows where a chosen yoga forms. Every condition you tick must also hold. The yoga tables are classical and still to be confirmed against the book."
+                 >
                   Find windows where a chosen yoga forms.</p>
                 <fieldset class="yoga-group">
-                  <legend data-en="Yogas (any of these)" data-te="యోగాలు (వీటిలో ఏదైనా)">Yogas (any of these)</legend>
+                  <legend data-i18n>Yogas (any of these)</legend>
                   <div id="mfYogaList" class="check-grid"></div>
                 </fieldset>
                 <fieldset class="yoga-group">
-                  <legend data-en="Also require (all of these)" data-te="తప్పనిసరి నియమాలు (అన్నీ)">Also require (all of
+                  <legend data-i18n>Also require (all of
                     these)</legend>
                   <div id="mfCondList" class="check-grid"></div>
                 </fieldset>
                 <div class="context-grid">
-                  <div class="field"><label for="mfYogaNak" data-en="Your janma nakshatra (for tarabala)"
-                      data-te="మీ జన్మ నక్షత్రం (తారాబలం కోసం)">Your janma nakshatra (for tarabala)</label><select
+                  <div class="field"><label for="mfYogaNak" data-i18n
+                     >Your janma nakshatra (for tarabala)</label><select
                       id="mfYogaNak"></select></div>
-                  <div class="field"><label for="mfYogaRasi" data-en="Your janma rashi (for chandrabala)"
-                      data-te="మీ జన్మ రాశి (చంద్రబలం కోసం)">Your janma rashi (for chandrabala)</label><select
+                  <div class="field"><label for="mfYogaRasi" data-i18n
+                     >Your janma rashi (for chandrabala)</label><select
                       id="mfYogaRasi"></select></div>
                 </div>
               </section>
@@ -273,11 +273,11 @@
               <div id="mfContextualSection" class="contextual-section">
                 <!-- Upanayana Fields -->
                 <div id="fieldsUpanayana" class="context-group" style="display: none;">
-                  <h4 class="context-group__title"><span data-icon="lamp"></span> <span data-en="Upanayana tradition"
-                      data-te="ఉపనయన సంప్రదాయం">Upanayana tradition</span></h4>
+                  <h4 class="context-group__title"><span data-icon="lamp"></span> <span data-i18n
+                     >Upanayana tradition</span></h4>
                   <div class="context-grid">
                     <div class="field">
-                      <label for="mfVedaShakha" data-en="Veda Shakha" data-te="వేద శాఖ">Veda Shakha</label>
+                      <label for="mfVedaShakha" data-i18n>Veda Shakha</label>
                       <select id="mfVedaShakha">
                         <option value="yajur">యజుర్వేదం (Yajurveda)</option>
                         <option value="rig">ఋగ్వేదం (Rigveda)</option>
@@ -286,18 +286,18 @@
                       </select>
                     </div>
                     <div class="field">
-                      <label for="mfVarna" data-en="Varna (for the varnesha check)"
-                        data-te="వర్ణం (వర్ణేశ పరిశీలనకు)">Varna (for the varnesha check)</label>
+                      <label for="mfVarna" data-i18n
+                       >Varna (for the varnesha check)</label>
                       <select id="mfVarna">
-                        <option value="" data-en="— Not specified —" data-te="— పేర్కొనలేదు —">— Not specified —
+                        <option value="" data-i18n>— Not specified —
                         </option>
-                        <option value="brahmana" data-en="Brahmana" data-te="బ్రాహ్మణ">Brahmana</option>
-                        <option value="kshatriya" data-en="Kshatriya" data-te="క్షత్రియ">Kshatriya</option>
-                        <option value="vaishya" data-en="Vaishya" data-te="వైశ్య">Vaishya</option>
+                        <option value="brahmana" data-i18n>Brahmana</option>
+                        <option value="kshatriya" data-i18n>Kshatriya</option>
+                        <option value="vaishya" data-i18n>Vaishya</option>
                       </select>
                     </div>
                     <div class="field">
-                      <label for="mfSutra" data-en="Sutra" data-te="సూత్రము">Sutra</label>
+                      <label for="mfSutra" data-i18n>Sutra</label>
                       <select id="mfSutra">
                         <option value="apastamba">ఆపస్తంబ (Apastamba)</option>
                         <option value="bodhayana">బోధాయన (Bodhayana)</option>
@@ -309,12 +309,12 @@
 
                 <!-- Samskara: pregnancy -->
                 <div id="fieldsSamskaraPregnancy" class="context-group" style="display: none;">
-                  <h4 class="context-group__title"><span data-en="Pregnancy details" data-te="గర్భ వివరాలు">Pregnancy
+                  <h4 class="context-group__title"><span data-i18n>Pregnancy
                       details</span></h4>
                   <div class="context-grid">
                     <div class="field">
-                      <label for="mfConceptionDate" data-en="Approximate conception date"
-                        data-te="గర్భధారణ తేదీ (సుమారు)">Approximate conception date</label>
+                      <label for="mfConceptionDate" data-i18n
+                       >Approximate conception date</label>
                       <input type="date" id="mfConceptionDate">
                     </div>
                   </div>
@@ -322,18 +322,18 @@
 
                 <!-- Garbhadhana: night count from the period (plan R6b) -->
                 <div id="fieldsGarbhadhanaPeriod" class="context-group" style="display: none;">
-                  <h4 class="context-group__title"><span data-en="Night count (optional)"
-                      data-te="రాత్రుల లెక్క (ఐచ్ఛికం)">Night count (optional)</span></h4>
+                  <h4 class="context-group__title"><span data-i18n
+                     >Night count (optional)</span></h4>
                   <div class="context-grid">
                     <div class="field">
-                      <label for="mfPeriodStart" data-en="First day of the last period"
-                        data-te="చివరి ఋతుస్రావం మొదటి రోజు">First day of the last period</label>
+                      <label for="mfPeriodStart" data-i18n
+                       >First day of the last period</label>
                       <input type="date" id="mfPeriodStart">
                     </div>
                   </div>
                   <p class="participants__hint"
-                    data-en="Used only for this search: it is not saved, logged or printed. Nights 4 to 16 are used, except the 11th and 13th (classical rule, to be confirmed by Dr. Nemani). Son or daughter timing is not offered. A muhurta never replaces medical advice."
-                    data-te="ఈ శోధనకు మాత్రమే వాడతాం: భద్రపరచము, లాగ్ చేయము, ముద్రించము. 4 నుండి 16 రాత్రులు (11, 13 కాకుండా) వాడతాం (సంప్రదాయ నియమం, డా. నేమాని గారు నిర్ధారించాలి). కుమారుడు/కుమార్తె సమయం ఇవ్వము. ముహూర్తం వైద్య సలహాకు ప్రత్యామ్నాయం కాదు.">
+                    data-i18n
+                   >
                     Used only for this search: it is not saved, logged or printed. Nights 4 to 16 are used, except the
                     11th and 13th (classical rule, to be confirmed by Dr. Nemani). Son or daughter timing is not
                     offered. A muhurta never replaces medical advice.</p>
@@ -341,12 +341,12 @@
 
                 <!-- Samskara: depends on the main event -->
                 <div id="fieldsSamskaraMainEvent" class="context-group" style="display: none;">
-                  <h4 class="context-group__title"><span data-en="Main samskara" data-te="ప్రధాన సంస్కారము">Main
+                  <h4 class="context-group__title"><span data-i18n>Main
                       samskara</span></h4>
                   <div class="context-grid">
                     <div class="field">
-                      <label for="mfMainEventDate" data-en="Date of the main samskara"
-                        data-te="ప్రధాన సంస్కార తేదీ">Date of the main samskara</label>
+                      <label for="mfMainEventDate" data-i18n
+                       >Date of the main samskara</label>
                       <input type="date" id="mfMainEventDate">
                     </div>
                   </div>
@@ -354,11 +354,11 @@
 
                 <!-- Pitru karya: date of death -->
                 <div id="fieldsPitruDeath" class="context-group" style="display: none;">
-                  <h4 class="context-group__title"><span data-en="Details for the rite" data-te="కర్మ వివరాలు">Details
+                  <h4 class="context-group__title"><span data-i18n>Details
                       for the rite</span></h4>
                   <div class="context-grid">
                     <div class="field">
-                      <label for="mfDeathDate" data-en="Date of passing" data-te="మరణ తేదీ">Date of passing</label>
+                      <label for="mfDeathDate" data-i18n>Date of passing</label>
                       <input type="date" id="mfDeathDate">
                     </div>
                   </div>
@@ -366,12 +366,12 @@
 
                 <!-- Griha / Vastu Fields -->
                 <div id="fieldsGriha" class="context-group" style="display: none;">
-                  <h4 class="context-group__title"><span data-icon="landmark"></span> <span data-en="House and plot"
-                      data-te="ఇల్లు · స్థలం వివరాలు">House and plot</span></h4>
+                  <h4 class="context-group__title"><span data-icon="landmark"></span> <span data-i18n
+                     >House and plot</span></h4>
                   <div class="context-grid">
                     <div class="field">
-                      <label for="mfDoorFacing" data-en="Main Door Facing Direction"
-                        data-te="సింహద్వార ముఖద్వార దిశ">Main Door Facing</label>
+                      <label for="mfDoorFacing" data-i18n="Main Door Facing Direction"
+                       >Main Door Facing</label>
                       <select id="mfDoorFacing">
                         <option value="east">తూర్పు (East)</option>
                         <option value="north">ఉత్తరం (North)</option>
@@ -380,7 +380,7 @@
                       </select>
                     </div>
                     <div class="field">
-                      <label for="mfPlotFacing" data-en="Plot Facing Direction" data-te="స్థలం దిశ">Plot Facing
+                      <label for="mfPlotFacing" data-i18n>Plot Facing
                         Direction</label>
                       <select id="mfPlotFacing">
                         <option value="east">తూర్పు (East)</option>
@@ -390,7 +390,7 @@
                       </select>
                     </div>
                     <div class="field">
-                      <label for="mfHouseType" data-en="House Status" data-te="ఇంటి స్థితి">House Status</label>
+                      <label for="mfHouseType" data-i18n>House Status</label>
                       <select id="mfHouseType">
                         <option value="new">కొత్త ఇల్లు (New House)</option>
                         <option value="old">పాత ఇల్లు (Renovated / Old)</option>
@@ -398,8 +398,8 @@
                       </select>
                     </div>
                     <div class="field">
-                      <label for="mfPlotDimensions" data-en="Plot Dimensions (L x W ft)"
-                        data-te="స్థల కొలతలు (పొడవు x వెడల్పు అడుగులు)">Plot Dimensions</label>
+                      <label for="mfPlotDimensions" data-i18n="Plot Dimensions (L x W ft)"
+                       >Plot Dimensions</label>
                       <input type="text" id="mfPlotDimensions" placeholder="e.g. 40 x 60">
                     </div>
                   </div>
@@ -408,16 +408,16 @@
                 <!-- Business Fields -->
                 <div id="fieldsBusiness" class="context-group" style="display: none;">
                   <h4 class="context-group__title"><span data-icon="briefcase"></span> <span
-                      data-en="Business & Commercial Enterprise Details" data-te="వ్యాపార ప్రారంభ వివరాలు">Business
+                      data-i18n="Business &amp; Commercial Enterprise Details">Business
                       Enterprise Details</span></h4>
                   <div class="context-grid">
                     <div class="field">
-                      <label for="mfBusinessName" data-en="Business / Firm Name" data-te="సంస్థ / దుకాణం పేరు">Business
+                      <label for="mfBusinessName" data-i18n="Business / Firm Name">Business
                         Firm Name</label>
                       <input type="text" id="mfBusinessName" placeholder="సంస్థ పేరు">
                     </div>
                     <div class="field">
-                      <label for="mfBusinessType" data-en="Business Sector" data-te="వ్యాపార రకం">Business
+                      <label for="mfBusinessType" data-i18n>Business
                         Sector</label>
                       <select id="mfBusinessType">
                         <option value="retail">రిటైల్ షాప్ / దుకాణం (Retail / Shop)</option>
@@ -428,8 +428,8 @@
                       </select>
                     </div>
                     <div class="field">
-                      <label for="mfEntranceFacing" data-en="Office / Shop Entrance Direction"
-                        data-te="కార్యాలయ ముఖద్వార దిశ">Office Entrance Facing</label>
+                      <label for="mfEntranceFacing" data-i18n="Office / Shop Entrance Direction"
+                       >Office Entrance Facing</label>
                       <select id="mfEntranceFacing">
                         <option value="east">తూర్పు (East)</option>
                         <option value="north">ఉత్తరం (North)</option>
@@ -443,12 +443,12 @@
                 <!-- Travel Fields -->
                 <div id="fieldsTravel" class="context-group" style="display: none;">
                   <h4 class="context-group__title"><span data-icon="plane"></span> <span
-                      data-en="Prayana (Travel) Journey Details" data-te="ప్రయాణ వివరాలు (వారశూల పరిశీలన)">Prayana
+                      data-i18n="Prayana (Travel) Journey Details">Prayana
                       Journey Details</span></h4>
                   <div class="context-grid">
                     <div class="field">
-                      <label for="mfTravelDir" data-en="Travel Direction (Vaara Sula Check)"
-                        data-te="ప్రయాణ దిశ (వారశూల తనిఖీ)">Travel Direction</label>
+                      <label for="mfTravelDir" data-i18n="Travel Direction (Vaara Sula Check)"
+                       >Travel Direction</label>
                       <select id="mfTravelDir">
                         <option value="east">తూర్పు (East - Mon/Sat Sula)</option>
                         <option value="north">ఉత్తరం (North - Tue/Wed Sula)</option>
@@ -461,41 +461,41 @@
                       </select>
                     </div>
                     <div class="field">
-                      <label for="mfTravelPurpose" data-en="Purpose" data-te="ప్రయోజనం">Purpose</label>
+                      <label for="mfTravelPurpose" data-i18n>Purpose</label>
                       <select id="mfTravelPurpose">
-                        <option value="" data-en="General" data-te="సాధారణ">General</option>
-                        <option value="trade" data-en="Trade" data-te="వ్యాపారం">Trade</option>
-                        <option value="cattle_trade" data-en="Cattle trade" data-te="పశు వ్యాపారం">Cattle trade</option>
-                        <option value="women" data-en="Women travelling" data-te="స్త్రీల ప్రయాణం">Women travelling
+                        <option value="" data-i18n>General</option>
+                        <option value="trade" data-i18n>Trade</option>
+                        <option value="cattle_trade" data-i18n>Cattle trade</option>
+                        <option value="women" data-i18n>Women travelling
                         </option>
                       </select>
                     </div>
                     <div class="field">
-                      <label for="mfTravelExemption" data-en="Exemption from the Venus rule"
-                        data-te="శుక్ర సమ్ముఖ మినహాయింపు">Exemption from the Venus rule</label>
+                      <label for="mfTravelExemption" data-i18n
+                       >Exemption from the Venus rule</label>
                       <select id="mfTravelExemption">
-                        <option value="" data-en="None" data-te="లేదు">None</option>
+                        <option value="" data-i18n>None</option>
                         <option value="gotra"
-                          data-en="Exempt gotra (Bharadvaja, Vasishtha, Bhrigu, Atri, Angirasa, Kashyapa, Gargya, Gautama)"
-                          data-te="మినహాయింపు గోత్రం">Exempt gotra</option>
-                        <option value="marriage" data-en="Travelling for a marriage" data-te="వివాహ ప్రయాణం">Travelling
+                          data-i18n="Exempt gotra (Bharadvaja, Vasishtha, Bhrigu, Atri, Angirasa, Kashyapa, Gargya, Gautama)"
+                         >Exempt gotra</option>
+                        <option value="marriage" data-i18n>Travelling
                           for a marriage</option>
-                        <option value="distress" data-en="In distress or escaping" data-te="ఆపద / పలాయనం">In distress or
+                        <option value="distress" data-i18n>In distress or
                           escaping</option>
-                        <option value="pilgrimage" data-en="Pilgrimage" data-te="తీర్థయాత్ర">Pilgrimage</option>
+                        <option value="pilgrimage" data-i18n>Pilgrimage</option>
                       </select>
                     </div>
                     <div class="field">
-                      <label for="mfTravelOrigin" data-en="Departure Place" data-te="ప్రారంభ స్థలం">Departure
+                      <label for="mfTravelOrigin" data-i18n>Departure
                         Place</label>
                       <input type="text" id="mfTravelOrigin" placeholder="e.g. Hyderabad / విజయవాడ">
                     </div>
                     <div class="field">
-                      <label for="mfTravelDest" data-en="Destination" data-te="గమ్యస్థానం">Destination</label>
+                      <label for="mfTravelDest" data-i18n>Destination</label>
                       <input type="text" id="mfTravelDest" placeholder="e.g. Tirupati / తిరుపతి">
                     </div>
                     <div class="field">
-                      <label for="mfTravelMode" data-en="Travel Mode" data-te="ప్రయాణ విధానం">Travel Mode</label>
+                      <label for="mfTravelMode" data-i18n>Travel Mode</label>
                       <select id="mfTravelMode">
                         <option value="air">విమానం (Flight / Air)</option>
                         <option value="car">కారు / రోడ్డు (Car / Road)</option>
@@ -508,11 +508,11 @@
                 <!-- Vehicle Fields -->
                 <div id="fieldsVehicle" class="context-group" style="display: none;">
                   <h4 class="context-group__title"><span data-icon="car"></span> <span
-                      data-en="Vehicle Purchase & Delivery Details" data-te="వాహన కొనుగోలు వివరాలు">Vehicle Purchase
+                      data-i18n="Vehicle Purchase &amp; Delivery Details">Vehicle Purchase
                       Details</span></h4>
                   <div class="context-grid">
                     <div class="field">
-                      <label for="mfVehicleType" data-en="Vehicle Type" data-te="వాహనం రకం">Vehicle Type</label>
+                      <label for="mfVehicleType" data-i18n>Vehicle Type</label>
                       <select id="mfVehicleType">
                         <option value="four_wheeler">కారు / నాలుగు చక్రాలు (4-Wheeler)</option>
                         <option value="two_wheeler">ద్విచక్ర వాహనం (2-Wheeler)</option>
@@ -520,7 +520,7 @@
                       </select>
                     </div>
                     <div class="field">
-                      <label for="mfVehicleMuhurtaType" data-en="Muhurtha Purpose" data-te="ముహూర్త ఉద్దేశ్యం">Muhurtha
+                      <label for="mfVehicleMuhurtaType" data-i18n>Muhurtha
                         Purpose</label>
                       <select id="mfVehicleMuhurtaType">
                         <option value="delivery">వాహన డెలివరీ & మొదటి ప్రయాణం (Delivery / 1st Drive)</option>
@@ -535,12 +535,12 @@
 
             <!-- Custom place search -->
             <div id="mfCustomPlaceField" class="custom-place-section" style="display:none;">
-              <label for="mfCustomPlaceInput" class="custom-place-label" data-en="Search Place (e.g. London, Kakinada)"
-                data-te="ప్రాంతం పేరు (ఉదా: లండన్, కాకినాడ)">Search Place</label>
+              <label for="mfCustomPlaceInput" class="custom-place-label" data-i18n="Search Place (e.g. London, Kakinada)"
+               >Search Place</label>
               <div class="custom-place-row">
                 <input type="text" id="mfCustomPlaceInput" class="custom-place-input" placeholder="Enter place name..."
                   autocomplete="off">
-                <button id="mfSearchPlaceBtn" class="btn-search-place" data-en="Search & Go" data-te="వెతకండి">Search &
+                <button id="mfSearchPlaceBtn" class="btn-search-place" data-i18n>Search &
                   Go</button>
                 <div id="mfSuggestionsList" class="suggestions-container custom-place-suggestions"
                   style="display:none;">
@@ -548,7 +548,7 @@
               </div>
             </div>
 
-            <button id="findBtn" data-en="Find muhurtas" data-te="ముహూర్తాలు వెతుకు">Find muhurtas</button>
+            <button id="findBtn" data-i18n>Find muhurtas</button>
           </div>
         </aside>
 
@@ -568,17 +568,17 @@
           <div id="mfResults" style="display: none;">
             <div class="results-actions no-print">
               <button type="button" class="btn btn--sm btn--ghost" onclick="saveSearch(this, false)"><span
-                  data-en="Save this search" data-te="ఈ శోధన భద్రపరచండి">Save this search</span></button>
+                  data-i18n>Save this search</span></button>
               <button type="button" class="btn btn--sm btn--ghost" onclick="downloadListPdf(this)" data-share-kind="pdf"
-                hidden><!-- shown by Settings › sharing --><span data-en="Download PDF" data-te="PDF డౌన్‌లోడ్">Download
+                hidden><!-- shown by Settings › sharing --><span data-i18n>Download
                   PDF</span></button>
             </div>
             <!-- Cards or one line per muhurta (11 Nov 2026) -->
             <div class="results-view no-print" role="group" aria-label="Result layout">
-              <button type="button" class="view-btn active" data-view="cards" aria-pressed="true" data-en="Cards"
-                data-te="కార్డులు">Cards</button>
-              <button type="button" class="view-btn" data-view="compact" aria-pressed="false" data-en="Compact list"
-                data-te="సంక్షిప్త జాబితా">Compact list</button>
+              <button type="button" class="view-btn active" data-view="cards" aria-pressed="true" data-i18n
+               >Cards</button>
+              <button type="button" class="view-btn" data-view="compact" aria-pressed="false" data-i18n
+               >Compact list</button>
             </div>
             <!-- Ceremony chips, for "All main ceremonies" by month -->
             <div class="event-filter no-print" id="mfEventFilter" role="group" aria-label="Ceremony" hidden></div>
@@ -592,10 +592,10 @@
           </div>
           <div class="mf-empty" id="mfEmptyHint">
             <span data-icon="lamp"></span>
-            <h2 data-en="Your muhurtas appear here" data-te="ముహూర్తాలు ఇక్కడ కనిపిస్తాయి">Your muhurtas appear here
+            <h2 data-i18n>Your muhurtas appear here
             </h2>
-            <p data-en="Choose the event, the place and who it is for, then press Find muhurtas."
-              data-te="కార్యం, ప్రదేశం, కర్త వివరాలు ఎంచుకుని 'ముహూర్తాలు వెతుకు' నొక్కండి.">Choose the event, the place
+            <p data-i18n
+             >Choose the event, the place
               and who it is for, then press Find muhurtas.</p>
           </div>
         </section>
@@ -611,13 +611,13 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="btn btn--outline btn--sm no-print" onclick="closeModal()"><span
-            aria-hidden="true">←</span> <span data-en="Back to results" data-te="ఫలితాలకు తిరిగి">Back to
+            aria-hidden="true">←</span> <span data-i18n>Back to
             results</span></button>
         <div class="pa-nav no-print">
           <button type="button" class="pa-nav__btn" id="paPrev" onclick="stepParishilana(-1)"
             aria-label="Previous muhurta">‹</button>
-          <div class="pa-nav__title"><span class="pa-kicker" data-en="Muhurta Parishilana"
-              data-te="ముహూర్త పరిశీలన">Muhurta Parishilana</span>
+          <div class="pa-nav__title"><span class="pa-kicker" data-i18n
+             >Muhurta Parishilana</span>
             <div id="mfModalTitle" class="modal-title"></div><span class="pa-count" id="paCount"></span>
           </div>
           <button type="button" class="pa-nav__btn" id="paNext" onclick="stepParishilana(1)"
@@ -625,13 +625,13 @@
         </div>
         <div class="modal-header__actions">
           <button type="button" class="btn btn--sm btn--ghost no-print" onclick="saveSearch(this, true)"><span
-              data-en="Save this muhurta" data-te="ఈ ముహూర్తం భద్రపరచండి">Save this muhurta</span></button>
+              data-i18n>Save this muhurta</span></button>
           <button type="button" class="btn btn--sm btn--ghost no-print" onclick="addWindowToFamily(this)"><span
-              data-en="Add to family events" data-te="కుటుంబ కార్యక్రమాల్లో చేర్చండి">Add to family
+              data-i18n>Add to family
               events</span></button>
           <button type="button" class="btn btn--sm btn--ghost no-print" onclick="downloadDetailPdf(this)"
-            data-share-kind="pdf" hidden><!-- shown by Settings › sharing --><span data-en="Download PDF"
-              data-te="PDF డౌన్‌లోడ్">Download PDF</span></button>
+            data-share-kind="pdf" hidden><!-- shown by Settings › sharing --><span data-i18n
+             >Download PDF</span></button>
           <button class="modal-close no-print" onclick="closeModal()" aria-label="Close">&times;</button>
         </div>
       </div>
@@ -641,25 +641,26 @@
 
   <!-- Components (plain scripts: file:// compatible → no ES modules) -->
   <script src="js/config.js"></script>
-  <script src="js/site-config.js?v=20261121a"></script>
-  <script src="js/icons.js?v=20261110"></script>
-  <script src="js/app-shell.js?v=20261110"></script>
-  <script src="js/i18n.js?v=20261114c"></script>
-  <script src="js/auth.js?v=20261119a"></script>
+  <script src="js/site-config.js?v=20261122a"></script>
+  <script src="js/icons.js?v=20261122a"></script>
+  <script src="js/app-shell.js?v=20261122a"></script>
+  <script src="i18n/te.js?v=20261122a"></script>
+  <script src="js/i18n.js?v=20261122a"></script>
+  <script src="js/auth.js?v=20261122a"></script>
   <script src="js/regions.js"></script>
-  <script src="js/pdf-download.js?v=20261110b"></script>
+  <script src="js/pdf-download.js?v=20261122a"></script>
   <script src="js/stars.js"></script>
   <!-- Muhurta Finder components (split from finder.js, 21 Nov 2026): plain scripts sharing one scope; order matters, init last -->
-  <script src="js/finder-core.js?v=20261121l"></script>
-  <script src="js/finder-people.js?v=20261121l"></script>
-  <script src="js/finder-context.js?v=20261121l"></script>
-  <script src="js/finder-tools.js?v=20261121l"></script>
-  <script src="js/finder-results.js?v=20261121l"></script>
-  <script src="js/finder-parishilana.js?v=20261121l"></script>
-  <script src="js/finder-search.js?v=20261121l"></script>
-  <script src="js/finder-saved-pdf.js?v=20261121l"></script>
-  <script src="js/finder-place.js?v=20261121l"></script>
-  <script src="js/finder-init.js?v=20261121l"></script>
+  <script src="js/finder-core.js?v=20261122a"></script>
+  <script src="js/finder-people.js?v=20261122a"></script>
+  <script src="js/finder-context.js?v=20261122a"></script>
+  <script src="js/finder-tools.js?v=20261122a"></script>
+  <script src="js/finder-results.js?v=20261122a"></script>
+  <script src="js/finder-parishilana.js?v=20261122a"></script>
+  <script src="js/finder-search.js?v=20261122a"></script>
+  <script src="js/finder-saved-pdf.js?v=20261122a"></script>
+  <script src="js/finder-place.js?v=20261122a"></script>
+  <script src="js/finder-init.js?v=20261122a"></script>
 </body>
 
 </html>

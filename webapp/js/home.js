@@ -6,7 +6,7 @@
   function fillEvents() {
     var sel = document.getElementById("qsEvent");
     var prev = sel.value;
-    sel.innerHTML = '<option value="">' + tr("Choose an event", "కార్యం ఎంచుకోండి") + "</option>" +
+    sel.innerHTML = '<option value="">' + t("Choose an event") + "</option>" +
       catalog.map(function (r) {
         var label = currentLang === "te" && r.title_te ? r.title_te + " (" + r.title_en + ")" : r.title_en;
         return '<option value="' + r.id + '"' + (r.id === prev ? " selected" : "") + ">" + label.replace(/</g, "&lt;") + "</option>";
@@ -20,7 +20,7 @@
       catalog = ((await res.json()).all_activities || []).slice().sort(function (a, b) { return a.title_en.localeCompare(b.title_en); });
       fillEvents();
     } catch (e) {
-      document.getElementById("qsEvent").innerHTML = '<option value="">' + tr("Event list unavailable", "కార్యాల జాబితా అందుబాటులో లేదు") + "</option>";
+      document.getElementById("qsEvent").innerHTML = '<option value="">' + t("Event list unavailable") + "</option>";
     }
   }
 
@@ -36,7 +36,8 @@
   window.onLangChange = function () { fillEvents(); Today.render(); };
   Auth.me().then(function (u) {
     if (u) document.getElementById("helloName").textContent = ", " + u.name;
-    if (u && u.preferred_language && u.preferred_language !== currentLang) setLang(u.preferred_language);
+    // The account's language is only the starting point; a language chosen in this browser wins (21 Nov 2026).
+    if (u && u.preferred_language && !hasSavedLang() && u.preferred_language !== currentLang) setLang(u.preferred_language);
   });
   Today.mount("todayCard");
   loadCatalog();

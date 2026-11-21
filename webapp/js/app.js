@@ -1,5 +1,5 @@
 // ============================================================
-// Gayatri Jyotirnidhi · component: app bootstrap & wiring
+// Gayathri Jyothirnidhe · component: app bootstrap & wiring
 // Two pages share this (13 Nov 2026), chosen by <body data-page>:
 //   today (panchang-lookup.html): Today's Panchang, no fields, the account's home place;
 //   month (panchang-month.html): Monthly Panchang, with the place and date fields and the calendar.

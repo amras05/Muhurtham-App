@@ -19,8 +19,8 @@ function setRajaMode(on) {
   });
   if (on) {
     const nak = el("mfRajaNak"), rasi = el("mfRajaRasi");
-    if (nak && !nak.options.length) nak.innerHTML = optionList(NAKSHATRAS_27, T("— Not given —", "— ఇవ్వలేదు —"), "");
-    if (rasi && !rasi.options.length) rasi.innerHTML = optionList(RASIS_12, T("— Not given —", "— ఇవ్వలేదు —"), "");
+    if (nak && !nak.options.length) nak.innerHTML = optionList(NAKSHATRAS_27, t("— Not given —"), "");
+    if (rasi && !rasi.options.length) rasi.innerHTML = optionList(RASIS_12, t("— Not given —"), "");
     el("mfResults").style.display = "none";
   }
 }
@@ -28,13 +28,13 @@ function setRajaMode(on) {
 async function runRajaswala(loc) {
   const date = el("mfRajaDate").value, time = el("mfRajaTime").value;
   if (!date || !time) {
-    setStatus(T("Enter the date and time of the first period.", "తొలి రజస్వల తేదీ, సమయం నమోదు చేయండి."), true);
+    setStatus(t("Enter the date and time of the first period."), true);
     return;
   }
   const body = { date, time, lat: loc.lat, lon: loc.lon, tz_offset: loc.tz_offset, place_name: loc.place_name,
                  janma_nak_idx: parseInt(el("mfRajaNak").value) || null, husband_rasi_idx: parseInt(el("mfRajaRasi").value) || null };
   el("findBtn").disabled = true;
-  setStatus(T("Reading the moment…", "సమయాన్ని పరిశీలిస్తున్నాం…"));
+  setStatus(t("Reading the moment…"));
   try {
     const res = await fetch(`${API_BASE}/muhurta/rajaswala`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -44,7 +44,7 @@ async function runRajaswala(loc) {
     lastData = null;
   } catch (e) {
     console.error("Rajaswala record failed:", e.message);
-    setStatus(T(`Couldn't read the moment: ${e.message}`, `సమయాన్ని పరిశీలించలేకపోయాం: ${e.message}`), true);
+    setStatus(t("Couldn't read the moment: {message}", { message: e.message }), true);
   } finally {
     el("findBtn").disabled = false;
   }
@@ -52,20 +52,19 @@ async function runRajaswala(loc) {
 
 function renderRajaswala(d) {
   const m = d.moment;
-  setStatus(T("A traditional reading from the book (p.106-108); it is not medical advice.",
-              "గ్రంథంలోని సంప్రదాయ పరిశీలన (పేజీ 106-108) మాత్రమే; వైద్య సలహా కాదు."));
+  setStatus(t("A traditional reading from the book (p.106-108); it is not medical advice."));
   const good = d.verdict === "good";
   el("summaryBar").innerHTML = `<div class="raja-verdict raja-verdict--${good ? "good" : "bad"}" role="status">
-    ${escapeHtml(good ? T("Auspicious: none of the book's bad times apply", "శుభం: గ్రంథంలోని దుష్ట కాలాలు ఏవీ లేవు")
-                      : T(`${d.bad.length} of the book's bad signs apply`, `గ్రంథంలోని ${d.bad.length} దుష్ట లక్షణాలు ఉన్నాయి`))}
-    <small>${escapeHtml(T(`${m.weekday_en} · ${m.tithi} · ${m.nakshatra} · ${m.yoga} yoga · ${m.karana} · ${m.lagna} lagna · ${m.hora} hora`,
-                          `${m.weekday_te} · ${m.tithi} · ${m.nakshatra_te} · ${m.yoga} యోగం · ${m.karana} · ${m.lagna_te} లగ్నం · ${m.hora === "Chandra" ? "చంద్ర" : "సూర్య"} హోర`))}</small></div>`;
+    ${escapeHtml(good ? t("Auspicious: none of the book's bad times apply")
+                      : t("{bad} of the book's bad signs apply", { bad: d.bad.length }))}
+    <small>${escapeHtml(t("{weekday} · {tithi} · {nak} · {yoga} yoga · {karana} · {lagna} lagna · {hora} hora", { weekday: pickLang(m.weekday_en, m.weekday_te), tithi: m.tithi,
+                          nak: pickLang(m.nakshatra, m.nakshatra_te), yoga: m.yoga, karana: m.karana, lagna: pickLang(m.lagna, m.lagna_te), hora: t(m.hora === "Chandra" ? "Chandra@@hora" : "Surya@@hora") }))}</small></div>`;
   const row = (r, cls, mark) => `<div class="yoga-row"><div class="yoga-row__when"><span class="pill pill--${cls}">${mark}</span></div>
     <div>${escapeHtml(T(r.en, r.te))}</div></div>`;
   el("dayGrid").innerHTML =
-    d.bad.map(r => row(r, "fail", T("✕ Bad", "✕ దుష్టం"))).join("") +
-    d.good.map(r => row(r, "pass", T("✓ Good", "✓ శుభం"))).join("") +
-    d.not_evaluated.map(r => row(r, "muted", T("Not checked", "పరిశీలించలేదు"))).join("");
+    d.bad.map(r => row(r, "fail", t("✕ Bad"))).join("") +
+    d.good.map(r => row(r, "pass", t("✓ Good"))).join("") +
+    d.not_evaluated.map(r => row(r, "muted", t("Not checked"))).join("");
   el("mfResults").style.display = "block";
 }
 
@@ -98,11 +97,11 @@ async function runPitruCalendar(loc) {
                  death_date: el("mfPitruDeathDate").value || null, death_time: el("mfPitruDeathTime").value || null,
                  years: parseInt(el("mfPitruYears").value) || 3, year: parseInt(el("mfPitruYear").value) || null };
   if (mode !== "shannavati" && !body.death_date) {
-    setStatus(T("Enter the date of death.", "మరణ తేదీ నమోదు చేయండి."), true);
+    setStatus(t("Enter the date of death."), true);
     return;
   }
   el("findBtn").disabled = true;
-  setStatus(T("Working out the dates…", "తేదీలు లెక్కిస్తున్నాం…"));
+  setStatus(t("Working out the dates…"));
   try {
     const res = await fetch(`${API_BASE}/muhurta/pitru-calendar`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -111,7 +110,7 @@ async function runPitruCalendar(loc) {
     lastToolSearch = { kind: "pitru", request: body };
   } catch (e) {
     console.error("Pitru calendar failed:", e);
-    setStatus(T(`Couldn't work out the dates: ${e.message}`, `తేదీలు లెక్కించలేకపోయాం: ${e.message}`), true);
+    setStatus(t("Couldn't work out the dates: {message}", { message: e.message }), true);
   } finally {
     el("findBtn").disabled = false;
   }
@@ -119,15 +118,14 @@ async function runPitruCalendar(loc) {
 
 function renderPitruCalendar(mode, data) {
   const dd = data.death;
-  const head = dd ? T(`Death tithi: ${dd.tithi_label}, ${dd.masa_en}${dd.adhika ? " (adhika)" : ""} masa.`,
-                      `మరణ తిథి: ${dd.masa_te}${dd.adhika ? " (అధిక)" : ""} మాసం, ${dd.tithi_label}.`) : "";
+  const head = dd ? t("Death tithi: {tithi}, {masa}{adhika} masa.", { tithi: dd.tithi_label, masa: pickLang(dd.masa_en, dd.masa_te), adhika: dd.adhika ? " " + t("(adhika)") : "" }) : "";
   setStatus([head, ...(data.notes || [])].filter(Boolean).join(" "));
   let rows = [];
-  if (mode === "annual") rows = data.shraddha.map(r => [r.date, T(`Year ${r.year_no} shraddha`, `${r.year_no}వ సంవత్సర శ్రాద్ధం`),
-    `${VAARA_NAMES[currentLang]?.[r.weekday] || r.weekday}${r.aparahna_minutes ? T(` · tithi covers ${r.aparahna_minutes} min of aparahna`, ` · అపరాహ్ణంలో ${r.aparahna_minutes} ని.`) : ""}${r.note ? " · " + r.note : ""}`]);
-  else if (mode === "after_death") rows = data.rites.map(r => [r.date, T(r.rite_en, r.rite_te), T(`Day ${r.day}`, `${r.day}వ రోజు`) + (r.note ? " · " + r.note : "")]);
+  if (mode === "annual") rows = data.shraddha.map(r => [r.date, t("Year {year_no} shraddha", { year_no: r.year_no }),
+    `${VAARA_NAMES[currentLang]?.[r.weekday] || r.weekday}${r.aparahna_minutes ? t(" · tithi covers {aparahna_minutes} min of aparahna", { aparahna_minutes: r.aparahna_minutes }) : ""}${r.note ? " · " + r.note : ""}`]);
+  else if (mode === "after_death") rows = data.rites.map(r => [r.date, T(r.rite_en, r.rite_te), t("Day {day}", { day: r.day }) + (r.note ? " · " + r.note : "")]);
   else rows = data.days.map(r => [r.date, T(r.kind_en, r.kind_te), `${VAARA_NAMES[currentLang]?.[r.weekday] || r.weekday} · ${r.detail || ""}`]);
-  const counts = mode === "shannavati" ? `<div class="verdict-strip">${T(`${data.total} days`, `${data.total} దినాలు`)}: ${
+  const counts = mode === "shannavati" ? `<div class="verdict-strip">${t("{total} days", { total: data.total })}: ${
     Object.entries(data.counts).map(([k, v]) => `${escapeHtml(k)} ${v}`).join(" · ")}</div>` : "";
   el("summaryBar").innerHTML = counts;
   el("dayGrid").innerHTML = rows.map(([d, what, more]) => `
@@ -153,7 +151,7 @@ async function renderYogaPanel() {
       yogaCatalog = await res.json();
     } catch (e) {
       console.error("Yoga catalog failed:", e);
-      setStatus(T(`Couldn't load the yoga list (${e.message}).`, "యోగాల జాబితా లోడ్ కాలేదు."), true);
+      setStatus(t("Couldn't load the yoga list ({error}).", { error: e.message }), true);
       return;
     }
   }
@@ -166,8 +164,8 @@ async function renderYogaPanel() {
   el("mfYogaList").innerHTML = box(yogaCatalog.yogas, "mfYg_", ["amrita_siddhi", "sarvartha_siddhi"]);
   el("mfCondList").innerHTML = box(yogaCatalog.conditions, "mfYc_", ["bad_times_free", "varjyam_free"]);
   const nak = el("mfYogaNak"), rasi = el("mfYogaRasi");
-  if (nak) nak.innerHTML = optionList(NAKSHATRAS_27, T("— Not given —", "— ఇవ్వలేదు —"), nak.value);
-  if (rasi) rasi.innerHTML = optionList(RASIS_12, T("— Not given —", "— ఇవ్వలేదు —"), rasi.value);
+  if (nak) nak.innerHTML = optionList(NAKSHATRAS_27, t("— Not given —"), nak.value);
+  if (rasi) rasi.innerHTML = optionList(RASIS_12, t("— Not given —"), rasi.value);
 }
 
 async function runYogaSearch(loc) {
@@ -179,11 +177,11 @@ async function runYogaSearch(loc) {
     janma_nak_idx: parseInt(el("mfYogaNak")?.value) || null, janma_rasi_idx: parseInt(el("mfYogaRasi")?.value) || null,
   };
   if (!body.yogas.length && !body.conditions.length) {
-    setStatus(T("Tick at least one yoga or condition.", "కనీసం ఒక యోగం లేదా నియమం ఎంచుకోండి."), true);
+    setStatus(t("Tick at least one yoga or condition."), true);
     return;
   }
   el("findBtn").disabled = true;
-  setStatus(T("Searching…", "శోధిస్తున్నాం…"));
+  setStatus(t("Searching…"));
   try {
     const res = await fetch(`${API_BASE}/muhurta/yogas`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -192,21 +190,21 @@ async function runYogaSearch(loc) {
     lastToolSearch = { kind: "yogas", request: body };
   } catch (e) {
     console.error("Yoga search failed:", e);
-    setStatus(T(`Search failed: ${e.message}`, `శోధన విఫలమైంది: ${e.message}`), true);
+    setStatus(t("Search failed: {message}", { message: e.message }), true);
   } finally {
     el("findBtn").disabled = false;
   }
 }
 
 function renderYogaResults(data) {
-  setStatus(T(`${data.total} window(s) in ${data.days_scanned} days.`, `${data.days_scanned} రోజుల్లో ${data.total} సమయాలు.`));
+  setStatus(t("{total} window(s) in {days_scanned} days.", { total: data.total, days_scanned: data.days_scanned }));
   el("summaryBar").innerHTML = "";
   el("dayGrid").innerHTML = data.windows.length ? data.windows.map(w => `
     <div class="yoga-row">
-      <div class="yoga-row__when">${escapeHtml(w.date)} · ${escapeHtml(w.start)}–${escapeHtml(w.end)}<br><small>${escapeHtml(VAARA_NAMES[currentLang]?.[w.vaara] || w.vaara)} · ${w.duration_minutes} ${T("min", "ని.")}</small></div>
-      <div>${escapeHtml(te(w.nakshatra, NAKSHATRA_NAMES_TE))} · ${escapeHtml(w.tithi)}${w.lagna ? ` · ${escapeHtml(te(w.lagna, RASI_NAMES_TE))} ${T("lagna", "లగ్నం")}` : ""}${w.tara ? ` · ${escapeHtml(w.tara)} ${T("tara", "తార")}` : ""}
+      <div class="yoga-row__when">${escapeHtml(w.date)} · ${escapeHtml(w.start)}–${escapeHtml(w.end)}<br><small>${escapeHtml(VAARA_NAMES[currentLang]?.[w.vaara] || w.vaara)} · ${w.duration_minutes} ${t("min")}</small></div>
+      <div>${escapeHtml(te(w.nakshatra, NAKSHATRA_NAMES_TE))} · ${escapeHtml(w.tithi)}${w.lagna ? ` · ${escapeHtml(te(w.lagna, RASI_NAMES_TE))} ${t("lagna")}` : ""}${w.tara ? ` · ${escapeHtml(w.tara)} ${t("tara")}` : ""}
         <div class="yoga-row__chips">${w.yogas.map(y => `<span class="pill pill--pass">${escapeHtml(T(y.name_en, y.name_te))}</span>`).join("")}</div></div>
-    </div>`).join("") : `<div class="empty-state"><p>${T("No window matches every condition. Untick a condition or scan more days.", "అన్ని నియమాలు సరిపోయే సమయం లేదు. ఒక నియమం తీసివేయండి లేదా ఎక్కువ రోజులు వెతకండి.")}</p></div>`;
+    </div>`).join("") : `<div class="empty-state"><p>${t("No window matches every condition. Untick a condition or scan more days.")}</p></div>`;
   el("mfResults").style.display = "block";
 }
 
@@ -224,6 +222,6 @@ function applyToolVisibility(hiddenForMe, markedHidden) {
     cal.hidden = true;
     if (pitruCalendarOn) setPitruMode(false);
   } else if (markedHidden.includes("pitru_calendar") && !cal.querySelector(".tab-hidden-mark")) {
-    cal.insertAdjacentHTML("beforeend", `<span class="tab-hidden-mark">${T("Hidden", "దాచబడింది")}</span>`);
+    cal.insertAdjacentHTML("beforeend", `<span class="tab-hidden-mark">${t("Hidden")}</span>`);
   }
 }

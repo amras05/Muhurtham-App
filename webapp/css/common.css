@@ -1,12 +1,12 @@
 /* ============================================================
-   Gayatri Jyotirnidhi · Design System & Stylesheet Hub
+   Gayathri Jyothirnidhe · Design System & Stylesheet Hub
    Loads the modular CSS architecture: tokens, base, components, and panchang.
    ============================================================ */
 @import url("variables.css?v=20261113c");
 @import url("base.css?v=20261121a");
 @import url("components.css?v=20261113j");
 @import url("panchang.css?v=20261110b");
-@import url("app-shell.css?v=20261119w");
+@import url("app-shell.css?v=20261121a");
 @import url("dashboard.css?v=20261110b");
 
 /* Elements with the `hidden` attribute stay hidden even when a class gives them

@@ -34,7 +34,7 @@ function saveParticipantState() {
 
 function birthPlaceOptions(selected) {
   const regions = (typeof allRegions !== "undefined" ? allRegions : []).filter(r => r.id !== "custom");
-  return `<option value="">${T("Same as the event location", "కార్యక్రమ ప్రాంతమే")}</option>` +
+  return `<option value="">${t("Same as the event location")}</option>` +
     regions.map(r => `<option value="${escapeHtml(r.id)}"${r.id === selected ? " selected" : ""}>${escapeHtml(r.label)}</option>`).join("");
 }
 
@@ -51,27 +51,27 @@ function personCardHTML(spec, idx) {
   const needsDob = (spec.fields || []).includes("birth_date");
   // L1 required · L1o recommended (shown open, may be left empty; e.g. the father at upanayana) · L2 optional, folded
   const levelNote = spec.level === "L1"
-    ? T("Required", "తప్పనిసరి")
+    ? t("Required")
     : spec.level === "L1o"
-      ? T("Recommended (optional): adds this person's tarabala", "సిఫార్సు (ఐచ్ఛికం): వీరి తారాబలం కూడా పరిశీలిస్తుంది")
-      : T("Optional: adds this person's tarabala", "ఐచ్ఛికం: వీరి తారాబలం కూడా పరిశీలిస్తుంది");
+      ? t("Recommended (optional): adds this person's tarabala")
+      : t("Optional: adds this person's tarabala");
   const basisNote = spec.star_basis === "nama"
-    ? T("Rules use the nama nakshatra", "నియమాలు నామ నక్షత్రాన్ని వాడుతాయి")
-    : T("Rules use the janma nakshatra", "నియమాలు జన్మ నక్షత్రాన్ని వాడుతాయి");
+    ? t("Rules use the nama nakshatra")
+    : t("Rules use the janma nakshatra");
   const extra = [];
   if ((spec.fields || []).includes("gender")) {
-    extra.push(`<div class="field"><label for="${id("gender")}">${T("Boy / girl", "బాలుడు / బాలిక")}</label>
+    extra.push(`<div class="field"><label for="${id("gender")}">${t("Boy / girl")}</label>
       <select id="${id("gender")}" data-k="gender">
-        <option value="">${T("— Not specified —", "— పేర్కొనలేదు —")}</option>
-        <option value="boy"${st.gender === "boy" ? " selected" : ""}>${T("Boy", "బాలుడు")}</option>
-        <option value="girl"${st.gender === "girl" ? " selected" : ""}>${T("Girl", "బాలిక")}</option>
+        <option value="">${t("— Not specified —")}</option>
+        <option value="boy"${st.gender === "boy" ? " selected" : ""}>${t("Boy")}</option>
+        <option value="girl"${st.gender === "girl" ? " selected" : ""}>${t("Girl")}</option>
       </select></div>`);
   }
   if ((spec.fields || []).includes("eldest")) {
     extra.push(`<div class="field field--check"><label><input type="checkbox" id="${id("eldest")}" data-k="eldest"${st.eldest ? " checked" : ""}>
-      ${T("Eldest child (Trijyeshtha check)", "జ్యేష్ఠ సంతానం (త్రిజ్యేష్ఠ పరిశీలన)")}</label></div>`);
+      ${t("Eldest child (Trijyeshtha check)")}</label></div>`);
   }
-  const tab = (m, en, te) => `<button type="button" role="tab" class="nama-tab${mode === m ? " active" : ""}" aria-selected="${mode === m}" onclick="switchPersonMode('${role}','${m}')">${T(en, te)}</button>`;
+  const tab = (m, en) => `<button type="button" role="tab" class="nama-tab${mode === m ? " active" : ""}" aria-selected="${mode === m}" onclick="switchPersonMode('${role}','${m}')">${t(en)}</button>`;
   return `
   <details class="person-card" data-role="${role}" data-mode="${mode}" data-needs-dob="${needsDob}" ${spec.level === "L1" || spec.level === "L1o" || idx === 0 || st.open ? "open" : ""}>
     <summary class="person-card__head">
@@ -81,49 +81,49 @@ function personCardHTML(spec, idx) {
     <div class="person-card__body">
       ${familyPickerHTML(role, st)}
       <div class="context-grid">
-        <div class="field"><label for="${id("name")}">${T("Name", "పేరు")}</label>
+        <div class="field"><label for="${id("name")}">${t("Name")}</label>
           <input type="text" id="${id("name")}" data-k="name" value="${escapeHtml(st.name || "")}" autocomplete="off"></div>
-        <div class="field"><label for="${id("gotra")}">${T("Gotra (printed only)", "గోత్రం (ముద్రణకు మాత్రమే)")}</label>
+        <div class="field"><label for="${id("gotra")}">${t("Gotra (printed only)")}</label>
           <input type="text" id="${id("gotra")}" data-k="gotra" value="${escapeHtml(st.gotra || "")}" autocomplete="off"></div>
         ${extra.join("")}
       </div>
       ${isNama ? `
       <div class="nama-block">
         <div class="context-grid">
-          <div class="field"><label for="${id("nama")}">${T("Nama nakshatra (used for Griha Pravesha)", "నామ నక్షత్రం (గృహప్రవేశానికి)")}</label>
-            <select id="${id("nama")}" data-k="nama_nak_idx">${optionList(NAKSHATRAS_27, T("— Not known —", "— తెలియదు —"), st.nama_nak_idx)}</select></div>
-          <div class="field"><label for="${id("npada")}">${T("Nama pada", "నామ పాదం")}</label>
+          <div class="field"><label for="${id("nama")}">${t("Nama nakshatra (used for Griha Pravesha)")}</label>
+            <select id="${id("nama")}" data-k="nama_nak_idx">${optionList(NAKSHATRAS_27, t("— Not known —"), st.nama_nak_idx)}</select></div>
+          <div class="field"><label for="${id("npada")}">${t("Nama pada")}</label>
             <select id="${id("npada")}" data-k="nama_pada">${optionList(PADAS, "—", st.nama_pada)}</select></div>
-          <div class="field"><label for="${id("lookup")}">${T("Or find it from the name", "లేదా పేరు ద్వారా తెలుసుకోండి")}</label>
+          <div class="field"><label for="${id("lookup")}">${t("Or find it from the name")}</label>
             <input type="text" id="${id("lookup")}" data-k="lookup" value="${escapeHtml(st.lookup || "")}" autocomplete="off"
               oninput="onPersonNameLookup('${role}', this.value)"></div>
         </div>
         <div class="nama-detected-badge" id="${id("badge")}" aria-live="polite" hidden></div>
       </div>` : ""}
-      <p class="participants__hint">${T("Are this person's birth details (date, time, place) known?", "వీరి జన్మ వివరాలు (తేదీ, సమయం, స్థలం) తెలుసా?")}</p>
-      <div class="nama-mode-tabs" role="tablist" aria-label="${T("Birth details known?", "జన్మ వివరాలు తెలుసా?")}">
-        ${tab("birth", "Yes, birth details known", "అవును, జన్మ వివరాలు తెలుసు")}
-        ${tab("star", "No, I know the janma nakshatra", "లేదు, జన్మ నక్షత్రం తెలుసు")}
+      <p class="participants__hint">${t("Are this person's birth details (date, time, place) known?")}</p>
+      <div class="nama-mode-tabs" role="tablist" aria-label="${t("Birth details known?")}">
+        ${tab("birth", "Yes, birth details known")}
+        ${tab("star", "No, I know the janma nakshatra")}
       </div>
       <div class="person-mode" data-for="star" ${mode === "star" ? "" : "hidden"}>
         <div class="context-grid">
-          <div class="field"><label for="${id("janma")}">${T("Janma nakshatra", "జన్మ నక్షత్రం")}</label>
-            <select id="${id("janma")}" data-k="janma_nak_idx">${optionList(NAKSHATRAS_27, T("— Not known —", "— తెలియదు —"), st.janma_nak_idx)}</select></div>
-          <div class="field"><label for="${id("jpada")}">${T("Janma pada", "జన్మ పాదం")}</label>
+          <div class="field"><label for="${id("janma")}">${t("Janma nakshatra")}</label>
+            <select id="${id("janma")}" data-k="janma_nak_idx">${optionList(NAKSHATRAS_27, t("— Not known —"), st.janma_nak_idx)}</select></div>
+          <div class="field"><label for="${id("jpada")}">${t("Janma pada")}</label>
             <select id="${id("jpada")}" data-k="janma_pada">${optionList(PADAS, "—", st.janma_pada)}</select></div>
-          <div class="field"><label for="${id("rasi")}">${T("Janma rashi (optional)", "జన్మ రాశి (ఐచ్ఛికం)")}</label>
-            <select id="${id("rasi")}" data-k="rasi_idx">${optionList(RASIS_12, T("— Not known —", "— తెలియదు —"), st.rasi_idx)}</select></div>
+          <div class="field"><label for="${id("rasi")}">${t("Janma rashi (optional)")}</label>
+            <select id="${id("rasi")}" data-k="rasi_idx">${optionList(RASIS_12, t("— Not known —"), st.rasi_idx)}</select></div>
         </div>
       </div>
       <div class="person-mode" data-for="birth" ${mode === "birth" || needsDob ? "" : "hidden"}>
         <div class="context-grid">
-          <div class="field"><label for="${id("dob")}">${T("Birth date", "పుట్టిన తేదీ")}${needsDob ? T(" (needed for the age rule)", " (వయస్సు నియమానికి అవసరం)") : ""}</label>
+          <div class="field"><label for="${id("dob")}">${t("Birth date")}${needsDob ? t(" (needed for the age rule)") : ""}</label>
             <input type="date" id="${id("dob")}" data-k="birth_date" value="${escapeHtml(st.birth_date || "")}"></div>
-          <div class="field birth-only" ${mode === "birth" ? "" : "hidden"}><label for="${id("tob")}">${T("Birth time", "పుట్టిన సమయం")}</label>
+          <div class="field birth-only" ${mode === "birth" ? "" : "hidden"}><label for="${id("tob")}">${t("Birth time")}</label>
             <input type="time" id="${id("tob")}" data-k="birth_time" value="${escapeHtml(st.birth_time || "")}"></div>
           <div class="field field--check birth-only" ${mode === "birth" ? "" : "hidden"}><label><input type="checkbox" id="${id("tunk")}" data-k="birth_time_unknown"${st.birth_time_unknown ? " checked" : ""}>
-            ${T("Birth time not known", "జన్మ సమయం తెలియదు")}</label></div>
-          <div class="field birth-only" ${mode === "birth" ? "" : "hidden"}><label for="${id("bplace")}">${T("Birth place", "జన్మస్థలం")}</label>
+            ${t("Birth time not known")}</label></div>
+          <div class="field birth-only" ${mode === "birth" ? "" : "hidden"}><label for="${id("bplace")}">${t("Birth place")}</label>
             <select id="${id("bplace")}" data-k="birth_region">${birthPlaceOptions(st.birth_region)}</select></div>
         </div>
       </div>
@@ -138,10 +138,8 @@ function renderParticipants(rule) {
   const specs = rule?.participants || [];
   if (!specs.length) { box.innerHTML = ""; box.hidden = true; return; }
   box.hidden = false;
-  box.innerHTML = `<h4 class="participants__title">${T("People taking part", "పాల్గొనే వ్యక్తులు")}</h4>
-    <p class="participants__hint">${T(
-      "For each person, give the birth date, time and place if known; if not, give the janma nakshatra and pada. Leave an optional card empty to skip that person.",
-      "ప్రతి వ్యక్తికి జన్మ తేదీ, సమయం, స్థలం తెలిస్తే ఇవ్వండి; తెలియకపోతే జన్మ నక్షత్రం, పాదం ఇవ్వండి. ఐచ్ఛిక కార్డును ఖాళీగా వదిలితే ఆ వ్యక్తి పరిశీలన జరగదు.")}</p>` +
+  box.innerHTML = `<h4 class="participants__title">${t("People taking part")}</h4>
+    <p class="participants__hint">${t("For each person, give the birth date, time and place if known; if not, give the janma nakshatra and pada. Leave an optional card empty to skip that person.")}</p>` +
     specs.map(personCardHTML).join("");
 }
 
@@ -174,17 +172,16 @@ function onPersonNameLookup(role, val) {
       badge.hidden = false;
       if (data.matched && data.result) {
         const r = data.result;
-        badge.innerHTML = `${T("Suggested nama nakshatra", "సూచించిన నామ నక్షత్రం")}: <strong>${escapeHtml(T(r.nakshatra_en, r.nakshatra_te))}</strong>,
-          ${T(`pada ${r.pada}`, `${r.pada}వ పాదం`)} (${T("syllable", "అక్షరం")} <code>${escapeHtml(r.matched_syllable)}</code>)
-          <button type="button" class="btn btn--sm" onclick="confirmNamaNakshatra('${role}', ${Number(r.nakshatra_index)}, ${Number(r.pada)})">${T("Use this", "ఇదే వాడండి")}</button>`;
+        badge.innerHTML = `${t("Suggested nama nakshatra")}: <strong>${escapeHtml(T(r.nakshatra_en, r.nakshatra_te))}</strong>,
+          ${t("pada {pada}", { pada: r.pada })} (${t("syllable")} <code>${escapeHtml(r.matched_syllable)}</code>)
+          <button type="button" class="btn btn--sm" onclick="confirmNamaNakshatra('${role}', ${Number(r.nakshatra_index)}, ${Number(r.pada)})">${t("Use this")}</button>`;
       } else {
-        badge.textContent = T("No nakshatra matches this name's first syllable. Pick the nama nakshatra from the list.",
-          "ఈ పేరు మొదటి అక్షరానికి నక్షత్రం సరిపోలలేదు. జాబితా నుండి నామ నక్షత్రం ఎంచుకోండి.");
+        badge.textContent = t("No nakshatra matches this name's first syllable. Pick the nama nakshatra from the list.");
       }
     } catch (e) {
       console.error("Nama lookup failed:", e);
       badge.hidden = false;
-      badge.textContent = T("Name lookup failed. Pick the nakshatra directly.", "పేరు పరిశీలన విఫలమైంది. నక్షత్రం నేరుగా ఎంచుకోండి.");
+      badge.textContent = t("Name lookup failed. Pick the nakshatra directly.");
     }
   }, 250);
 }
@@ -193,8 +190,7 @@ function confirmNamaNakshatra(role, nakIdx, pada) {
   const nama = el(`mfP_${role}_nama`), npada = el(`mfP_${role}_npada`), badge = el(`mfP_${role}_badge`);
   if (nama) nama.value = String(nakIdx);
   if (npada) npada.value = String(pada);
-  if (badge) badge.textContent = T(`Nama nakshatra set: ${NAKSHATRAS_27[nakIdx - 1].en}, pada ${pada}`,
-    `నామ నక్షత్రం: ${NAKSHATRAS_27[nakIdx - 1].te}, ${pada}వ పాదం`);
+  if (badge) badge.textContent = t("Nama nakshatra set: {nak}, pada {pada}", { nak: NAKSHATRAS_27[nakIdx - 1][currentLang === "te" ? "te" : "en"], pada });
 }
 
 function collectParticipants() {
@@ -236,15 +232,15 @@ function missingRequired() {
     const fromBirth = !!(p.from_birth && p.birth_date);
     const parts = [];
     if (s.star_basis === "nama") {
-      if (!p.nama_nak_idx) parts.push(T("nama nakshatra", "నామ నక్షత్రం"));
+      if (!p.nama_nak_idx) parts.push(t("nama nakshatra"));
     } else if (p.from_birth) {
       // Birth details known: date and time (unless marked not known); the place defaults to the event's.
-      if (!p.birth_time && !p.birth_time_unknown) parts.push(T("birth time", "జన్మ సమయం"));
+      if (!p.birth_time && !p.birth_time_unknown) parts.push(t("birth time"));
     } else if (!fromBirth && !p.janma_nak_idx) {
       const card = document.querySelector(`#mfParticipants .person-card[data-role="${s.role}"]`);
-      parts.push(card && card.dataset.mode === "birth" ? T("birth date", "పుట్టిన తేదీ") : T("janma nakshatra", "జన్మ నక్షత్రం"));
+      parts.push(card && card.dataset.mode === "birth" ? t("birth date") : t("janma nakshatra"));
     }
-    if ((s.fields || []).includes("birth_date") && !p.birth_date) parts.push(T("date of birth", "పుట్టిన తేదీ"));
+    if ((s.fields || []).includes("birth_date") && !p.birth_date) parts.push(t("date of birth"));
     if (parts.length) out.push({ role: s.role, text: `${T(s.label_en, s.label_te)}: ${parts.join(", ")}` });
   });
   return out;
@@ -252,9 +248,9 @@ function missingRequired() {
 // ---- My family on the person cards (plan R1) ----
 var FAMILY = [];          // var: the cards render before this line runs
 var RELATION_LABELS = {
-  self: ["Me", "నేను"], spouse: ["Spouse", "భార్య / భర్త"], son: ["Son", "కుమారుడు"], daughter: ["Daughter", "కుమార్తె"],
-  father: ["Father", "తండ్రి"], mother: ["Mother", "తల్లి"], brother: ["Brother", "సోదరుడు"], sister: ["Sister", "సోదరి"],
-  grandchild: ["Grandchild", "మనవడు / మనవరాలు"], other: ["Other", "ఇతరులు"],
+  self: ["Me"], spouse: ["Spouse"], son: ["Son"], daughter: ["Daughter"],
+  father: ["Father"], mother: ["Mother"], brother: ["Brother"], sister: ["Sister"],
+  grandchild: ["Grandchild"], other: ["Other"],
 };
 
 async function loadFamily() {
@@ -268,11 +264,11 @@ function familyPickerHTML(role, st) {
   const id = `mfP_${role}_fam`;
   const fam = FAMILY || [];                // undefined during the first render, before this file finishes
   if (!fam.length) {
-    return `<p class="participants__hint"><a href="family.html">${T("Save your family once", "మీ కుటుంబాన్ని ఒకసారి భద్రపరచండి")}</a>${T(" to fill these cards with one click.", " — తర్వాత ఒక క్లిక్‌తో ఈ వివరాలు నిండుతాయి.")}</p>`;
+    return `<p class="participants__hint"><a href="family.html">${t("Save your family once")}</a>${t(" to fill these cards with one click.")}</p>`;
   }
-  return `<div class="field field--family"><label for="${id}">${T("From my family", "నా కుటుంబం నుండి")}</label>
+  return `<div class="field field--family"><label for="${id}">${t("From my family")}</label>
     <select id="${id}" data-k="profile_id" onchange="pickFamily('${role}', this.value)">
-      <option value="">${T("— Enter the details below —", "— కింద వివరాలు నమోదు చేయండి —")}</option>
+      <option value="">${t("— Enter the details below —")}</option>
       ${fam.map(f => `<option value="${escapeHtml(f.id)}"${st.profile_id === f.id ? " selected" : ""}>${escapeHtml(f.display_name)} · ${escapeHtml(T(...(RELATION_LABELS[f.relation] || [f.relation, f.relation])))}</option>`).join("")}
     </select></div>`;
 }
@@ -294,8 +290,7 @@ async function addWindowToFamily(btn) {
   const r = lastData?.results?.[openDayIdx];
   const picked = collectParticipants().filter(p => p.profile_id);
   if (!r || !picked.length) {
-    AppShell.toast(T("Pick people from \"From my family\" on the cards first; the event is saved for them.",
-                     "ముందు కార్డులపై 'నా కుటుంబం నుండి' వ్యక్తులను ఎంచుకోండి; కార్యక్రమం వారికి భద్రపరుస్తాం."), "error");
+    AppShell.toast(t("Pick people from \"From my family\" on the cards first; the event is saved for them."), "error");
     return;
   }
   const start = r.window_start || r.start_time || "";
@@ -305,12 +300,11 @@ async function addWindowToFamily(btn) {
     for (const p of picked) {
       const res = await fetch(`${API_BASE}/me/family/events`, { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ profile_id: p.profile_id, activity_id: lastData.activity_id, event_date: r.date, event_time: time,
-                               status: "planned", notes: T("Chosen in the Muhurta Finder", "ముహూర్త శోధనలో ఎంచుకున్నది") }) });
+                               status: "planned", notes: t("Chosen in the Muhurta Finder") }) });
       if (!res.ok) { const d = await res.json().catch(() => null); throw new Error((d && typeof d.detail === "string" && d.detail) || `HTTP ${res.status}`); }
     }
-    AppShell.toast(T(`Saved as a planned event for ${picked.map(p => p.name).join(" and ")}. See My family.`,
-                     `${picked.map(p => p.name).join(", ")} కు నిర్ణయించిన కార్యక్రమంగా భద్రపరిచాము. 'నా కుటుంబం'లో చూడండి.`), "success");
+    AppShell.toast(t("Saved as a planned event for {names}. See My family.", { names: picked.map(p => p.name).join(currentLang === "te" ? ", " : " and ") }), "success");
   } catch (e) {
-    AppShell.toast(T("Couldn't save the event: ", "కార్యక్రమం భద్రపరచలేకపోయాము: ") + e.message, "error");
+    AppShell.toast(t("Couldn't save the event: ") + e.message, "error");
   } finally { btn.disabled = false; }
 }

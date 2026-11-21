@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css?v=20261121a">
+  <link rel="stylesheet" href="css/common.css?v=20261121b">
   <link rel="stylesheet" href="css/portal.css?v=20261113p">
-  <title>My account · Gayatri Jyotirnidhi</title>
+  <title>My account · Gayathri Jyothirnidhe</title>
 </head>
 <body>
   <a class="skip-link" href="#mainContent">Skip to main content</a>
@@ -20,55 +20,56 @@
     <div class="account-slot" id="accountSlot"></div>
   </nav>
   <main id="mainContent" class="portal portal--narrow">
-    <h1 class="portal__title" data-en="My account" data-te="నా ఖాతా">My account</h1>
+    <h1 class="portal__title" data-i18n>My account</h1>
     <div id="acctMsg" class="auth-alert auth-alert--info" role="status" hidden></div>
 
     <section class="portal-card" aria-labelledby="pTitle">
-      <h2 id="pTitle" data-en="Profile" data-te="వివరాలు">Profile</h2>
+      <h2 id="pTitle" data-i18n>Profile</h2>
       <form id="profileForm" class="portal-form">
-        <div class="field"><label for="acName" data-en="Name" data-te="పేరు">Name</label><input id="acName" minlength="2" maxlength="80" required autocomplete="name"></div>
-        <div class="field"><label data-en="Mobile" data-te="మొబైల్">Mobile</label><p id="acPhone" class="portal-static"></p></div>
-        <div class="field"><label for="acLang" data-en="Language" data-te="భాష">Language</label>
+        <div class="field"><label for="acName" data-i18n>Name</label><input id="acName" minlength="2" maxlength="80" required autocomplete="name"></div>
+        <div class="field"><label data-i18n>Mobile</label><p id="acPhone" class="portal-static"></p></div>
+        <div class="field"><label for="acLang" data-i18n>Language</label>
           <select id="acLang"><option value="te">తెలుగు</option><option value="en">English</option></select></div>
-        <button type="submit" class="btn" data-en="Save" data-te="భద్రపరచండి">Save</button>
+        <button type="submit" class="btn" data-i18n>Save</button>
       </form>
     </section>
 
     <section class="portal-card" id="home" aria-labelledby="hTitle">
-      <h2 id="hTitle" data-en="Home place" data-te="ఇంటి ప్రదేశం">Home place</h2>
-      <p class="portal-hint" data-en="Used for the Today card on your home page." data-te="హోమ్ పేజీలో నేటి పంచాంగానికి వాడతాము.">Used for the Today card on your home page.</p>
+      <h2 id="hTitle" data-i18n>Home place</h2>
+      <p class="portal-hint" data-i18n>Used for the Today card on your home page.</p>
       <form id="homeForm" class="portal-form">
-        <div class="field"><label for="acPlace" data-en="Place" data-te="ప్రదేశం">Place</label><select id="acPlace" required></select></div>
-        <button type="submit" class="btn" data-en="Save home place" data-te="ఇంటి ప్రదేశం భద్రపరచండి">Save home place</button>
+        <div class="field"><label for="acPlace" data-i18n>Place</label><select id="acPlace" required></select></div>
+        <button type="submit" class="btn" data-i18n>Save home place</button>
       </form>
     </section>
 
     <section class="portal-card" aria-labelledby="dTitle">
-      <h2 id="dTitle" data-en="Signed-in devices" data-te="లాగిన్ అయిన పరికరాలు">Signed-in devices</h2>
-      <ul id="devices" class="portal-list"><li data-en="Loading…" data-te="లోడ్ అవుతోంది…"><span class="skeleton" role="status" aria-label="Loading"></span></li></ul>
+      <h2 id="dTitle" data-i18n>Signed-in devices</h2>
+      <ul id="devices" class="portal-list"><li data-i18n><span class="skeleton" role="status" aria-label="Loading"></span></li></ul>
     </section>
 
     <section class="portal-card" aria-labelledby="yTitle">
-      <h2 id="yTitle" data-en="Your data" data-te="మీ సమాచారం">Your data</h2>
-      <p class="portal-hint" data-en="Download everything stored about you: your account, family (with birth details), family events, saved muhurtas and your activity." data-te="మీ గురించి నిల్వ ఉన్నదంతా డౌన్‌లోడ్ చేసుకోండి: ఖాతా, కుటుంబం (జన్మ వివరాలతో), కుటుంబ కార్యక్రమాలు, భద్రపరిచిన ముహూర్తాలు, మీ కార్యకలాపాలు.">Download everything stored about you: your account, family (with birth details), family events, saved muhurtas and your activity.</p>
-      <div class="row-form"><button type="button" class="btn btn--ghost" id="exportBtn" data-en="Download my data" data-te="నా సమాచారం డౌన్‌లోడ్">Download my data</button></div>
+      <h2 id="yTitle" data-i18n>Your data</h2>
+      <p class="portal-hint" data-i18n>Download everything stored about you: your account, family (with birth details), family events, saved muhurtas and your activity.</p>
+      <div class="row-form"><button type="button" class="btn btn--ghost" id="exportBtn" data-i18n>Download my data</button></div>
       <details class="danger-zone">
-        <summary data-en="Delete my account" data-te="నా ఖాతా తొలగించండి">Delete my account</summary>
+        <summary data-i18n>Delete my account</summary>
         <form id="deleteForm" class="portal-form">
-          <p class="portal-hint" data-en="This removes your name, mobile, family, family events and saved muhurtas, and signs you out everywhere. It can't be undone. The activity log keeps only that an account existed." data-te="ఇది మీ పేరు, మొబైల్, కుటుంబం, కుటుంబ కార్యక్రమాలు, భద్రపరిచిన ముహూర్తాలను తొలగించి అన్ని పరికరాల నుండి సైన్ అవుట్ చేస్తుంది. తిరిగి పొందలేము. ఖాతా ఉండేదని మాత్రమే లాగ్‌లో ఉంటుంది.">This removes your name, mobile, family, family events and saved muhurtas, and signs you out everywhere. It can't be undone. The activity log keeps only that an account existed.</p>
-          <div class="field"><label for="delPassword" data-en="Your password" data-te="మీ పాస్‌వర్డ్">Your password</label><input type="password" id="delPassword" required autocomplete="current-password"></div>
-          <label class="switch"><input type="checkbox" id="delSure" required> <span data-en="I understand my account and data will be deleted for good." data-te="నా ఖాతా, సమాచారం శాశ్వతంగా తొలగిపోతాయని అర్థమైంది.">I understand my account and data will be deleted for good.</span></label>
-          <button type="submit" class="btn btn--danger" data-en="Delete my account" data-te="నా ఖాతా తొలగించండి">Delete my account</button>
+          <p class="portal-hint" data-i18n>This removes your name, mobile, family, family events and saved muhurtas, and signs you out everywhere. It can't be undone. The activity log keeps only that an account existed.</p>
+          <div class="field"><label for="delPassword" data-i18n>Your password</label><input type="password" id="delPassword" required autocomplete="current-password"></div>
+          <label class="switch"><input type="checkbox" id="delSure" required> <span data-i18n>I understand my account and data will be deleted for good.</span></label>
+          <button type="submit" class="btn btn--danger" data-i18n>Delete my account</button>
         </form>
       </details>
     </section>
   </main>
   <script src="js/config.js"></script>
-  <script src="js/site-config.js?v=20261121a"></script>
-  <script src="js/icons.js?v=20261110"></script>
-  <script src="js/app-shell.js?v=20261110"></script>
-  <script src="js/i18n.js?v=20261114c"></script>
-  <script src="js/auth.js?v=20261119a"></script>
-  <script src="js/account.js?v=20261110"></script>
+  <script src="js/site-config.js?v=20261122a"></script>
+  <script src="js/icons.js?v=20261122a"></script>
+  <script src="js/app-shell.js?v=20261122a"></script>
+  <script src="i18n/te.js?v=20261122a"></script>
+  <script src="js/i18n.js?v=20261122a"></script>
+  <script src="js/auth.js?v=20261122a"></script>
+  <script src="js/account.js?v=20261122a"></script>
 </body>
 </html>

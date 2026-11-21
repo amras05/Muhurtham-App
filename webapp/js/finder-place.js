@@ -14,7 +14,7 @@ const PLACE_KEY = "mh_finder_place";
 function setPlace(p, remember) {
   chosenPlace = { label: p.label, lat: Number(p.lat), lon: Number(p.lon), tz_offset: Number(p.tz_offset) };
   el("mfPlaceInput").value = p.label;
-  el("mfPlaceNote").textContent = T(`Times for ${p.label} (UTC${p.tz_offset >= 0 ? "+" : ""}${p.tz_offset})`, `${p.label} సమయాలు (UTC${p.tz_offset >= 0 ? "+" : ""}${p.tz_offset})`);
+  el("mfPlaceNote").textContent = t("Times for {label} (UTC{tz_offset}{tz_offset2})", { label: p.label, tz_offset: p.tz_offset >= 0 ? "+" : "", tz_offset2: p.tz_offset });
   if (remember) { try { localStorage.setItem(PLACE_KEY, JSON.stringify(chosenPlace)); } catch (e) { /* private mode */ } }
 }
 async function fallbackPlace(why) {
@@ -26,8 +26,8 @@ async function fallbackPlace(why) {
   if (why) el("mfPlaceNote").textContent += " · " + why;
 }
 function useMyLocation() {
-  if (!navigator.geolocation) return fallbackPlace(T("Location isn't available in this browser; search for the place.", "ఈ బ్రౌజర్‌లో స్థానం అందుబాటులో లేదు; ప్రాంతం వెతకండి."));
-  el("mfPlaceNote").textContent = T("Finding your town…", "మీ ఊరు కనుగొంటున్నాం…");
+  if (!navigator.geolocation) return fallbackPlace(t("Location isn't available in this browser; search for the place."));
+  el("mfPlaceNote").textContent = t("Finding your town…");
   navigator.geolocation.getCurrentPosition(async pos => {
     try {
       const res = await fetch(`${API_BASE}/geocode/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
@@ -35,7 +35,7 @@ function useMyLocation() {
       if (!res.ok) throw new Error((d && d.detail) || `HTTP ${res.status}`);
       setPlace(d, false);
     } catch (e) { fallbackPlace(e.message); }
-  }, () => fallbackPlace(T("Location not shared; search for the place.", "స్థానం పంచుకోలేదు; ప్రాంతం వెతకండి.")),
+  }, () => fallbackPlace(t("Location not shared; search for the place.")),
   { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 });
 }
 (function initPlaceSearch() {
@@ -50,7 +50,7 @@ function useMyLocation() {
       try {
         const res = await fetch(`${API_BASE}/geocode/suggestions?q=${encodeURIComponent(q)}`);
         const items = res.ok ? await res.json() : [];
-        list.innerHTML = items.length ? "" : `<div class="suggestion-item suggestion-item--empty">${escapeHtml(T("No town found. Try just the town name.", "ఊరు దొరకలేదు. ఊరి పేరు మాత్రమే ఇచ్చి చూడండి."))}</div>`;
+        list.innerHTML = items.length ? "" : `<div class="suggestion-item suggestion-item--empty">${escapeHtml(t("No town found. Try just the town name."))}</div>`;
         items.forEach(it => {
           const div = document.createElement("div");
           div.className = "suggestion-item"; div.setAttribute("role", "option"); div.textContent = it.label;

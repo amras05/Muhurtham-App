@@ -1,11 +1,11 @@
 // ============================================================
-// Gayatri Jyotirnidhi · site settings on every page (Super Admin Control Plan S3–S7, 13 Nov 2026)
+// Gayathri Jyothirnidhe · site settings on every page (Super Admin Control Plan S3–S7, 13 Nov 2026)
 // Reads the public settings (/app/config) the super admin changes on the Settings page and applies
 // the brand and theme. Pages read the rest through window.SiteConfig:
 //   SiteConfig.data            the last settings (from this browser's cache first, then the server)
 //   SiteConfig.ready           a promise for the server's settings
 //   SiteConfig.onChange(fn)    called whenever new settings arrive
-//   SiteConfig.text(key, en, te)  an editable text, or the page's own wording when it is empty
+//   SiteConfig.text(key, en)      an editable text, or the page's own wording when it is empty
 // Load it right after config.js (it needs API_BASE).
 // ============================================================
 window.SiteConfig = (function () {
@@ -63,18 +63,23 @@ window.SiteConfig = (function () {
     return s ? !!s[kind] : kind !== "pdf";
   }
 
-  // Elements with data-text-key take the super admin's wording (Settings › Texts, plan D8). Their own
-  // data-en / data-te are kept in data-orig-* so an emptied box brings the page's wording back.
+  // Elements with data-text-key take the super admin's wording (Settings › Texts, plan D8). Without it they
+  // show the page's own wording: the data-i18n English through i18n/te.js (21 Nov 2026), or, for elements not
+  // moved yet, their data-en / data-te. The page's own English is kept in data-orig so an emptied box brings it back.
   function applyTexts(texts) {
     var lang = (typeof currentLang !== "undefined" && currentLang === "te") ? "te" : "en";
     document.querySelectorAll("[data-text-key]").forEach(function (el) {
-      ["en", "te"].forEach(function (l) {
-        if (!el.hasAttribute("data-orig-" + l)) el.setAttribute("data-orig-" + l, el.getAttribute("data-" + l) || el.textContent);
-        var t = texts && texts[el.getAttribute("data-text-key")];
-        var v = t && (t[l] || "").trim();
-        el.setAttribute("data-" + l, v || el.getAttribute("data-orig-" + l));
-      });
-      el.textContent = el.getAttribute("data-" + lang);
+      if (el.hasAttribute("data-i18n") && el.dataset.i18nKey === undefined) {
+        el.dataset.i18nKey = el.getAttribute("data-i18n") || el.textContent.replace(/\s+/g, " ").trim();   // before any override text
+      }
+      if (!el.hasAttribute("data-orig")) {
+        el.setAttribute("data-orig", el.dataset.i18nKey || el.getAttribute("data-en") || el.textContent.trim());
+      }
+      var c = texts && texts[el.getAttribute("data-text-key")];
+      var custom = c && (c[lang] || "").trim();
+      if (custom) { el.textContent = custom; return; }
+      if (lang === "te" && el.hasAttribute("data-te")) { el.textContent = el.getAttribute("data-te"); return; }
+      el.textContent = typeof t === "function" ? t(el.getAttribute("data-orig")) : el.getAttribute("data-orig");
     });
     var line = texts && texts.site_footer, foot = document.getElementById("siteFooter");
     var footText = line ? ((line[lang] || "").trim() || (line.en || "").trim()) : "";
@@ -101,7 +106,7 @@ window.SiteConfig = (function () {
       console.error("Update time could not be formatted", e);
       return "";
     }
-    return (lang === "te" ? "యాప్ నవీకరణ: " : "App updated: ") + stamp + " IST" + (build.commit ? " · " + build.commit : "");
+    return (typeof t === "function" ? t("App updated: {stamp} IST", { stamp: stamp }) : "App updated: " + stamp + " IST") + (build.commit ? " · " + build.commit : "");
   }
 
   function apply() {
@@ -145,11 +150,13 @@ window.SiteConfig = (function () {
     sharingOn: sharingOn,
     applyTexts: function () { if (data) applyTexts(data.texts); },
     onChange: function (fn) { listeners.push(fn); if (data) { try { fn(data); } catch (e) { console.error(e); } } },
-    text: function (key, en, te) {
-      var t = data && data.texts && data.texts[key];
+    // The super admin's wording for `key` in the current language (Settings › Texts), else the page's own
+    // English through i18n/te.js (21 Nov 2026: one label, not an English and a Telugu one).
+    text: function (key, en) {
+      var c = data && data.texts && data.texts[key];
       var lang = (typeof currentLang !== "undefined" && currentLang === "te") ? "te" : "en";
-      var custom = t && (t[lang] || "").trim();
-      return custom || (lang === "te" ? te : en);
+      var custom = c && (c[lang] || "").trim();
+      return custom || (typeof t === "function" ? t(en) : en);
     },
   };
 })();
